@@ -1,0 +1,22 @@
+"filename", "language", "C#", "comment", "blank", "total"
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AIBehavior\AIBehavior.cs", "C#", 133, 2, 14, 149
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AIBehavior\CombatBehavior.cs", "C#", 147, 2, 26, 175
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AIBehavior\LineOfSight.cs", "C#", 224, 1, 30, 255
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AIBehavior\NoCombatBehavior.cs", "C#", 53, 2, 19, 74
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AIBehavior\PatrolBehavior.cs", "C#", 12, 2, 5, 19
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AIBehavior\PlayerVision.cs", "C#", 42, 2, 11, 55
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AIBehavior\ThreatManager.cs", "C#", 193, 3, 27, 223
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AudioManager.cs", "C#", 35, 2, 8, 45
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\CharacterInfo.cs", "C#", 202, 2, 32, 236
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\DummyBehavior.cs", "C#", 63, 2, 16, 81
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\EntityInfo.cs", "C#", 848, 13, 96, 957
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\EntitySoundPack.cs", "C#", 9, 1, 2, 12
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\Graphics\GraphicsInfo.cs", "C#", 105, 3, 18, 126
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\Graphics\ProgressBars\ResourceBarsInfo.cs", "C#", 44, 3, 10, 57
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\Group Controls\PartyInfo.cs", "C#", 259, 3, 41, 303
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\Group Controls\RaidInfo.cs", "C#", 22, 2, 5, 29
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\Movement\Movement.cs", "C#", 149, 2, 24, 175
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\Movement\MovementLocation.cs", "C#", 23, 2, 6, 31
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\PlayerControls\PlayerController.cs", "C#", 222, 2, 28, 252
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\Targetable.cs", "C#", 68, 2, 15, 85
+"Total", "-", 2853, 53, 433, 3339

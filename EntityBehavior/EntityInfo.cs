@@ -1,0 +1,1001 @@
+using Architome.Enums;
+using Architome;
+using Pathfinding;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using System;
+using System.Threading.Tasks;
+
+namespace Architome
+{
+    public class EntityInfo : MonoBehaviour
+    {
+        // Start is called before the first frame update
+        public string entityName;
+        [Multiline]
+        public string entityDescription;
+        public Sprite entityPortrait;
+
+        public EntitySoundPack entitySound;
+
+        public EntityControlType entityControlType;
+        [Header("Entity Properties")]
+        public NPCType npcType;
+        public EntityRarity rarity;
+        public List<EntityState> stateImmunities;
+        public bool isPlayer;
+        public bool isAlive;
+        public bool isInCombat;
+        public bool created = false;
+        public bool isRegening = false;
+        public bool disappeared = false;
+        public bool isHover = false;
+        public Role role;
+        public RoomInfo currentRoom;
+        public EntityState currentState = EntityState.Active;
+
+        public PresetStats presetStats;
+        public bool fixedStats;
+        public Role roleFixed;
+        public Stats entityStats;
+        public Stats equipmentStats;
+        public Stats stats;
+
+        [Header("Resources")]
+        public float maxHealth;
+        public float maxMana;
+        public float shield;
+        public float health;
+        public float mana;
+
+        [Header("Regen Percent")]
+        public float healthRegenPercent = .01f;
+        public float manaRegenPercent = .01f;
+
+        [Header("Experience")]
+        public float experience;
+        public float experienceRequiredToLevel;
+        public float experienceMultiplier;
+        public bool canLevel;
+
+        public LayerMask walkableLayer;
+
+
+        //Events
+        public event Action<CombatEventData> OnDamageTaken;
+        public event Action<CombatEventData> OnDamageDone;
+        public event Action<CombatEventData> OnHealingTaken;
+        public event Action<CombatEventData> OnHealingDone;
+        public event Action<CombatEventData> OnReviveOther;
+        public event Action<CombatEventData> OnReviveThis;
+        public event Action<CombatEventData> OnDeath;
+        public event Action<CombatEventData> OnKill;
+        public Action<BuffInfo, EntityInfo> OnNewBuff;
+        public Action<BuffInfo, EntityInfo> OnBuffApply;
+        public Action<float> OnExperienceGain;
+        public Action<int> OnLevelUp;
+        public Action<float, float, float> OnHealthChange;
+        public Action<float, float> OnManaChange;
+        public Action<bool> OnCombatChange;
+        public Action<bool> OnLifeChange;
+        public Action<SocialEventData> OnReceiveInteraction;
+        public Action<SocialEventData> OnReactToInteraction;
+        public Action<RoomInfo, RoomInfo> OnRoomChange;
+        public Action<RoomInfo, bool> OnCurrentShowRoom;
+        public Action<EntityState, EntityState> OnStateChange;
+        public Action<EntityState, EntityState> OnStateNegated;
+        public Action<NPCType, NPCType> OnChangeNPCType;
+        public Action<EntityInfo, Collider, bool> OnTriggerEvent;
+        public Action<EntityInfo, Collision, bool> OnCollisionEvent;
+        public Action<EntityInfo, GameObject, bool> OnPhysicsEvent;
+
+
+        //Non Player Events
+        public Action<EntityInfo, PartyInfo> OnPlayerLineOfSight;
+        public Action<EntityInfo, PartyInfo> OnPlayerOutOfRange;
+        public Action<EntityInfo, PartyInfo> OnPlayerLOSBreak;
+
+        //Event Triggers
+        private float healthCheck;
+        private float maxHealthCheck;
+        private float manaCheck;
+        private float maxManaCheck;
+        private float shieldCheck;
+        private bool combatCheck;
+        private RoomInfo previousRoom;
+        private bool isAliveCheck;
+        private NPCType npcTypeCheck;
+
+        //Private Variables
+        RigidbodyConstraints originalConstraints;
+        //Methods
+        public void GetDependencies()
+        {
+            if (GetComponent<Rigidbody>())
+            {
+                originalConstraints = GetComponent<Rigidbody>().constraints;
+            }
+
+        }
+        public void GetPartyControls()
+        {
+            if (transform.parent)
+            {
+                if (GetComponentInParent<PartyInfo>())
+                {
+                    entityControlType = EntityControlType.PartyControl;
+                }
+            }
+        }
+        public void StartUp()
+        {
+            if (fixedStats)
+            {
+                stats = entityStats;
+                UpdateResources(true);
+            }
+            else if (presetStats)
+            {
+                entityName = presetStats.name;
+                role = presetStats.Role;
+                entityStats = new Stats().Sum(entityStats,presetStats.Stats());
+                npcType = presetStats.npcType;
+
+                experience = entityStats.experience;
+                experienceRequiredToLevel = entityStats.UpdateRequiredToLevel().experienceReq;
+
+                canLevel = presetStats.canLevel;
+                stats = stats.Sum(stats, entityStats);
+                experience = presetStats.Stats().experience;
+                experienceRequiredToLevel = entityStats.experienceReq;
+                UpdateResources(true);
+            }
+            else
+            {
+                entityStats.Level = 1;
+                entityStats.Vitality = 10;
+                entityStats.Strength = 10;
+                entityStats.Dexterity = 10;
+                entityStats.Wisdom = 10;
+                role = Role.Damage;
+                stats = stats.Sum(stats, entityStats);
+                UpdateResources(true);
+
+                experience = 0;
+                if (GMHelper.GameManager() && GMHelper.Difficulty())
+                {
+                    experienceMultiplier = GMHelper.Difficulty().settings.experienceMultiplier;
+                }
+                experienceRequiredToLevel = experienceMultiplier * entityStats.Level;
+            }
+            if (npcType == NPCType.Hostile)
+            {
+                entityControlType = EntityControlType.NoControl;
+            }
+
+
+            health = maxHealth;
+            mana = maxMana;
+            shield = 0;
+            isAlive = true;
+
+            GetPartyControls();
+            Invoke("SetEntityStats", .125f);
+            Invoke("UpdateCurrentStats", .250f);
+
+            if(!isPlayer)
+            {
+                healthRegenPercent = .25f;
+            }
+        }
+        void UpdateResources(bool val)
+        {
+            if (role == Role.Tank)
+            {
+                maxHealth = stats.Vitality * 10 * GMHelper.Difficulty().settings.tankHealthMultiplier;
+                entityStats.damageReduction = .25f;
+            }
+            else
+            {
+                maxHealth = stats.Vitality * 10;
+            }
+
+            maxMana = stats.Wisdom * 10;
+
+            if (val)
+            {
+                health = maxHealth;
+                mana = maxMana;
+            }
+        }
+        void Start()
+        {
+            if (!created)
+            {
+                GetDependencies();
+                StartUp();
+            }
+
+            StartCoroutine(HandleRegeneration());
+            currentRoom = CurrentRoom();
+        }
+        void Update()
+        {
+            HandleEventTriggers();
+        }
+        void HandleEventTriggers()
+        {
+            if (healthCheck != health || maxHealthCheck != maxHealth || shieldCheck != shield)
+            {
+                shieldCheck = shield;
+                healthCheck = health;
+                maxHealthCheck = maxHealth;
+
+                OnHealthChange?.Invoke(health, shield, maxHealth);
+            }
+
+            if (manaCheck != mana || maxManaCheck != maxMana)
+            {
+                manaCheck = mana;
+                OnManaChange?.Invoke(mana, maxMana);
+            }
+
+            if (combatCheck != isInCombat)
+            {
+                combatCheck = isInCombat;
+
+                OnCombatChange?.Invoke(combatCheck);
+            }
+
+            if (currentRoom != previousRoom)
+            {
+                OnRoomChange?.Invoke(previousRoom, currentRoom);
+
+                previousRoom = currentRoom;
+            }
+
+            if (isAlive != isAliveCheck)
+            {
+                isAliveCheck = isAlive;
+
+                EntityDeathHandler.active.HandleLifeChange(gameObject);
+                OnLifeChange?.Invoke(isAliveCheck);
+            }
+
+            if(npcType != npcTypeCheck)
+            {
+                OnChangeNPCType?.Invoke(npcTypeCheck, npcType);
+
+                npcTypeCheck = npcType;
+            }
+
+
+
+        }
+        public void OnDestroy()
+        {
+            if (GMHelper.TargetManager())
+            {
+                if (GMHelper.TargetManager().selectedTargets.Contains(gameObject))
+                {
+                    GMHelper.TargetManager().selectedTargets.Remove(gameObject);
+                }
+            }
+        }
+        public void OnTriggerEnter(Collider other)
+        {
+            OnTriggerEvent?.Invoke(this, other, true);
+            OnPhysicsEvent?.Invoke(this, other.gameObject, true);
+        }
+        public void OnTriggerExit(Collider other)
+        {
+
+            OnPhysicsEvent?.Invoke(this, other.gameObject, false);
+            OnTriggerEvent?.Invoke(this, other, false);
+        }
+        public void OnCollisionEnter(Collision collision)
+        {
+            OnPhysicsEvent?.Invoke(this, collision.gameObject, true);
+            OnCollisionEvent?.Invoke(this, collision, true);
+        }
+        public void OnCollisionExit(Collision collision)
+        {
+
+            OnPhysicsEvent?.Invoke(this, collision.gameObject, false);
+            OnCollisionEvent?.Invoke(this, collision, true);
+        }
+        public void SetEntityStats()
+        {
+            entityStats.movementSpeed = 1;
+            entityStats.healingReceivedMultiplier = 1;
+            entityStats.damageMultiplier = 1;
+            entityStats.damageTakenMultiplier = 1;
+        }
+        public void UpdateCurrentStats()
+        {
+            if (CharacterInfo() == null) { return; }
+            if (CharacterInfo().totalEquipmentStats == null) { return; }
+            if (entityStats == null) { return; }
+
+            CharacterInfo().UpdateEquipmentStats();
+            var currentStats = new Stats();
+            currentStats = currentStats.Sum(entityStats, CharacterInfo().totalEquipmentStats);
+
+            UpdateCoreStats();
+            UpdateResources(false);
+
+            void UpdateCoreStats()
+            {
+                stats = currentStats;
+            }
+        }
+        public void Damage(CombatEventData combatData)
+        {
+            combatData.target = this;
+            var source = combatData.source;
+            var damageType = combatData.catalyst.damageType;
+
+            HandleValue();
+            HandleExperience();
+            HandleDamage();
+
+            void HandleValue()
+            {
+
+                float criticalRole = UnityEngine.Random.Range(0, 100);
+
+                if(source.stats.criticalStrikeChance * 100 > criticalRole)
+                {
+                    combatData.critical = true;
+                    combatData.value *= source.stats.criticalDamage;
+                }
+
+
+                combatData.value *= source.stats.damageMultiplier;
+                combatData.value *= stats.damageTakenMultiplier;
+                combatData.value -= combatData.value * stats.damageReduction;
+                if (damageType == DamageType.Physical)
+                {
+                    combatData.value -= stats.armor;
+                }
+                else if (damageType == DamageType.Magical)
+                {
+                    combatData.value -= stats.magicResist;
+                }
+                if (combatData.value < 0)
+                {
+                    combatData.value = 0;
+                }
+
+            }
+            void HandleExperience()
+            {
+                if (GetComponent<DummyBehavior>()) { return; }
+                if (health + shield - combatData.value <= 0)
+                {
+                    source.GainExp((combatData.value - health + shield) * .25f);
+                    GainExp((combatData.value - health + shield) * .125f);
+                }
+                else
+                {
+                    GainExp(combatData.value * .125f);
+                    source.GainExp(combatData.value * .25f);
+                }
+            }
+
+            void HandleDamage()
+            {
+                HandleEvents();
+                DamageShield();
+                DamageHealth();
+
+                void DamageShield()
+                {
+                    if (Buffs() && Buffs().Buffs().Count > 0)
+                    {
+                        foreach (BuffInfo buff in Buffs().Buffs())
+                        {
+                            if (buff.GetComponent<BuffShield>() && buff.GetComponent<BuffShield>().shieldAmount > 0)
+                            {
+                                if (buff.GetComponent<BuffShield>().shieldAmount > combatData.value)
+                                {
+                                    buff.GetComponent<BuffShield>().DamageShield(combatData.value);
+                                    combatData.value = 0;
+                                    return;
+                                }
+                                else if (buff.GetComponent<BuffShield>().shieldAmount <= combatData.value)
+                                {
+
+                                    combatData.value -= buff.GetComponent<BuffShield>().shieldAmount;
+                                    buff.GetComponent<BuffShield>().DamageShield(buff.GetComponent<BuffShield>().shieldAmount);
+                                    buff.StartCoroutine(buff.Expire());
+                                    DamageShield();
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+                void DamageHealth()
+                {
+                    if (health - combatData.value <= 0)
+                    {
+                        health = 0;
+                        Die();
+
+                        EntityDeathHandler.active.HandleDeadEntity(combatData);
+                        OnDeath?.Invoke(combatData);
+                        source.OnKill?.Invoke(combatData);
+
+
+                    }
+                    else
+                    {
+                        health -= combatData.value;
+                    }
+                }
+
+                void HandleEvents()
+                {
+                    OnDamageTaken?.Invoke(combatData);
+                    source.OnDamageDone?.Invoke(combatData);
+                }
+            }
+        }
+        public void Heal(CombatEventData combatData)
+        {
+            if (!isAlive) { return; }
+            combatData.target = this;
+            var source = combatData.source;
+            HandleValue();
+            HandleExperience();
+            HandleHealing();
+
+
+            void HandleValue()
+            {
+                combatData.value *= stats.healingReceivedMultiplier;
+
+                float criticalRole = UnityEngine.Random.Range(0, 100);
+
+                if (source.stats.criticalStrikeChance * 100 > criticalRole)
+                {
+                    combatData.critical = true;
+                    combatData.value *= source.stats.criticalDamage;
+                }
+            }
+
+            void HandleExperience()
+            {
+                if (GetComponent<DummyBehavior>()) { return; }
+                if (health + combatData.value > maxHealth)
+                {
+                    source.GainExp((maxHealth - health) * .25f);
+                }
+                else
+                {
+                    source.GainExp(combatData.value * .25f);
+                }
+            }
+
+            void HandleHealing()
+            {
+                HandleEvents();
+                if (health + combatData.value > maxHealth)
+                {
+                    health = maxHealth;
+                }
+                else
+                {
+                    health += combatData.value;
+                }
+            }
+
+            void HandleEvents()
+            {
+                
+                OnHealingTaken?.Invoke(combatData);
+                source.OnHealingDone?.Invoke(combatData);
+            }
+        }
+        public bool ChangeState(EntityState state)
+        {
+            if (stateImmunities.Contains(state)) 
+            {
+                OnStateNegated?.Invoke(currentState, state);
+                return false; 
+            }
+
+            OnStateChange?.Invoke(currentState, state);
+            currentState = state;
+
+            return true;
+
+        }
+        public void ReactToSocial(SocialEventData eventData)
+        {
+            if (eventData.target == this)
+            {
+                OnReceiveInteraction?.Invoke(eventData);
+            }
+            else
+            {
+                OnReactToInteraction?.Invoke(eventData);
+            }
+        }
+        public void GainExp(float value)
+        {
+            if (!canLevel) { return; }
+            OnExperienceGain?.Invoke(value);
+            if (GMHelper.GameManager() && GMHelper.Difficulty())
+            {
+                experienceMultiplier = GMHelper.Difficulty().settings.experienceMultiplier;
+            }
+
+            experienceRequiredToLevel = entityStats.Level * experienceMultiplier;
+
+            if (experience + value > experienceRequiredToLevel)
+            {
+                LevelUp();
+                value = (experience + value) - (experienceRequiredToLevel);
+                experience = 0;
+                GainExp(value);
+            }
+            else
+            {
+                experience += value;
+            }
+        }
+        public void LevelUp()
+        {
+            entityStats.Level++;
+            OnLevelUp?.Invoke(entityStats.Level);
+            entityStats.UpdateCoreStats();
+            UpdateCurrentStats();
+            health = maxHealth;
+            mana = maxMana;
+        }
+        public void Use(float value)
+        {
+            if (mana - value < 0)
+            {
+                mana = 0;
+            }
+            else
+            {
+                mana -= value;
+            }
+        }
+        public void UpdateShield()
+        {
+            float totalShield = 0;
+            if (Buffs())
+            {
+                foreach (BuffInfo buff in Buffs().Buffs())
+                {
+                    if (buff.GetComponent<BuffShield>())
+                    {
+                        totalShield += buff.GetComponent<BuffShield>().shieldAmount;
+                    }
+                }
+            }
+
+            shield = totalShield;
+        }
+        public void Gain(float value)
+        {
+            if (mana + value > maxMana)
+            {
+                mana = maxMana;
+            }
+            else
+            {
+                mana += value;
+            }
+
+        }
+        public void Reveal()
+        {
+            if (GraphicsInfo())
+            {
+                GraphicsInfo().gameObject.SetActive(true);
+            }
+            if (CharacterInfo())
+            {
+                CharacterInfo().gameObject.SetActive(true);
+            }
+        }
+        public void Die()
+        {
+            isAlive = false;
+
+            
+
+            if(Entity.IsPlayer(gameObject))
+            {
+
+            }
+            else
+            {
+                StartCoroutine(Decay());
+            }
+        }
+        public void Revive(CombatEventData combatData)
+        {
+            combatData.value = maxHealth * combatData.percentValue;
+            combatData.target = this;
+            this.health = combatData.value;
+            var source = combatData.source;
+            isAlive = true;
+
+
+            if(source)
+            {
+                source.OnReviveOther?.Invoke(combatData);
+            }
+            
+            OnReviveThis?.Invoke(combatData);
+
+            if (GetComponent<Rigidbody>())
+            {
+                GetComponent<Rigidbody>().constraints = originalConstraints;
+            }
+        }
+        public void ChangeBehavior(NPCType npcType, AIBehaviorType behaviorType)
+        {
+
+            try 
+            {
+
+                this.npcType = npcType;
+                AIBehavior().behaviorType = behaviorType;
+            }
+            catch
+            {
+
+            }
+        }
+        public IEnumerator Decay()
+        {
+            yield return new WaitForSeconds(5);
+            disappeared = true;
+            Destroy(gameObject);
+
+        }
+        public bool CanAttack(GameObject target)
+        {
+            if (target.GetComponent<EntityInfo>() == null) { return false; }
+            var targetInfo = target.GetComponent<EntityInfo>();
+
+            if(targetInfo.npcType == NPCType.Untargetable) { return false; }
+
+            if(this.npcType == NPCType.Neutral) { return true; }
+
+
+            if (targetInfo.npcType != this.npcType) { return true; }
+            else { return false; }
+        }
+        public bool CanHelp(GameObject target)
+        {
+            if (target.GetComponent<EntityInfo>() == null) { return false; }
+            var targetInfo = target.GetComponent<EntityInfo>();
+            
+            if(targetInfo.npcType == NPCType.Untargetable) { return false; }
+
+            if(npcType == NPCType.Neutral) { return true; }
+
+            if (targetInfo.npcType != this.npcType)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+
+        }
+        public IEnumerator HandleRegeneration()
+        {
+
+            while (true)
+            {
+                yield return new WaitForSeconds(1f);
+                if (isAlive)
+                {
+                    HandleHealthRegen();
+                    HandleManaRegen();
+                }
+
+            }
+
+
+            void HandleHealthRegen()
+            {
+                if (!isInCombat)
+                {
+                    var nextHealth = health + maxHealth * healthRegenPercent;
+
+                    if (nextHealth < maxHealth)
+                    {
+                        health = nextHealth;
+                    }
+                    else if (nextHealth > maxHealth)
+                    {
+                        health = maxHealth;
+                    }
+
+                }
+            }
+            void HandleManaRegen()
+            {
+                var nextMana = mana + maxMana * manaRegenPercent;
+                if (nextMana < maxMana)
+                {
+                    mana = nextMana;
+
+                }
+                else
+                {
+                    mana = maxMana;
+                }
+
+            }
+
+        }
+        public Movement Movement()
+        {
+            foreach (Transform child in transform)
+            {
+                if (child.GetComponent<Movement>())
+                {
+                    return child.GetComponent<Movement>();
+                }
+            }
+            return null;
+        }
+        public AbilityManager AbilityManager()
+        {
+            foreach (Transform child in transform)
+            {
+                if (child.GetComponent<AbilityManager>())
+                {
+                    return child.GetComponent<AbilityManager>();
+                }
+            }
+            return null;
+        }
+        public AIDestinationSetter AIDestinationSetter()
+        {
+            if (gameObject.GetComponent<AIDestinationSetter>())
+            {
+                return gameObject.GetComponent<AIDestinationSetter>();
+            }
+            return null;
+        }
+        public AIPath Path()
+        {
+            if (gameObject.GetComponent<AIPath>() != null)
+            {
+                return gameObject.GetComponent<AIPath>();
+            }
+            return null;
+        }
+        public GraphicsInfo GraphicsInfo()
+        {
+            foreach (Transform child in transform)
+            {
+                if (child.GetComponent<GraphicsInfo>())
+                {
+                    return child.GetComponent<GraphicsInfo>();
+                }
+            }
+            return null;
+        }
+        public CharacterInfo CharacterInfo()
+        {
+            foreach (Transform child in transform)
+            {
+                if (child.GetComponent<CharacterInfo>())
+                {
+                    return child.GetComponent<CharacterInfo>();
+                }
+            }
+            return null;
+        }
+        public PlayerController PlayerController()
+        {
+            foreach (Transform child in transform)
+            {
+                if (child.GetComponent<PlayerController>())
+                {
+                    return child.GetComponent<PlayerController>();
+                }
+            }
+            return null;
+        }
+        public AIBehavior AIBehavior()
+        {
+            foreach (Transform child in transform)
+            {
+                if (child.GetComponent<AIBehavior>())
+                {
+                    return child.GetComponent<AIBehavior>();
+                }
+            }
+            return null;
+        }
+        public ThreatManager ThreatManager()
+        {
+            if (AIBehavior() && AIBehavior().ThreatManager())
+            {
+                return AIBehavior().ThreatManager();
+            }
+            return null;
+        }
+        public LineOfSight LineOfSight()
+        {
+            if (AIBehavior() && AIBehavior().LineOfSight())
+            {
+                return AIBehavior().LineOfSight();
+            }
+            return null;
+        }
+        public PartyInfo PartyInfo()
+        {
+            if (GetComponentInParent<PartyInfo>())
+            {
+                return GetComponentInParent<PartyInfo>();
+            }
+
+            return null;
+        }
+        public Anim Animation()
+        {
+            if (CharacterInfo() && CharacterInfo().Animation())
+            {
+                return CharacterInfo().Animation();
+            }
+            return null;
+        }
+        public BuffsManager Buffs()
+        {
+
+
+            foreach (Transform child in transform)
+            {
+                if (child.GetComponent<BuffsManager>())
+                {
+                    return child.GetComponent<BuffsManager>();
+                }
+            }
+
+            return null;
+        }
+        public AudioManager Voice()
+        {
+            foreach (Transform child in transform)
+            {
+                if (child.GetComponent<AudioManager>() &&
+                    child.GetComponent<AudioManager>().mixerGroup == GMHelper.Mixer().Voice)
+                {
+                    return child.GetComponent<AudioManager>();
+                }
+            }
+            return null;
+        }
+        public AudioManager SoundEffect()
+        {
+            foreach (Transform child in transform)
+            {
+                if (child.GetComponent<AudioManager>() &&
+                    child.GetComponent<AudioManager>().mixerGroup == GMHelper.Mixer().SoundEffect)
+                {
+                    return child.GetComponent<AudioManager>();
+                }
+
+            }
+            return null;
+        }
+        public Inventory Inventory()
+        {
+            foreach (Transform child in transform)
+            {
+                if (child.GetComponent<Inventory>())
+                {
+                    return child.GetComponent<Inventory>();
+                }
+            }
+
+            return null;
+        }
+        public CombatBehavior CombatBehavior()
+        {
+            if (AIBehavior() && AIBehavior().CombatBehavior())
+            {
+                return AIBehavior().CombatBehavior();
+            }
+            return null;
+        }
+        public ProgressBarsBehavior ProgressBar()
+        {
+            if (GraphicsInfo() && GraphicsInfo().ProgressBars())
+            {
+                return GraphicsInfo().ProgressBars();
+            }
+
+            return null;
+        }
+        public RoomInfo CurrentRoom()
+        {
+            Ray ray = new Ray(transform.position, Vector3.down);
+
+            if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, GMHelper.LayerMasks().walkableLayer))
+            {
+                if (hit.transform.GetComponentInParent<RoomInfo>())
+                {
+                    return hit.transform.GetComponentInParent<RoomInfo>();
+                }
+            }
+
+            return null;
+        }
+
+        public void ShowEntity(bool val, bool hideGraphics = true, bool hideRenders = true, bool hideLights = true, bool destroys = false)
+        {
+
+            if(hideGraphics)
+            {
+            ShowGraphics(val);
+            }
+
+            if(hideRenders)
+            {
+            ShowRenders(val);
+            }
+
+            if(hideLights)
+            {
+                ShowLights(val);
+            }
+
+            async void ShowGraphics(bool val)
+            {
+                var canvases = GetComponentsInChildren<Canvas>();
+
+                foreach (var canvas in canvases)
+                {
+                    canvas.enabled = val;
+
+                    await Task.Yield();
+                }
+            }
+
+            async void ShowRenders(bool val)
+            {
+                var renders = GetComponentsInChildren<Renderer>();
+
+                foreach(var render in renders)
+                {
+                    render.enabled = val;
+                    await Task.Yield();
+                }
+            }
+
+            async void ShowLights(bool val)
+            {
+                var lights = GetComponentsInChildren<Light>();
+
+                foreach(var light in lights)
+                {
+                    light.enabled = val;
+                    await Task.Yield();
+                }
+            }
+
+        }
+
+        
+    }
+}
+

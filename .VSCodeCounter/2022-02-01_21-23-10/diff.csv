@@ -1,0 +1,146 @@
+"filename", "language", "C#", "Markdown", "comment", "blank", "total"
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\.VSCodeCounter\2022-01-07_16-52-26\details.md", "Markdown", 0, 36, 0, 6, 42
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\.VSCodeCounter\2022-01-07_16-52-26\results.md", "Markdown", 0, 25, 0, 7, 32
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\.VSCodeCounter\2022-01-07_16-52-39\details.md", "Markdown", 0, 29, 0, 6, 35
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\.VSCodeCounter\2022-01-07_16-52-39\results.md", "Markdown", 0, 20, 0, 7, 27
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Animations\AbilityAnimation.cs", "C#", 93, 0, 1, 17, 111
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Animations\Animation Events\EntityAnimationEvents.cs", "C#", 56, 0, 2, 20, 78
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Animations\CombatReactions.cs", "C#", 24, 0, 1, 8, 33
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Animations\Game Object Transforms\SpinObject.cs", "C#", 16, 0, 4, 5, 25
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\CameraBehavior\CameraAnchor.cs", "C#", 34, 0, 1, 14, 49
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\CameraBehavior\LookAtCamera.cs", "C#", 21, 0, 2, 9, 32
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\CameraBehavior\MainCamera.cs", "C#", 71, 0, 2, 22, 95
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\CameraBehavior\MainCamera2.cs", "C#", 56, 0, 2, 21, 79
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\CameraBehavior\MainCamera3.cs", "C#", 70, 0, 2, 24, 96
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Data\ArchitomeCharacter.cs", "C#", 345, 0, 2, 44, 391
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Data\CharacterBodyParts.cs", "C#", 15, 0, 1, 2, 18
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Data\Enums.cs", "C#", 189, 0, 1, 25, 215
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Data\PresetStats.cs", "C#", 46, 0, 10, 7, 63
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Data\Stats.cs", "C#", 103, 0, 1, 12, 116
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Dummy Components\IgnoreRayCast.cs", "C#", 12, 0, 2, 5, 19
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AIBehavior\AIBehavior.cs", "C#", 124, 0, 2, 11, 137
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AIBehavior\CombatBehavior.cs", "C#", 306, 0, 15, 61, 382
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AIBehavior\LineOfSight.cs", "C#", 294, 0, 3, 47, 344
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AIBehavior\NoCombatBehavior.cs", "C#", 121, 0, 2, 30, 153
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AIBehavior\PatrolBehavior.cs", "C#", 12, 0, 2, 5, 19
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AIBehavior\PlayerVision.cs", "C#", 42, 0, 2, 11, 55
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AIBehavior\RevealSelf.cs", "C#", 116, 0, 2, 33, 151
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AIBehavior\SocialBehavior.cs", "C#", 94, 0, 2, 24, 120
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AIBehavior\ThreatManager.cs", "C#", 324, 0, 16, 50, 390
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AudioManager.cs", "C#", 35, 0, 2, 8, 45
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\CharacterInfo.cs", "C#", 266, 0, 2, 53, 321
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\CombatInfo.cs", "C#", 89, 0, 4, 24, 117
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\DummyBehavior.cs", "C#", 63, 0, 2, 16, 81
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\EntityInfo.cs", "C#", 904, 0, 5, 113, 1022
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\EntitySFX.cs", "C#", 55, 0, 2, 22, 79
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\EntitySoundPack.cs", "C#", 9, 0, 1, 2, 12
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\Graphics\GraphicsInfo.cs", "C#", 114, 0, 4, 15, 133
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\Group Controls\PartyInfo.cs", "C#", 264, 0, 3, 41, 308
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\Group Controls\RaidInfo.cs", "C#", 22, 0, 2, 5, 29
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\IEntityProperty.cs", "C#", 8, 0, 1, 1, 10
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\Movement\Movement.cs", "C#", 183, 0, 4, 34, 221
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\Movement\MovementLocation.cs", "C#", 24, 0, 2, 6, 32
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\Movement\MovementRVO.cs", "C#", 80, 0, 2, 19, 101
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\PlayerControls\PlayerController.cs", "C#", 230, 0, 2, 31, 263
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\Targetable.cs", "C#", 68, 0, 2, 15, 85
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\GameManager\AudioMixerGroups.cs", "C#", 12, 0, 1, 3, 16
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\GameManager\CharCustomControl.cs", "C#", 28, 0, 2, 6, 36
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\GameManager\ContainerMouseOvers.cs", "C#", 22, 0, 2, 5, 29
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\GameManager\ContainerTargetables.cs", "C#", 155, 0, 3, 32, 190
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\GameManager\EntityCluster\ClusterContainer.cs", "C#", 73, 0, 2, 21, 96
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\GameManager\EntityCluster\EntityClusterAgent.cs", "C#", 38, 0, 2, 11, 51
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\GameManager\EntityCluster\EntityClusterManager.cs", "C#", 87, 0, 2, 34, 123
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\GameManager\GameManager.cs", "C#", 69, 0, 2, 18, 89
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\GameManager\LayerMasksData.cs", "C#", 9, 0, 0, 2, 11
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\GameManager\PathfinderOpt.cs", "C#", 20, 0, 2, 5, 27
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\GameManager\WorldSettings.cs", "C#", 15, 0, 2, 6, 23
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Helper\Debugger.cs", "C#", 20, 0, 2, 6, 28
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Helper\Entity.cs", "C#", 60, 0, 2, 19, 81
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Helper\FindClass.cs", "C#", 12, 0, 2, 6, 20
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Helper\GMHelper.cs", "C#", 90, 0, 3, 16, 109
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Helper\Mathg.cs", "C#", 11, 0, 0, 2, 13
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Helper\Mouse.cs", "C#", 125, 0, 1, 44, 170
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Helper\Player.cs", "C#", 34, 0, 2, 11, 47
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Helper\RandomGen.cs", "C#", 25, 0, 2, 9, 36
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Helper\V3Helper.cs", "C#", 87, 0, 2, 27, 116
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Lighting\LightFluxuation.cs", "C#", 26, 0, 2, 7, 35
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\MapBehavior\MapAdjustments.cs", "C#", 25, 0, 2, 15, 42
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\MapBehavior\MapEntityGenerator.cs", "C#", 115, 0, 2, 31, 148
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\MapBehavior\MapHelper.cs", "C#", 23, 0, 2, 10, 35
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\MapBehavior\MapInfo.cs", "C#", 53, 0, 2, 16, 71
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\MapBehavior\MapRoomGenerator.cs", "C#", 405, 0, 4, 91, 500
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\MapBehavior\PathInfo.cs", "C#", 90, 0, 34, 32, 156
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\MapBehavior\RoomInfo.cs", "C#", 134, 0, 2, 28, 164
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\MapBehavior\RotateAround.cs", "C#", 21, 0, 2, 5, 28
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\MapBehavior\SeedGenerator.cs", "C#", 77, 0, 2, 20, 99
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\AbilityInfo.cs", "C#", 834, 0, 21, 126, 981
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\AbilityManager.cs", "C#", 152, 0, 3, 30, 185
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\AbilityType\AbilityFreeCast.cs", "C#", 43, 0, 2, 5, 50
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\Catalyst\CatalingActions.cs", "C#", 45, 0, 2, 12, 59
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\Catalyst\Catalyst.cs", "C#", 15, 0, 0, 2, 17
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\Catalyst\CatalystDeathCondition.cs", "C#", 115, 0, 2, 19, 136
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\Catalyst\CatalystHit.cs", "C#", 409, 0, 3, 47, 459
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\Catalyst\CatalystInfo.cs", "C#", 177, 0, 2, 33, 212
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\Catalyst\CatalystType\CatalystBounce.cs", "C#", 113, 0, 2, 21, 136
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\Catalyst\CatalystType\CatalystBuffOnDestroy.cs", "C#", 45, 0, 2, 9, 56
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\Catalyst\CatalystType\CatalystFreeFly.cs", "C#", 32, 0, 3, 10, 45
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\Catalyst\CatalystType\CatalystFreeScan.cs", "C#", 32, 0, 2, 11, 45
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\Catalyst\CatalystType\CatalystLockOn.cs", "C#", 95, 0, 2, 20, 117
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\Catalyst\CatalystType\CatalystLockScan.cs", "C#", 46, 0, 2, 11, 59
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\Catalyst\CatalystType\CatalystReturn.cs", "C#", 79, 0, 2, 18, 99
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\Catalyst\CatalystType\CatalystStop.cs", "C#", 186, 0, 5, 33, 224
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffInfo.cs", "C#", 156, 0, 2, 27, 185
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffTypes\BuffAOEHealthEnd.cs", "C#", 63, 0, 2, 16, 81
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffTypes\BuffAOEHealthOverTime.cs", "C#", 61, 0, 2, 13, 76
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffTypes\BuffArmor.cs", "C#", 40, 0, 2, 5, 47
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffTypes\BuffDamageTaken.cs", "C#", 45, 0, 2, 5, 52
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffTypes\BuffExplodes.cs", "C#", 12, 0, 2, 5, 19
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffTypes\BuffHealthOverTime.cs", "C#", 55, 0, 2, 8, 65
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffTypes\BuffJumps.cs", "C#", 84, 0, 2, 17, 103
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffTypes\BuffMovementSpeedChange.cs", "C#", 29, 0, 2, 9, 40
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffTypes\BuffShield.cs", "C#", 76, 0, 2, 12, 90
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffTypes\BuffSpreads.cs", "C#", 12, 0, 2, 5, 19
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffTypes\BuffStateChanger.cs", "C#", 45, 0, 2, 10, 57
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffTypes\BuffType.cs", "C#", 12, 0, 2, 6, 20
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffsManager.cs", "C#", 141, 0, 2, 24, 167
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Clickable\Clickable.cs", "C#", 21, 0, 2, 6, 29
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Clickable\Portals\PortalInfo.cs", "C#", 45, 0, 2, 7, 54
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Equipment\EquipmentSlot.cs", "C#", 321, 0, 2, 46, 369
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Generic Behavior\StayOnGround.cs", "C#", 30, 0, 2, 9, 41
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Generic Behavior\WalkThroughActivate.cs", "C#", 51, 0, 2, 15, 68
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Inventory And Items\Inventory.cs", "C#", 81, 0, 2, 18, 101
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Inventory And Items\ItemInfo.cs", "C#", 99, 0, 3, 24, 126
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Inventory And Items\Items\Equipment.cs", "C#", 61, 0, 3, 17, 81
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Inventory And Items\Items\Item.cs", "C#", 31, 0, 1, 14, 46
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Inventory And Items\Items\Weapon.cs", "C#", 18, 0, 1, 8, 27
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Party\PartyFormation.cs", "C#", 108, 0, 2, 19, 129
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Social\SocialInteractionData.cs", "C#", 14, 0, 2, 5, 21
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\SceneManager\RunSceneWithButton.cs", "C#", 22, 0, 2, 6, 30
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Settings\DifficultyModifications.cs", "C#", 17, 0, 2, 11, 30
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Settings\KeyBindings.cs", "C#", 58, 0, 0, 19, 77
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\DragAndDrop.cs", "C#", 91, 0, 6, 19, 116
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\ActionBars\ActionBarBehavior.cs", "C#", 176, 0, 9, 37, 222
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\ActionBars\ActionBarIcon.cs", "C#", 79, 0, 2, 14, 95
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\ActionBars\ActionBarsInfo.cs", "C#", 48, 0, 2, 14, 64
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\Gear Module\GearModuleManager.cs", "C#", 59, 0, 2, 11, 72
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\Gear Module\GearSlotManager.cs", "C#", 76, 0, 3, 27, 106
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\Gear Module\GearStatsUI.cs", "C#", 47, 0, 1, 11, 59
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\Group Formation\GroupFormationBehavior.cs", "C#", 122, 0, 4, 37, 163
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\HealthBars\CurrentTargetManager.cs", "C#", 42, 0, 2, 7, 51
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\HealthBars\EntityPortraitManager.cs", "C#", 37, 0, 2, 11, 50
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\HealthBars\PortraitBehavior.cs", "C#", 204, 0, 2, 53, 259
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\IGGUIInfo.cs", "C#", 63, 0, 2, 18, 83
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\Inventory\EntityInventoryUI.cs", "C#", 113, 0, 3, 21, 137
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\Inventory\GearSlot.cs", "C#", 60, 0, 2, 19, 81
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\Inventory\InventoryManager.cs", "C#", 67, 0, 3, 18, 88
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\Inventory\InventorySlot.cs", "C#", 92, 0, 5, 32, 129
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\ModuleInfo.cs", "C#", 70, 0, 2, 18, 90
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\ResourceBars\CastBar.cs", "C#", 89, 0, 2, 21, 112
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\ResourceBars\ProgressBarsBehavior.cs", "C#", 146, 0, 2, 33, 181
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\ResourceBars\RBIndicatorBehavior.cs", "C#", 48, 0, 2, 19, 69
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\SpellBook\AbilityInfoUI.cs", "C#", 69, 0, 2, 18, 89
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\SpellBook\ActionBarSlot.cs", "C#", 105, 0, 14, 31, 150
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\SpellBook\SpellBookManager.cs", "C#", 67, 0, 2, 18, 87
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\SpellBook\SpellBookSlot.cs", "C#", 24, 0, 2, 8, 34
+"c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\WorldMouseOver.cs", "C#", 7, 0, 1, 2, 10
+"Total", "-", 13186, 110, 400, 2786, 16482

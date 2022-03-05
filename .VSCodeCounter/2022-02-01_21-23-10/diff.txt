@@ -1,0 +1,215 @@
+Date : 2022-02-01 21:23:10
+Directory : c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts
+Total : 144 files,  13296 codes, 400 comments, 2786 blanks, all 16482 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| C#       |        140 |     13,186 |        400 |      2,760 |     16,346 |
+| Markdown |          4 |        110 |          0 |         26 |        136 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++----------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                                                         | files      | code       | comment    | blank      | total      |
++----------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                                            |        144 |     13,296 |        400 |      2,786 |     16,482 |
+| .VSCodeCounter                                                                                                                               |          4 |        110 |          0 |         26 |        136 |
+| .VSCodeCounter\2022-01-07_16-52-26                                                                                                           |          2 |         61 |          0 |         13 |         74 |
+| .VSCodeCounter\2022-01-07_16-52-39                                                                                                           |          2 |         49 |          0 |         13 |         62 |
+| Animations                                                                                                                                   |          4 |        189 |          8 |         50 |        247 |
+| Animations\Animation Events                                                                                                                  |          1 |         56 |          2 |         20 |         78 |
+| Animations\Game Object Transforms                                                                                                            |          1 |         16 |          4 |          5 |         25 |
+| CameraBehavior                                                                                                                               |          5 |        252 |          9 |         90 |        351 |
+| Data                                                                                                                                         |          5 |        698 |         15 |         90 |        803 |
+| Dummy Components                                                                                                                             |          1 |         12 |          2 |          5 |         19 |
+| EntityBehavior                                                                                                                               |         25 |      3,847 |         86 |        677 |      4,610 |
+| EntityBehavior\AIBehavior                                                                                                                    |          9 |      1,433 |         46 |        272 |      1,751 |
+| EntityBehavior\Graphics                                                                                                                      |          1 |        114 |          4 |         15 |        133 |
+| EntityBehavior\Group Controls                                                                                                                |          2 |        286 |          5 |         46 |        337 |
+| EntityBehavior\Movement                                                                                                                      |          3 |        287 |          8 |         59 |        354 |
+| EntityBehavior\PlayerControls                                                                                                                |          1 |        230 |          2 |         31 |        263 |
+| GameManager                                                                                                                                  |         11 |        528 |         20 |        143 |        691 |
+| GameManager\EntityCluster                                                                                                                    |          3 |        198 |          6 |         66 |        270 |
+| Helper                                                                                                                                       |          9 |        464 |         16 |        140 |        620 |
+| Lighting                                                                                                                                     |          1 |         26 |          2 |          7 |         35 |
+| MapBehavior                                                                                                                                  |          9 |        943 |         52 |        248 |      1,243 |
+| Mechanics                                                                                                                                    |         42 |      4,129 |        107 |        757 |      4,993 |
+| Mechanics\Abilities                                                                                                                          |         16 |      2,418 |         55 |        407 |      2,880 |
+| Mechanics\Abilities\AbilityType                                                                                                              |          1 |         43 |          2 |          5 |         50 |
+| Mechanics\Abilities\Catalyst                                                                                                                 |         13 |      1,389 |         29 |        246 |      1,664 |
+| Mechanics\Abilities\Catalyst\CatalystType                                                                                                    |          8 |        628 |         20 |        133 |        781 |
+| Mechanics\Buffs                                                                                                                              |         14 |        831 |         28 |        162 |      1,021 |
+| Mechanics\Buffs\BuffTypes                                                                                                                    |         12 |        534 |         24 |        111 |        669 |
+| Mechanics\Clickable                                                                                                                          |          2 |         66 |          4 |         13 |         83 |
+| Mechanics\Clickable\Portals                                                                                                                  |          1 |         45 |          2 |          7 |         54 |
+| Mechanics\Equipment                                                                                                                          |          1 |        321 |          2 |         46 |        369 |
+| Mechanics\Generic Behavior                                                                                                                   |          2 |         81 |          4 |         24 |        109 |
+| Mechanics\Inventory And Items                                                                                                                |          5 |        290 |         10 |         81 |        381 |
+| Mechanics\Inventory And Items\Items                                                                                                          |          3 |        110 |          5 |         39 |        154 |
+| Mechanics\Party                                                                                                                              |          1 |        108 |          2 |         19 |        129 |
+| Mechanics\Social                                                                                                                             |          1 |         14 |          2 |          5 |         21 |
+| SceneManager                                                                                                                                 |          1 |         22 |          2 |          6 |         30 |
+| Settings                                                                                                                                     |          2 |         75 |          2 |         30 |        107 |
+| UI                                                                                                                                           |         25 |      2,001 |         79 |        517 |      2,597 |
+| UI\InGame                                                                                                                                    |         23 |      1,903 |         72 |        496 |      2,471 |
+| UI\InGame\ActionBars                                                                                                                         |          3 |        303 |         13 |         65 |        381 |
+| UI\InGame\Gear Module                                                                                                                        |          3 |        182 |          6 |         49 |        237 |
+| UI\InGame\Group Formation                                                                                                                    |          1 |        122 |          4 |         37 |        163 |
+| UI\InGame\HealthBars                                                                                                                         |          3 |        283 |          6 |         71 |        360 |
+| UI\InGame\Inventory                                                                                                                          |          4 |        332 |         13 |         90 |        435 |
+| UI\InGame\ResourceBars                                                                                                                       |          3 |        283 |          6 |         73 |        362 |
+| UI\InGame\SpellBook                                                                                                                          |          4 |        265 |         20 |         75 |        360 |
++----------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++----------------------------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                                                                                                                     | language | code       | comment    | blank      | total      |
++----------------------------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\.VSCodeCounter\2022-01-07_16-52-26\details.md                      | Markdown |         36 |          0 |          6 |         42 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\.VSCodeCounter\2022-01-07_16-52-26\results.md                      | Markdown |         25 |          0 |          7 |         32 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\.VSCodeCounter\2022-01-07_16-52-39\details.md                      | Markdown |         29 |          0 |          6 |         35 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\.VSCodeCounter\2022-01-07_16-52-39\results.md                      | Markdown |         20 |          0 |          7 |         27 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Animations\AbilityAnimation.cs                                     | C#       |         93 |          1 |         17 |        111 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Animations\Animation Events\EntityAnimationEvents.cs               | C#       |         56 |          2 |         20 |         78 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Animations\CombatReactions.cs                                      | C#       |         24 |          1 |          8 |         33 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Animations\Game Object Transforms\SpinObject.cs                    | C#       |         16 |          4 |          5 |         25 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\CameraBehavior\CameraAnchor.cs                                     | C#       |         34 |          1 |         14 |         49 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\CameraBehavior\LookAtCamera.cs                                     | C#       |         21 |          2 |          9 |         32 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\CameraBehavior\MainCamera.cs                                       | C#       |         71 |          2 |         22 |         95 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\CameraBehavior\MainCamera2.cs                                      | C#       |         56 |          2 |         21 |         79 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\CameraBehavior\MainCamera3.cs                                      | C#       |         70 |          2 |         24 |         96 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Data\ArchitomeCharacter.cs                                         | C#       |        345 |          2 |         44 |        391 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Data\CharacterBodyParts.cs                                         | C#       |         15 |          1 |          2 |         18 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Data\Enums.cs                                                      | C#       |        189 |          1 |         25 |        215 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Data\PresetStats.cs                                                | C#       |         46 |         10 |          7 |         63 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Data\Stats.cs                                                      | C#       |        103 |          1 |         12 |        116 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Dummy Components\IgnoreRayCast.cs                                  | C#       |         12 |          2 |          5 |         19 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AIBehavior\AIBehavior.cs                            | C#       |        124 |          2 |         11 |        137 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AIBehavior\CombatBehavior.cs                        | C#       |        306 |         15 |         61 |        382 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AIBehavior\LineOfSight.cs                           | C#       |        294 |          3 |         47 |        344 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AIBehavior\NoCombatBehavior.cs                      | C#       |        121 |          2 |         30 |        153 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AIBehavior\PatrolBehavior.cs                        | C#       |         12 |          2 |          5 |         19 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AIBehavior\PlayerVision.cs                          | C#       |         42 |          2 |         11 |         55 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AIBehavior\RevealSelf.cs                            | C#       |        116 |          2 |         33 |        151 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AIBehavior\SocialBehavior.cs                        | C#       |         94 |          2 |         24 |        120 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AIBehavior\ThreatManager.cs                         | C#       |        324 |         16 |         50 |        390 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\AudioManager.cs                                     | C#       |         35 |          2 |          8 |         45 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\CharacterInfo.cs                                    | C#       |        266 |          2 |         53 |        321 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\CombatInfo.cs                                       | C#       |         89 |          4 |         24 |        117 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\DummyBehavior.cs                                    | C#       |         63 |          2 |         16 |         81 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\EntityInfo.cs                                       | C#       |        904 |          5 |        113 |      1,022 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\EntitySFX.cs                                        | C#       |         55 |          2 |         22 |         79 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\EntitySoundPack.cs                                  | C#       |          9 |          1 |          2 |         12 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\Graphics\GraphicsInfo.cs                            | C#       |        114 |          4 |         15 |        133 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\Group Controls\PartyInfo.cs                         | C#       |        264 |          3 |         41 |        308 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\Group Controls\RaidInfo.cs                          | C#       |         22 |          2 |          5 |         29 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\IEntityProperty.cs                                  | C#       |          8 |          1 |          1 |         10 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\Movement\Movement.cs                                | C#       |        183 |          4 |         34 |        221 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\Movement\MovementLocation.cs                        | C#       |         24 |          2 |          6 |         32 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\Movement\MovementRVO.cs                             | C#       |         80 |          2 |         19 |        101 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\PlayerControls\PlayerController.cs                  | C#       |        230 |          2 |         31 |        263 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\EntityBehavior\Targetable.cs                                       | C#       |         68 |          2 |         15 |         85 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\GameManager\AudioMixerGroups.cs                                    | C#       |         12 |          1 |          3 |         16 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\GameManager\CharCustomControl.cs                                   | C#       |         28 |          2 |          6 |         36 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\GameManager\ContainerMouseOvers.cs                                 | C#       |         22 |          2 |          5 |         29 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\GameManager\ContainerTargetables.cs                                | C#       |        155 |          3 |         32 |        190 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\GameManager\EntityCluster\ClusterContainer.cs                      | C#       |         73 |          2 |         21 |         96 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\GameManager\EntityCluster\EntityClusterAgent.cs                    | C#       |         38 |          2 |         11 |         51 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\GameManager\EntityCluster\EntityClusterManager.cs                  | C#       |         87 |          2 |         34 |        123 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\GameManager\GameManager.cs                                         | C#       |         69 |          2 |         18 |         89 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\GameManager\LayerMasksData.cs                                      | C#       |          9 |          0 |          2 |         11 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\GameManager\PathfinderOpt.cs                                       | C#       |         20 |          2 |          5 |         27 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\GameManager\WorldSettings.cs                                       | C#       |         15 |          2 |          6 |         23 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Helper\Debugger.cs                                                 | C#       |         20 |          2 |          6 |         28 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Helper\Entity.cs                                                   | C#       |         60 |          2 |         19 |         81 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Helper\FindClass.cs                                                | C#       |         12 |          2 |          6 |         20 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Helper\GMHelper.cs                                                 | C#       |         90 |          3 |         16 |        109 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Helper\Mathg.cs                                                    | C#       |         11 |          0 |          2 |         13 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Helper\Mouse.cs                                                    | C#       |        125 |          1 |         44 |        170 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Helper\Player.cs                                                   | C#       |         34 |          2 |         11 |         47 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Helper\RandomGen.cs                                                | C#       |         25 |          2 |          9 |         36 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Helper\V3Helper.cs                                                 | C#       |         87 |          2 |         27 |        116 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Lighting\LightFluxuation.cs                                        | C#       |         26 |          2 |          7 |         35 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\MapBehavior\MapAdjustments.cs                                      | C#       |         25 |          2 |         15 |         42 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\MapBehavior\MapEntityGenerator.cs                                  | C#       |        115 |          2 |         31 |        148 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\MapBehavior\MapHelper.cs                                           | C#       |         23 |          2 |         10 |         35 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\MapBehavior\MapInfo.cs                                             | C#       |         53 |          2 |         16 |         71 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\MapBehavior\MapRoomGenerator.cs                                    | C#       |        405 |          4 |         91 |        500 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\MapBehavior\PathInfo.cs                                            | C#       |         90 |         34 |         32 |        156 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\MapBehavior\RoomInfo.cs                                            | C#       |        134 |          2 |         28 |        164 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\MapBehavior\RotateAround.cs                                        | C#       |         21 |          2 |          5 |         28 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\MapBehavior\SeedGenerator.cs                                       | C#       |         77 |          2 |         20 |         99 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\AbilityInfo.cs                                 | C#       |        834 |         21 |        126 |        981 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\AbilityManager.cs                              | C#       |        152 |          3 |         30 |        185 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\AbilityType\AbilityFreeCast.cs                 | C#       |         43 |          2 |          5 |         50 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\Catalyst\CatalingActions.cs                    | C#       |         45 |          2 |         12 |         59 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\Catalyst\Catalyst.cs                           | C#       |         15 |          0 |          2 |         17 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\Catalyst\CatalystDeathCondition.cs             | C#       |        115 |          2 |         19 |        136 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\Catalyst\CatalystHit.cs                        | C#       |        409 |          3 |         47 |        459 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\Catalyst\CatalystInfo.cs                       | C#       |        177 |          2 |         33 |        212 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\Catalyst\CatalystType\CatalystBounce.cs        | C#       |        113 |          2 |         21 |        136 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\Catalyst\CatalystType\CatalystBuffOnDestroy.cs | C#       |         45 |          2 |          9 |         56 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\Catalyst\CatalystType\CatalystFreeFly.cs       | C#       |         32 |          3 |         10 |         45 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\Catalyst\CatalystType\CatalystFreeScan.cs      | C#       |         32 |          2 |         11 |         45 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\Catalyst\CatalystType\CatalystLockOn.cs        | C#       |         95 |          2 |         20 |        117 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\Catalyst\CatalystType\CatalystLockScan.cs      | C#       |         46 |          2 |         11 |         59 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\Catalyst\CatalystType\CatalystReturn.cs        | C#       |         79 |          2 |         18 |         99 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Abilities\Catalyst\CatalystType\CatalystStop.cs          | C#       |        186 |          5 |         33 |        224 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffInfo.cs                                        | C#       |        156 |          2 |         27 |        185 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffTypes\BuffAOEHealthEnd.cs                      | C#       |         63 |          2 |         16 |         81 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffTypes\BuffAOEHealthOverTime.cs                 | C#       |         61 |          2 |         13 |         76 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffTypes\BuffArmor.cs                             | C#       |         40 |          2 |          5 |         47 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffTypes\BuffDamageTaken.cs                       | C#       |         45 |          2 |          5 |         52 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffTypes\BuffExplodes.cs                          | C#       |         12 |          2 |          5 |         19 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffTypes\BuffHealthOverTime.cs                    | C#       |         55 |          2 |          8 |         65 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffTypes\BuffJumps.cs                             | C#       |         84 |          2 |         17 |        103 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffTypes\BuffMovementSpeedChange.cs               | C#       |         29 |          2 |          9 |         40 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffTypes\BuffShield.cs                            | C#       |         76 |          2 |         12 |         90 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffTypes\BuffSpreads.cs                           | C#       |         12 |          2 |          5 |         19 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffTypes\BuffStateChanger.cs                      | C#       |         45 |          2 |         10 |         57 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffTypes\BuffType.cs                              | C#       |         12 |          2 |          6 |         20 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Buffs\BuffsManager.cs                                    | C#       |        141 |          2 |         24 |        167 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Clickable\Clickable.cs                                   | C#       |         21 |          2 |          6 |         29 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Clickable\Portals\PortalInfo.cs                          | C#       |         45 |          2 |          7 |         54 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Equipment\EquipmentSlot.cs                               | C#       |        321 |          2 |         46 |        369 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Generic Behavior\StayOnGround.cs                         | C#       |         30 |          2 |          9 |         41 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Generic Behavior\WalkThroughActivate.cs                  | C#       |         51 |          2 |         15 |         68 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Inventory And Items\Inventory.cs                         | C#       |         81 |          2 |         18 |        101 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Inventory And Items\ItemInfo.cs                          | C#       |         99 |          3 |         24 |        126 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Inventory And Items\Items\Equipment.cs                   | C#       |         61 |          3 |         17 |         81 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Inventory And Items\Items\Item.cs                        | C#       |         31 |          1 |         14 |         46 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Inventory And Items\Items\Weapon.cs                      | C#       |         18 |          1 |          8 |         27 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Party\PartyFormation.cs                                  | C#       |        108 |          2 |         19 |        129 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Mechanics\Social\SocialInteractionData.cs                          | C#       |         14 |          2 |          5 |         21 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\SceneManager\RunSceneWithButton.cs                                 | C#       |         22 |          2 |          6 |         30 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Settings\DifficultyModifications.cs                                | C#       |         17 |          2 |         11 |         30 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\Settings\KeyBindings.cs                                            | C#       |         58 |          0 |         19 |         77 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\DragAndDrop.cs                                                  | C#       |         91 |          6 |         19 |        116 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\ActionBars\ActionBarBehavior.cs                          | C#       |        176 |          9 |         37 |        222 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\ActionBars\ActionBarIcon.cs                              | C#       |         79 |          2 |         14 |         95 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\ActionBars\ActionBarsInfo.cs                             | C#       |         48 |          2 |         14 |         64 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\Gear Module\GearModuleManager.cs                         | C#       |         59 |          2 |         11 |         72 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\Gear Module\GearSlotManager.cs                           | C#       |         76 |          3 |         27 |        106 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\Gear Module\GearStatsUI.cs                               | C#       |         47 |          1 |         11 |         59 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\Group Formation\GroupFormationBehavior.cs                | C#       |        122 |          4 |         37 |        163 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\HealthBars\CurrentTargetManager.cs                       | C#       |         42 |          2 |          7 |         51 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\HealthBars\EntityPortraitManager.cs                      | C#       |         37 |          2 |         11 |         50 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\HealthBars\PortraitBehavior.cs                           | C#       |        204 |          2 |         53 |        259 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\IGGUIInfo.cs                                             | C#       |         63 |          2 |         18 |         83 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\Inventory\EntityInventoryUI.cs                           | C#       |        113 |          3 |         21 |        137 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\Inventory\GearSlot.cs                                    | C#       |         60 |          2 |         19 |         81 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\Inventory\InventoryManager.cs                            | C#       |         67 |          3 |         18 |         88 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\Inventory\InventorySlot.cs                               | C#       |         92 |          5 |         32 |        129 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\ModuleInfo.cs                                            | C#       |         70 |          2 |         18 |         90 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\ResourceBars\CastBar.cs                                  | C#       |         89 |          2 |         21 |        112 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\ResourceBars\ProgressBarsBehavior.cs                     | C#       |        146 |          2 |         33 |        181 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\ResourceBars\RBIndicatorBehavior.cs                      | C#       |         48 |          2 |         19 |         69 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\SpellBook\AbilityInfoUI.cs                               | C#       |         69 |          2 |         18 |         89 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\SpellBook\ActionBarSlot.cs                               | C#       |        105 |         14 |         31 |        150 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\SpellBook\SpellBookManager.cs                            | C#       |         67 |          2 |         18 |         87 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\InGame\SpellBook\SpellBookSlot.cs                               | C#       |         24 |          2 |          8 |         34 |
+| c:\WorkSpace\GameDevelopement\Architome Iteration 3\Assets\Source\Scripts\UI\WorldMouseOver.cs                                               | C#       |          7 |          1 |          2 |         10 |
+| Total                                                                                                                                        |          |     13,296 |        400 |      2,786 |     16,482 |
++----------------------------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
