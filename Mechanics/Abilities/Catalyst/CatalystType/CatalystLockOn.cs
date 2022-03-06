@@ -45,6 +45,7 @@ public class CatalystLockOn : MonoBehaviour
     void Start()
     {
         GetDependenciesStart();
+        StartCoroutine(HandleCloseTarget());
     }
 
     
@@ -53,7 +54,6 @@ public class CatalystLockOn : MonoBehaviour
     void Update()
     {
         GetDependencies();
-        HandleCloseTarget();
         TravelToTarget();
     }
 
@@ -76,38 +76,32 @@ public class CatalystLockOn : MonoBehaviour
         }
     }
 
-    public void HandleCloseTarget()
+    public IEnumerator HandleCloseTarget()
     {
-        if(target == null) { return; }
-        if(V3Helper.Distance(target.transform.position, catalystInfo.transform.position) > .5f) { return; }
-        if (catalystInfo.isDestroyed) { return; }
-        if (closeToTarget) { return; }
-
-        closeToTarget = true;
-
-        StartCoroutine(Delay());
-
-        IEnumerator Delay()
+        while(true)
         {
             yield return new WaitForSeconds(.125f);
+            CheckIfCloseToTarget();
+        }
 
-            closeToTarget = false;
+        void CheckIfCloseToTarget()
+        {
+            if (target == null) { return; }
+            if (catalystInfo.isDestroyed) { return; }
 
-            if (!catalystInfo.isDestroyed)
+
+            closeToTarget = V3Helper.Distance(target.transform.position, catalystInfo.transform.position) < .25f;
+
+            if(closeToTarget)
             {
-                if(V3Helper.Distance(target.transform.position, catalystInfo.transform.position) < 1f)
-                {
-                    catalystInfo.OnCloseToTarget?.Invoke(catalystInfo, target);
-                }
+                GetComponent<CatalystHit>().HandleTargetHit(target.GetComponent<EntityInfo>());
             }
-
 
         }
     }
 
     public void OnNewTarget(GameObject previous, GameObject next)
     {
-        closeToTarget = false;
         target = next;
         
     }

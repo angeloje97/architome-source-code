@@ -334,7 +334,17 @@ namespace Architome
         {
             combatData.target = this;
             var source = combatData.source;
-            var damageType = combatData.catalyst.damageType;
+            var damageType = DamageType.True;
+
+            if(combatData.catalyst)
+            {
+                damageType = combatData.catalyst.damageType;
+            }
+            else if(combatData.buff)
+            {
+                damageType = combatData.buff.damageType;
+            }
+
 
             HandleValue();
             HandleExperience();
@@ -383,7 +393,6 @@ namespace Architome
                     source.GainExp(combatData.value * .25f);
                 }
             }
-
             void HandleDamage()
             {
                 HandleEvents();

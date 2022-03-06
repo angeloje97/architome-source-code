@@ -43,6 +43,7 @@ public class BuffInfo : MonoBehaviour
     public BuffProperties properties;
 
     [Header("Buff Properties")]
+    public DamageType damageType;
     public int stacks = 0;
     public bool buffTimeComplete = false;
     public bool cleansed = false;

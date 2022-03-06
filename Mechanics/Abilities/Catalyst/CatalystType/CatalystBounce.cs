@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
 using Architome;
+using System.Linq;
 
 public class CatalystBounce : MonoBehaviour
 {
@@ -76,6 +77,8 @@ public class CatalystBounce : MonoBehaviour
 
         Collider[] rangeChecks = Physics.OverlapSphere(gameObject.transform.position, bounceRadius, targetLayerMask);
 
+        var entityList = rangeChecks.OrderBy(entity => V3Helper.Distance(entity.transform.position, transform.position));
+
         Debugger.InConsole(9414, $"Starting to find new target");
 
         if (FindEntity(priorityNPCType)) {
@@ -99,7 +102,7 @@ public class CatalystBounce : MonoBehaviour
         
         bool FindEntity(NPCType priority)
         {
-            foreach (Collider entity in rangeChecks)
+            foreach (Collider entity in entityList)
             {
                 if (entity.GetComponent<EntityInfo>())
                 {
@@ -112,7 +115,14 @@ public class CatalystBounce : MonoBehaviour
 
                     if (canTarget && isPriority && isAlive && hasLOS)
                     {
+                        
                         catalystInfo.target = entity.gameObject;
+
+
+                        if (V3Helper.Distance(entity.transform.position, transform.position) < .50f)
+                        {
+                            GetComponent<CatalystHit>().HandleTargetHit(targetInfo);
+                        }
                         return true;
                     }
                 }

@@ -30,6 +30,7 @@ public class CatalystInfo : MonoBehaviour
     private int ticks;
     public float currentRange;
     public float liveTime;
+    public float distanceFromTarget;
     
     public List<EntityInfo> enemiesHit;
     public List<EntityInfo> alliesHealed;
@@ -240,6 +241,11 @@ public class CatalystInfo : MonoBehaviour
     {
         currentRange = V3Helper.Distance(startPosition, transform.position);
         liveTime += Time.deltaTime;
+
+        if(target)
+        {
+            distanceFromTarget = V3Helper.Distance(target.transform.position, transform.position);
+        }
     }
     public void HandleEvents()
     {
