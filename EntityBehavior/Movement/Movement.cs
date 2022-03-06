@@ -113,7 +113,14 @@ public class Movement : MonoBehaviour
     }
     public void OnLifeCheck(bool isAlive)
     {
-        SetValues(isAlive);
+        if(isAlive)
+        {
+            SetValues(isAlive, 1f);
+        }
+        else
+        {
+            SetValues(isAlive);
+        }
 
         if(isAlive)
         {

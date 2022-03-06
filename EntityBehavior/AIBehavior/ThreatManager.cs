@@ -126,6 +126,7 @@ public class ThreatManager : MonoBehaviour
             entityInfo.OnLifeChange += OnLifeChange;
             entityInfo.OnHealingTaken += OnHealingTaken;
             entityInfo.OnNewBuff += OnNewBuff;
+            entityInfo.OnChangeNPCType += OnChangeNpcType;
         }
 
         if(GetComponentInParent<AIBehavior>())
@@ -173,6 +174,20 @@ public class ThreatManager : MonoBehaviour
     void Update()
     {
     }
+    public void OnChangeNpcType(NPCType before, NPCType after)
+    {
+        if(after == NPCType.Friendly)
+        {
+            ArchAction.Delay(() => 
+            {
+                CheckThreats(NPCType.Hostile, true, false);
+            }, .50f);
+        }
+        else if (after == NPCType.Hostile)
+        {
+            CheckThreats(NPCType.Friendly);
+        }
+    }
     public void OnDamageDone(CombatEventData eventData)
     {
         var target = eventData.target;
@@ -200,7 +215,6 @@ public class ThreatManager : MonoBehaviour
 
         IncreaseThreat(source.gameObject, threatVal, true);
     }
-
     public void OnNewBuff(BuffInfo newBuff, EntityInfo source)
     {
         if(newBuff.buffTargetType == BuffTargetType.Harm)
@@ -274,23 +288,36 @@ public class ThreatManager : MonoBehaviour
         {
             if(entityInfo.npcType != NPCType.Hostile) { return; }
             if (behavior.behaviorType != AIBehaviorType.NoControl) return;
+            CheckThreats(NPCType.Friendly, false, true);
+        }
+    }
 
-            var enemiesDetected = lineOfSight.DetectedEntities(NPCType.Friendly);
-            if(enemiesDetected.Count == 0) { return; }
+    public async void CheckThreats(NPCType enemyType, bool checkForCombat = false, bool alertAllies = false)
+    {
+        var enemiesDetected = lineOfSight.DetectedEntities(enemyType);
 
-            foreach (GameObject sighted in lineOfSight.entitiesDetected)
+        if(enemiesDetected.Count == 0) { return; }
+
+        foreach(var sighted in enemiesDetected)
+        {
+            await Task.Yield();
+            if (!lineOfSight.HasLineOfSight(sighted.gameObject)) continue;
+            if (!sighted.isAlive) continue;
+            if (Threat(sighted.gameObject) != null) continue;
+
+
+            if(entityInfo.CanAttack(sighted.gameObject))
             {
-                if (!lineOfSight.HasLineOfSight(sighted)) { continue; }
-                if (!sighted.GetComponent<EntityInfo>().isAlive)
+                if(checkForCombat)
                 {
-                    return;
-                }
-                if (abilityManager.canAttack.Contains(sighted.GetComponent<EntityInfo>().npcType))
-                {
-                    if (Threat(sighted) == null)
+                    if(sighted.isInCombat)
                     {
-                        IncreaseThreat(sighted, 15, true);
+                        IncreaseThreat(sighted.gameObject, 15, alertAllies);
                     }
+                }
+                else
+                {
+                    IncreaseThreat(sighted.gameObject, 15, alertAllies);
                 }
             }
         }
@@ -298,6 +325,10 @@ public class ThreatManager : MonoBehaviour
     public void IncreaseThreat(GameObject source, float value, bool alertAllies = false)
     {
         if (!entityInfo.isAlive) return;
+        if(entityInfo.gameObject == source) { return; }
+        if (entityInfo.npcType == source.GetComponent<EntityInfo>().npcType) return;
+
+
         if (!source.GetComponent<EntityInfo>().isAlive) { return; }
         var sourceInfo = source.GetComponent<EntityInfo>();
         var sourceThreat = source.GetComponentInChildren<ThreatManager>();
@@ -319,7 +350,6 @@ public class ThreatManager : MonoBehaviour
 
         OnIncreaseThreat?.Invoke(threatInfo);
         sourceThreat.OnGenerateThreat?.Invoke(threatInfo);
-
 
         HandleMaxThreat();
 

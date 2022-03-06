@@ -152,34 +152,31 @@ namespace Architome
 
             void HandlePartyLocation()
             {
-                if (Input.GetKey(keyBindings.keyBinds[selectMultipleButton]))
+                if (!Input.GetKey(keyBindings.keyBinds[selectMultipleButton])) { return; }
+                if (!targetManager) { return; }
+
+                if (Input.GetKeyDown(keyBindings.keyBinds[actionButton]))
                 {
-                    if (targetManager)
+                    if (Mouse.CurrentHoverObject())
                     {
-                        if (Input.GetKeyDown(keyBindings.keyBinds[actionButton]))
+                        var currentObject = Mouse.CurrentHoverObject();
+
+                        if (HandleClickable(currentObject)) { return; }
+                        else if (partyFormation && targetManager.currentHover == null)
                         {
-                            if (Mouse.CurrentHoverObject())
-                            {
-                                var currentObject = Mouse.CurrentHoverObject();
-
-                                if (HandleClickable(currentObject)) { return; }
-                                else if (partyFormation && targetManager.currentHover == null)
-                                {
-                                    var location = Mouse.CurrentPositionLayer(walkableLayer);
-                                    if (location == new Vector3(0, 0, 0)) { return; }
-                                    partyFormation.MoveFormation(location);
-                                    MoveParty();
-                                }
-                                else if (targetManager.currentHover != null)
-                                {
-                                    Attack(targetManager.currentHover);
-                                }
-                            }
-
+                            var location = Mouse.CurrentPositionLayer(walkableLayer);
+                            if (location == new Vector3(0, 0, 0)) { return; }
+                            partyFormation.MoveFormation(location);
+                            MoveParty();
+                        }
+                        else if (targetManager.currentHover != null)
+                        {
+                            Attack(targetManager.currentHover);
                         }
                     }
 
                 }
+
 
             }
         }
@@ -232,9 +229,11 @@ namespace Architome
 
                 if (memberInfo.PlayerController() && memberInfo.role != Role.Healer)
                 {
-                    if (memberInfo.PlayerController().abilityManager)
+                    if (memberInfo.AbilityManager())
                     {
-                        memberInfo.PlayerController().HandlePlayerTargetting();
+                        memberInfo.AbilityManager().target = target;
+                        memberInfo.AbilityManager().Attack();
+                        memberInfo.AbilityManager().target = null;
 
                     }
 

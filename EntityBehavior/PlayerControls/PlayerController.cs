@@ -242,14 +242,12 @@ public class PlayerController : MonoBehaviour
         }
         else if (targetManager.currentHover)
         {
-            if(entityInfo.AIBehavior().behaviorType == AIBehaviorType.HalfPlayerControl)
+            abilityManager.target = targetManager.currentHover;
+            Attack();
+            if (entityInfo.AIBehavior().behaviorType == AIBehaviorType.HalfPlayerControl)
             {
                 entityInfo.CombatBehavior().SetFocus(targetManager.currentHover);
-            }
-            else
-            {
-                abilityManager.target = targetManager.currentHover;
-                Attack();
+
             }
         }
         else

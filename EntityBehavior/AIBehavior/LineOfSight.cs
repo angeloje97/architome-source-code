@@ -229,7 +229,7 @@ public class LineOfSight : MonoBehaviour
     {
         if(partyInfo)
         {
-            if(entityInfo.AbilityManager().canAttack.Contains(target.GetComponent<EntityInfo>().npcType))
+            if(entityInfo.CanAttack(target))
             {
                 if(!partyInfo.enemiesInLineOfSight.Contains(target))
                 {

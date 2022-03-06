@@ -15,7 +15,7 @@ public class AbilityInfo : MonoBehaviour
     [Multiline]
     public string abilityDescription;
 
-    
+
     public GameObject entityObject;
     public GameObject catalyst;
     public GameObject cataling;
@@ -57,7 +57,7 @@ public class AbilityInfo : MonoBehaviour
     public float dexterityContribution = 1f;
 
     [Header("Ability Properties")]
-    
+
     public float globalCoolDown = 1f;
     public float knockBackValue = 1.0f;
     public float manaRequiredPercent = .05f;
@@ -75,7 +75,7 @@ public class AbilityInfo : MonoBehaviour
     public bool maxChargesOnStart = true;
 
 
-    
+
 
     [Header("Catalyst Stop Property")]
     public bool catalystStops;
@@ -156,6 +156,7 @@ public class AbilityInfo : MonoBehaviour
     public bool active;
 
 
+
     [Serializable]
     public class DestroyConditions
     {
@@ -169,6 +170,30 @@ public class AbilityInfo : MonoBehaviour
     }
 
     public DestroyConditions destroyConditions;
+
+    [Serializable]
+    public class RecastProperties
+    {
+        public bool recastable;
+        public bool isActive;
+        public int maxRecast;
+        public int currentRecast;
+        public float recastTimeFrame;
+        public Action<AbilityInfo> OnRecast;
+
+        public bool CanRecast()
+        {
+            if(currentRecast > 0 && isActive)
+            {
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+
+    public RecastProperties recastProperties;
 
     [Header("Ability Timers")]
     public float coolDownTimer;
@@ -202,6 +227,7 @@ public class AbilityInfo : MonoBehaviour
             {
                 entityObject = abilityManager.entityObject;
                 entityInfo = abilityManager.entityInfo;
+                entityInfo.OnChangeNPCType += OnChangeNPCType;
                 
             }
         }
@@ -261,7 +287,6 @@ public class AbilityInfo : MonoBehaviour
         HandleDeadTarget();
         HandleAutoAttack();
     }
-
     public void OnStartMove(Movement movement)
     {
         if (cancelCastIfMoved && isCasting)
@@ -273,7 +298,6 @@ public class AbilityInfo : MonoBehaviour
     {
 
     }
-
     public void OnTryCast(AbilityInfo ability)
     {
         if (ability.isAttack) { return; }
@@ -290,12 +314,19 @@ public class AbilityInfo : MonoBehaviour
             }
         }
     }
-
-    
     public void OnTryMove(Movement movement)
     {
         target = null;
         targetLocked = null;
+    }
+    public void OnChangeNPCType(NPCType before, NPCType after)
+    {
+        if(WantsToCast())
+        {
+            DeactivateWantsToCast();
+            target = null;
+            targetLocked = null;
+        }
     }
     public void HandleTimers()
     {
@@ -335,6 +366,7 @@ public class AbilityInfo : MonoBehaviour
             {
                 castTimer += Time.deltaTime;
                 timerPercent = castTimer / castTime;
+                WhileCasting();
             }
             else if(castTimer >= castTime)
             {
@@ -351,6 +383,7 @@ public class AbilityInfo : MonoBehaviour
             {
                 if(castTimer > 0)
                 {
+                    WhileChanneling();
                     castTimer -= Time.deltaTime;
                 }
                 if(castTimer <= 0)
@@ -402,6 +435,7 @@ public class AbilityInfo : MonoBehaviour
     {
         if (!active) { return; }
         if (isCasting) { return; }
+        Recast();
         CancelAutoAttack();
         if (abilityManager.currentlyCasting != null){ return; }
         if (!CanCast()) return;
@@ -410,16 +444,18 @@ public class AbilityInfo : MonoBehaviour
         if(onlyCastOutOfCombat && entityInfo.isInCombat) { return; }
 
         HandleCastMovement();
-        
         isCasting = true;
         locationLocked = location;
         abilityManager.currentlyCasting = gameObject.GetComponent<AbilityInfo>();
-        abilityManager.OnCastStart?.Invoke(this);
         if (usesGlobalCoolDown) { globalCoolDownActive = true; }
 
         HandleNoMoveOnCast(false);
         HandleAutoAttackCast();
         HandleCastMovementSpeed();
+        Recast(true);
+        abilityManager.OnCastStart?.Invoke(this);
+
+
         void HandleCastMovement()
         {
             if(movement)
@@ -434,6 +470,49 @@ public class AbilityInfo : MonoBehaviour
         {
             entityInfo.stats.movementSpeed -= castingMovementSpeedReduction;
         }
+    }
+
+    public void WhileCasting()
+    {
+        abilityManager.WhileCasting?.Invoke(this);
+
+        if(!IsCorrectTarget(targetLocked))
+        {
+            CancelCast();
+        }
+    }
+
+    public void WhileChanneling()
+    {
+        abilityManager.WhileChanneling?.Invoke(this);
+    }
+    public void Recast(bool activate = false, bool deactivate = false)
+    {
+        if (!recastProperties.recastable) { return; }
+
+        if(activate)
+        {
+            if(recastProperties.isActive != activate)
+            {
+                recastProperties.isActive = activate;
+                recastProperties.currentRecast = recastProperties.maxRecast;
+                ArchAction.Delay(() => { Recast(false, true); }, recastProperties.recastTimeFrame);
+            }
+            return;
+        }
+
+        if(deactivate)
+        {
+            recastProperties.isActive = false;
+            recastProperties.currentRecast = 0;
+            return;
+        }
+
+        if (!recastProperties.isActive) { return; }
+        if (recastProperties.currentRecast == 0 && recastProperties.maxRecast != -1) return;
+
+        recastProperties.OnRecast?.Invoke(this);
+
     }
     public bool CanCast()
     {
@@ -691,7 +770,7 @@ public class AbilityInfo : MonoBehaviour
         }
         
     }
-    public void CancelCast(bool resetTargets = false)
+    public void CancelCast(bool resetTargets = false, bool stopMoving = false)
     {
         if(abilityManager)
         {
@@ -702,12 +781,20 @@ public class AbilityInfo : MonoBehaviour
         if(movement && cantMoveWhenCasting)
         {
             movement.canMove = true;
+
+
+            if (stopMoving)
+            {
+                movement.StopMoving();
+            }
         }
 
         timerPercentActivated = false;
 
         castTimer = 0;
         isCasting = false;
+
+        
 
         if(resetTargets)
         {
@@ -796,6 +883,7 @@ public class AbilityInfo : MonoBehaviour
     }
     public bool IsCorrectTarget(GameObject target)
     {
+        if(target == null) { return true; }
         if(target.GetComponent<EntityInfo>())
         {
             if(!canCastSelf)

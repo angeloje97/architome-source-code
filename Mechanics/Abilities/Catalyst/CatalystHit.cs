@@ -28,6 +28,7 @@ public class CatalystHit : MonoBehaviour
             if(gameObject.GetComponent<CatalystInfo>())
             {
                 catalystInfo = gameObject.GetComponent<CatalystInfo>();
+                catalystInfo.OnCloseToTarget += OnCloseToTarget;
             }
         }
 
@@ -109,10 +110,17 @@ public class CatalystHit : MonoBehaviour
         
         return false;
     }
+
+    public void OnCloseToTarget(CatalystInfo catalyst, GameObject target)
+    {
+        HandleTargetHit(target.GetComponent<EntityInfo>());
+    }
+
     public void HandleTargetHit(EntityInfo targetHit)
     {
         if (!IsDeadTargetable(targetHit)) { return; }
-        if(catalystInfo.ticks <= 0 && !isSplashing) { return; }
+        if(catalystInfo.Ticks() <= 0 && !isSplashing) { return; }
+        HandleMainTarget(targetHit.gameObject);
         HandleEvent();
         HandleHeal();
         HandleDamage();
@@ -138,7 +146,7 @@ public class CatalystHit : MonoBehaviour
                 AddAlliesHealed(targetHit);
                 if(isHealing && !isAssisting)
                 {
-                    if (!isSplashing) { catalystInfo.ticks--; }
+                    if (!isSplashing) { catalystInfo.ReduceTicks(); }
                 }
                 
             }
@@ -155,7 +163,7 @@ public class CatalystHit : MonoBehaviour
                 catalystInfo.OnDamage?.Invoke(targetHit.gameObject);
                 ApplyBuff(targetHit, BuffTargetType.Harm);
                 AddEnemyHit(targetHit);
-                if (!isSplashing) { catalystInfo.ticks--; }
+                if (!isSplashing) { catalystInfo.ReduceTicks(); }
             }
         }
         void HandleAssist()
@@ -183,7 +191,7 @@ public class CatalystHit : MonoBehaviour
                 AddAlliesHealed(targetHit);
 
                 if(!isSplashing) {
-                    catalystInfo.ticks--;
+                    catalystInfo.ReduceTicks();
                 }
                 
 
@@ -194,6 +202,28 @@ public class CatalystHit : MonoBehaviour
             if (CanHit(targetHit))
             {
                 catalystInfo.OnHit?.Invoke(targetHit.gameObject);
+            }
+        }
+    }
+
+    public void HandleMainTarget(GameObject target)
+    {
+        if(catalystInfo.target != target) { return; }
+        if(abilityInfo.isHarming && abilityInfo.isHealing && abilityInfo.isAssisting) { return; }
+
+        if(abilityInfo.isHarming && !abilityInfo.isAssisting && !abilityInfo.isHealing)
+        {
+            if(!catalystInfo.entityInfo.CanAttack(target))
+            {
+                catalystInfo.OnWrongTargetHit?.Invoke(catalystInfo, target);
+            }
+        }
+
+        if((abilityInfo.isAssisting || abilityInfo.isHealing) && !abilityInfo.isHarming)
+        {
+            if(!catalystInfo.entityInfo.CanHelp(target))
+            {
+                catalystInfo.OnWrongTargetHit?.Invoke(catalystInfo, target);
             }
         }
     }

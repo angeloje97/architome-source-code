@@ -27,13 +27,16 @@ public class CatalystBounce : MonoBehaviour
         if(gameObject.GetComponent<CatalystInfo>())
         {
             catalystInfo = gameObject.GetComponent<CatalystInfo>();
+
+            catalystInfo.OnTickChange += OnTickChange;
+
             abilityInfo = catalystInfo.abilityInfo;
 
             if(catalystInfo.target)
             {
                 priorityNPCType = catalystInfo.target.GetComponent<EntityInfo>().npcType;
             }
-            currentTicks = catalystInfo.ticks;
+            currentTicks = catalystInfo.Ticks();
         }
         if(gameObject.GetComponent<CatalystHit>())
         {
@@ -59,15 +62,13 @@ public class CatalystBounce : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        HandleCatalystHit();
     }
-    public void HandleCatalystHit ()
+
+    public void OnTickChange(CatalystInfo catalyst, int ticks)
     {
-        if(currentTicks != catalystInfo.ticks)
-        {
-            LookForNewTarget();
-            currentTicks = catalystInfo.ticks;
-        }
+        if(ticks == 0) { return; }
+        LookForNewTarget();
+
     }
     public void LookForNewTarget()
     {
@@ -93,6 +94,7 @@ public class CatalystBounce : MonoBehaviour
             }
 
             cantFindEntity = true;
+            catalystInfo.OnCantFindEntity?.Invoke(catalystInfo);
         }
         
         bool FindEntity(NPCType priority)

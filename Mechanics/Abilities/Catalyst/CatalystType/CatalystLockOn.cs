@@ -13,6 +13,7 @@ public class CatalystLockOn : MonoBehaviour
 
     public float speed;
 
+    public bool closeToTarget;
 
     public void GetDependenciesStart()
     {
@@ -20,6 +21,8 @@ public class CatalystLockOn : MonoBehaviour
         {
             catalystInfo = GetComponent<CatalystInfo>();
             abilityInfo = catalystInfo.abilityInfo;
+
+            catalystInfo.OnNewTarget += OnNewTarget;
         }
     }
     public void GetDependencies()
@@ -42,7 +45,6 @@ public class CatalystLockOn : MonoBehaviour
     void Start()
     {
         GetDependenciesStart();
-        StartCoroutine(HandleCloseTarget());
     }
 
     
@@ -51,16 +53,14 @@ public class CatalystLockOn : MonoBehaviour
     void Update()
     {
         GetDependencies();
-        HandleTargettingChange();
+        HandleCloseTarget();
         TravelToTarget();
     }
 
     void TravelToTarget()
     {
-        if (target)
-        {
-            transform.LookAt(target.transform);
-        }
+        if (!target) { return; }
+        transform.LookAt(target.transform);
 
         if(speed == -1)
         {
@@ -74,44 +74,42 @@ public class CatalystLockOn : MonoBehaviour
         {
             transform.Translate(speed * Time.deltaTime * Vector3.forward);
         }
-        
-    }
-    public void HandleTargettingChange()
-    {
-        if(target == null && catalystInfo.target)
-        {
-            target = catalystInfo.target;
-        }
-        else if(target != catalystInfo.target)
-        {
-            target = catalystInfo.target;
-        }
     }
 
-    IEnumerator HandleCloseTarget()
+    public void HandleCloseTarget()
     {
-        while (true)
+        if(target == null) { return; }
+        if(V3Helper.Distance(target.transform.position, catalystInfo.transform.position) > .5f) { return; }
+        if (catalystInfo.isDestroyed) { return; }
+        if (closeToTarget) { return; }
+
+        closeToTarget = true;
+
+        StartCoroutine(Delay());
+
+        IEnumerator Delay()
         {
-            yield return new WaitForSeconds(.25f);
-            if (catalystInfo.target != null)
+            yield return new WaitForSeconds(.125f);
+
+            closeToTarget = false;
+
+            if (!catalystInfo.isDestroyed)
             {
-                Collider[] targets = Physics.OverlapSphere(transform.position, 1f, catalystInfo.abilityInfo.targetLayer);
-
-                foreach(Collider check in targets)
+                if(V3Helper.Distance(target.transform.position, catalystInfo.transform.position) < 1f)
                 {
-                    if(check.gameObject == catalystInfo.target)
-                    {
-                        if(check.GetComponent<EntityInfo>())
-                        {
-                            GetComponent<CatalystHit>().HandleTargetHit(check.GetComponent<EntityInfo>());
-                        }
-                        catalystInfo.HandleDeadTarget();
-                    }
-                    
+                    catalystInfo.OnCloseToTarget?.Invoke(catalystInfo, target);
                 }
             }
 
-            
+
         }
     }
+
+    public void OnNewTarget(GameObject previous, GameObject next)
+    {
+        closeToTarget = false;
+        target = next;
+        
+    }
+    
 }

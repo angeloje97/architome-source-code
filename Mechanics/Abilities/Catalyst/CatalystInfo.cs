@@ -14,7 +14,6 @@ public class CatalystInfo : MonoBehaviour
     public GameObject entityObject;
     public Sprite catalystIcon;
 
-
     [Header("Catalyst Animations")]
     public List<int> animationSequence;
     public Vector2 catalystStyle;
@@ -28,7 +27,7 @@ public class CatalystInfo : MonoBehaviour
     public EntityInfo entityInfo;
     public AbilityInfo abilityInfo;
 
-    public int ticks;
+    private int ticks;
     public float currentRange;
     public float liveTime;
     
@@ -65,15 +64,26 @@ public class CatalystInfo : MonoBehaviour
     public CatalystEffects effects;
     public AudioSource audioSource;
     public Vector3 startPosition;
+    public bool isDestroyed;
 
     //Events
     public Action<GameObject> OnDamage;
     public Action<GameObject> OnAssist;
     public Action<GameObject> OnHeal;
     public Action<GameObject> OnHit;
+    public Action<GameObject> OnWrongTarget;
+    public Action<GameObject, GameObject> OnNewTarget;
+    public Action<CatalystInfo> OnReturn;
+    public Action<CatalystInfo> OnCantFindEntity;
+    public Action<CatalystInfo, int> OnTickChange;
+    public Action<CatalystInfo, GameObject> OnCloseToTarget;
+    public Action<CatalystInfo, GameObject> OnWrongTargetHit;
+    public Action<GameObject, bool> OnPhysicsInteraction;
 
     public Action<CatalystInfo, CatalystInfo> OnCatalingRelease;
     public Action<CatalystDeathCondition> OnCatalystDestroy;
+
+    private GameObject targetCheck;
     public void GetDependencies()
     {
         if(abilityInfo)
@@ -202,10 +212,19 @@ public class CatalystInfo : MonoBehaviour
         GetDependencies();
         HandleComponents();
     }
-
     private void Start()
     {
         SpawnCatalystAudio();
+    }
+
+    public void OnTriggerEnter(Collider other)
+    {
+        OnPhysicsInteraction?.Invoke(other.gameObject, true);
+    }
+
+    public void OnTriggerExit(Collider other)
+    {
+        OnPhysicsInteraction?.Invoke(other.gameObject, false);
     }
 
     void SpawnCatalystAudio()
@@ -215,11 +234,20 @@ public class CatalystInfo : MonoBehaviour
     void Update()
     {
         UpdateMetrics();
+        HandleEvents();
     }
     public void UpdateMetrics()
     {
         currentRange = V3Helper.Distance(startPosition, transform.position);
         liveTime += Time.deltaTime;
+    }
+    public void HandleEvents()
+    {
+        if(targetCheck != target)
+        {
+            OnNewTarget.Invoke(targetCheck, target);
+            targetCheck = target;
+        }
     }
     public void HandleDeadTarget()
     {
@@ -234,12 +262,7 @@ public class CatalystInfo : MonoBehaviour
         {
             GetComponent<CatalystBounce>().LookForNewTarget();
         }
-        else
-        {
-            GetComponent<CatalystDeathCondition>().DestroySelf();
-        }
     }
-
     public List<GameObject> EntitiesWithinRadius()
     {
         List<GameObject> entities = new List<GameObject>();
@@ -271,7 +294,6 @@ public class CatalystInfo : MonoBehaviour
 
         return entities;
     }
-
     public List<GameObject> AlliesWithinRange()
     {
         var allies = new List<GameObject>();
@@ -286,7 +308,6 @@ public class CatalystInfo : MonoBehaviour
 
         return allies;
     }
-
     public List<GameObject> EnemiesWithinRange()
     {
         var enemies = new List<GameObject>();
@@ -300,5 +321,21 @@ public class CatalystInfo : MonoBehaviour
         }
 
         return enemies;
+    }
+
+    public void ReduceTicks()
+    {
+        ticks--;
+        OnTickChange?.Invoke(this, ticks);
+    }
+    public void IncreaseTicks()
+    {
+        ticks++;
+        OnTickChange?.Invoke(this, ticks);
+    }
+
+    public int Ticks()
+    {
+        return ticks;
     }
 }

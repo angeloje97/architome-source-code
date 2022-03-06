@@ -62,6 +62,7 @@ public class CombatBehavior : MonoBehaviour
             if(entityInfo.AbilityManager())
             {
                 abilityManager = entityInfo.AbilityManager();
+                abilityManager.OnCastRelease += OnCastRelease;
             }
 
         }
@@ -69,6 +70,8 @@ public class CombatBehavior : MonoBehaviour
         if(GetComponentInParent<AIBehavior>())
         {
             behavior = GetComponentInParent<AIBehavior>();
+
+            behavior.OnBehaviorStateChange += OnBehaviorStateChange;
 
             if(behavior.ThreatManager())
             {
@@ -84,7 +87,6 @@ public class CombatBehavior : MonoBehaviour
         GetDependencies();
         if (threatManager) { StartCoroutine(CombatRoutine()); }
     }
-
 
     public void OnLifeChange(bool isAlive)
     {
@@ -103,6 +105,41 @@ public class CombatBehavior : MonoBehaviour
             }
         }
     }
+
+    public void OnCastRelease(AbilityInfo ability)
+    {
+        if(behavior.behaviorType != AIBehaviorType.HalfPlayerControl) { return; }
+
+        if (entityInfo.CanAttack(ability.target) && abilityManager.attackAbility.isHarming)
+        {
+            SetFocus(ability.target);
+        }
+
+
+        if (entityInfo.CanHelp(ability.target) && abilityManager.attackAbility.isHealing)
+        {
+            SetFocus(ability.target);
+        }
+        
+
+        
+    }
+    
+    public void OnBehaviorStateChange(BehaviorState before, BehaviorState after)
+    {
+        InitCombatActions();
+    }
+
+    public void OnNPCTypeChange(NPCType before, NPCType after)
+    {
+        if(after == NPCType.Friendly)
+        {
+            ArchAction.Delay(() =>
+            {
+                HandleHalfControl(true);
+            }, .125f);
+        }
+    }
     public void SetFocus(GameObject target)
     {
         focusTarget = target;
@@ -116,6 +153,8 @@ public class CombatBehavior : MonoBehaviour
     public void OnIncreaseThreat(ThreatManager.ThreatInfo threatInfo)
     {
         target = threatManager.highestThreat;
+
+        InitCombatActions();
     }
     public void OnRemoveThreat(ThreatManager.ThreatInfo threatInfo)
     {
@@ -163,11 +202,16 @@ public class CombatBehavior : MonoBehaviour
         {
             yield return new WaitForSeconds(.125f);
             if(!entityInfo.isAlive){continue;}
-            HandleThreat();
-            HandleNoControl();
-            HandleHalfControl();
-            HandleDeadTarget();
+            InitCombatActions();
         }
+    }
+    public void InitCombatActions()
+    {
+        if (!entityInfo.isAlive) { return; }
+        HandleThreat();
+        HandleNoControl();
+        HandleHalfControl();
+        HandleDeadTarget();
     }
     public void HandleThreat()
     {
@@ -256,7 +300,7 @@ public class CombatBehavior : MonoBehaviour
             }
         }
     }
-    public void HandleHalfControl()
+    public void HandleHalfControl(bool ignoreIdleState= false)
     {
         if (behavior.behaviorType != AIBehaviorType.HalfPlayerControl)
         {
@@ -264,7 +308,7 @@ public class CombatBehavior : MonoBehaviour
         }
 
         if(behavior.combatType == CombatBehaviorType.Passive && focusTarget == null) { return; }
-        if(behavior.behaviorState != BehaviorState.Idle) { return; }
+        if(behavior.behaviorState != BehaviorState.Idle && !ignoreIdleState) { return; }
 
 
         if(HandleAbilities()) { return; }
@@ -287,7 +331,7 @@ public class CombatBehavior : MonoBehaviour
                 foreach (int index in abilityIndexPriority)
                 {
                     if (abilityManager.Ability(index).isHarming &&
-                        abilityManager.canAttack.Contains(focusInfo.npcType) &&
+                        entityInfo.CanAttack(focusTarget) &&
                         abilityManager.Ability(index).IsReady())
                     {
                         abilityManager.target = focusTarget;
@@ -316,23 +360,26 @@ public class CombatBehavior : MonoBehaviour
                 Debugger.InConsole(7953, $"{target != null}");
                 if(behavior.combatType == CombatBehaviorType.Reactive)
                 {
-                    if (V3Helper.Distance(target.transform.position, entityObject.transform.position) < abilityManager.attackAbility.range)
+                    if(behavior.LineOfSight().HasLineOfSight(target))
                     {
-                        if(behavior.LineOfSight().HasLineOfSight(target))
+                        if(V3Helper.Distance(target.transform.position, entityObject.transform.position) < abilityManager.attackAbility.range)
                         {
                             abilityManager.target = target;
                             abilityManager.Attack();
                             abilityManager.target = null;
-
                         }
                     }
                     else
                     {
                         if (threatManager.NearestHighestThreat(abilityManager.attackAbility.range))
                         {
+                            if (!behavior.LineOfSight().HasLineOfSight(threatManager.NearestHighestThreat(abilityManager.attackAbility.range))) return;
+
+
                             abilityManager.target = threatManager.NearestHighestThreat(abilityManager.attackAbility.range);
                             abilityManager.Attack();
                             abilityManager.target = null;
+
                         }
                     }
                 }

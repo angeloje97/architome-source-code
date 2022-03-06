@@ -97,6 +97,7 @@ public class ActionBarBehavior : MonoBehaviour
                         break;
                     case > 60:
                         text = $"{timeRemaining / 60}m";
+                        text += $":{timeRemaining % 60}s";
                         break;
                     default:
                         text = $"{timeRemaining}s";

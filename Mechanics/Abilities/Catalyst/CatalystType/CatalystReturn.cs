@@ -21,6 +21,9 @@ public class CatalystReturn : MonoBehaviour
             if (GetComponent<CatalystInfo>())
             {
                 catalystInfo = GetComponent<CatalystInfo>();
+                catalystInfo.OnCantFindEntity += OnCantFindEntity;
+                catalystInfo.OnTickChange += OnTickChange;
+                catalystInfo.OnCloseToTarget += OnCloseToTarget;
             }
 
             if(GetComponent<CatalystHit>())
@@ -43,30 +46,45 @@ public class CatalystReturn : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        HandleReturn();
-        HandleHasReturned();
     }
 
-    public void HandleReturn()
-    {
-        if(catalystInfo == null || entityObject==null) { return; }
-        if(hasReturned) { return; }
-        bool cantFindTarget = GetComponent<CatalystBounce>() && GetComponent<CatalystBounce>().cantFindEntity;
 
-        if(!isReturning && (catalystInfo.ticks <= 0 || cantFindTarget))
+    public void OnCantFindEntity(CatalystInfo catalyst)
+    {
+        Return();
+    }
+
+    public void OnTickChange(CatalystInfo catalyst, int ticks)
+    {
+        if(ticks == 0 && !hasReturned)
         {
-            isReturning = true;
-            catalystInfo.target = entityObject;
+            Return();
         }
     }
 
-    public void HandleHasReturned()
+    public void Return()
     {
-        if(catalystInfo == null || catalystHit == null || entityInfo == null || catalystInfo.abilityInfo == null) { return; }
-        if (isReturning && V3Helper.Distance(entityObject.transform.position, transform.position) < 1f)
+        isReturning = true;
+        catalystInfo.target = entityObject;
+    }
+
+
+    public void OnTriggerEnter(Collider other)
+    {
+        OnPhysicsEnter(other.gameObject);  
+    }
+
+    public void OnCollisionEnter(Collision collision)
+    {
+        OnPhysicsEnter(collision.gameObject);
+    }
+
+    public void OnPhysicsEnter(GameObject other)
+    {
+        if (!isReturning) { return; }
+
+        if(other == entityObject)
         {
-            hasReturned = true;
-            isReturning = false;
             ApplyReturnAction();
         }
     }
@@ -74,6 +92,8 @@ public class CatalystReturn : MonoBehaviour
     public void ApplyReturnAction()
     {
 
+        hasReturned = true;
+        isReturning = false;
         if(catalystInfo.abilityInfo.returnAppliesBuffs)
         {
             catalystHit.isAssisting = true;
@@ -88,10 +108,22 @@ public class CatalystReturn : MonoBehaviour
 
         if(catalystHit.isHealing || catalystHit.isAssisting)
         {
-            catalystInfo.ticks++;
+            catalystInfo.IncreaseTicks();
         }
 
         catalystHit.HandleTargetHit(entityInfo);
+        catalystInfo.OnReturn?.Invoke(catalystInfo);
+
+    }
+
+    public void OnCloseToTarget(CatalystInfo catalystInfo, GameObject target)
+    {
+        if (!isReturning) return;
+        
+        if(target == entityObject)
+        {
+            ApplyReturnAction();
+        }
     }
 
 

@@ -11,7 +11,7 @@ public class CatalystDeathCondition : MonoBehaviour
 
     public AbilityInfo.DestroyConditions conditions;
 
-
+    public string destroyReason;
     public float destroyDelay = 0f;
 
     public void GetDependencies()
@@ -21,6 +21,9 @@ public class CatalystDeathCondition : MonoBehaviour
             if(gameObject.GetComponent<CatalystInfo>())
             {
                 catalystInfo = gameObject.GetComponent<CatalystInfo>();
+                catalystInfo.OnWrongTargetHit += OnWrongTargetHit;
+                catalystInfo.OnTickChange += OnTickChange;
+                catalystInfo.OnReturn += OnReturn;
             }
         }
         if (abilityInfo == null)
@@ -40,12 +43,8 @@ public class CatalystDeathCondition : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
-
-        HandleTicks();
         HandleLiveTime();
         HandleRange();
-        HandleReturn();
         HandleDeadEntity();
     }
     public void OnTriggerEnter(Collider other)
@@ -54,22 +53,28 @@ public class CatalystDeathCondition : MonoBehaviour
         {
             if(other.CompareTag("Structure"))
             {
-                DestroySelf();
+                DestroySelf("Collided With Wall");
             }
         }
 
         
     }
 
-    public void HandleTicks()
+    public void OnTickChange(CatalystInfo catalyst, int ticks)
     {
         if (conditions.destroyOnNoTickDamage)
         {
-            if (catalystInfo.ticks <= 0)
+            if (ticks <= 0)
             {
-                DestroySelf();
+                DestroySelf("No Ticks");
             }
+
         }
+    }
+
+    public void OnWrongTargetHit(CatalystInfo catalyst, GameObject target)
+    {
+        DestroySelf("Wrong Target Hit");
     }
 
     public void HandleDeadEntity()
@@ -79,20 +84,22 @@ public class CatalystDeathCondition : MonoBehaviour
         {
             if(conditions.destroyOnDeadTarget)
             {
-                DestroySelf();
+                DestroySelf("Dead Target");
             }
         }
     }
 
 
 
-    public void HandleReturn()
+    public void OnReturn(CatalystInfo catalyst)
     {
+        if(gameObject == null) { return; }
         if(conditions.destroyOnReturn)
         {
+
             if(GetComponent<CatalystReturn>() && GetComponent<CatalystReturn>().hasReturned)
             {
-                DestroySelf();
+                DestroySelf("Returned");
             }
         }
     }
@@ -103,14 +110,14 @@ public class CatalystDeathCondition : MonoBehaviour
         {
             if (catalystInfo.currentRange > catalystInfo.range)
             {
-                DestroySelf();
+                DestroySelf("Out of Range");
             }
 
             if (gameObject.GetComponent<CatalystFreeScan>())
             {
                 if (V3Helper.Abs(gameObject.transform.localScale) > catalystInfo.range*2)
                 {
-                    DestroySelf();
+                    DestroySelf("Out of Range");
                 }
             }
         }
@@ -121,21 +128,27 @@ public class CatalystDeathCondition : MonoBehaviour
         {
             if(catalystInfo.liveTime > abilityInfo.liveTime && conditions.destroyOnLiveTime)
             {
-                DestroySelf();
+                DestroySelf("Expired");
             }
         }
     }
 
 
-    public void DestroySelf()
+    public void DestroySelf(string reason)
     {
         StartCoroutine(DestroyDelay());
-
+        catalystInfo.OnCatalystDestroy?.Invoke(this);
+        destroyReason = reason;
+        Debugger.InConsole(1294, $"Catalyst Destroyed for {reason}");
         IEnumerator DestroyDelay()
         {
             yield return new WaitForSeconds(destroyDelay);
-            catalystInfo.OnCatalystDestroy?.Invoke(this);
-            Destroy(gameObject);
+            if(gameObject!= null)
+            {
+                catalystInfo.isDestroyed = true;
+                Destroy(gameObject);
+
+            }
         }
     }
     

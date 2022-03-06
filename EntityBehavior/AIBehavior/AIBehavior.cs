@@ -21,11 +21,13 @@ public class AIBehavior : MonoBehaviour
 
     public Action<AIBehaviorType, AIBehaviorType> OnBehaviorChange;
     public Action<BehaviorState, BehaviorState> OnBehaviorStateChange;
+    public Action<CombatBehaviorType, CombatBehaviorType> OnCombatBehaviorTypeChange;
 
     public BehaviorStateManager stateManager;
     private AIBehaviorType originalBehaviorType;
     private AIBehaviorType behaviorTypeCheck;
     private BehaviorState behaviorStateCheck;
+    private CombatBehaviorType combatTypeCheck;
     public void GetDependencies()
     {
         if(GetComponentInParent<EntityInfo>())
@@ -44,6 +46,11 @@ public class AIBehavior : MonoBehaviour
             }
 
             entityInfo.OnStateChange += OnStateChange;
+
+            if(entityInfo.npcType == NPCType.Hostile)
+            {
+                combatType = CombatBehaviorType.Agressive;
+            }
         }
 
         StartCoroutine(DependenciesLate());
@@ -100,11 +107,10 @@ public class AIBehavior : MonoBehaviour
         GetDependencies();
         stateManager.Activate(this);
     }
-    // Update is called once per frame
     void Update()
     {
+        HandleEventTriggers();
     }
-
     public void HandleEventTriggers()
     {
         if(behaviorType != behaviorTypeCheck)
@@ -117,7 +123,12 @@ public class AIBehavior : MonoBehaviour
         {
             OnBehaviorStateChange?.Invoke(behaviorStateCheck, behaviorState);
             behaviorStateCheck = behaviorState;
+        }
 
+        if(combatTypeCheck != combatType)
+        {
+            OnCombatBehaviorTypeChange?.Invoke(combatTypeCheck, combatType);
+            combatTypeCheck = combatType;
         }
     }
     public LineOfSight LineOfSight()

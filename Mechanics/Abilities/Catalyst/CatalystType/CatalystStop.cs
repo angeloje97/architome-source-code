@@ -116,7 +116,7 @@ public class CatalystStop : MonoBehaviour
         IEnumerator Cycle()
         {
             
-            while(catalystInfo.ticks > 0)
+            while(catalystInfo.Ticks() > 0)
             {
                 yield return new WaitForSeconds(abilityInfo.radiateIntervals);
 
@@ -131,7 +131,7 @@ public class CatalystStop : MonoBehaviour
                 if (nextTarget != null)
                 {
                     catalingActions.CastAt(nextTarget);
-                    catalystInfo.ticks--;
+                    catalystInfo.ReduceTicks();
                 }
             }
             //void HandleFreeShotCatalings()

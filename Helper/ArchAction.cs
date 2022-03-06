@@ -9,11 +9,13 @@ namespace Architome
     public class ArchAction
     {
         // Start is called before the first frame update
-        public static async void Delay(Action action, int time)
+        public static async void Delay(Action action, float seconds)
         {
-            await Task.Delay(time);
+            int milliSeconds = (int)(seconds * 1000);
+            await Task.Delay(milliSeconds);
 
             action();
+
         }
 
         public static async void Update(Action action)
@@ -31,6 +33,17 @@ namespace Architome
             {
                 await Task.Yield();
                 action();
+            }
+        }
+
+        public static async void Interval(Action action, float seconds)
+        {
+            int milliSeconds = (int)(seconds * 1000);
+
+            while(true)
+            {
+                action();
+                await Task.Delay(milliSeconds);
             }
         }
     }

@@ -35,8 +35,14 @@ public class BuffMindControl : BuffStateChanger
         {
             originalBehaviorType = host.AIBehavior().behaviorType;
             originalNPCType = host.npcType;
-            host.ChangeBehavior(source.npcType, AIBehaviorType.NoControl);
+            host.ChangeBehavior(source.npcType, Entity.IsPlayer(source.gameObject)? AIBehaviorType.HalfPlayerControl : AIBehaviorType.NoControl);
+            host.Movement().StopMoving();
         }
+    }
+
+    public void OnRecast(AbilityInfo ability)
+    {
+
     }
 
     void Start()

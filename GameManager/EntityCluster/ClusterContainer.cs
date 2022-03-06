@@ -14,7 +14,7 @@ public class ClusterContainer : MonoBehaviour
     
     void Start()
     {
-        
+        StartCoroutine(OutOfRangeRoutine());
     }
 
     // Update is called once per frame
@@ -23,6 +23,26 @@ public class ClusterContainer : MonoBehaviour
         FollowAgents();
     }
 
+    public IEnumerator OutOfRangeRoutine()
+    {
+        while(true)
+        {
+            yield return null;
+
+            for(int i = 0; i < cluster.entities.Count; i++)
+            {
+                var agent = cluster.entities[i];
+                yield return null;
+
+                if (V3Helper.Distance(agent.transform.position, transform.position) > 6f)
+                {
+                    var clusterAgent = agent.GetComponentInChildren<EntityClusterAgent>();
+                    HandleAgentExit(clusterAgent);
+                    i--;
+                }
+            }
+        }
+    }
     
     void FollowAgent()
     {
@@ -58,12 +78,18 @@ public class ClusterContainer : MonoBehaviour
 
         var otherAgent = other.GetComponent<EntityClusterAgent>();
 
-        otherAgent.lastToEnter = false;
-        var entity = other.GetComponentInParent<EntityInfo>().gameObject;
+        HandleAgentExit(otherAgent);
+    }
+
+    public void HandleAgentExit(EntityClusterAgent agent)
+    {
+        if(agent == null) { return; }
+        agent.lastToEnter = false;
+        var entity = agent.GetComponentInParent<EntityInfo>().gameObject;
 
         if (cluster.entities.Contains(entity))
         {
-            otherAgent.OnClusterExit?.Invoke(cluster, cluster.IndexOf(entity));
+            agent.OnClusterExit?.Invoke(cluster, cluster.IndexOf(entity));
             cluster.entities.Remove(entity);
         }
 
@@ -73,8 +99,6 @@ public class ClusterContainer : MonoBehaviour
         {
             EntityClusterManager.active.HandleEmptyCluster(cluster);
         }
-
-        
     }
 
     public void OnTriggerEnter(Collider other)

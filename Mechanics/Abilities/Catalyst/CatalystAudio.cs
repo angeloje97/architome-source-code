@@ -62,6 +62,10 @@ public class CatalystAudio : MonoBehaviour
     {
         destroyCatalyst = true;
         isActive = false;
+
+        catalystInfo.OnCatalystDestroy -= OnCatalystDestroy;
+        catalystInfo.OnCatalingRelease -= OnCatalingRelease;
+
         HandleDestroy();
     }
 
@@ -74,6 +78,7 @@ public class CatalystAudio : MonoBehaviour
     {
         if(!destroyCatalyst || audioManager.audioRoutineIsActive) { return; }
 
+        
         Destroy(gameObject);
     }
 

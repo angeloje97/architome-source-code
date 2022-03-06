@@ -53,7 +53,7 @@ public class CatalystUse : MonoBehaviour
             }
         }
 
-        deathCondition.DestroySelf();
+        deathCondition.DestroySelf("From Use Effect");
     }
 
 }

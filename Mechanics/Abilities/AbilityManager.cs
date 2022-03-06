@@ -13,8 +13,6 @@ namespace Architome
 
         public List<AbilityInfo> abilities;
         public List<AbilityInfo> usableItems;
-        public List<NPCType> canAttack;
-        public List<NPCType> canHeal;
 
         public AbilityInfo attackAbility;
         public AbilityInfo currentlyCasting;
@@ -35,6 +33,8 @@ namespace Architome
         public Action<AbilityInfo> OnCancelChannel;
         public Action<AbilityInfo> OnNewAbility;
         public Action<AbilityInfo> OnCatalystRelease;
+        public Action<AbilityInfo> WhileCasting;
+        public Action<AbilityInfo> WhileChanneling;
         public Action<AbilityInfo, bool> OnWantsToCastChange;
         public Action<AbilityInfo, bool> OnCastChange;
 
@@ -82,7 +82,6 @@ namespace Architome
         void Start()
         {
             GetDependencies();
-            HandleTargetables();
         }
 
         private void Update()
@@ -197,31 +196,6 @@ namespace Architome
 
             if (location != null) { attackAbility.location = location; }
             attackAbility.Cast();
-        }
-        void HandleTargetables()
-        {
-            if (entityInfo)
-            {
-                switch (entityInfo.npcType)
-                {
-                    case NPCType.Friendly:
-                        canAttack.Add(NPCType.Hostile);
-                        canAttack.Add(NPCType.Neutral);
-                        break;
-                    case NPCType.Hostile:
-                        canAttack.Add(NPCType.Friendly);
-                        canAttack.Add(NPCType.Neutral);
-                        break;
-                    default:
-                        canAttack.Add(NPCType.Friendly);
-                        canAttack.Add(NPCType.Neutral);
-                        canAttack.Add(NPCType.Hostile);
-                        break;
-                }
-
-                canHeal.Add(entityInfo.npcType);
-
-            }
         }
         public AbilityInfo CreateNewAbility(GameObject abilityObject)
         {

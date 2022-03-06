@@ -101,7 +101,7 @@ namespace Architome.Enums
         Silenced = 2,
         Immobalized = 3,
         Taunted = 4,
-        MinControlled = 5,
+        MindControlled = 5,
         Busy = 6,
         Casting = 7,
         Slowed = 8,

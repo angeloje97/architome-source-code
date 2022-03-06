@@ -513,6 +513,27 @@ namespace Architome
             return true;
 
         }
+
+        public bool IsEnemy(GameObject target)
+        {
+            if (!target.GetComponent<EntityInfo>()) return false;
+
+            var targetNPCType = target.GetComponent<EntityInfo>().npcType;
+
+            if(npcType == NPCType.Friendly && targetNPCType == NPCType.Hostile)
+            {
+                return true;
+            }
+
+            if(npcType == NPCType.Hostile && targetNPCType == NPCType.Friendly)
+            {
+                return true;
+            }
+
+
+            return false;
+
+        }
         public void ReactToSocial(SocialEventData eventData)
         {
             if (eventData.target == this)
@@ -665,6 +686,7 @@ namespace Architome
         }
         public bool CanAttack(GameObject target)
         {
+            if(target == null) { return false; }
             if (target.GetComponent<EntityInfo>() == null) { return false; }
             var targetInfo = target.GetComponent<EntityInfo>();
 
@@ -678,6 +700,7 @@ namespace Architome
         }
         public bool CanHelp(GameObject target)
         {
+            if(target == null) { return false; }
             if (target.GetComponent<EntityInfo>() == null) { return false; }
             var targetInfo = target.GetComponent<EntityInfo>();
             
@@ -712,19 +735,19 @@ namespace Architome
 
             void HandleHealthRegen()
             {
-                if (!isInCombat)
+                if(currentState == EntityState.MindControlled) { return; }
+                if(isInCombat) { return; }
+
+
+                var nextHealth = health + maxHealth * healthRegenPercent;
+
+                if (nextHealth < maxHealth)
                 {
-                    var nextHealth = health + maxHealth * healthRegenPercent;
-
-                    if (nextHealth < maxHealth)
-                    {
-                        health = nextHealth;
-                    }
-                    else if (nextHealth > maxHealth)
-                    {
-                        health = maxHealth;
-                    }
-
+                    health = nextHealth;
+                }
+                else if (nextHealth > maxHealth)
+                {
+                    health = maxHealth;
                 }
             }
             void HandleManaRegen()
@@ -958,44 +981,38 @@ namespace Architome
             {
                 ShowLights(val);
             }
-
-            async void ShowGraphics(bool val)
-            {
-                var canvases = GetComponentsInChildren<Canvas>();
-
-                foreach (var canvas in canvases)
-                {
-                    canvas.enabled = val;
-
-                    await Task.Yield();
-                }
-            }
-
-            async void ShowRenders(bool val)
-            {
-                var renders = GetComponentsInChildren<Renderer>();
-
-                foreach(var render in renders)
-                {
-                    render.enabled = val;
-                    await Task.Yield();
-                }
-            }
-
-            async void ShowLights(bool val)
-            {
-                var lights = GetComponentsInChildren<Light>();
-
-                foreach(var light in lights)
-                {
-                    light.enabled = val;
-                    await Task.Yield();
-                }
-            }
-
         }
+        async void ShowRenders(bool val)
+        {
+            var renders = GetComponentsInChildren<Renderer>();
 
-        
+            foreach (var render in renders)
+            {
+                render.enabled = val;
+                await Task.Yield();
+            }
+        }
+        async void ShowGraphics(bool val)
+        {
+            var canvases = GetComponentsInChildren<Canvas>();
+
+            foreach (var canvas in canvases)
+            {
+                canvas.enabled = val;
+
+                await Task.Yield();
+            }
+        }
+        async void ShowLights(bool val)
+        {
+            var lights = GetComponentsInChildren<Light>();
+
+            foreach (var light in lights)
+            {
+                light.enabled = val;
+                await Task.Yield();
+            }
+        }
     }
 }
 
