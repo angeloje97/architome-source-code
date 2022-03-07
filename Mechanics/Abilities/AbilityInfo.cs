@@ -74,7 +74,13 @@ public class AbilityInfo : MonoBehaviour
     public int ticksOfDamage = 1;
     public bool maxChargesOnStart = true;
 
+    [Serializable]
+    public class AbilityVisualEffects
+    {
+        public bool showCastBar;
+    }
 
+    public AbilityVisualEffects vfx;
 
 
     [Header("Catalyst Stop Property")]

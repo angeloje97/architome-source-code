@@ -103,8 +103,6 @@ public class ProgressBarsBehavior : MonoBehaviour
     {
         SetHealthBarColor();
     }
-
-
     void SetHealthBarColor()
     {
         if (healthBar == null) { return; }

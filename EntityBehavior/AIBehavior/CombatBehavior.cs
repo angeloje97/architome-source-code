@@ -109,6 +109,7 @@ public class CombatBehavior : MonoBehaviour
     public void OnCastRelease(AbilityInfo ability)
     {
         if(behavior.behaviorType != AIBehaviorType.HalfPlayerControl) { return; }
+        if (ability.isAttack) { return; }
 
         if (entityInfo.CanAttack(ability.target) && abilityManager.attackAbility.isHarming)
         {

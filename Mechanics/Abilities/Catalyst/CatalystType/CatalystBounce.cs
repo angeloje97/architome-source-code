@@ -75,9 +75,11 @@ public class CatalystBounce : MonoBehaviour
     {
         if (catalystInfo == null || abilityInfo == null || catalystHit == null) { return; }
 
-        Collider[] rangeChecks = Physics.OverlapSphere(gameObject.transform.position, bounceRadius, targetLayerMask);
+        //Collider[] rangeChecks = Physics.OverlapSphere(gameObject.transform.position, bounceRadius, targetLayerMask);
 
-        var entityList = rangeChecks.OrderBy(entity => V3Helper.Distance(entity.transform.position, transform.position));
+        //var entityList = rangeChecks.OrderBy(entity => V3Helper.Distance(entity.transform.position, transform.position));
+
+        var entityList = catalystInfo.EntitiesWithinRadius(bounceRadius);
 
         Debugger.InConsole(9414, $"Starting to find new target");
 
@@ -102,7 +104,7 @@ public class CatalystBounce : MonoBehaviour
         
         bool FindEntity(NPCType priority)
         {
-            foreach (Collider entity in entityList)
+            foreach (var entity in entityList)
             {
                 if (entity.GetComponent<EntityInfo>())
                 {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
 using Architome;
-
+using System.Linq;
 public class CatalystStop : MonoBehaviour
 {
     // Start is called before the first frame update
@@ -166,7 +166,9 @@ public class CatalystStop : MonoBehaviour
             yield return new WaitForSeconds(.25f);
             var range = catalying.GetComponent<CatalystInfo>().range;
 
-            Collider[] entityInRange = Physics.OverlapSphere(gameObject.transform.position, range*2, abilityInfo.targetLayer);
+            Collider[] entityInRange = Physics.OverlapSphere(gameObject.transform.position, range*2, abilityInfo.targetLayer)
+                                              .OrderBy(entity => V3Helper.Distance(entity.transform.position, transform.position)).ToArray();
+            
 
             foreach (Collider collide in entityInRange)
             {

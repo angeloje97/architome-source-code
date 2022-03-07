@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
+using System.Linq;
+
 namespace Architome
 {
     public class PartyInfo : MonoBehaviour
@@ -311,6 +313,8 @@ namespace Architome
                 partyIsInCombat = true;
                 return;
             }
+
+
 
             foreach (var member in members)
             {

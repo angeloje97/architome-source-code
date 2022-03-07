@@ -2,10 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
+using Architome;
 using UnityEngine.UI;
 using System;
-using Architome;
+using System.Linq;
 
+
+namespace Architome
+{
+
+}
 [RequireComponent(typeof(CatalystDeathCondition))]
 [RequireComponent(typeof(CatalystHit))]
 public class CatalystInfo : MonoBehaviour
@@ -269,14 +275,19 @@ public class CatalystInfo : MonoBehaviour
             GetComponent<CatalystBounce>().LookForNewTarget();
         }
     }
-    public List<GameObject> EntitiesWithinRadius()
+    public List<GameObject> EntitiesWithinRadius(float radius = 0f)
     {
+        if (radius == 0) radius = range;
+
+
         List<GameObject> entities = new List<GameObject>();
 
         var structureLayer = GMHelper.LayerMasks().structureLayerMask;
         var entityLayer = GMHelper.LayerMasks().entityLayerMask;
 
-        Collider[] collisions = Physics.OverlapSphere(transform.position, range, entityLayer);
+        Collider[] collisions = Physics.OverlapSphere(transform.position, radius, entityLayer)
+                                        .OrderBy(entity => V3Helper.Distance(entity.transform.position, transform.position))
+                                        .ToArray();
 
         foreach(var i in collisions)
         {

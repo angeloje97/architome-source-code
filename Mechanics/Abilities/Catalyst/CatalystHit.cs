@@ -441,7 +441,9 @@ public class CatalystHit : MonoBehaviour
         if (!abilityInfo.splashes) { return; }
 
 
-        Collider[] entitiesWithinRange = Physics.OverlapSphere(targetInfo.transform.position, abilityInfo.splashRadius, abilityInfo.targetLayer);
+        //Collider[] entitiesWithinRange = Physics.OverlapSphere(targetInfo.transform.position, abilityInfo.splashRadius, abilityInfo.targetLayer);
+
+        var entitiesWithinRange = catalystInfo.EntitiesWithinRadius(abilityInfo.splashRadius);
         int maxSplashTargets = abilityInfo.maxSplashTargets;
         var originalValue = value;
         var originalAssist = isAssisting;
@@ -458,7 +460,7 @@ public class CatalystHit : MonoBehaviour
         }
         void HandleSplashTargets()
         {
-            foreach (Collider target in entitiesWithinRange)
+            foreach (var target in entitiesWithinRange)
             {
                 if (maxSplashTargets == 0)
                 {
@@ -477,7 +479,7 @@ public class CatalystHit : MonoBehaviour
                 }
             }
 
-            foreach (Collider target in entitiesWithinRange)
+            foreach (var target in entitiesWithinRange)
             {
                 if (maxSplashTargets == 0)
                 {
@@ -503,7 +505,7 @@ public class CatalystHit : MonoBehaviour
             isSplashing = false;
         }
 
-        bool HasLineOfSight(Collider target)
+        bool HasLineOfSight(GameObject target)
         {
             if(!abilityInfo.splashRequiresLOS)
             {

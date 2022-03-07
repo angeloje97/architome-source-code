@@ -127,6 +127,7 @@ public class ThreatManager : MonoBehaviour
             entityInfo.OnHealingTaken += OnHealingTaken;
             entityInfo.OnNewBuff += OnNewBuff;
             entityInfo.OnChangeNPCType += OnChangeNpcType;
+            entityInfo.OnBuffApply += OnBuffApply;
         }
 
         if(GetComponentInParent<AIBehavior>())
@@ -187,6 +188,10 @@ public class ThreatManager : MonoBehaviour
         {
             CheckThreats(NPCType.Friendly);
         }
+
+        HandleMaxThreat();
+
+
     }
     public void OnDamageDone(CombatEventData eventData)
     {
@@ -215,13 +220,18 @@ public class ThreatManager : MonoBehaviour
 
         IncreaseThreat(source.gameObject, threatVal, true);
     }
+
+    public void OnBuffApply(BuffInfo appliedBuff, EntityInfo source)
+    {
+
+    }
     public void OnNewBuff(BuffInfo newBuff, EntityInfo source)
     {
         if(newBuff.buffTargetType == BuffTargetType.Harm)
         {
             var value = newBuff.properties.value;
             if(value <= 0) { value = 15; }
-            IncreaseThreat(source.gameObject, value);
+            IncreaseThreat(source.gameObject, value, true);
         }
     }
     public void OnHealingTaken(CombatEventData eventData)

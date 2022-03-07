@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Linq;
 public class V3Helper
 {
     // Start is called before the first frame update
@@ -56,33 +57,36 @@ public class V3Helper
 
     public static Vector3 MidPoint(List<Transform> transforms)
     {
-        var positionSum = new Vector3();
-        
-        foreach(Transform current in transforms)
-        {
-            positionSum += current.position;
-        }
+        //var positionSum = new Vector3();
 
-        var positionX = positionSum.x / transforms.Count;
-        var positionY = positionSum.y / transforms.Count;
-        var positionZ = positionSum.z / transforms.Count;
+        return Sum(transforms) / transforms.Count;
+        //var positionSumX = transforms.Sum(trans => trans.position.x);
+        //var positionSumY = transforms.Sum(trans => trans.position.y);
+        //var positionSumZ = transforms.Sum(trans => trans.position.y);
 
-        return new Vector3(positionX, positionY, positionZ);
+        //var positionX = positionSumX / transforms.Count;
+        //var positionY = positionSumY / transforms.Count;
+        //var positionZ = positionSumZ / transforms.Count;
+
+        //return new Vector3(positionX, positionY, positionZ);
     }
 
     public static float MaxDistance(Vector3 point, List<Transform> transforms)
     {
-        var maxDistance = 0f;
 
-        foreach(Transform current in transforms)
-        {
-            if(Distance(current.position, point) > maxDistance)
-            {
-                maxDistance = Distance(current.position, point);
-            }
-        }
+        var orderedList = transforms.OrderByDescending(trans => Distance(trans.position, point)).ToList();
 
-        return maxDistance;
+        return Distance(orderedList[0].position, point);
+
+        //foreach(Transform current in transforms)
+        //{
+        //    if(Distance(current.position, point) > maxDistance)
+        //    {
+        //        maxDistance = Distance(current.position, point);
+        //    }
+        //}
+
+        //return maxDistance;
     }
 
     public static Vector3 InterceptionPoint(Vector3 source, Vector3 target, LayerMask interceptionLayerMask)
@@ -146,6 +150,16 @@ public class V3Helper
         }
 
         return sum;
+    }
+
+    public static Vector3 Sum(List<Transform> transformList)
+    {
+        return new Vector3
+            (
+                transformList.Sum(x => x.position.x),
+                transformList.Sum(y => y.position.y),
+                transformList.Sum(z => z.position.z)
+            );
     }
 
     
