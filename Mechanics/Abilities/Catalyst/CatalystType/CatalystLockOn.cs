@@ -15,37 +15,26 @@ public class CatalystLockOn : MonoBehaviour
 
     public bool closeToTarget;
 
-    public void GetDependenciesStart()
+    public void GetDependencies()
     {
         if (GetComponent<CatalystInfo>())
         {
             catalystInfo = GetComponent<CatalystInfo>();
             abilityInfo = catalystInfo.abilityInfo;
-
             catalystInfo.OnNewTarget += OnNewTarget;
-        }
-    }
-    public void GetDependencies()
-    {
-        
+            target = catalystInfo.target;
+            speed = catalystInfo.speed;
 
-        if(target == null)
-        {
-            if(catalystInfo && catalystInfo.target)
-            {
-                target = catalystInfo.target;
-            }
+            catalystInfo.OnCloseToTarget += OnCloseToTarget;
         }
 
-        if(abilityInfo && speed == 0)
-        {
-            speed = abilityInfo.speed;
-        }
+
     }
     void Start()
     {
-        GetDependenciesStart();
+        GetDependencies();
         StartCoroutine(HandleCloseTarget());
+        //StartCoroutine(HandleDeadTarget());
     }
 
     
@@ -53,7 +42,6 @@ public class CatalystLockOn : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        GetDependencies();
         TravelToTarget();
     }
 
@@ -76,6 +64,15 @@ public class CatalystLockOn : MonoBehaviour
         }
     }
 
+    public void OnCloseToTarget(CatalystInfo catalyst, GameObject target)
+    {
+        if(!target.GetComponent<EntityInfo>()) { return; }
+
+        if(!target.GetComponent<EntityInfo>().isAlive)
+        {
+            catalystInfo.OnDeadTarget?.Invoke(target);
+        }
+    }
     public IEnumerator HandleCloseTarget()
     {
         while(true)
@@ -94,7 +91,7 @@ public class CatalystLockOn : MonoBehaviour
 
             if(closeToTarget)
             {
-                GetComponent<CatalystHit>().HandleTargetHit(target.GetComponent<EntityInfo>());
+                catalystInfo.OnCloseToTarget?.Invoke(catalystInfo, target);
             }
 
         }

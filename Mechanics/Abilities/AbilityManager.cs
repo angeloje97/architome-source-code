@@ -35,6 +35,7 @@ namespace Architome
         public Action<AbilityInfo> OnCatalystRelease;
         public Action<AbilityInfo> WhileCasting;
         public Action<AbilityInfo> WhileChanneling;
+        public Action<AbilityInfo> OnDeadTarget;
         public Action<AbilityInfo, bool> OnWantsToCastChange;
         public Action<AbilityInfo, bool> OnCastChange;
 

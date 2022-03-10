@@ -49,7 +49,7 @@ public class AIBehavior : MonoBehaviour
 
             if(entityInfo.npcType == NPCType.Hostile)
             {
-                combatType = CombatBehaviorType.Agressive;
+                combatType = CombatBehaviorType.Aggressive;
             }
         }
 

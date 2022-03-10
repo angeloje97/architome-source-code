@@ -23,28 +23,22 @@ public class CatalystHit : MonoBehaviour
     public float tankThreatMultiplier = 4;
     public void GetDependencies()
     {
-        if(catalystInfo == null)
+        if(GetComponent<CatalystInfo>())
         {
-            if(gameObject.GetComponent<CatalystInfo>())
-            {
-                catalystInfo = gameObject.GetComponent<CatalystInfo>();
-                catalystInfo.OnCloseToTarget += OnCloseToTarget;
-            }
+            catalystInfo = GetComponent<CatalystInfo>();
+            catalystInfo.OnCloseToTarget += OnCloseToTarget;
         }
 
-        if(abilityInfo == null)
+        if (catalystInfo && catalystInfo.abilityInfo)
         {
-            if (catalystInfo && catalystInfo.abilityInfo)
-            {
-                abilityInfo = catalystInfo.abilityInfo;
+            abilityInfo = catalystInfo.abilityInfo;
 
 
-                isHealing = abilityInfo.isHealing;
-                isHarming = abilityInfo.isHarming;
-                isAssisting = abilityInfo.isAssisting;
-                canSelfCast = abilityInfo.canCastSelf;
-                value = catalystInfo.value;
-            }
+            isHealing = abilityInfo.isHealing;
+            isHarming = abilityInfo.isHarming;
+            isAssisting = abilityInfo.isAssisting;
+            canSelfCast = abilityInfo.canCastSelf;
+            value = catalystInfo.value;
         }
 
     }
@@ -55,7 +49,6 @@ public class CatalystHit : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        GetDependencies();
         HandleSelfCastLock();
     }
 

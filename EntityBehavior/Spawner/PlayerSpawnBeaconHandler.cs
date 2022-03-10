@@ -17,6 +17,9 @@ namespace Architome
         public WorldInfo worldInfo;
 
 
+        Clickable clickable;
+
+
         void GetDependencies()
         {
             if(GetComponentInParent<SpawnerInfo>())
@@ -33,6 +36,11 @@ namespace Architome
             }
 
 
+            if(GetComponentInParent<Clickable>())
+            {
+                clickable = GetComponentInParent<Clickable>();
+            }
+
             worldInfo = GMHelper.WorldInfo();
 
             if(startingSpawnBeacon)
@@ -40,6 +48,15 @@ namespace Architome
                 worldInfo.lastPlayerSpawnBeacon = spawnerInfo;
                 HandleActivateObjects();
             }
+        }
+        void HandleClickable()
+        {
+            if(clickable == null) { return; }
+
+            clickable.options.Add("Gaze into the fire (Set Spawn)");
+            clickable.options.Add("Revive Fallen Allies");
+
+            clickable.OnSelectOption += OnSelectOption;
         }
         void HandleDisableOnStart()
         {
@@ -59,6 +76,12 @@ namespace Architome
         {
             HandleDisableOnStart();
             GetDependencies();
+            HandleClickable();
+        }
+
+        public void OnSelectOption(string option)
+        {
+
         }
 
 

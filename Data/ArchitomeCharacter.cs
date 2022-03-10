@@ -23,6 +23,7 @@ public class ArchitomeCharacter : MonoBehaviour
     public Shader highlightShader;
 
     public List<Vector2> originalParts;
+    public Sex originalSex;
 
     public List<List<GameObject>> bodyParts;
     public List<GameObject> head;                       //0
@@ -113,6 +114,18 @@ public class ArchitomeCharacter : MonoBehaviour
                 originalParts.Add(new Vector2(i, j));
             }
         }
+
+        originalSex = sex;
+
+    }
+    public void LoadValues()
+    {
+        foreach (Vector2 original in originalParts)
+        {
+            SetPart((int)original.x, (int)original.y);
+        }
+
+        SetSex(originalSex);
     }
     void Start()
     {
@@ -192,6 +205,8 @@ public class ArchitomeCharacter : MonoBehaviour
             femaleBody.SetActive(true);
             maleBody.SetActive(false);
         }
+
+        sex = isMale ? Sex.Male : Sex.Female;
     }
     public void SetSex(Sex sex)
     {
@@ -338,7 +353,6 @@ public class ArchitomeCharacter : MonoBehaviour
             }
         }
     }
-    
     public List<GameObject> AllChildren()
     {
         List<GameObject> children = new List<GameObject>();
@@ -379,12 +393,6 @@ public class ArchitomeCharacter : MonoBehaviour
 
         SetMaterial(currentMaterial);
     }
-    public void LoadValues()
-    {
-        foreach(Vector2 original in originalParts)
-        {
-            SetPart((int)original.x, (int)original.y);
-        }
-    }
+    
 
 }

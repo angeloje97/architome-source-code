@@ -189,19 +189,39 @@ namespace Architome
 
         public void OnWantsToCastChange(AbilityInfo ability, bool wantsToCast)
         {
-            if (!wantsToCast) return;
 
-            if(ability.target)
+            if(wantsToCast)
             {
-                if(entityInfo.CanAttack(ability.target))
+                if (ability.target)
                 {
-                    stateMachine.Transition(Transition.OnCastStart, BehaviorState.Attacking);
-                }
-                else
-                {
-                    stateMachine.Transition(Transition.OnCastStart, BehaviorState.Assisting);
+                    if (entityInfo.CanAttack(ability.target))
+                    {
+                        stateMachine.Transition(Transition.OnCastStart, BehaviorState.Attacking);
+                    }
+                    else
+                    {
+                        stateMachine.Transition(Transition.OnCastStart, BehaviorState.Assisting);
+                    }
                 }
             }
+            else
+            {
+                if(!ability.isCasting)
+                {
+                    if(movement.isMoving)
+                    {
+                        stateMachine.Transition(Transition.OnCastEnd, BehaviorState.Moving);
+                    }
+                    else
+                    {
+                        stateMachine.Transition(Transition.OnCastEnd, BehaviorState.Idle);
+                    }
+
+                }
+
+            }
+
+            
         }
 
         public void OnTryCast(AbilityInfo ability)

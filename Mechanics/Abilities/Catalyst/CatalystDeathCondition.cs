@@ -136,10 +136,10 @@ public class CatalystDeathCondition : MonoBehaviour
 
     public void DestroySelf(string reason)
     {
-        StartCoroutine(DestroyDelay());
         catalystInfo.OnCatalystDestroy?.Invoke(this);
         destroyReason = reason;
         Debugger.InConsole(1294, $"Catalyst Destroyed for {reason}");
+        StartCoroutine(DestroyDelay());
         IEnumerator DestroyDelay()
         {
             yield return new WaitForSeconds(destroyDelay);

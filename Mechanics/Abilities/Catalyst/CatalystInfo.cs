@@ -79,6 +79,7 @@ public class CatalystInfo : MonoBehaviour
     public Action<GameObject> OnHeal;
     public Action<GameObject> OnHit;
     public Action<GameObject> OnWrongTarget;
+    public Action<GameObject> OnDeadTarget;
     public Action<GameObject, GameObject> OnNewTarget;
     public Action<CatalystInfo> OnReturn;
     public Action<CatalystInfo> OnCantFindEntity;

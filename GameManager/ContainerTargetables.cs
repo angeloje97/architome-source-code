@@ -61,6 +61,13 @@ public class ContainerTargetables : MonoBehaviour
             {
                 var result = Mouse.CurrentHover(targetLayer);
 
+                var hoverObject = Mouse.CurrentHoverObject();
+
+                if(hoverObject.GetComponent<Clickable>())
+                {
+                    return false;
+                }
+
                 if (result.GetComponent<EntityInfo>())
                 {
                     if (!Player.HasLineOfSight(result)) { return false; }

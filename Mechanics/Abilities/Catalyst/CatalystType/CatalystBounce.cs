@@ -30,6 +30,7 @@ public class CatalystBounce : MonoBehaviour
             catalystInfo = gameObject.GetComponent<CatalystInfo>();
 
             catalystInfo.OnTickChange += OnTickChange;
+            catalystInfo.OnDeadTarget += OnDeadTarget;
 
             abilityInfo = catalystInfo.abilityInfo;
 
@@ -69,15 +70,15 @@ public class CatalystBounce : MonoBehaviour
     {
         if(ticks == 0) { return; }
         LookForNewTarget();
+    }
 
+    public void OnDeadTarget(GameObject target)
+    {
+        LookForNewTarget();
     }
     public void LookForNewTarget()
     {
         if (catalystInfo == null || abilityInfo == null || catalystHit == null) { return; }
-
-        //Collider[] rangeChecks = Physics.OverlapSphere(gameObject.transform.position, bounceRadius, targetLayerMask);
-
-        //var entityList = rangeChecks.OrderBy(entity => V3Helper.Distance(entity.transform.position, transform.position));
 
         var entityList = catalystInfo.EntitiesWithinRadius(bounceRadius);
 
@@ -111,11 +112,12 @@ public class CatalystBounce : MonoBehaviour
                     var targetInfo = entity.GetComponent<EntityInfo>();
 
                     bool canTarget = catalystHit.CanHit(targetInfo);
+                    bool isNotSameTarget = entity != catalystInfo.target;
                     bool isAlive = targetInfo.isAlive;
                     bool isPriority = targetInfo.npcType == priority;
-                    bool hasLOS = HasLineOfSight(targetInfo);
+                    bool hasLOS = !V3Helper.IsObstructed(entity.transform.position, transform.position, abilityInfo.obstructionLayer);
 
-                    if (canTarget && isPriority && isAlive && hasLOS)
+                    if (canTarget && isPriority && isAlive && hasLOS && isNotSameTarget)
                     {
                         
                         catalystInfo.target = entity.gameObject;
@@ -130,21 +132,6 @@ public class CatalystBounce : MonoBehaviour
                 }
             }
             return false;
-
-            bool HasLineOfSight(EntityInfo targetInfo)
-            {
-                if (abilityInfo.bounceRequiresLOS == false) { return true; }
-
-                var direction = V3Helper.Direction(targetInfo.transform.position, transform.position);
-                var distance = V3Helper.Distance(targetInfo.transform.position, transform.position);
-
-                if(!Physics.Raycast(transform.position, direction, distance, abilityInfo.obstructionLayer))
-                {
-                    return true;
-                }
-
-                return false;
-            }
         }
     }
 }

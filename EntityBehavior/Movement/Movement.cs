@@ -39,10 +39,12 @@ public class Movement : MonoBehaviour
     public Action<Movement> OnChangePath;
     public Action<Movement, Transform> OnArrival;
     public Action<Movement, Transform> OnAway;
+    public Action<Movement, Transform, Transform> OnNewPathTarget;
 
     //Event Triggers
     private bool isMovingChange;
     private bool hasArrivedCheck;
+    private Transform currentPathTarget;
     public void GetDependencies()
     {
         if (GetComponentInParent<EntityInfo>())
@@ -132,7 +134,6 @@ public class Movement : MonoBehaviour
             destinationSetter.target = entityObject.transform;
         }
     }
-
     public void OnStateChange(EntityState previous, EntityState current)
     {
         if (!entityInfo.isAlive) { return; }
@@ -176,9 +177,6 @@ public class Movement : MonoBehaviour
 
             }
         }
-
-        
-
         if(hasArrived != hasArrivedCheck)
         {
             hasArrivedCheck = hasArrived;
@@ -192,7 +190,11 @@ public class Movement : MonoBehaviour
             }
             
         }
-
+        if(currentPathTarget != destinationSetter.target)
+        {
+            OnNewPathTarget?.Invoke(this, currentPathTarget, destinationSetter.target);
+            currentPathTarget = destinationSetter.target;
+        }
     }
     public void UpdateMetrics()
     {
@@ -228,32 +230,6 @@ public class Movement : MonoBehaviour
         destinationSetter.target = this.location.transform;
         path.endReachedDistance = 0;
         OnChangePath?.Invoke(this);
-
-        if(abilityManager)
-        {
-            foreach(AbilityInfo ability in abilityManager.abilities)
-            {
-                ability.DeactivateWantsToCast();
-            }
-
-            if(abilityManager.attackAbility)
-            {
-
-                abilityManager.attackAbility.DeactivateWantsToCast();
-                abilityManager.attackAbility.isAutoAttacking = false;
-                abilityManager.attackAbility.target = null;
-                abilityManager.attackAbility.targetLocked = null;
-            }
-        }
-
-
-        if(behavior && behavior.CombatBehavior())
-        {
-            behavior.CombatBehavior().SetFocus(null);
-        }
-
-
-
     }
 
     public void MoveTo(Transform locationTransform, float endReachDistance = 0f)

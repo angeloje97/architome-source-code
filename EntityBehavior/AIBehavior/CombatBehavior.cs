@@ -57,6 +57,7 @@ public class CombatBehavior : MonoBehaviour
             if(entityInfo.Movement())
             {
                 movement = entityInfo.Movement();
+                movement.OnNewPathTarget += OnNewPathTarget;
             }
 
             if(entityInfo.AbilityManager())
@@ -129,6 +130,15 @@ public class CombatBehavior : MonoBehaviour
     public void OnBehaviorStateChange(BehaviorState before, BehaviorState after)
     {
         InitCombatActions();
+    }
+
+    public void OnNewPathTarget(Movement movement, Transform before, Transform after)
+    {
+        if(focusTarget != null && after != focusTarget.transform)
+        {
+            focusTarget = null;
+        }
+            
     }
 
     public void OnNPCTypeChange(NPCType before, NPCType after)
@@ -318,8 +328,9 @@ public class CombatBehavior : MonoBehaviour
         
         bool HandleAbilities()
         {
-            if(focusTarget == null) { return false; }
-            var focusInfo = focusTarget.GetComponent<EntityInfo>();
+            if(focusTarget == null && (int) behavior.combatType < 2) { return false; }
+
+            var target = focusTarget ? focusTarget : this.target;
 
             if(HandleHarmAbility()) { return true; }
 
@@ -332,10 +343,10 @@ public class CombatBehavior : MonoBehaviour
                 foreach (int index in abilityIndexPriority)
                 {
                     if (abilityManager.Ability(index).isHarming &&
-                        entityInfo.CanAttack(focusTarget) &&
+                        entityInfo.CanAttack(target) &&
                         abilityManager.Ability(index).IsReady())
                     {
-                        abilityManager.target = focusTarget;
+                        abilityManager.target = target;
                         abilityManager.Cast(index);
                         abilityManager.target = null;
                         return true;
@@ -385,7 +396,7 @@ public class CombatBehavior : MonoBehaviour
                     }
                 }
 
-                if(behavior.combatType == CombatBehaviorType.Proactive || behavior.combatType == CombatBehaviorType.Agressive)
+                if(behavior.combatType == CombatBehaviorType.Proactive || behavior.combatType == CombatBehaviorType.Aggressive)
                 {
                     abilityManager.target = target;
                     abilityManager.Attack();

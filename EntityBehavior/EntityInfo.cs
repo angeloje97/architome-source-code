@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Architome
 {
@@ -108,14 +109,9 @@ namespace Architome
         private NPCType npcTypeCheck;
 
         //Private Variables
-        RigidbodyConstraints originalConstraints;
         //Methods
         public void GetDependencies()
         {
-            if (GetComponent<Rigidbody>())
-            {
-                originalConstraints = GetComponent<Rigidbody>().constraints;
-            }
 
         }
         public void GetPartyControls()
@@ -490,15 +486,19 @@ namespace Architome
 
             void HandleHealing()
             {
-                HandleEvents();
+                var healingDone = combatData.value;
                 if (health + combatData.value > maxHealth)
                 {
+                    healingDone = maxHealth - health;
                     health = maxHealth;
+                    
                 }
                 else
                 {
                     health += combatData.value;
                 }
+                combatData.value = healingDone;
+                HandleEvents();
             }
 
             void HandleEvents()
@@ -666,25 +666,13 @@ namespace Architome
             }
             
             OnReviveThis?.Invoke(combatData);
-
-            if (GetComponent<Rigidbody>())
-            {
-                GetComponent<Rigidbody>().constraints = originalConstraints;
-            }
         }
         public void ChangeBehavior(NPCType npcType, AIBehaviorType behaviorType)
         {
 
-            try 
-            {
-
-                this.npcType = npcType;
-                AIBehavior().behaviorType = behaviorType;
-            }
-            catch
-            {
-
-            }
+            this.npcType = npcType;
+            AIBehavior().behaviorType = behaviorType;
+            
         }
         public IEnumerator Decay()
         {
@@ -726,6 +714,31 @@ namespace Architome
                 return true;
             }
 
+        }
+
+        public bool CanAttack(NPCType npcType)
+        {
+            if(npcType == NPCType.Untargetable) { return false; }
+
+            if(this.npcType == NPCType.Neutral) { return true; }
+
+            if(npcType != this.npcType) { return true; }
+
+            return false;
+        }
+
+        public bool CanHelp(NPCType npcType)
+        {
+            if(npcType == NPCType.Untargetable) { return false; }
+
+            if(this.npcType == NPCType.Neutral) { return true; }
+
+            if(npcType != this.npcType)
+            {
+                return false;
+            }
+
+            return true;
         }
         public IEnumerator HandleRegeneration()
         {
@@ -976,14 +989,15 @@ namespace Architome
         public void ShowEntity(bool val, bool hideGraphics = true, bool hideRenders = true, bool hideLights = true, bool destroys = false)
         {
 
+
             if(hideGraphics)
             {
-            ShowGraphics(val);
+                ShowGraphics(val);
             }
 
             if(hideRenders)
             {
-            ShowRenders(val);
+                ShowRenders(val);
             }
 
             if(hideLights)
@@ -1000,6 +1014,7 @@ namespace Architome
                 render.enabled = val;
                 await Task.Yield();
             }
+            
         }
         async void ShowGraphics(bool val)
         {

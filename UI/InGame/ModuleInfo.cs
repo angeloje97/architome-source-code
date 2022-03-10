@@ -8,12 +8,13 @@ using System;
 
 [RequireComponent(typeof(AudioSource))]
 [RequireComponent(typeof(CanvasGroup))]
-public class ModuleInfo : MonoBehaviour, IPointerEnterHandler, IPointerDownHandler
+public class ModuleInfo : MonoBehaviour, IPointerEnterHandler, IPointerDownHandler, IPointerExitHandler
 {
     // Start is called before the first frame update
     public CanvasGroup canvasGroup;
     
     public bool isActive;
+    public bool isHovering;
     public TextMeshProUGUI title;
 
     public Transform itemBin;
@@ -51,12 +52,18 @@ public class ModuleInfo : MonoBehaviour, IPointerEnterHandler, IPointerDownHandl
 
     public void OnPointerEnter(PointerEventData eventData)
     {
+        isHovering = true;
         if (!eventData.pointerDrag ||
             !eventData.pointerDrag.GetComponent<ItemInfo>() ||
             itemBin == null) { return; }
 
         eventData.pointerDrag.transform.SetParent(itemBin);
         transform.SetAsLastSibling();
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        isHovering = false;
     }
 
     public void OnPointerDown(PointerEventData eventData)
@@ -82,21 +89,37 @@ public class ModuleInfo : MonoBehaviour, IPointerEnterHandler, IPointerDownHandl
 
     public void OnValidate()
     {
+        if(canvasGroup == null)
+        {
+            canvasGroup = GetComponent<CanvasGroup>();  
+        }
+
+        if(audioSource == null)
+        {
+            audioSource = GetComponent<AudioSource>();
+        }
         SetActive(isActive, false);
     }
 
     public void SetActive(bool val, bool playSound = true)
     {
-        canvasGroup.interactable = val;
-        canvasGroup.blocksRaycasts = val;
-        canvasGroup.alpha = val ? 1 : 0;
+        if(canvasGroup)
+        {
+            canvasGroup.interactable = val;
+            canvasGroup.blocksRaycasts = val;
+            canvasGroup.alpha = val ? 1 : 0;
+        }
         isActive = val;
 
         OnActiveChange?.Invoke(val);
         if(playSound)
         {
-            audioSource.clip = val ? openSound : closeSound;
-            audioSource.Play();
+            if(openSound && closeSound)
+            {
+                audioSource.clip = val ? openSound : closeSound;
+                audioSource.Play();
+
+            }
         }
     }
 

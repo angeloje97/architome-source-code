@@ -8,6 +8,7 @@ public class ProgressBarsBehavior : MonoBehaviour
     public EntityInfo entityInfo;
     public GraphicsInfo graphicsInfo;
     public EntityClusterAgent clusterAgent;
+    public AbilityManager abilityManager;
 
     [Header("Game Objects")]
     public RectTransform healthBarRect;
@@ -22,7 +23,10 @@ public class ProgressBarsBehavior : MonoBehaviour
     public Image resourceBar;
 
     [Header("CastBar")]
+    public AbilityInfo currentAbility;
     public Image castBar;
+    public bool castBarActive;
+
 
 
     //Original Properties
@@ -43,6 +47,18 @@ public class ProgressBarsBehavior : MonoBehaviour
             entityInfo.OnManaChange += OnManaChange;
             entityInfo.OnLifeChange += OnLifeChange;
             entityInfo.OnChangeNPCType += OnChangeNPCType;
+
+            if(entityInfo.AbilityManager())
+            {
+                abilityManager = entityInfo.AbilityManager();
+
+                abilityManager.OnCastStart += OnCastStart;
+                abilityManager.OnCastRelease += OnCastRelease;
+                abilityManager.OnCancelCast += OnCancelCast;
+                abilityManager.OnCastChannelStart += OnCastChannelStart;
+                abilityManager.OnCastChannelEnd += OnCastChannelEnd;
+                abilityManager.OnCancelChannel += OnCancelChannel;
+            }
 
         }
 
@@ -76,6 +92,17 @@ public class ProgressBarsBehavior : MonoBehaviour
     public void OnValidate()
     {
         localPosition = transform.localPosition;
+    }
+    void Start()
+    {
+        GetDependencies();
+        HandleHideMana();
+        UpdateCastBar();
+    }
+    void Update()
+    {
+        if (entityInfo == null) { return; }
+        UpdateBars();
     }
     public void OnClusterEnter(EntityCluster cluster, int index)
     {
@@ -132,11 +159,6 @@ public class ProgressBarsBehavior : MonoBehaviour
             }
         }
     }
-    void Start()
-    {
-        GetDependencies();
-        HandleHideMana();
-    }
     public void OnHealthChange(float health, float shield, float maxHealth)
     {
         UpdateHealthBar();
@@ -167,31 +189,102 @@ public class ProgressBarsBehavior : MonoBehaviour
 
         }
     }
-    void Update()
-    {
-        if (entityInfo == null) { return; }
-        UpdateBars();
-    }
     void UpdateBars()
     {
         UpdateCastBar();
 
         void UpdateCastBar()
         {
+            if (!castBarActive) return;
             if (castBar == null) { return; }
-            if (!entityInfo.AbilityManager()) { return; }
-            var currentAbility = entityInfo.AbilityManager().currentlyCasting;
-
-
-            if (castBar.transform.parent.gameObject.activeSelf != entityInfo.AbilityManager().currentlyCasting)
-            {
-                if (currentAbility && currentAbility.isAttack) { return; }
-                castBar.transform.parent.gameObject.SetActive(entityInfo.AbilityManager().currentlyCasting);
-            }
-
-            if (currentAbility == null) { return; }
 
             castBar.fillAmount = currentAbility.castTimer / currentAbility.castTime;
+
+            //if (!entityInfo.AbilityManager()) { return; }
+            //var currentAbility = entityInfo.AbilityManager().currentlyCasting;
+
+
+            //if (castBar.transform.parent.gameObject.activeSelf != entityInfo.AbilityManager().currentlyCasting)
+            //{
+            //    if (currentAbility && currentAbility.isAttack) { return; }
+            //    castBar.transform.parent.gameObject.SetActive(entityInfo.AbilityManager().currentlyCasting);
+            //}
+
+            //if (currentAbility == null) { return; }
+
+            //castBar.fillAmount = currentAbility.castTimer / currentAbility.castTime;
         }
     }
+    public void UpdateCastBar()
+    {
+        castBar.transform.parent.gameObject.SetActive(castBarActive);
+    }
+    public void OnCastStart(AbilityInfo ability)
+    {
+        castBarActive = ability.vfx.showCastBar;
+
+        if(castBarActive)
+        {
+            currentAbility = ability;
+            castBar.fillAmount = 0;
+        }
+
+        UpdateCastBar();
+    }
+
+    public void OnCastRelease(AbilityInfo ability)
+    {
+        if (!castBarActive) { return; }
+
+        castBarActive = false;
+        UpdateCastBar();
+    }
+
+    public void OnCancelCast(AbilityInfo ability)
+    {
+        if (!castBarActive) return;
+
+        castBarActive = false;
+
+        UpdateCastBar();
+    }
+
+    public void OnCastChannelStart(AbilityInfo ability)
+    {
+        castBarActive = ability.vfx.showChannelBar;
+
+        if(castBarActive)
+        {
+            currentAbility = ability;
+            castBar.fillAmount = 1;
+        }
+
+        UpdateCastBar();
+    }
+
+
+    
+
+    public void OnCastChannelEnd(AbilityInfo ability)
+    {
+        if(!castBarActive) { return; }
+
+        castBarActive = false;
+
+        UpdateCastBar();
+
+    }
+
+    public void OnCancelChannel(AbilityInfo ability)
+    {
+        if (!castBarActive) { return; }
+
+        castBarActive = false;
+        UpdateCastBar();
+    }
+
+
+    
+
+
 }

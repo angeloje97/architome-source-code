@@ -201,13 +201,17 @@ namespace Architome
             if (!clickable.GetComponent<Clickable>().partyCanClick) { return false; }
             if (Mouse.IsMouseOverUI()) { return false; }
 
+            var memberInfo = new List<EntityInfo>();
+
             foreach (GameObject member in members)
             {
                 if (member.GetComponent<EntityInfo>())
                 {
-                    clickable.GetComponent<Clickable>().Click(member.GetComponent<EntityInfo>());
+                    memberInfo.Add(member.GetComponent<EntityInfo>());
                 }
             }
+
+            clickable.GetComponent<Clickable>().ClickMultiple(memberInfo);
             return true;
         }
         public void MovePartyTo(Transform position)

@@ -78,6 +78,7 @@ public class AbilityInfo : MonoBehaviour
     public class AbilityVisualEffects
     {
         public bool showCastBar;
+        public bool showChannelBar;
     }
 
     public AbilityVisualEffects vfx;
@@ -238,17 +239,16 @@ public class AbilityInfo : MonoBehaviour
             }
         }
 
-
-        if(movement == null)
+        if(entityInfo && entityInfo.Movement())
         {
-            if(entityInfo && entityInfo.Movement())
-            {
-                movement = entityInfo.Movement();
-                movement.OnStartMove += OnStartMove;
-                movement.OnEndMove += OnEndMove;
-                movement.OnTryMove += OnTryMove;
-            }
+            movement = entityInfo.Movement();
+            movement.OnStartMove += OnStartMove;
+            movement.OnEndMove += OnEndMove;
+            movement.OnTryMove += OnTryMove;
+            movement.OnNewPathTarget += OnNewPathTarget;
         }
+
+
         if(catalystInfo == null)
         {
             if(catalyst)
@@ -332,6 +332,24 @@ public class AbilityInfo : MonoBehaviour
             DeactivateWantsToCast();
             target = null;
             targetLocked = null;
+        }
+    }
+    public void OnNewPathTarget(Movement movement, Transform before, Transform after)
+    {
+        if(target != null && after != target.transform)
+        {
+            if (wantsToCast)
+            {
+                DeactivateWantsToCast();
+                
+            }
+
+            if(isAttack)
+            {
+                target = null;
+                targetLocked = null;
+                isAutoAttacking = false;
+            }
         }
     }
     public void HandleTimers()
@@ -902,7 +920,10 @@ public class AbilityInfo : MonoBehaviour
 
             EntityInfo targetInfo = target.GetComponent<EntityInfo>();
             if(!targetInfo.isAlive && !targetsDead)
-            { return false; }
+            {
+                abilityManager.OnDeadTarget?.Invoke(this);
+                return false; 
+            }
             if(targetInfo.isAlive && targetsDead) { return false; }
 
             if((isHealing || isAssisting) && entityInfo.CanHelp(target))
@@ -938,7 +959,7 @@ public class AbilityInfo : MonoBehaviour
         {
             wantsToCast = true;
             abilityManager.wantsToCastAbility = wantsToCast;
-           abilityManager.OnWantsToCastChange?.Invoke(this, wantsToCast);
+            abilityManager.OnWantsToCastChange?.Invoke(this, wantsToCast);
         }
     }
     public bool WantsToCast()
@@ -960,7 +981,8 @@ public class AbilityInfo : MonoBehaviour
         {
             return;
         }    
-        if(!entityInfo.isAlive) {
+        if(!entityInfo.isAlive && !targetsDead) {
+            abilityManager.OnDeadTarget?.Invoke(this);
             DeactivateWantsToCast();
             return; }
         if(target == null) {

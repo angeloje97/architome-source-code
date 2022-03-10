@@ -138,10 +138,10 @@ namespace Architome.Enums
 
     public enum CombatBehaviorType
     {
-        Passive,
-        Reactive,
-        Proactive,
-        Agressive
+        Passive = 0,
+        Reactive = 1,
+        Proactive = 2,
+        Aggressive = 3,
     }
 
     public enum CompletionType
