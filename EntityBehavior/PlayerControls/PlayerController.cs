@@ -231,13 +231,13 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
-    public void HandleActionButton()
+    public void HandleActionButton(bool isFromPartyControl = false)
     {
         var currentObject = Mouse.CurrentHoverObject();
 
         if (currentObject && currentObject.GetComponent<Clickable>() && !Mouse.IsMouseOverUI())
         {
-            
+            if (!isFromPartyControl) return;
             currentObject.GetComponent<Clickable>().Click(entityInfo);
         }
         else if (targetManager.currentHover)

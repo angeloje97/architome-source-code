@@ -6,6 +6,7 @@ using Architome;
 
 public class ContainerTargetables : MonoBehaviour
 {
+    public static ContainerTargetables active;
     // Start is called before the first frame update
     public List<GameObject> hoverTargets;
     public List<GameObject> selectedTargets;
@@ -33,6 +34,11 @@ public class ContainerTargetables : MonoBehaviour
             keyBindings = GMHelper.KeyBindings();
         }
 
+    }
+
+    public void Awake()
+    {
+        active = this;
     }
 
     // Update is called once per frame

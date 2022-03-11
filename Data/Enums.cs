@@ -262,6 +262,19 @@ namespace Architome.Enums
         Female,
         Neutral
     }
+
+    public enum WorkType
+    {
+        Use,
+    }
+
+    public enum TaskState
+    {
+        Inactive,
+        Available,
+        Occupied,
+        Done,
+    }
     
 }
 public class Enums : MonoBehaviour

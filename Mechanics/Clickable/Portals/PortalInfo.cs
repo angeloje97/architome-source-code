@@ -14,6 +14,8 @@ namespace Architome
         public Clickable clickable;
         public int portalNum;
 
+        
+
         void GetDependencies()
         {
             if (GetComponent<Clickable>())
@@ -38,11 +40,16 @@ namespace Architome
             portalNum = portals.IndexOf(this);
         }
 
+        private void Update()
+        {
+        }
+
+
         // Update is called once per frame
 
-        public void OnSelectOption(string option)
+        public void OnSelectOption(Clickable clickable)
         {
-            HandleEnterPortal(option);
+            HandleEnterPortal(clickable.selectedString);
             
         }
 
@@ -50,11 +57,6 @@ namespace Architome
         {
             if (!enterPortal.Equals("Enter Portal")) return;
 
-            if (clickable.clickedEntity)
-            {
-                HandleMoveTarget();
-                return;
-            }
 
             if (clickable.clickedEntities.Count > 0)
             {
@@ -63,27 +65,16 @@ namespace Architome
             }
         }
 
-        void HandleMoveTarget()
-        {
-            var entity = clickable.clickedEntity;
-
-            entity.Movement().MoveTo(portalSpot.position);
-
-            clickable.clickedEntity = null;
-        }
-
         void HandleMoveTargets()
         {
             if (clickable == null) { return; }
             if (clickable.clickedEntities.Count > 0)
             {
                 var entities = clickable.clickedEntities;
-                for (int i = 0; i < entities.Count; i++)
+
+                foreach(var entity in entities)
                 {
-                    entities[i].Movement();
-                    entities[i].Movement().MoveTo(portalSpot.position);
-                    entities.RemoveAt(i);
-                    i--;
+                    entity.Movement().MoveTo(portalSpot);
                 }
             }
 

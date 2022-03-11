@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Architome.Enums;
 
 namespace Architome
 {
@@ -17,7 +18,8 @@ namespace Architome
         public WorldInfo worldInfo;
 
 
-        Clickable clickable;
+        WorkInfo workInfo;
+        public 
 
 
         void GetDependencies()
@@ -36,9 +38,10 @@ namespace Architome
             }
 
 
-            if(GetComponentInParent<Clickable>())
+
+            if(GetComponentInParent<WorkInfo>())
             {
-                clickable = GetComponentInParent<Clickable>();
+                workInfo = GetComponentInParent<WorkInfo>();
             }
 
             worldInfo = GMHelper.WorldInfo();
@@ -49,14 +52,25 @@ namespace Architome
                 HandleActivateObjects();
             }
         }
-        void HandleClickable()
+        void HandleWork()
         {
-            if(clickable == null) { return; }
+            if(workInfo == null) { return; }
 
-            clickable.options.Add("Gaze into the fire (Set Spawn)");
-            clickable.options.Add("Revive Fallen Allies");
+            workInfo.CreateTask(new TaskInfo()
+            {
+                workString = "Set Spawn Beacon",
+                workType = Enums.WorkType.Use,
+                workAmount = 3
+            });
 
-            clickable.OnSelectOption += OnSelectOption;
+            workInfo.CreateTask(new TaskInfo()
+            {
+                workString = "Revive Allies",
+                workType = Enums.WorkType.Use,
+                workAmount = 10
+            });
+
+
         }
         void HandleDisableOnStart()
         {
@@ -76,10 +90,10 @@ namespace Architome
         {
             HandleDisableOnStart();
             GetDependencies();
-            HandleClickable();
+            HandleWork();
         }
 
-        public void OnSelectOption(string option)
+        public void OnSelectOption(Clickable clickable)
         {
 
         }

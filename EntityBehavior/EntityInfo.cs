@@ -90,6 +90,8 @@ namespace Architome
         public Action<EntityInfo, Collider, bool> OnTriggerEvent;
         public Action<EntityInfo, Collision, bool> OnCollisionEvent;
         public Action<EntityInfo, GameObject, bool> OnPhysicsEvent;
+        private TaskEvents taskEvents;
+
 
 
         //Non Player Events
@@ -523,6 +525,15 @@ namespace Architome
 
         }
 
+        public TaskEvents TaskEvents()
+        {
+            if(taskEvents == null)
+            {
+                taskEvents = new TaskEvents();
+            }
+
+            return taskEvents;
+        }
         public bool IsEnemy(GameObject target)
         {
             if (!target.GetComponent<EntityInfo>()) return false;

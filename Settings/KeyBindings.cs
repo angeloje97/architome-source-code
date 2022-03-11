@@ -5,6 +5,13 @@ using UnityEngine;
 public class KeyBindings : MonoBehaviour
 {
 
+    public static KeyBindings active;
+
+    public void Awake()
+    {
+        active = this;
+    }
+
     public Dictionary<string, KeyCode> keyBinds = new Dictionary<string, KeyCode>()
     {
         ["Ability1"] = KeyCode.Q,

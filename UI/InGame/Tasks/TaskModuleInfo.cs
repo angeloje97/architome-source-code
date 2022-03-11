@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UltimateClean;
+using System.Threading.Tasks;
 
 namespace Architome
 {
@@ -63,12 +64,13 @@ namespace Architome
 
         public void OnClickableObject(Clickable data)
         {
-            AdjustPosition();
+            UpdateModule(false);
             ClearOptions();
             currentClickable = data;
             SetTitle();
             CreateOptions(data.options);
-            UpdateModule(true);
+            ArchAction.Delay(() => AdjustPosition(), .0625f);
+            ArchAction.Delay(() => UpdateModule(true), .0626f);
         }
 
         public void AdjustPosition()
@@ -76,7 +78,20 @@ namespace Architome
             var rectTransform = GetComponent<RectTransform>();
             var localScale = rectTransform.localScale;
 
-            rectTransform.position = Input.mousePosition - new Vector3(-(localScale.x) * rectTransform.sizeDelta.x / 2, (localScale.y) * rectTransform.sizeDelta.y / 2, 0);
+            var mousePosX = Input.mousePosition.x;
+            var mousePosY = Input.mousePosition.y;
+
+            var xMid = Screen.width/2;
+            var yMid = Screen.height/2;
+
+            int xValue = mousePosX > xMid ? 1 : -1;
+            int yValue = mousePosY > yMid ? 1 : -1;
+
+            var height = Height();
+
+            Debugger.InConsole(1295, $"{(yValue * (localScale.y) * height / 2)}");
+
+            rectTransform.position = Input.mousePosition - new Vector3((xValue) * (localScale.x) * rectTransform.sizeDelta.x / 2, (yValue) *  height / 2 , 0);
             
         }
 
@@ -86,21 +101,18 @@ namespace Architome
 
             foreach(Transform child in options)
             {
-                var childHeight = child.GetComponent<RectTransform>().sizeDelta.y;
+                var childHeight = child.GetComponent<RectTransform>().rect.height * child.GetComponent<RectTransform>().localScale.y;
 
                 totalHeight += childHeight;
             }
 
-            return totalHeight;
+            Debugger.InConsole(1295, $"{totalHeight}");
+
+            return totalHeight/2;
         }
 
         public void SetTitle()
         {
-            if(currentClickable.clickedEntity)
-            {
-                title.text = currentClickable.clickedEntity.entityName;
-                return;
-            }
 
             if(currentClickable.clickedEntities.Count == 1)
             {
@@ -111,6 +123,7 @@ namespace Architome
             if(currentClickable.clickedEntities.Count > 1)
             {
                 title.text = $"{currentClickable.clickedEntities[0].entityName} + {currentClickable.clickedEntities.Count - 1} more";
+                return;
             }
         }
 
@@ -133,7 +146,7 @@ namespace Architome
 
         public void SelectOption(string option)
         {
-            currentClickable.OnSelectOption?.Invoke(option);
+            currentClickable.SelectOption(option);
 
             currentClickable = null;
 

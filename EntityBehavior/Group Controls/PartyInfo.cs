@@ -198,20 +198,6 @@ namespace Architome
         public bool HandleClickable(GameObject clickable)
         {
             if (!clickable.GetComponent<Clickable>()) { return false; }
-            if (!clickable.GetComponent<Clickable>().partyCanClick) { return false; }
-            if (Mouse.IsMouseOverUI()) { return false; }
-
-            var memberInfo = new List<EntityInfo>();
-
-            foreach (GameObject member in members)
-            {
-                if (member.GetComponent<EntityInfo>())
-                {
-                    memberInfo.Add(member.GetComponent<EntityInfo>());
-                }
-            }
-
-            clickable.GetComponent<Clickable>().ClickMultiple(memberInfo);
             return true;
         }
         public void MovePartyTo(Transform position)
@@ -257,35 +243,35 @@ namespace Architome
             {
                 if (members.Count > 0)
                 {
-                    members[0].GetComponent<EntityInfo>().PlayerController().HandleActionButton();
+                    members[0].GetComponent<EntityInfo>().PlayerController().HandleActionButton(true);
                 }
             }
             if (Input.GetKeyDown(keyBindings.keyBinds[alt2]))
             {
                 if (members.Count > 1)
                 {
-                    members[1].GetComponent<EntityInfo>().PlayerController().HandleActionButton();
+                    members[1].GetComponent<EntityInfo>().PlayerController().HandleActionButton(true);
                 }
             }
             if (Input.GetKeyDown(keyBindings.keyBinds[alt3]))
             {
                 if (members.Count > 2)
                 {
-                    members[2].GetComponent<EntityInfo>().PlayerController().HandleActionButton();
+                    members[2].GetComponent<EntityInfo>().PlayerController().HandleActionButton(true);
                 }
             }
             if (Input.GetKeyDown(keyBindings.keyBinds[alt4]))
             {
                 if (members.Count > 3)
                 {
-                    members[3].GetComponent<EntityInfo>().PlayerController().HandleActionButton();
+                    members[3].GetComponent<EntityInfo>().PlayerController().HandleActionButton(true);
                 }
             }
             if (Input.GetKeyDown(keyBindings.keyBinds[alt5]))
             {
                 if (members.Count > 4)
                 {
-                    members[4].GetComponent<EntityInfo>().PlayerController().HandleActionButton();
+                    members[4].GetComponent<EntityInfo>().PlayerController().HandleActionButton(true);
                 }
             }
 

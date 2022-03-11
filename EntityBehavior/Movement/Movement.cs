@@ -151,7 +151,6 @@ public class Movement : MonoBehaviour
 
         SetValues(true);
     }
-
     public async void SetValues(bool val, float timer = 0f)
     {
         await Task.Delay((int)(timer * 1000));
@@ -160,7 +159,6 @@ public class Movement : MonoBehaviour
         path.enabled = val;
         rigidBody.constraints = val ? originalConstraints : RigidbodyConstraints.FreezeAll;
     }
-
     void HandleEvents()
     {
         if(destinationSetter == null) { return; }
@@ -231,7 +229,6 @@ public class Movement : MonoBehaviour
         path.endReachedDistance = 0;
         OnChangePath?.Invoke(this);
     }
-
     public void MoveTo(Transform locationTransform, float endReachDistance = 0f)
     {
         if (!entityInfo.isAlive) { return; }
@@ -242,7 +239,6 @@ public class Movement : MonoBehaviour
             destinationSetter.target = locationTransform;
         }
     }
-
     public Vector3 TargetPosition()
     {
         if(destinationSetter.target)
@@ -252,7 +248,6 @@ public class Movement : MonoBehaviour
 
         return new Vector3();
     }
-
     public void StopMoving()
     {
         path.endReachedDistance = float.PositiveInfinity;
