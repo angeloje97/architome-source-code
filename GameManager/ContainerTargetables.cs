@@ -131,29 +131,42 @@ public class ContainerTargetables : MonoBehaviour
 
             return false;
         }
-        bool IsOverHealthBar()
-        {
-            var results = Mouse.RayCastResultObjects();
-            
-            if(results.Count == 0) { return false; }
-            if (Mouse.IsMouseOverUI()) { return false; }
-            foreach(var result in results)
-            {
-                if(result.GetComponentInParent<ProgressBarsBehavior>() && result.GetComponentInParent<EntityInfo>())
-                {
-                    if(!hoverTargets.Contains(result.GetComponentInParent<EntityInfo>().gameObject))
-                    {
-                        hoverTargets.Add(result.GetComponentInParent<EntityInfo>().gameObject);
-                        currentHover = result.GetComponentInParent<EntityInfo>().gameObject;
-                    }
-                    return true;
-                }
-            }
-            return false;
-        }
+        
     }
+
+    bool IsOverHealthBar()
+    {
+        var results = Mouse.RayCastResultObjects();
+
+        if (results.Count == 0) { return false; }
+        if (Mouse.IsMouseOverUI()) { return false; }
+        foreach (var result in results)
+        {
+            if (result.GetComponentInParent<ProgressBarsBehavior>() && result.GetComponentInParent<EntityInfo>())
+            {
+                if (!hoverTargets.Contains(result.GetComponentInParent<EntityInfo>().gameObject))
+                {
+                    hoverTargets.Add(result.GetComponentInParent<EntityInfo>().gameObject);
+                    currentHover = result.GetComponentInParent<EntityInfo>().gameObject;
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     public void HandleUserInputs()
     {
+        if(Mouse.IsMouseOverUI())
+        {
+            if(!IsOverHealthBar())
+            {
+                return;
+            }
+        }
+
+
         if (Input.GetKeyDown(keyBindings.keyBinds[selectKey]))
         {
             //Clear if the selectMultiple button is not pressed

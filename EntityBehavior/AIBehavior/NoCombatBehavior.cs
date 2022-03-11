@@ -122,7 +122,7 @@ public class NoCombatBehavior : MonoBehaviour
         if (movement.TargetPosition() == startingPosition)
         {
             Debugger.InConsole(8321, "HasArrived");
-            Invoke("LookAtOriginalPosition", .5f);
+            ArchAction.Delay(() => LookAtOriginalPosition(), .5f);
         }
     }
 

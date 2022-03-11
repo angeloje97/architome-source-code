@@ -35,6 +35,7 @@ namespace Architome
         public Role role;
         public RoomInfo currentRoom;
         public EntityState currentState = EntityState.Active;
+        public WorkerState workerState;
 
         public PresetStats presetStats;
         public bool fixedStats;
@@ -90,7 +91,8 @@ namespace Architome
         public Action<EntityInfo, Collider, bool> OnTriggerEvent;
         public Action<EntityInfo, Collision, bool> OnCollisionEvent;
         public Action<EntityInfo, GameObject, bool> OnPhysicsEvent;
-        private TaskEvents taskEvents;
+        public TaskEvents taskEvents = new();
+        
 
 
 
@@ -525,15 +527,6 @@ namespace Architome
 
         }
 
-        public TaskEvents TaskEvents()
-        {
-            if(taskEvents == null)
-            {
-                taskEvents = new TaskEvents();
-            }
-
-            return taskEvents;
-        }
         public bool IsEnemy(GameObject target)
         {
             if (!target.GetComponent<EntityInfo>()) return false;
@@ -726,7 +719,6 @@ namespace Architome
             }
 
         }
-
         public bool CanAttack(NPCType npcType)
         {
             if(npcType == NPCType.Untargetable) { return false; }
@@ -995,6 +987,11 @@ namespace Architome
             }
 
             return null;
+        }
+
+        public ETaskHandler TaskHandler()
+        {
+            return GetComponentInChildren<ETaskHandler>();
         }
 
         public void ShowEntity(bool val, bool hideGraphics = true, bool hideRenders = true, bool hideLights = true, bool destroys = false)

@@ -1,13 +1,20 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Architome.Enums;
+using System;
 
 namespace Architome
 {
     public class ETaskHandler : EntityProp
 {
         // Start is called before the first frame update
-        public TaskInfo currentTask;
+        public WorkerState currentState;
+        public Movement movement;
+        public WorkInfo currentStation;
+        private TaskInfo currentTask;
+
+        //Event Event Triggers
         private TaskInfo previousTask;
         void Start()
         {
@@ -19,11 +26,12 @@ namespace Architome
 
             if(entityInfo.Movement())
             {
-                entityInfo.Movement().OnChangePath += OnChangePath;
+                movement = entityInfo.Movement();
+                movement.OnNewPathTarget += OnNewPathTarget;
+                movement.OnArrival += OnArrival;
             }
 
-            entityInfo.TaskEvents().OnStartingTask += OnStartingTask;
-            entityInfo.TaskEvents().OnNewTask += OnNewTask;
+            entityInfo.taskEvents.OnNewTask += OnNewTask;
         }
 
         // Update is called once per frame
@@ -36,45 +44,107 @@ namespace Architome
         {
             if(previousTask != currentTask)
             {
-                entityInfo.TaskEvents().OnNewTask?.Invoke(previousTask, currentTask);
+                entityInfo.taskEvents.OnNewTask?.Invoke(previousTask, currentTask);
 
                 previousTask = currentTask;
+            }
+
+            if(currentState != entityInfo.workerState)
+            {
+                entityInfo.workerState = currentState;
             }
         }
 
 
-        public void OnStartingTask(TaskEventData eventData)
+        public void OnArrival(Movement movement, Transform target)
         {
-            if(eventData.workInfo == null) { return; }
-            var workInfo = eventData.workInfo;
-            currentTask = eventData.task;
+            if(target == null) { return; }
+            if(currentTask == null) { return; }
+            if(currentTask.station == null) { return; }
 
-            currentTask.workersOnTheWay.Add(entityInfo);
-            workInfo.MoveEntity(entityInfo);
-
-
-
+            WorkOn(currentTask);
+            
         }
 
         public void OnNewTask(TaskInfo previous, TaskInfo current)
         {
-            if(previous != null)
+            HandlePreviousTask();
+
+            void HandlePreviousTask()
             {
-                if(previous.workersOnTheWay.Contains(entityInfo))
-                {
-                    previous.workersOnTheWay.Remove(entityInfo);
-                }
+                if (previous == null) return;
+
+                previous.RemoveWorker(entityInfo);
             }
         }
 
-        public void OnChangePath(Movement movement)
+        
+
+        public void OnNewPathTarget(Movement movement, Transform previousTarget, Transform currentTarget)
         {
-            if(currentTask != null && currentTask.workersOnTheWay.Contains(entityInfo))
+            if(currentTask == null) { return; }
+
+            if(!IsCurrentWorkStation(currentTarget))
             {
-                currentTask.workersOnTheWay.Remove(entityInfo);
+                currentTask = null;
+                currentState = WorkerState.NotWorking;
             }
         }
 
+        bool IsCurrentWorkStation(Transform targetCheck)
+        {
+            if(currentStation == null) { return false; }
+
+            if(targetCheck.GetComponent<WorkInfo>() == currentStation)
+            {
+                return true;
+            }
+
+            if(targetCheck.GetComponentInParent<WorkInfo>())
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public void WorkOn(TaskInfo task)
+        {
+            if (!task.AddWorker(entityInfo)) { return; }
+            currentState = WorkerState.Working;
+        }
+
+        public void StartWork(TaskInfo task)
+        {
+            if(!task.AddWorkerOnTheWay(entityInfo)) { return; }
+
+            currentTask = task;
+            currentStation = task.station;
+
+            var hasWorkSpot = currentStation.workSpot != null;
+
+            var newTaskEvent = new TaskEventData()
+            {
+                task = task,
+                workInfo = task.station,
+                workers = task.workers,
+            };
+
+            entityInfo.taskEvents.OnMoveToTask?.Invoke(newTaskEvent);
+            currentState = WorkerState.MovingToWork;
+
+            if(hasWorkSpot)
+            {
+                movement.MoveTo(currentStation.workSpot);
+            }
+            else
+            {
+                movement.MoveTo(currentStation.transform, 2f);
+            }
+
+
+            
+        }
 
     }
 

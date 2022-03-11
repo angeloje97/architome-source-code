@@ -36,6 +36,7 @@ namespace Architome
             {
                 return;
             }
+            
 
 
 
@@ -55,20 +56,24 @@ namespace Architome
         void HandleWork()
         {
             if(workInfo == null) { return; }
-
-            workInfo.CreateTask(new TaskInfo()
+            ArchAction.Delay(() => 
             {
-                workString = "Set Spawn Beacon",
-                workType = Enums.WorkType.Use,
-                workAmount = 3
-            });
+                workInfo.CreateTask(new TaskInfo(workInfo)
+                {
+                    workString = "Set Spawn Beacon",
+                    workType = Enums.WorkType.Use,
+                    workAmount = 3
+                });
 
-            workInfo.CreateTask(new TaskInfo()
-            {
-                workString = "Revive Allies",
-                workType = Enums.WorkType.Use,
-                workAmount = 10
-            });
+                workInfo.CreateTask(new TaskInfo(workInfo)
+                {
+                    workString = "Revive Allies",
+                    workType = Enums.WorkType.Use,
+                    workAmount = 10
+                });
+
+            }, .125f);
+            
 
 
         }

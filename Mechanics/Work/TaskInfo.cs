@@ -9,6 +9,7 @@ namespace Architome
     public class TaskInfo
     {
         public string workString;
+        public WorkInfo station;
         
         public float currentWork;
         public float workAmount;
@@ -23,8 +24,9 @@ namespace Architome
         public WorkType workType;
         public TaskState currentState;
 
-        public TaskInfo()
+        public TaskInfo(WorkInfo station)
         {
+            this.station = station;
             workType = WorkType.Use;
             currentState = TaskState.Available;
             maxWorkers = 1;
@@ -44,7 +46,69 @@ namespace Architome
 
         public bool CanWork(EntityInfo entity)
         {
-            return false;
+            return currentState == TaskState.Available;
+        }
+
+        public int TotalWorkers()
+        {
+            return workers.Count + workersOnTheWay.Count;
+        }
+
+        public bool AddWorkerOnTheWay(EntityInfo entity)
+        {
+            if (!CanWork(entity)) return false;
+
+            workersOnTheWay.Add(entity);
+
+            UpdateState();
+            return true;
+        }
+
+        public bool AddWorker(EntityInfo entity)
+        {
+            if(!workersOnTheWay.Contains(entity))
+            {
+                return false;
+            }
+
+            workersOnTheWay.Remove(entity);
+            
+            workers.Add(entity);
+
+            UpdateState();
+
+            return true;
+        }
+
+        public void RemoveWorker(EntityInfo entity)
+        {
+
+
+            if(workersOnTheWay.Contains(entity))
+            {
+                workersOnTheWay.Remove(entity);
+            }
+
+            if(workers.Contains(entity))
+            {
+                workers.Remove(entity);
+            }
+
+            UpdateState();
+        }
+
+        public void UpdateState()
+        {
+            if(TotalWorkers() == maxWorkers)
+            {
+                currentState = TaskState.Occupied;
+                return;
+            }
+
+            if(currentState == TaskState.Occupied)
+            {
+                currentState = TaskState.Available;
+            }
         }
     }
 
@@ -58,8 +122,8 @@ namespace Architome
     [SerializeField]
     public class TaskEvents
     {
-        
-        public Action<TaskEventData> OnStartingTask;
+
+        public Action<TaskEventData> OnMoveToTask;
         public Action<TaskEventData> OnStartTask;
         public Action<TaskEventData> WhileWorkingOnTask;
         public Action<TaskEventData> OnTaskComplete;

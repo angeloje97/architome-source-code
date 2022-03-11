@@ -47,7 +47,11 @@ namespace Architome
         public void CreateTask(TaskInfo task)
         {
             tasks.Add(task);
+
+            
+
             clickable.AddOption(task.workString);
+            
         }
 
         public void OnSelectAction(Clickable eventData)
@@ -65,12 +69,6 @@ namespace Architome
 
             var entities = eventData.clickedEntities;
 
-            var newTaskEvent = new TaskEventData() {
-                workers = entities,
-                workInfo = this,
-                task = task
-            };
-
             for(int i = 0; i < task.maxWorkers; i++)
             {
                 if(i >= entities.Count)
@@ -78,20 +76,10 @@ namespace Architome
                     break;
                 }
 
-                entities[i].TaskEvents().OnStartingTask?.Invoke(newTaskEvent);
+                entities[i].TaskHandler().StartWork(task);
             }
         }
-
-        public void MoveEntity(EntityInfo entity)
-        {
-            if(workSpot == null)
-            {
-                entity.Movement().MoveTo(transform, 2);
-                return;
-            }
-
-
-        }
+        
 
         
         // Start is called before the first frame update

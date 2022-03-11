@@ -27,6 +27,7 @@ public class Movement : MonoBehaviour
     public float speed;
     public float maxSpeed;
     public float endReachDistance;
+    public float distanceFromTarget;
     public Vector3 velocity;
     public bool isMoving;
     public bool canMove = true;
@@ -197,6 +198,7 @@ public class Movement : MonoBehaviour
     public void UpdateMetrics()
     {
         if(path == null) { return; }
+        if(destinationSetter == null) { return; }
 
         speed = path.desiredVelocity.magnitude;
         maxSpeed = path.maxSpeed;
@@ -215,7 +217,12 @@ public class Movement : MonoBehaviour
 
         if(destinationSetter.target)
         {
-            hasArrived = Vector3.Distance(destinationSetter.target.transform.position, entityObject.transform.position) <= path.endReachedDistance + 2f;
+            distanceFromTarget = V3Helper.Distance(destinationSetter.target.position, entityObject.transform.position);
+        }
+
+        if(destinationSetter.target)
+        {
+            hasArrived = distanceFromTarget < endReachDistance + 2f;
         }
         
     }
@@ -224,6 +231,7 @@ public class Movement : MonoBehaviour
         if(!entityInfo.isAlive) { return; }
         OnTryMove?.Invoke(this);
         if(!canMove) { return; }
+        hasArrivedCheck = false;
         this.location.transform.position = location;
         destinationSetter.target = this.location.transform;
         path.endReachedDistance = 0;
@@ -233,6 +241,7 @@ public class Movement : MonoBehaviour
     {
         if (!entityInfo.isAlive) { return; }
         path.endReachedDistance = endReachDistance;
+        hasArrivedCheck = false;
 
         if(destinationSetter.target != locationTransform)
         {
@@ -247,6 +256,14 @@ public class Movement : MonoBehaviour
         }
 
         return new Vector3();
+    }
+    public Transform Target()
+    {
+        if(destinationSetter)
+        {
+            return destinationSetter.target;
+        }
+        return null;
     }
     public void StopMoving()
     {

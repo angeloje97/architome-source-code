@@ -275,6 +275,13 @@ namespace Architome.Enums
         Occupied,
         Done,
     }
+
+    public enum WorkerState
+    {
+        NotWorking,
+        MovingToWork,
+        Working,
+    }
     
 }
 public class Enums : MonoBehaviour
