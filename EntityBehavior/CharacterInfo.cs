@@ -124,6 +124,15 @@ public class CharacterInfo : MonoBehaviour
         }
     }
 
+    public void LookAt(Transform target)
+    {
+        var position = target.position;
+
+        position.y = transform.position.y;
+
+        transform.LookAt(position);
+    }
+
     public void UpdateMovementDirection()
     {
         if(movement)

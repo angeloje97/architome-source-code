@@ -2,7 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Threading.Tasks;
 using Architome.Enums;
+
 namespace Architome
 {
     [Serializable]
@@ -19,10 +21,16 @@ namespace Architome
         public List<EntityInfo> workersOnTheWay;
 
         public bool canRepeat;
+        public bool autoRepeat;
         public bool resetOnCancel;
         
         public WorkType workType;
         public TaskState currentState;
+        
+
+
+        public bool isBeingWorkedOn;
+
 
         public TaskInfo(WorkInfo station)
         {
@@ -38,6 +46,97 @@ namespace Architome
             workers = new List<EntityInfo>();
             workersOnTheWay = new List<EntityInfo>();
         }
+
+        public void HandleWork()
+        {
+            if (isBeingWorkedOn) return;
+            isBeingWorkedOn = true;
+            WhileWorking();
+
+
+        }
+
+        public async void WhileWorking()
+        {
+            while(isBeingWorkedOn)
+            {
+                await Task.Yield();
+
+                HandleWork();
+                HandleWorkerEvents();
+                HandleWorkerCount();
+
+
+                
+            }
+
+            void HandleWork()
+            {
+                if(currentWork < workAmount)
+                {
+                    currentWork += Time.deltaTime;
+                }
+                else if(currentWork >= workAmount)
+                {
+                    currentWork = 0;
+                    HandleComplete();
+                }
+            }
+
+            void HandleWorkerEvents()
+            {
+                for (int i = 0; i < workers.Count; i++)
+                {
+                    workers[i].taskEvents.WhileWorkingOnTask?.Invoke(new TaskEventData(this));
+                }
+            }
+
+            void HandleWorkerCount()
+            {
+                if (workers.Count == 0)
+                {
+                    isBeingWorkedOn = false;
+                    HandleTaskCancel();
+                }
+            }
+        }
+
+        public void HandleTaskCancel()
+        {
+            if(resetOnCancel)
+            {
+                currentWork = 0;
+            }
+        }
+
+        public void HandleComplete()
+        {
+
+            currentState = canRepeat ? TaskState.Available : TaskState.Done;
+            isBeingWorkedOn = false;
+
+            HandleWorkerEvents();
+            HandleStationEvents();
+
+            void HandleWorkerEvents()
+            {
+                for (int i = 0; i < workers.Count; i++)
+                {
+                    workers[i].taskEvents.OnTaskComplete?.Invoke(new TaskEventData(this));
+                }
+            }
+
+            void HandleStationEvents()
+            {
+                station.taskEvents.OnTaskComplete?.Invoke(new TaskEventData(this));
+            }
+
+            
+
+            
+        }
+
+
 
         public bool CanStartWork(EntityInfo entity)
         {
@@ -74,7 +173,7 @@ namespace Architome
             workersOnTheWay.Remove(entity);
             
             workers.Add(entity);
-
+            HandleWork();
             UpdateState();
 
             return true;
@@ -87,12 +186,16 @@ namespace Architome
             if(workersOnTheWay.Contains(entity))
             {
                 workersOnTheWay.Remove(entity);
+                entity.taskEvents.OnCancelMovingToTask?.Invoke(new TaskEventData(this));
             }
 
             if(workers.Contains(entity))
             {
                 workers.Remove(entity);
+                entity.taskEvents.OnEndTask?.Invoke(new TaskEventData(this));
             }
+
+
 
             UpdateState();
         }
@@ -110,17 +213,21 @@ namespace Architome
                 currentState = TaskState.Available;
             }
         }
+
     }
 
     public class TaskEventData
     {
-        public List<EntityInfo> workers;
-        public WorkInfo workInfo;
         public TaskInfo task;
+
+        public TaskEventData(TaskInfo task)
+        {
+            this.task = task;
+        }
     }
 
     [SerializeField]
-    public class TaskEvents
+    public struct TaskEvents
     {
 
         public Action<TaskEventData> OnMoveToTask;
@@ -130,6 +237,7 @@ namespace Architome
 
         //For Entities
         public Action<TaskInfo, TaskInfo> OnNewTask;
-        public Action<TaskInfo> OnCancelTask;
+        public Action<TaskEventData> OnEndTask;
+        public Action<TaskEventData> OnCancelMovingToTask;
     }
 }

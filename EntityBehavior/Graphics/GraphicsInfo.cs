@@ -115,14 +115,6 @@ public class GraphicsInfo : MonoBehaviour
     
     public ProgressBarsBehavior ProgressBars()
     {
-        foreach(Transform child in transform)
-        {
-            if(child.GetComponent<ProgressBarsBehavior>())
-            {
-                return child.GetComponent<ProgressBarsBehavior>();
-            }
-        }
-
-        return null;
+        return GetComponentInChildren<ProgressBarsBehavior>();
     }
 }

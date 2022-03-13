@@ -54,8 +54,9 @@ namespace Architome.Enums
 
     public enum BuffTargetType
     {
-        Harm,
-        Assist
+        Neutral = 0,
+        Assist = 1,
+        Harm = 2,
     }
     public enum CatalystType
     {
@@ -225,6 +226,15 @@ namespace Architome.Enums
         Catalyst,
         Misc
     }
+
+    public enum TargetableState
+    {
+        None,
+        Selected,
+        Hovering,
+        Holding,
+    }
+
     public enum EquipmentSlotType
     {
         None,
@@ -278,7 +288,7 @@ namespace Architome.Enums
 
     public enum WorkerState
     {
-        NotWorking,
+        Idle,
         MovingToWork,
         Working,
     }

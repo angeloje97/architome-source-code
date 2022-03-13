@@ -2,74 +2,80 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MapInfo : MonoBehaviour
+
+
+namespace Architome
 {
-    public static MapInfo active;
-    // Start is called before the first frame update
-    public PathfinderOpt pathFinderOpt;
-    public SeedGenerator seedGenerator;
-
-    [Header("Map Settings")]
-    public bool generateRooms;
-    public bool generateEntities;
-
-    [Header("Map Properties")]
-    public List<GameObject> rooms;
-    //public List<GameObject> entities;
-    public List<Transform> patrolPoints;
-    public Transform trash;
-
-
-
-    
-
-    public void GetDependencies()
+    public class MapInfo : MonoBehaviour
     {
-        if (trash == null)
+        public static MapInfo active;
+        // Start is called before the first frame update
+        public PathfinderOpt pathFinderOpt;
+        public SeedGenerator seedGenerator;
+
+        [Header("Map Settings")]
+        public bool generateRooms;
+        public bool generateEntities;
+
+        [Header("Map Properties")]
+        public List<GameObject> rooms;
+        //public List<GameObject> entities;
+        public List<Transform> patrolPoints;
+        public Transform trash;
+
+
+
+
+
+        public void GetDependencies()
         {
-            trash = new GameObject().transform;
-            trash.SetParent(transform);
-            trash.name = "Trash";
-        }
-
-        active = this;
-    }
-
-    void Awake()
-    {
-        GetDependencies();
-    }
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-    public MapRoomGenerator RoomGenerator()
-    {
-        foreach(Transform child in transform)
-        {
-            if(child.GetComponent<MapRoomGenerator>())
+            if (trash == null)
             {
-                return child.GetComponent<MapRoomGenerator>();
+                trash = new GameObject().transform;
+                trash.SetParent(transform);
+                trash.name = "Trash";
             }
+
+            active = this;
         }
 
-        return null;
-    }
-
-    public MapEntityGenerator EntityGenerator()
-    {
-        foreach(Transform child in transform)
+        void Awake()
         {
-            if(child.GetComponent<MapEntityGenerator>())
+            GetDependencies();
+        }
+        // Update is called once per frame
+        void Update()
+        {
+
+        }
+        public MapRoomGenerator RoomGenerator()
+        {
+            foreach (Transform child in transform)
             {
-                return child.GetComponent<MapEntityGenerator>();
+                if (child.GetComponent<MapRoomGenerator>())
+                {
+                    return child.GetComponent<MapRoomGenerator>();
+                }
             }
+
+            return null;
         }
 
-        return null;
-    }
+        public MapEntityGenerator EntityGenerator()
+        {
+            foreach (Transform child in transform)
+            {
+                if (child.GetComponent<MapEntityGenerator>())
+                {
+                    return child.GetComponent<MapEntityGenerator>();
+                }
+            }
 
-   
+            return null;
+        }
+
+
+
+    }
 
 }

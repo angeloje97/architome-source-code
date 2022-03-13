@@ -32,6 +32,7 @@ namespace Architome
             }
 
             entityInfo.taskEvents.OnNewTask += OnNewTask;
+            entityInfo.taskEvents.OnTaskComplete += OnTaskComplete;
         }
 
         // Update is called once per frame
@@ -62,7 +63,9 @@ namespace Architome
             if(currentTask == null) { return; }
             if(currentTask.station == null) { return; }
 
-            WorkOn(currentTask);
+
+            ArchAction.Delay(() => { WorkOn(currentTask); }, .25f);
+            
             
         }
 
@@ -78,7 +81,11 @@ namespace Architome
             }
         }
 
-        
+        public void OnTaskComplete(TaskEventData eventData)
+        {
+            StopTask();
+        }
+
 
         public void OnNewPathTarget(Movement movement, Transform previousTarget, Transform currentTarget)
         {
@@ -86,9 +93,17 @@ namespace Architome
 
             if(!IsCurrentWorkStation(currentTarget))
             {
-                currentTask = null;
-                currentState = WorkerState.NotWorking;
+                StopTask();
             }
+        }
+
+        public void StopTask()
+        {
+            if(currentTask == null) { return; }
+
+            currentTask = null;
+            currentStation = null;
+            currentState = WorkerState.Idle;
         }
 
         bool IsCurrentWorkStation(Transform targetCheck)
@@ -111,6 +126,9 @@ namespace Architome
         public void WorkOn(TaskInfo task)
         {
             if (!task.AddWorker(entityInfo)) { return; }
+
+
+            entityInfo.taskEvents.OnStartTask?.Invoke(new TaskEventData(task));
             currentState = WorkerState.Working;
         }
 
@@ -123,12 +141,7 @@ namespace Architome
 
             var hasWorkSpot = currentStation.workSpot != null;
 
-            var newTaskEvent = new TaskEventData()
-            {
-                task = task,
-                workInfo = task.station,
-                workers = task.workers,
-            };
+            var newTaskEvent = new TaskEventData(task);
 
             entityInfo.taskEvents.OnMoveToTask?.Invoke(newTaskEvent);
             currentState = WorkerState.MovingToWork;

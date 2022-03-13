@@ -16,7 +16,9 @@ public class PortraitBehavior : MonoBehaviour
     public EntityInfo entity;
     public Image icon;
     public TextMeshProUGUI entityName;
-    
+
+    [Header("Buff Icon Manager")]
+    public BuffUIManager buffUI;
     
     [Header("Health Bar")]
     public Image healthBar;
@@ -81,7 +83,6 @@ public class PortraitBehavior : MonoBehaviour
     {
         UpdateHealth();
         UpdateResourceBar();
-        UpdateExperienceBar();
         UpdateCastBar();
 
         void UpdateCastBar()
@@ -176,19 +177,28 @@ public class PortraitBehavior : MonoBehaviour
 
             resourceText.text = $"{mana}/{maxMana}";
         }
-        void UpdateExperienceBar()
+    }
+
+    void OnExperienceGain(float value)
+    {
+        HandleExperienceBar();
+        HandleExperienceText();
+
+        void HandleExperienceBar()
         {
-            if(!experienceBar || !experienceBarText) { return; }
-            if (currentExperience == entity.experience && experienceRequired == entity.experienceRequiredToLevel) { return; }
+            if (experienceBar == null) return;
 
-            currentExperience = entity.experience;
-            experienceRequired = entity.experienceRequiredToLevel;
+            experienceBar.fillAmount = entity.entityStats.experience / entity.entityStats.experienceReq;
+        }
 
-            experienceBar.fillAmount = currentExperience / experienceRequired;
+        void HandleExperienceText()
+        {
+            if (experienceBarText == null) { return; }
 
-            experienceBarText.text = $"{(int)currentExperience}/{(int)experienceRequired}";
+            experienceBarText.text = $"{(int)entity.entityStats.experience}/{(int)entity.entityStats.experienceReq}";
         }
     }
+
     void UpdateLevel()
     {
         if(!levelText) { return; }
@@ -215,12 +225,15 @@ public class PortraitBehavior : MonoBehaviour
         UpdateEntity();
         isActive = true;
 
+        buffUI?.SetEntity(entity);
+
         void HandleEvents()
         {
             if (this.entity != null)
             {
                 this.entity.CombatBehavior().CombatInfo().OnNewTargetedBy -= OnNewTargetedBy;
                 this.entity.CombatBehavior().CombatInfo().OnTargetedByRemove -= OnTargetedByRemove;
+                this.entity.OnExperienceGain -= OnExperienceGain;
             }
         }
     }
@@ -244,6 +257,13 @@ public class PortraitBehavior : MonoBehaviour
             icon.gameObject.SetActive(true); icon.sprite = entity.entityPortrait; 
         }
 
+        if (experienceBar)
+        {
+            experienceBar.fillAmount = entity.entityStats.experience / entity.entityStats.experienceReq;
+        }
+
+        
+
         icon.sprite = entity.entityPortrait;
 
         HandleEvents();
@@ -252,6 +272,7 @@ public class PortraitBehavior : MonoBehaviour
         {
             entity.CombatBehavior().CombatInfo().OnNewTargetedBy += OnNewTargetedBy;
             entity.CombatBehavior().CombatInfo().OnTargetedByRemove += OnTargetedByRemove;
+            entity.OnExperienceGain += OnExperienceGain;
         }
     }
 

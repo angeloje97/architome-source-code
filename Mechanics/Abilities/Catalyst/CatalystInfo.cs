@@ -346,10 +346,13 @@ public class CatalystInfo : MonoBehaviour
         ticks--;
         OnTickChange?.Invoke(this, ticks);
     }
-    public void IncreaseTicks()
+    public void IncreaseTicks(bool triggerEvent = true)
     {
         ticks++;
-        OnTickChange?.Invoke(this, ticks);
+        if (triggerEvent)
+        {
+            OnTickChange?.Invoke(this, ticks);
+        }
     }
 
     public int Ticks()

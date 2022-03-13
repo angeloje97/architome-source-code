@@ -2,6 +2,7 @@ using Architome.Enums;
 using UnityEngine;
 using UnityEngine.UI;
 using Architome;
+using System;
 public class ProgressBarsBehavior : MonoBehaviour
 {
     // Start is called before the first frame update
@@ -36,6 +37,7 @@ public class ProgressBarsBehavior : MonoBehaviour
     public float clusterAgentOffset;
     public Vector3 localPosition;
 
+    public TaskProgressBarHandler taskProgressHandler;
 
     void GetDependencies()
     {
@@ -98,6 +100,7 @@ public class ProgressBarsBehavior : MonoBehaviour
         GetDependencies();
         HandleHideMana();
         UpdateCastBar();
+        taskProgressHandler.Initialize(this);
     }
     void Update()
     {
@@ -199,20 +202,6 @@ public class ProgressBarsBehavior : MonoBehaviour
             if (castBar == null) { return; }
 
             castBar.fillAmount = currentAbility.castTimer / currentAbility.castTime;
-
-            //if (!entityInfo.AbilityManager()) { return; }
-            //var currentAbility = entityInfo.AbilityManager().currentlyCasting;
-
-
-            //if (castBar.transform.parent.gameObject.activeSelf != entityInfo.AbilityManager().currentlyCasting)
-            //{
-            //    if (currentAbility && currentAbility.isAttack) { return; }
-            //    castBar.transform.parent.gameObject.SetActive(entityInfo.AbilityManager().currentlyCasting);
-            //}
-
-            //if (currentAbility == null) { return; }
-
-            //castBar.fillAmount = currentAbility.castTimer / currentAbility.castTime;
         }
     }
     public void UpdateCastBar()
@@ -231,7 +220,6 @@ public class ProgressBarsBehavior : MonoBehaviour
 
         UpdateCastBar();
     }
-
     public void OnCastRelease(AbilityInfo ability)
     {
         if (!castBarActive) { return; }
@@ -239,7 +227,6 @@ public class ProgressBarsBehavior : MonoBehaviour
         castBarActive = false;
         UpdateCastBar();
     }
-
     public void OnCancelCast(AbilityInfo ability)
     {
         if (!castBarActive) return;
@@ -248,7 +235,6 @@ public class ProgressBarsBehavior : MonoBehaviour
 
         UpdateCastBar();
     }
-
     public void OnCastChannelStart(AbilityInfo ability)
     {
         castBarActive = ability.vfx.showChannelBar;
@@ -261,10 +247,6 @@ public class ProgressBarsBehavior : MonoBehaviour
 
         UpdateCastBar();
     }
-
-
-    
-
     public void OnCastChannelEnd(AbilityInfo ability)
     {
         if(!castBarActive) { return; }
@@ -274,7 +256,6 @@ public class ProgressBarsBehavior : MonoBehaviour
         UpdateCastBar();
 
     }
-
     public void OnCancelChannel(AbilityInfo ability)
     {
         if (!castBarActive) { return; }
@@ -283,8 +264,40 @@ public class ProgressBarsBehavior : MonoBehaviour
         UpdateCastBar();
     }
 
+}
 
-    
+[Serializable]
+public struct TaskProgressBarHandler
+{
+    private EntityInfo entityInfo;
+    private Image progressBar;
 
+    public void Initialize(ProgressBarsBehavior behavior)
+    {
+        entityInfo = behavior.entityInfo;
+        progressBar = behavior.castBar;
+
+
+        entityInfo.taskEvents.OnStartTask += OnStartTask;
+        entityInfo.taskEvents.WhileWorkingOnTask += WhileWorkingOnTask;
+        entityInfo.taskEvents.OnEndTask += OnEndTask;
+    }
+
+    void OnStartTask(TaskEventData eventData)
+    {
+        progressBar.transform.parent.gameObject.SetActive(true);
+    }
+
+    void WhileWorkingOnTask(TaskEventData eventData)
+    {
+        var task = eventData.task;
+
+        progressBar.fillAmount = task.currentWork / task.workAmount;
+        
+    }
+    void OnEndTask(TaskEventData eventData)
+    {
+        progressBar.transform.parent.gameObject.SetActive(false);
+    }
 
 }

@@ -9,7 +9,6 @@ public class BuffShield : MonoBehaviour
 
     public float shieldAmount;
     public bool applied;
-    public bool expired;
     void GetDependencies()
     {
         if (buffInfo == null)
@@ -17,6 +16,7 @@ public class BuffShield : MonoBehaviour
             if (GetComponent<BuffInfo>())
             {
                 buffInfo = GetComponent<BuffInfo>();
+                buffInfo.OnBuffEnd += OnBuffEnd;
             }
 
             if(buffInfo && buffInfo.hostInfo && buffInfo.sourceInfo)
@@ -34,14 +34,13 @@ public class BuffShield : MonoBehaviour
                     shieldAmount = buffInfo.properties.value;
                 }
             }
-            
-            
+
+            ApplyBuff();
         }
     }
     void Start()
     {
         GetDependencies();
-        Invoke("ApplyBuff", .125f);
     }
     void ApplyBuff()
     {
@@ -54,36 +53,50 @@ public class BuffShield : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        HandleBuffExpire();
     }
-    void HandleBuffExpire()
+
+    public void OnBuffEnd(BuffInfo buff)
     {
-        if (buffInfo.buffTimeComplete || buffInfo.cleansed)
+        shieldAmount = 0;
+        buffInfo.hostInfo.UpdateShield();
+    }
+    //void HandleBuffExpire()
+    //{
+    //    if (buffInfo.buffTimeComplete || buffInfo.cleansed)
+    //    {
+    //        if (!expired)
+    //        {
+    //            shieldAmount = 0;
+    //            expired = true;
+
+    //        }
+    //        buffInfo.hostInfo.UpdateShield();
+    //    }
+    //}
+
+    public float DamageShield(float value)
+    {
+        var nextValue = shieldAmount > value ? 0 : value - shieldAmount;
+
+        if (value > shieldAmount)
         {
-            if (!expired)
-            {
-                shieldAmount = 0;
-                expired = true;
-
-            }
-            buffInfo.hostInfo.UpdateShield();
+            value = shieldAmount;
         }
-    }
 
-    public void DamageShield(float value)
-    {
         shieldAmount -= value;
 
         if(buffInfo.hostInfo != buffInfo.sourceInfo)
         {
-            buffInfo.sourceInfo.GainExp(value * .25f);
+            buffInfo.sourceInfo.OnDamagePreventedFromShields?.Invoke(new Architome.CombatEventData(buffInfo, buffInfo.sourceInfo, value) {target = buffInfo.sourceInfo});
         }
 
         if(shieldAmount == 0)
         {
-            buffInfo.depleted = true;
+            buffInfo.Deplete();
         }
 
         buffInfo.hostInfo.UpdateShield();
+
+        return nextValue;
     }
 }

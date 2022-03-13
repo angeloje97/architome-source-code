@@ -31,7 +31,7 @@ public class BuffJumps : MonoBehaviour
 
         if (NewTarget().GetComponent<EntityInfo>())
         {
-            buffInfo.buffTimeComplete = false;
+            //buffInfo.buffTimeComplete = false;
             NewTarget().GetComponent<EntityInfo>().Buffs().ApplyBuff(gameObject, buffInfo.sourceInfo, buffInfo.sourceAbility, buffInfo.sourceCatalyst);
         }
     }

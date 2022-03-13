@@ -12,6 +12,7 @@ public class BuffArmor : MonoBehaviour
         if (GetComponent<BuffInfo>())
         {
             buffInfo = GetComponent<BuffInfo>();
+            buffInfo.OnBuffEnd += OnBuffEnd;
         }
     }
 
@@ -31,16 +32,20 @@ public class BuffArmor : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        HandleExpiration();
     }
 
-    void HandleExpiration()
+    public void OnBuffEnd(BuffInfo buff)
     {
-        if(!buffInfo.cleansed && !buffInfo.buffTimeComplete) { return; }
-        if(!expired)
-        {
-            buffInfo.hostInfo.stats.armor -= buffInfo.properties.value;
-            expired = true;
-        }
+        buffInfo.hostInfo.stats.armor -= buffInfo.properties.value;
+        expired = true;
     }
+    //void HandleExpiration()
+    //{
+    //    if(!buffInfo.cleansed && !buffInfo.buffTimeComplete) { return; }
+    //    if(!expired)
+    //    {
+    //        buffInfo.hostInfo.stats.armor -= buffInfo.properties.value;
+    //        expired = true;
+    //    }
+    //}
 }

@@ -6,13 +6,14 @@ using System;
 [Serializable]
 public class Stats
 {
-    // Start is called before the first frame update
+    //SecondaryStats.
     public int Level;
     public int Vitality;
     public int Strength;
     public int Dexterity;
     public int Wisdom;
 
+    //Secondary Stats
     public float attackSpeed;
     public float attackDamage;
     public float coolDownReduction;
@@ -30,6 +31,7 @@ public class Stats
     public float movementSpeed;
     public float haste;
 
+    //Experience Stats
     public float experience;
     public float experienceReq;
 
@@ -56,6 +58,9 @@ public class Stats
         damageTakenMultiplier = 0;
         movementSpeed = 0;
         haste = 0;
+
+        experience = 0;
+        experienceReq = 0;
     }
     public Stats Sum(Stats s1, Stats s2)
     {
@@ -84,6 +89,9 @@ public class Stats
         s3.damageTakenMultiplier = s1.damageTakenMultiplier + s2.damageTakenMultiplier;
         s3.movementSpeed = s1.movementSpeed + s2.movementSpeed;
         s3.haste = s1.haste + s2.haste;
+        
+        s3.experience = s1.experience + s2.experience;
+        s3.experienceReq = s1.experienceReq + s2.experienceReq;
 
         return s3;
     }
@@ -96,12 +104,8 @@ public class Stats
         Wisdom = (Level * 5) + 5;
     }
 
-    public Stats UpdateRequiredToLevel()
+    public void UpdateExperienceRequiredToLevel()
     {
-        var experienceMultiplier = GMHelper.Difficulty().settings.experienceMultiplier;
-
-        experienceReq = Level * experienceMultiplier;
-
-        return this;
+        experienceReq = GMHelper.Difficulty().settings.experienceMultiplier * Level;
     }
 }

@@ -2,226 +2,308 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using Architome;
+using System;
 
-public class ContainerTargetables : MonoBehaviour
+
+namespace Architome
 {
-    public static ContainerTargetables active;
-    // Start is called before the first frame update
-    public List<GameObject> hoverTargets;
-    public List<GameObject> selectedTargets;
-
-    public GameObject currentHover;
-    public GameObject currentHold;
-
-    private KeyBindings keyBindings;
-
-    public LayerMask targetLayer;
-
-    public string selectKey = "Select";
-    public string selectMultiple = "SelectMultiple";
-
-    public bool clicked;
-    public bool left;
-
-    void Start()
+    public class ContainerTargetables : MonoBehaviour
     {
-        hoverTargets = new List<GameObject>();
-        selectedTargets = new List<GameObject>();
+        public static ContainerTargetables active;
+        // Start is called before the first frame update
+        public List<GameObject> hoverTargets;
+        public List<GameObject> selectedTargets;
 
-        if(GMHelper.KeyBindings())
+        public GameObject currentHover;
+        public GameObject currentHold;
+
+        private KeyBindings keyBindings;
+
+        public LayerMask targetLayer;
+
+        public string selectKey = "Select";
+        public string selectMultiple = "SelectMultiple";
+
+        public bool clicked;
+        public bool left;
+
+        void Start()
         {
-            keyBindings = GMHelper.KeyBindings();
-        }
+            hoverTargets = new List<GameObject>();
+            selectedTargets = new List<GameObject>();
 
-    }
-
-    public void Awake()
-    {
-        active = this;
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        HandleUserMouseOvers();
-        HandleUserInputs();
-        HandleNullMouseOver();
-    }
-
-    public void HandleUserMouseOvers()
-    {
-        if (IsOverHealthBar()) { }
-        else if (IsOverTarget()) { }
-        else if (IsOverPortrait()) { }
-        else
-        {
-            if (hoverTargets.Count > 0) { hoverTargets.Clear(); }
-            currentHover = null;
-        }
-
-        bool IsOverTarget()
-        {
-            if (Mouse.IsMouseOverUI()) { return false; }
-            if (Mouse.CurrentHover(targetLayer))
+            if (GMHelper.KeyBindings())
             {
-                var result = Mouse.CurrentHover(targetLayer);
+                keyBindings = GMHelper.KeyBindings();
+            }
 
-                var hoverObject = Mouse.CurrentHoverObject();
+        }
 
-                if(hoverObject.GetComponent<Clickable>())
+        public void Awake()
+        {
+            active = this;
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+            HandleUserMouseOvers();
+            HandleUserInputs();
+            HandleNullMouseOver();
+        }
+
+        public void HandleUserMouseOvers()
+        {
+            if (IsOverHealthBar()) { }
+            else if (IsOverTarget()) { }
+            else if (IsOverPortrait()) { }
+            else
+            {
+                ClearHovers();
+                //if (hoverTargets.Count > 0) { hoverTargets.Clear(); }
+                //currentHover = null;
+            }
+
+            bool IsOverTarget()
+            {
+                if (Mouse.IsMouseOverUI()) { return false; }
+                if (Mouse.CurrentHover(targetLayer))
                 {
-                    return false;
-                }
+                    var result = Mouse.CurrentHover(targetLayer);
 
-                if (result.GetComponent<EntityInfo>())
-                {
-                    if (!Player.HasLineOfSight(result)) { return false; }
-                    if (!hoverTargets.Contains(result))
+                    var hoverObject = Mouse.CurrentHoverObject();
+
+                    if (hoverObject.GetComponent<Clickable>())
                     {
-                        hoverTargets.Add(result);
-                        currentHover = result;
+                        return false;
                     }
 
-                    return true;
-                }
-            }
-            
+                    if (result.GetComponent<EntityInfo>())
+                    {
+                        if (!Player.HasLineOfSight(result)) { return false; }
+                        if (!hoverTargets.Contains(result))
+                        {
+                            Hover(result);
+                            //hoverTargets.Add(result);
+                            //currentHover = result;
+                        }
 
-            return false;
+                        return true;
+                    }
+                }
+
+
+                return false;
+            }
+
+
         }
         bool IsOverPortrait()
         {
             var rayCastObjects = Mouse.RayCastResultObjects();
 
-            foreach(GameObject castObject in rayCastObjects)
+            foreach (GameObject castObject in rayCastObjects)
             {
-                if(castObject.transform.parent)
+                if (castObject.transform.parent)
                 {
-                    if(castObject.GetComponentInParent<PortraitBehavior>() && castObject.GetComponentInParent<PortraitBehavior>().entity)
+
+                    if (castObject.GetComponentInParent<PortraitBehavior>())
                     {
-                        if(!hoverTargets.Contains(castObject.GetComponentInParent<PortraitBehavior>().entity.gameObject))
+                        if (castObject.GetComponentInParent<PortraitBehavior>() && castObject.GetComponentInParent<PortraitBehavior>().entity)
                         {
-                            currentHover = castObject.GetComponentInParent<PortraitBehavior>().entity.gameObject;
-                            hoverTargets.Add(castObject.GetComponentInParent<PortraitBehavior>().entity.gameObject);
-                        }
-
-                        
-
-                        return true;
-                    }
-
-                    if(castObject.transform.parent.parent)
-                    {
-                        if(castObject.transform.parent.GetComponentInParent<PortraitBehavior>() && castObject.transform.parent.GetComponentInParent<PortraitBehavior>().entity)
-                        {
-                            if(!hoverTargets.Contains(castObject.transform.parent.GetComponentInParent<PortraitBehavior>().entity.gameObject))
+                            if (!hoverTargets.Contains(castObject.transform.parent.GetComponentInParent<PortraitBehavior>().entity.gameObject))
                             {
-                                currentHover = castObject.transform.parent.GetComponentInParent<PortraitBehavior>().entity.gameObject;
-                                hoverTargets.Add(castObject.transform.parent.GetComponentInParent<PortraitBehavior>().entity.gameObject);
+                                //currentHover = castObject.transform.parent.GetComponentInParent<PortraitBehavior>().entity.gameObject;
+                                //hoverTargets.Add(castObject.transform.parent.GetComponentInParent<PortraitBehavior>().entity.gameObject);
+
+                                Hover(castObject.GetComponentInParent<PortraitBehavior>().entity.gameObject);
                             }
-                            
+
                             return true;
                         }
                     }
 
-                    
+
                 }
             }
 
             return false;
         }
-        
-    }
-
-    bool IsOverHealthBar()
-    {
-        var results = Mouse.RayCastResultObjects();
-
-        if (results.Count == 0) { return false; }
-        if (Mouse.IsMouseOverUI()) { return false; }
-        foreach (var result in results)
+        bool IsOverHealthBar()
         {
-            if (result.GetComponentInParent<ProgressBarsBehavior>() && result.GetComponentInParent<EntityInfo>())
+            var results = Mouse.RayCastResultObjects();
+
+            if (results.Count == 0) { return false; }
+            if (Mouse.IsMouseOverUI()) { return false; }
+            foreach (var result in results)
             {
-                if (!hoverTargets.Contains(result.GetComponentInParent<EntityInfo>().gameObject))
+                if (result.GetComponentInParent<ProgressBarsBehavior>() && result.GetComponentInParent<EntityInfo>())
                 {
-                    hoverTargets.Add(result.GetComponentInParent<EntityInfo>().gameObject);
-                    currentHover = result.GetComponentInParent<EntityInfo>().gameObject;
-                }
-                return true;
-            }
-        }
-        return false;
-    }
-
-
-    public void HandleUserInputs()
-    {
-        if(Mouse.IsMouseOverUI())
-        {
-            if(!IsOverHealthBar())
-            {
-                return;
-            }
-        }
-
-
-        if (Input.GetKeyDown(keyBindings.keyBinds[selectKey]))
-        {
-            //Clear if the selectMultiple button is not pressed
-
-            if(!Input.GetKey(keyBindings.keyBinds[selectMultiple]))
-            {
-                selectedTargets.Clear();
-            }
-
-            if(currentHover)
-            {
-                currentHold = currentHover;
-                clicked = true;
-            }
-        }
-
-        if (Input.GetKeyUp(keyBindings.keyBinds[selectKey]))
-        {
-            if(currentHover == currentHold && !selectedTargets.Contains(currentHold))
-            {
-                if(!left)
-                {
-                    if(currentHold != null)
+                    if (!hoverTargets.Contains(result.GetComponentInParent<EntityInfo>().gameObject))
                     {
-                        selectedTargets.Add(currentHold);
+                        //hoverTargets.Add(result.GetComponentInParent<EntityInfo>().gameObject);
+                        //currentHover = result.GetComponentInParent<EntityInfo>().gameObject;
+
+                        Hover(result.GetComponentInParent<EntityInfo>().gameObject);
                     }
-                    
+                    return true;
+                }
+            }
+            return false;
+        }
+
+
+        public void HandleUserInputs()
+        {
+
+
+
+            if (Input.GetKeyDown(keyBindings.keyBinds[selectKey]))
+            {
+                //Clear if the selectMultiple button is not pressed
+
+                if (!Input.GetKey(keyBindings.keyBinds[selectMultiple]))
+                {
+                    if (Mouse.IsMouseOverUI() && !IsOverPortrait())
+                    {
+                        if (!IsOverHealthBar())
+                        {
+                            return;
+                        }
+                    }
+
+                    //selectedTargets.Clear();
+                    ClearSelected();
+                }
+
+
+
+                if (currentHover)
+                {
+                    //currentHold = currentHover;
+                    Hold(currentHover);
+                    clicked = true;
                 }
             }
 
-            clicked = false;
-            left = false;
-            currentHold = null;
-        }
-    }
-    public void HandleNullMouseOver()
-    {
-        foreach(GameObject hoverTarget in hoverTargets)
-        {
-            if(hoverTarget != currentHover)
+            if (Input.GetKeyUp(keyBindings.keyBinds[selectKey]))
             {
-                hoverTargets.Remove(hoverTarget);
-                return;
+                if (currentHover == currentHold && !selectedTargets.Contains(currentHold))
+                {
+                    
+
+                    if (!left)
+                    {
+                        if (currentHold != null)
+                        {
+                            //selectedTargets.Add(currentHold);
+                            AddSelected(currentHold);
+                        }
+
+                    }
+                }
+
+                clicked = false;
+                left = false;
+
+
+                //currentHold = null;
+                UnHold();
             }
         }
+
+        public void Hold(GameObject target)
+        {
+            target.GetComponent<EntityInfo>().targetableEvents.OnHold?.Invoke(true);
+            currentHold = target;
+        }
+
+        public void UnHold()
+        {
+            if(currentHold != null)
+            {
+                currentHold.GetComponent<EntityInfo>().targetableEvents.OnHold?.Invoke(false);
+                currentHold = null;
+            }
+
+        }
+
+        public void AddSelected(GameObject target)
+        {
+            target.GetComponent<EntityInfo>().targetableEvents.OnSelect?.Invoke(true);
+            selectedTargets.Add(target);
+            
+        }
+
+        public void ClearSelected()
+        {
+            for(int i = 0; i < selectedTargets.Count; i++)
+            {
+                selectedTargets[i].GetComponent<EntityInfo>().targetableEvents.OnSelect?.Invoke(false);
+                selectedTargets.RemoveAt(i);
+                i--;
+            }
+        }
+
+        public void ClearHovers(bool clearCurrentHover = true)
+        {
+            for(int i = 0; i < hoverTargets.Count; i++)
+            {
+                hoverTargets[i].GetComponent<EntityInfo>().targetableEvents.OnHover?.Invoke(false);
+                hoverTargets.RemoveAt(i);
+                i--;
+            }
+
+            if (clearCurrentHover)
+            {
+                HoverRemove();
+            }
+
+        }
+        public void Hover(GameObject target)
+        {
+            hoverTargets.Add(target);
+            currentHover = target;
+
+            Debugger.InConsole(6482, $"{target.GetComponent<EntityInfo>().targetableEvents}");
+            target.GetComponent<EntityInfo>().targetableEvents.OnHover?.Invoke(true);
+        }
+        public void HoverRemove()
+        {
+            if(currentHover != null)
+            {
+                currentHover.GetComponent<EntityInfo>().targetableEvents.OnHover?.Invoke(false);
+                currentHover = null;
+            }
+
+        }
+        public void HandleNullMouseOver()
+        {
+            for(int i = 0; i< hoverTargets.Count; i++)
+            {
+                if (hoverTargets[i] == null)
+                {
+                    hoverTargets.RemoveAt(i);
+                    i--;
+                }
+                else if(hoverTargets[i] != currentHover)
+                {
+                    hoverTargets[i].GetComponent<EntityInfo>().targetableEvents.OnHover?.Invoke(false);
+                    hoverTargets.RemoveAt(i);
+                    i--;
+                }
+
+            }
+        }
+
+
     }
 
-    public void HandleEnter(GameObject check)
+    public struct TargetableEvents
     {
-
+        public Action<bool> OnHover;
+        public Action<bool> OnSelect;
+        public Action<bool> OnHold;
     }
 
-    public void HandleExit(GameObject check)
-    {
-
-    }
-    
 }

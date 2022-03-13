@@ -18,6 +18,9 @@ public class CatalystBuffOnDestroy : MonoBehaviour
             catalystInfo = GetComponent<CatalystInfo>();
             abilityInfo = catalystInfo.abilityInfo;
             sourceInfo = catalystInfo.entityInfo;
+
+            catalystInfo.OnCatalystDestroy += OnCatalystDestroy;
+
         }
 
         if(GetComponent<CatalystHit>())
@@ -37,7 +40,7 @@ public class CatalystBuffOnDestroy : MonoBehaviour
         
     }
 
-    private void OnDestroy()
+    public void OnCatalystDestroy(CatalystDeathCondition deathCondition)
     {
         HandleSelfBuff();
     }
@@ -48,6 +51,7 @@ public class CatalystBuffOnDestroy : MonoBehaviour
         {
             catalystHit.isAssisting = true;
             catalystHit.canSelfCast = true;
+            catalystInfo.IncreaseTicks(false);
             catalystHit.HandleTargetHit(sourceInfo);
             catalystHit.canSelfCast = false;
             catalystHit.isAssisting = false;

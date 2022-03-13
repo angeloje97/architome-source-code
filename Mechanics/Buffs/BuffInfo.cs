@@ -4,6 +4,7 @@ using UnityEngine;
 using Architome.Enums;
 using System;
 using Architome;
+using UnityEngine.UI;
 
 [Serializable]
 public class BuffProperties
@@ -37,6 +38,7 @@ public class BuffInfo : MonoBehaviour
     public EntityInfo hostInfo;
 
     public BuffTargetType buffTargetType;
+    public Sprite buffIcon;
     public int buffId;
     public float expireDelay = .125f;
 
@@ -45,9 +47,9 @@ public class BuffInfo : MonoBehaviour
     [Header("Buff Properties")]
     public DamageType damageType;
     public int stacks = 0;
-    public bool buffTimeComplete = false;
-    public bool cleansed = false;
-    public bool depleted = false;
+    private bool buffTimeComplete = false;
+    private bool cleansed = false;
+    private bool depleted = false;
     public float buffTimer;
 
     [Header("Buff FX")]
@@ -61,6 +63,8 @@ public class BuffInfo : MonoBehaviour
     public  Action<BuffInfo> OnBuffCompletion;
     public  Action<BuffInfo> OnBuffCleanse;
     public Action<BuffInfo> OnBuffInterval;
+    public Action<BuffInfo> OnBuffDeplete;
+    public Action<BuffInfo> OnBuffEnd;
     public Action<BuffInfo, float, float> OnChangeValue;
 
     public Action<int> OnStack;
@@ -114,6 +118,7 @@ public class BuffInfo : MonoBehaviour
 
     private void Awake()
     {
+        buffTimeComplete = false;
         buffTimer = properties.time;
         GetVessel();
         Invoke("SpawnParticle", .125f);
@@ -171,6 +176,12 @@ public class BuffInfo : MonoBehaviour
             }
         }
     }
+
+    public void Deplete()
+    {
+        OnBuffDeplete?.Invoke(this);
+        StartCoroutine(Expire());
+    }
     public void Cleanse()
     {
         cleansed = true;
@@ -183,6 +194,7 @@ public class BuffInfo : MonoBehaviour
     }
     public IEnumerator Expire()
     {
+        OnBuffEnd?.Invoke(this);
         yield return new WaitForSeconds(expireDelay);
         if(transform.parent && GetComponentInParent<BuffsManager>())
         {
@@ -198,8 +210,6 @@ public class BuffInfo : MonoBehaviour
             buffsManager.OnBuffTimerReset -= OnBuffTimerReset;
             buffsManager.OnResetBuff -= OnResetBuff;
         }
-
-
 
         Destroy(gameObject);
     }

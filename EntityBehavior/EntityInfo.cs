@@ -1,10 +1,10 @@
 using Architome.Enums;
-using Architome;
 using Pathfinding;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
 
@@ -56,9 +56,6 @@ namespace Architome
         public float manaRegenPercent = .01f;
 
         [Header("Experience")]
-        public float experience;
-        public float experienceRequiredToLevel;
-        public float experienceMultiplier;
         public bool canLevel;
 
         public LayerMask walkableLayer;
@@ -73,6 +70,7 @@ namespace Architome
         public event Action<CombatEventData> OnReviveThis;
         public event Action<CombatEventData> OnDeath;
         public event Action<CombatEventData> OnKill;
+        public Action<CombatEventData> OnDamagePreventedFromShields;
         public Action<BuffInfo, EntityInfo> OnNewBuff;
         public Action<BuffInfo, EntityInfo> OnBuffApply;
         public Action<float> OnExperienceGain;
@@ -92,6 +90,7 @@ namespace Architome
         public Action<EntityInfo, Collision, bool> OnCollisionEvent;
         public Action<EntityInfo, GameObject, bool> OnPhysicsEvent;
         public TaskEvents taskEvents = new();
+        public TargetableEvents targetableEvents = new();
         
 
 
@@ -142,13 +141,9 @@ namespace Architome
                 entityStats = new Stats().Sum(entityStats,presetStats.Stats());
                 npcType = presetStats.npcType;
 
-                experience = entityStats.experience;
-                experienceRequiredToLevel = entityStats.UpdateRequiredToLevel().experienceReq;
 
                 canLevel = presetStats.canLevel;
                 stats = stats.Sum(stats, entityStats);
-                experience = presetStats.Stats().experience;
-                experienceRequiredToLevel = entityStats.experienceReq;
                 UpdateResources(true);
             }
             else
@@ -162,12 +157,6 @@ namespace Architome
                 stats = stats.Sum(stats, entityStats);
                 UpdateResources(true);
 
-                experience = 0;
-                if (GMHelper.GameManager() && GMHelper.Difficulty())
-                {
-                    experienceMultiplier = GMHelper.Difficulty().settings.experienceMultiplier;
-                }
-                experienceRequiredToLevel = experienceMultiplier * entityStats.Level;
             }
             if (npcType == NPCType.Hostile)
             {
@@ -283,6 +272,8 @@ namespace Architome
                 }
             }
         }
+
+
         public void OnTriggerEnter(Collider other)
         {
             OnTriggerEvent?.Invoke(this, other, true);
@@ -347,11 +338,11 @@ namespace Architome
 
 
             HandleValue();
-            HandleExperience();
             HandleDamage();
 
             void HandleValue()
             {
+                
 
                 float criticalRole = UnityEngine.Random.Range(0, 100);
 
@@ -360,11 +351,12 @@ namespace Architome
                     combatData.critical = true;
                     combatData.value *= source.stats.criticalDamage;
                 }
-
+                
 
                 combatData.value *= source.stats.damageMultiplier;
                 combatData.value *= stats.damageTakenMultiplier;
                 combatData.value -= combatData.value * stats.damageReduction;
+
                 if (damageType == DamageType.Physical)
                 {
                     combatData.value -= stats.armor;
@@ -373,34 +365,56 @@ namespace Architome
                 {
                     combatData.value -= stats.magicResist;
                 }
+
                 if (combatData.value < 0)
                 {
                     combatData.value = 0;
                 }
 
-            }
-            void HandleExperience()
-            {
-                if (GetComponent<DummyBehavior>()) { return; }
-                if (health + shield - combatData.value <= 0)
+                if (combatData.value > health + shield)
                 {
-                    source.GainExp((combatData.value - health + shield) * .25f);
-                    GainExp((combatData.value - health + shield) * .125f);
+                    combatData.value = health + shield;
                 }
-                else
-                {
-                    GainExp(combatData.value * .125f);
-                    source.GainExp(combatData.value * .25f);
-                }
+
             }
+            //void HandleExperience()
+            //{
+            //    if (GetComponent<DummyBehavior>()) { return; }
+            //    if (health + shield - combatData.value <= 0)
+            //    {
+            //        source.GainExp((combatData.value - health + shield) * .25f);
+            //        GainExp((combatData.value - health + shield) * .125f);
+            //    }
+            //    else
+            //    {
+            //        GainExp(combatData.value * .125f);
+            //        source.GainExp(combatData.value * .25f);
+            //    }
+            //}
             void HandleDamage()
             {
-                HandleEvents();
+                source.OnDamageDone?.Invoke(combatData);
                 DamageShield();
                 DamageHealth();
 
                 void DamageShield()
                 {
+                    
+                    if (Buffs() == null) { return; }
+                    var buffs = Buffs().GetComponentsInChildren<BuffShield>().ToList();
+
+                    if(buffs.Count == 0) { return; }
+
+                    foreach (var buff in buffs)
+                    {
+                        if (buff.shieldAmount == 0) continue;
+                        if (combatData.value <= 0) continue;
+
+                        combatData.value = buff.DamageShield(combatData.value);
+
+                    }
+                    return;
+
                     if (Buffs() && Buffs().Buffs().Count > 0)
                     {
                         foreach (BuffInfo buff in Buffs().Buffs())
@@ -436,19 +450,14 @@ namespace Architome
                         EntityDeathHandler.active.HandleDeadEntity(combatData);
                         OnDeath?.Invoke(combatData);
                         source.OnKill?.Invoke(combatData);
-
-
                     }
                     else
                     {
                         health -= combatData.value;
                     }
-                }
 
-                void HandleEvents()
-                {
+
                     OnDamageTaken?.Invoke(combatData);
-                    source.OnDamageDone?.Invoke(combatData);
                 }
             }
         }
@@ -458,7 +467,6 @@ namespace Architome
             combatData.target = this;
             var source = combatData.source;
             HandleValue();
-            HandleExperience();
             HandleHealing();
 
 
@@ -473,18 +481,10 @@ namespace Architome
                     combatData.critical = true;
                     combatData.value *= source.stats.criticalDamage;
                 }
-            }
 
-            void HandleExperience()
-            {
-                if (GetComponent<DummyBehavior>()) { return; }
-                if (health + combatData.value > maxHealth)
+                if (combatData.value + health > maxHealth)
                 {
-                    source.GainExp((maxHealth - health) * .25f);
-                }
-                else
-                {
-                    source.GainExp(combatData.value * .25f);
+                    combatData.value = maxHealth - health;
                 }
             }
 
@@ -558,29 +558,29 @@ namespace Architome
                 OnReactToInteraction?.Invoke(eventData);
             }
         }
-        public void GainExp(float value)
-        {
-            if (!canLevel) { return; }
-            OnExperienceGain?.Invoke(value);
-            if (GMHelper.GameManager() && GMHelper.Difficulty())
-            {
-                experienceMultiplier = GMHelper.Difficulty().settings.experienceMultiplier;
-            }
+        //public void GainExp(float value)
+        //{
+        //    if (!canLevel) { return; }
+        //    OnExperienceGain?.Invoke(value);
+        //    //if (GMHelper.GameManager() && GMHelper.Difficulty())
+        //    //{
+        //    //    experienceMultiplier = GMHelper.Difficulty().settings.experienceMultiplier;
+        //    //}
 
-            experienceRequiredToLevel = entityStats.Level * experienceMultiplier;
+        //    //experienceRequiredToLevel = entityStats.Level * experienceMultiplier;
 
-            if (experience + value > experienceRequiredToLevel)
-            {
-                LevelUp();
-                value = (experience + value) - (experienceRequiredToLevel);
-                experience = 0;
-                GainExp(value);
-            }
-            else
-            {
-                experience += value;
-            }
-        }
+        //    //if (experience + value > experienceRequiredToLevel)
+        //    //{
+        //    //    LevelUp();
+        //    //    value = (experience + value) - (experienceRequiredToLevel);
+        //    //    experience = 0;
+        //    //    GainExp(value);
+        //    //}
+        //    //else
+        //    //{
+        //    //    experience += value;
+        //    //}
+        //}
         public void LevelUp()
         {
             entityStats.Level++;

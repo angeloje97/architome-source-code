@@ -61,15 +61,17 @@ namespace Architome
                 workInfo.CreateTask(new TaskInfo(workInfo)
                 {
                     workString = "Set Spawn Beacon",
-                    workType = Enums.WorkType.Use,
-                    workAmount = 3
+                    workType = WorkType.Use,
+                    workAmount = 2,
+                    resetOnCancel = true
                 });
 
                 workInfo.CreateTask(new TaskInfo(workInfo)
                 {
                     workString = "Revive Allies",
-                    workType = Enums.WorkType.Use,
-                    workAmount = 10
+                    workType = WorkType.Use,
+                    workAmount = 10,
+                    resetOnCancel = true
                 });
 
             }, .125f);
@@ -97,13 +99,10 @@ namespace Architome
             GetDependencies();
             HandleWork();
         }
-
         public void OnSelectOption(Clickable clickable)
         {
 
         }
-
-
         public void OnActivate(ActivatorData eventData)
         {
             var entity = eventData.gameObject;

@@ -3,83 +3,58 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Architome;
-public class Targetable : MonoBehaviour
+public class Targetable : EntityProp
 {
     // Start is called before the first frame update
     public GameObject entityObject;
 
     public GraphicsInfo graphics;
-    public EntityInfo entityInfo;
     public ContainerTargetables targetManager;
 
     public GameObject graphicsHover;
     public GameObject graphicsSelected;
     public GameObject graphicsHolding;
 
-    public void GetDependencies()
+    public new void GetDependencies()
     {
-        if(entityInfo == null)
-        {
-            if(GetComponentInParent<GraphicsInfo>() != null)
-            {
-                graphics = GetComponentInParent<GraphicsInfo>();
+        base.GetDependencies();
 
-                if(graphics.entityInfo)
-                {
-                    entityObject = graphics.entityObject;
-                    entityInfo = graphics.entityInfo;
-                }
-            }
-
-            if(GMHelper.TargetManager())
-            {
-                targetManager = GMHelper.TargetManager();
-            }
-        }
+        entityInfo.targetableEvents.OnHold += OnHold;
+        entityInfo.targetableEvents.OnHover += OnHover;
+        entityInfo.targetableEvents.OnSelect += OnSelect;
     }
-
 
     void Start()
     {
-        
-    }
-
-    void Update()
-    {
         GetDependencies();
-        UpdateTargetManagerIcons();
+        SetValues(false);
     }
 
-    public void UpdateTargetManagerIcons()
+    public void OnHover(bool val)
     {
-        if(targetManager.hoverTargets.Contains(entityObject))
-        {
-            graphicsHover.SetActive(true);
-        }
-        else
-        {
-            graphicsHover.SetActive(false);
-        }
-
-        if(targetManager.selectedTargets.Contains(entityObject))
-        {
-            graphicsSelected.SetActive(true);
-        }
-        else
-        {
-            graphicsSelected.SetActive(false);
-        }
-
-        if(targetManager.currentHold == entityObject)
-        {
-            graphicsHolding.SetActive(true);
-        }
-        else
-        {
-            graphicsHolding.SetActive(false);
-        }
+        graphicsHover.SetActive(val);
     }
 
-    // Update is called once per frame
+    public void OnSelect(bool val)
+    {
+        graphicsSelected.SetActive(val);
+    }
+
+    public void OnHold(bool val)
+    {
+        graphicsHolding.SetActive(val);
+    }
+
+    public void OnValidate()
+    {
+        SetValues(false);
+    }
+
+    public void SetValues(bool val)
+    {
+        graphicsHolding.SetActive(val);
+        graphicsSelected.SetActive(val);
+        graphicsHover.SetActive(val);
+    }
     
 }

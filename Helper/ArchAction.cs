@@ -27,6 +27,29 @@ namespace Architome
             }
         }
 
+        public static async void UpdateFor(Action action, float seconds)
+        {
+            float currentTime = 0f;
+            while(currentTime < seconds)
+            {
+                action();
+
+                currentTime += Time.deltaTime;
+                await Task.Yield();
+
+            }
+        }
+
+        public static async void UpdateWhile(Action action,  bool condition)
+        {
+            while (condition)
+            {
+                action();
+                await Task.Yield();
+            }
+
+        }
+
         public static async void LateUpdate(Action action)
         {
             while(true)
@@ -47,5 +70,4 @@ namespace Architome
             }
         }
     }
-
 }

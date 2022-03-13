@@ -5,8 +5,6 @@ using System;
 using Architome;
 public class CombatInfo : MonoBehaviour
 {
-
-
     // Start is called before the first frame update
     public EntityInfo entityInfo;
     public CombatBehavior combatBehavior;

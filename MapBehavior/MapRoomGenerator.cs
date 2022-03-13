@@ -3,523 +3,527 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-public class MapRoomGenerator : MonoBehaviour
+namespace Architome
 {
-    // Start is called before the first frame update
-    public MapInfo mapInfo;
-    public SeedGenerator seedGenerator;
-    public MapEntityGenerator entityGenerator;
-    public Transform roomList;
-    public int roomsDestroyed;
-    public bool generatedRooms;
-
-    [Header("Rooms and Paths")]
-    public List<GameObject> skeletonRooms;
-    public List<GameObject> availableRooms;
-    public List<GameObject> badSpawnRooms;
-    public List<GameObject> roomsInUse;
-    public List<PathInfo> paths;
-    
-    [Header("Room Generator Properties")]
-    
-    [Range(0,1)]
-    public float roomRevealPercent;
-    public bool roomsHidden;
-    public bool hideRooms;
-    public bool generatingSkeleton;
-    public bool generatingAvailable;
-
-    public float spawnDelay = 1f;
-    public float hideDelay;
-    public float fixTimer;
-    public float fixTimeFrame;
-
-    //Events
-    public Action<MapRoomGenerator> OnRoomsGenerated;
-    
-
-    void GetDependencies()
+    public class MapRoomGenerator : MonoBehaviour
     {
-        if(GetComponentInParent<MapInfo>())
+        // Start is called before the first frame update
+        public MapInfo mapInfo;
+        public SeedGenerator seedGenerator;
+        public MapEntityGenerator entityGenerator;
+        public Transform roomList;
+        public int roomsDestroyed;
+        public bool generatedRooms;
+
+        [Header("Rooms and Paths")]
+        public List<GameObject> skeletonRooms;
+        public List<GameObject> availableRooms;
+        public List<GameObject> badSpawnRooms;
+        public List<GameObject> roomsInUse;
+        public List<PathInfo> paths;
+
+        [Header("Room Generator Properties")]
+
+        [Range(0, 1)]
+        public float roomRevealPercent;
+        public bool roomsHidden;
+        public bool hideRooms;
+        public bool generatingSkeleton;
+        public bool generatingAvailable;
+
+        public float spawnDelay = 1f;
+        public float hideDelay;
+        public float fixTimer;
+        public float fixTimeFrame;
+
+        //Events
+        public Action<MapRoomGenerator> OnRoomsGenerated;
+
+
+        void GetDependencies()
         {
-            mapInfo = GetComponentInParent<MapInfo>();
-            if(mapInfo.GetComponentInChildren<MapEntityGenerator>())
+            if (GetComponentInParent<MapInfo>())
             {
-                entityGenerator = mapInfo.GetComponentInChildren<MapEntityGenerator>();
-
-                entityGenerator.OnEntitiesGenerated += OnEntitiesGenerated;
-            }
-        }
-
-        if(GetComponentInParent<SeedGenerator>())
-        {
-            seedGenerator = GetComponentInParent<SeedGenerator>();
-        }
-
-        
-    }
-    void Start()
-    {
-        GetDependencies();
-
-        if(mapInfo.generateRooms)
-        {
-            StartCoroutine(UpdateskeletonRooms());
-            StartCoroutine(ClearNullsRoutine());
-        }
-        else
-        {
-            generatedRooms = true;
-            OnRoomsGenerated?.Invoke(this);
-            Invoke("HandleEndGeneration", .5f);
-        }
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        HandleTimers();
-        if (badSpawnRooms.Count > 0 && mapInfo.generateRooms)
-        {
-            fixTimer = fixTimeFrame;
-            HandleBadSpawnRooms();
-        }
-    }
-    IEnumerator UpdateAvailableRooms()
-    {
-        do
-        {
-            if (!mapInfo.generateRooms) { break; }
-            HandleAvailableRooms();
-
-            yield return new WaitForSeconds(spawnDelay);
-        } while (availableRooms.Count > 0 || fixTimer > 0);
-
-        generatingAvailable = false;
-
-
-
-        HandleEndGeneration();
-
-        void HandleAvailableRooms()
-        {
-            if (fixTimer > 0) { return; }
-            if (availableRooms.Count > 0 && AvailablePaths().Count > 0)
-            {
-                //var randomPathIndex = Random.Range((int)0, (int)AvailablePaths().Count);
-                var seedPathIndex = mapInfo.seedGenerator.factors[AvailablePaths().Count];
-                var seedRoomIndex = mapInfo.seedGenerator.factors[availableRooms.Count];
-                //var randomRoomIndex = Random.Range((int)0, (int)availableRooms.Count);
-
-
-                AvailablePaths()[seedPathIndex].SpawnRoom(availableRooms[seedRoomIndex] , roomList);
-                availableRooms.Remove(availableRooms[seedRoomIndex]);
-                return;
-
-            }
-        }
-    }
-    IEnumerator UpdateskeletonRooms()
-    {
-        do
-        {
-            if (!mapInfo.generateRooms) { break; }
-
-            HandleSekeletonRooms();
-            generatingSkeleton = true;
-            yield return new WaitForSeconds(spawnDelay);
-
-        } while (skeletonRooms.Count > 0 || fixTimer > 0);
-
-        yield return new WaitForSeconds(spawnDelay);
-        generatingSkeleton = false;
-        generatingAvailable = true;
-
-        StartCoroutine(UpdateAvailableRooms());
-
-        void HandleSekeletonRooms()
-        {
-            if (fixTimer > 0 || roomsInUse.Count == 0 || seedGenerator == null || skeletonRooms.Count == 0) { return; }
-
-            var lastRoom = roomsInUse[roomsInUse.Count - 1].GetComponent<RoomInfo>();
-            var availablePaths = AvailablePaths(lastRoom);
-
-            if (availablePaths.Count == 0)
-            {
-                availablePaths = PreviousPaths(roomsInUse.Count - 1);
-                if (availablePaths.Count == 0)
+                mapInfo = GetComponentInParent<MapInfo>();
+                if (mapInfo.GetComponentInChildren<MapEntityGenerator>())
                 {
-                    skeletonRooms.Clear();
+                    entityGenerator = mapInfo.GetComponentInChildren<MapEntityGenerator>();
+
+                    entityGenerator.OnEntitiesGenerated += OnEntitiesGenerated;
                 }
             }
 
-
-            var pathSeed = seedGenerator.Factor2(skeletonRooms.Count, availablePaths.Count);
-            Debugger.InConsole(9532, $"{pathSeed}");
-            
-
-            availablePaths[pathSeed].SpawnRoom(skeletonRooms[0], roomList);
-            skeletonRooms.RemoveAt(0);
-        }
-    }
-    IEnumerator ClearNullsRoutine()
-    {
-        do
-        {
-            yield return new WaitForSeconds(spawnDelay / 2);
-            ClearNullPaths();
-            ClearNullRooms();
-
-        } while (generatingSkeleton || generatingAvailable);
-    }
-    void HandleEndGeneration()
-    {
-        HandleCheckPaths();
-        HandleBackgroundAdjustment();
-        AssignRooms();
-        AssignPatrolPoints();
-
-        generatedRooms = true;
-        OnRoomsGenerated?.Invoke(this);
-
-
-        void AssignRooms()
-        {
-            mapInfo.rooms = roomsInUse;
-        }
-
-        void AssignPatrolPoints()
-        {
-            foreach (var i in roomsInUse)
+            if (GetComponentInParent<SeedGenerator>())
             {
-                if (!i.GetComponent<RoomInfo>()){ continue; }
-                var info = i.GetComponent<RoomInfo>();
+                seedGenerator = GetComponentInParent<SeedGenerator>();
+            }
 
-                if (info.patrolPoints != null)
+
+        }
+        void Start()
+        {
+            GetDependencies();
+
+            if (mapInfo.generateRooms)
+            {
+                StartCoroutine(UpdateskeletonRooms());
+                StartCoroutine(ClearNullsRoutine());
+            }
+            else
+            {
+                generatedRooms = true;
+                OnRoomsGenerated?.Invoke(this);
+                Invoke("HandleEndGeneration", .5f);
+            }
+
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+            HandleTimers();
+            if (badSpawnRooms.Count > 0 && mapInfo.generateRooms)
+            {
+                fixTimer = fixTimeFrame;
+                HandleBadSpawnRooms();
+            }
+        }
+        IEnumerator UpdateAvailableRooms()
+        {
+            do
+            {
+                if (!mapInfo.generateRooms) { break; }
+                HandleAvailableRooms();
+
+                yield return new WaitForSeconds(spawnDelay);
+            } while (availableRooms.Count > 0 || fixTimer > 0);
+
+            generatingAvailable = false;
+
+
+
+            HandleEndGeneration();
+
+            void HandleAvailableRooms()
+            {
+                if (fixTimer > 0) { return; }
+                if (availableRooms.Count > 0 && AvailablePaths().Count > 0)
                 {
-                    foreach (Transform child in info.patrolPoints.transform)
+                    //var randomPathIndex = Random.Range((int)0, (int)AvailablePaths().Count);
+                    var seedPathIndex = mapInfo.seedGenerator.factors[AvailablePaths().Count];
+                    var seedRoomIndex = mapInfo.seedGenerator.factors[availableRooms.Count];
+                    //var randomRoomIndex = Random.Range((int)0, (int)availableRooms.Count);
+
+
+                    AvailablePaths()[seedPathIndex].SpawnRoom(availableRooms[seedRoomIndex], roomList);
+                    availableRooms.Remove(availableRooms[seedRoomIndex]);
+                    return;
+
+                }
+            }
+        }
+        IEnumerator UpdateskeletonRooms()
+        {
+            do
+            {
+                if (!mapInfo.generateRooms) { break; }
+
+                HandleSekeletonRooms();
+                generatingSkeleton = true;
+                yield return new WaitForSeconds(spawnDelay);
+
+            } while (skeletonRooms.Count > 0 || fixTimer > 0);
+
+            yield return new WaitForSeconds(spawnDelay);
+            generatingSkeleton = false;
+            generatingAvailable = true;
+
+            StartCoroutine(UpdateAvailableRooms());
+
+            void HandleSekeletonRooms()
+            {
+                if (fixTimer > 0 || roomsInUse.Count == 0 || seedGenerator == null || skeletonRooms.Count == 0) { return; }
+
+                var lastRoom = roomsInUse[roomsInUse.Count - 1].GetComponent<RoomInfo>();
+                var availablePaths = AvailablePaths(lastRoom);
+
+                if (availablePaths.Count == 0)
+                {
+                    availablePaths = PreviousPaths(roomsInUse.Count - 1);
+                    if (availablePaths.Count == 0)
                     {
-                        mapInfo.patrolPoints.Add(child);
+                        skeletonRooms.Clear();
+                    }
+                }
+
+
+                var pathSeed = seedGenerator.Factor2(skeletonRooms.Count, availablePaths.Count);
+                Debugger.InConsole(9532, $"{pathSeed}");
+
+
+                availablePaths[pathSeed].SpawnRoom(skeletonRooms[0], roomList);
+                skeletonRooms.RemoveAt(0);
+            }
+        }
+        IEnumerator ClearNullsRoutine()
+        {
+            do
+            {
+                yield return new WaitForSeconds(spawnDelay / 2);
+                ClearNullPaths();
+                ClearNullRooms();
+
+            } while (generatingSkeleton || generatingAvailable);
+        }
+        void HandleEndGeneration()
+        {
+            HandleCheckPaths();
+            HandleBackgroundAdjustment();
+            AssignRooms();
+            AssignPatrolPoints();
+
+            generatedRooms = true;
+            OnRoomsGenerated?.Invoke(this);
+
+
+            void AssignRooms()
+            {
+                mapInfo.rooms = roomsInUse;
+            }
+
+            void AssignPatrolPoints()
+            {
+                foreach (var i in roomsInUse)
+                {
+                    if (!i.GetComponent<RoomInfo>()) { continue; }
+                    var info = i.GetComponent<RoomInfo>();
+
+                    if (info.patrolPoints != null)
+                    {
+                        foreach (Transform child in info.patrolPoints.transform)
+                        {
+                            mapInfo.patrolPoints.Add(child);
+                        }
                     }
                 }
             }
         }
-    }
-    public void HandleTimers()
-    {
-        if (fixTimer > 0 && badSpawnRooms.Count == 0)
+        public void HandleTimers()
         {
-            fixTimer -= Time.deltaTime;
-        }
-        if (fixTimer < 0)
-        {
-            fixTimer = 0;
-        }
-
-    }
-    void HandleBadSpawnRooms()
-    {
-        if (badSpawnRooms.Count > 0)
-        {
-            ClearNullRooms();
-            ClearNullPaths();
-
-            for (int i = 0; i < badSpawnRooms.Count; i++)
+            if (fixTimer > 0 && badSpawnRooms.Count == 0)
             {
-                var room = badSpawnRooms[i];
-
-
-                foreach (PathInfo path in RoomPaths(room.GetComponent<RoomInfo>()))
-                {
-                    path.isUsed = true;
-                }
-
-                if (!HandleBadSpawnSkeleton(room)) { Destroy(room); roomsDestroyed++; }
-                else if (!HandleBadSpawnAvailable(room)) { Destroy(room); roomsDestroyed++; }
-
-                badSpawnRooms.RemoveAt(i);
-                i--;
+                fixTimer -= Time.deltaTime;
             }
-        }
-
-        bool HandleBadSpawnSkeleton(GameObject room)
-        {
-            if (!generatingSkeleton) { return true; }
-            var availablePaths = AvailablePaths(roomsInUse[roomsInUse.Count - 2].GetComponent<RoomInfo>());
-            ClearIncompatablePaths(room.GetComponent<RoomInfo>(), availablePaths);
-
-            if (availablePaths.Count == 0)
+            if (fixTimer < 0)
             {
-                availablePaths = PreviousPaths(roomsInUse.Count - 2);
+                fixTimer = 0;
+            }
+
+        }
+        void HandleBadSpawnRooms()
+        {
+            if (badSpawnRooms.Count > 0)
+            {
+                ClearNullRooms();
+                ClearNullPaths();
+
+                for (int i = 0; i < badSpawnRooms.Count; i++)
+                {
+                    var room = badSpawnRooms[i];
+
+
+                    foreach (PathInfo path in RoomPaths(room.GetComponent<RoomInfo>()))
+                    {
+                        path.isUsed = true;
+                    }
+
+                    if (!HandleBadSpawnSkeleton(room)) { Destroy(room); roomsDestroyed++; }
+                    else if (!HandleBadSpawnAvailable(room)) { Destroy(room); roomsDestroyed++; }
+
+                    badSpawnRooms.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            bool HandleBadSpawnSkeleton(GameObject room)
+            {
+                if (!generatingSkeleton) { return true; }
+                var availablePaths = AvailablePaths(roomsInUse[roomsInUse.Count - 2].GetComponent<RoomInfo>());
+                ClearIncompatablePaths(room.GetComponent<RoomInfo>(), availablePaths);
 
                 if (availablePaths.Count == 0)
                 {
-                    return false;
+                    availablePaths = PreviousPaths(roomsInUse.Count - 2);
+
+                    if (availablePaths.Count == 0)
+                    {
+                        return false;
+                    }
                 }
-            }
 
-            var pathIndexSeed = seedGenerator.Factor2(roomsInUse.Count, availablePaths.Count);
+                var pathIndexSeed = seedGenerator.Factor2(roomsInUse.Count, availablePaths.Count);
 
 
-            var newRoom = availablePaths[pathIndexSeed].SpawnRoom(room, roomList);
+                var newRoom = availablePaths[pathIndexSeed].SpawnRoom(room, roomList);
 
-            if (room && room.GetComponent<RoomInfo>() && room.GetComponent<RoomInfo>().originPath)
-            {
-                room.GetComponent<RoomInfo>().originPath.isUsed = false;
-            }
-
-            foreach (PathInfo path in newRoom.paths)
-            {
-                if (!path.isEntrance)
+                if (room && room.GetComponent<RoomInfo>() && room.GetComponent<RoomInfo>().originPath)
                 {
-                    path.isUsed = false;
+                    room.GetComponent<RoomInfo>().originPath.isUsed = false;
                 }
-            }
 
-            Destroy(room);
-
-            return true;
-
-        }
-
-        bool HandleBadSpawnAvailable(GameObject room)
-        {
-            if (!generatingAvailable) { return true; }
-
-            var availablePaths = AvailablePaths(room.GetComponent<RoomInfo>().incompatablePaths);
-
-            if (availablePaths.Count == 0) { return false; }
-
-            int randomPathIndex = seedGenerator.factors[availablePaths.Count];
-
-            var roomInfo = availablePaths[randomPathIndex].SpawnRoom(room, roomList);
-
-            if (room && room.GetComponent<RoomInfo>() && room.GetComponent<RoomInfo>().originPath)
-            {
-                room.GetComponent<RoomInfo>().originPath.isUsed = false;
-            }
-
-            foreach (PathInfo path in roomInfo.paths)
-            {
-                if (!path.isEntrance)
+                foreach (PathInfo path in newRoom.paths)
                 {
-                    path.isUsed = false;
+                    if (!path.isEntrance)
+                    {
+                        path.isUsed = false;
+                    }
                 }
+
+                Destroy(room);
+
+                return true;
+
             }
 
-            Destroy(room);
-
-            return true;
-        }
-    }
-    void HandleHideRooms()
-    {
-        if (!hideRooms) { return; }
-        if (!roomsHidden)
-        {
-            if (availableRooms.Count == 0 && badSpawnRooms.Count == 0)
+            bool HandleBadSpawnAvailable(GameObject room)
             {
-                StartCoroutine(HideRooms());
-                roomsHidden = true;
-            }
-        }
+                if (!generatingAvailable) { return true; }
 
-        IEnumerator HideRooms()
-        {
-            yield return new WaitForSeconds(hideDelay);
-            ClearNullRooms();
-            foreach (GameObject room in roomsInUse)
-            {
-                if (room.GetComponent<RoomInfo>() && room.GetComponent<RoomInfo>().hideOnStart)
+                var availablePaths = AvailablePaths(room.GetComponent<RoomInfo>().incompatablePaths);
+
+                if (availablePaths.Count == 0) { return false; }
+
+                int randomPathIndex = seedGenerator.factors[availablePaths.Count];
+
+                var roomInfo = availablePaths[randomPathIndex].SpawnRoom(room, roomList);
+
+                if (room && room.GetComponent<RoomInfo>() && room.GetComponent<RoomInfo>().originPath)
                 {
-                    room.GetComponent<RoomInfo>().ShowRoom(false);
+                    room.GetComponent<RoomInfo>().originPath.isUsed = false;
                 }
-            }
-        }
-    }
-    void HandleCheckPaths()
-    {
-        ClearNullPaths();
-        foreach (PathInfo path in paths)
-        {
-            path.CheckPath();
-        }
 
-        Invoke("PathFinderScan", .125f);
-
-    }
-    void HandleBackgroundAdjustment()
-    {
-        if (GetComponentInParent<MapAdjustments>() == null) { return; }
-
-        var mapAdjustment = GetComponentInParent<MapAdjustments>();
-
-        var midPoint = MapMidPoint();
-        var size = MapSize(1);
-
-        mapAdjustment.AdjustBackground(midPoint, size);
-
-
-        Vector3 MapMidPoint()
-        {
-            var roomObjects = new List<Transform>();
-
-            foreach (Transform child in roomList)
-            {
-                foreach (Transform room in child.GetComponent<RoomInfo>().allObjects)
+                foreach (PathInfo path in roomInfo.paths)
                 {
-                    roomObjects.Add(room);
+                    if (!path.isEntrance)
+                    {
+                        path.isUsed = false;
+                    }
                 }
 
-                
+                Destroy(room);
+
+                return true;
             }
-
-            return V3Helper.MidPoint(roomObjects);
         }
-
-        Vector3 MapSize(int height)
+        void HandleHideRooms()
         {
-            var rooms = new List<Transform>();
-
-            foreach (Transform child in roomList)
+            if (!hideRooms) { return; }
+            if (!roomsHidden)
             {
-                foreach(Transform roomObject in child.GetComponent<RoomInfo>().allObjects)
+                if (availableRooms.Count == 0 && badSpawnRooms.Count == 0)
                 {
-                    rooms.Add(child);
+                    StartCoroutine(HideRooms());
+                    roomsHidden = true;
                 }
             }
 
-            var maxDistance = V3Helper.MaxDistance(MapMidPoint(), rooms);
-            return new Vector3(maxDistance, height, maxDistance);
+            IEnumerator HideRooms()
+            {
+                yield return new WaitForSeconds(hideDelay);
+                ClearNullRooms();
+                foreach (GameObject room in roomsInUse)
+                {
+                    if (room.GetComponent<RoomInfo>() && room.GetComponent<RoomInfo>().hideOnStart)
+                    {
+                        room.GetComponent<RoomInfo>().ShowRoom(false);
+                    }
+                }
+            }
         }
-
-
-    }
-    public void PathFinderScan()
-    {
-        if (AstarPath.active)
+        void HandleCheckPaths()
         {
-            AstarPath.active.Scan();
-        }
-    }
-    public List<PathInfo> AvailablePaths()
-    {
-        ClearNullPaths();
-        List<PathInfo> availablePaths = new List<PathInfo>();
-
-        if (paths != null)
-        {
+            ClearNullPaths();
             foreach (PathInfo path in paths)
+            {
+                path.CheckPath();
+            }
+
+            Invoke("PathFinderScan", .125f);
+
+        }
+        void HandleBackgroundAdjustment()
+        {
+            if (GetComponentInParent<MapAdjustments>() == null) { return; }
+
+            var mapAdjustment = GetComponentInParent<MapAdjustments>();
+
+            var midPoint = MapMidPoint();
+            var size = MapSize(1);
+
+            mapAdjustment.AdjustBackground(midPoint, size);
+
+
+            Vector3 MapMidPoint()
+            {
+                var roomObjects = new List<Transform>();
+
+                foreach (Transform child in roomList)
+                {
+                    foreach (Transform room in child.GetComponent<RoomInfo>().allObjects)
+                    {
+                        roomObjects.Add(room);
+                    }
+
+
+                }
+
+                return V3Helper.MidPoint(roomObjects);
+            }
+
+            Vector3 MapSize(int height)
+            {
+                var rooms = new List<Transform>();
+
+                foreach (Transform child in roomList)
+                {
+                    foreach (Transform roomObject in child.GetComponent<RoomInfo>().allObjects)
+                    {
+                        rooms.Add(child);
+                    }
+                }
+
+                var maxDistance = V3Helper.MaxDistance(MapMidPoint(), rooms);
+                return new Vector3(maxDistance, height, maxDistance);
+            }
+
+
+        }
+        public void PathFinderScan()
+        {
+            if (AstarPath.active)
+            {
+                AstarPath.active.Scan();
+            }
+        }
+        public List<PathInfo> AvailablePaths()
+        {
+            ClearNullPaths();
+            List<PathInfo> availablePaths = new List<PathInfo>();
+
+            if (paths != null)
+            {
+                foreach (PathInfo path in paths)
+                {
+                    if (!path.isUsed)
+                    {
+                        availablePaths.Add(path);
+                    }
+                }
+            }
+
+            return availablePaths;
+        }
+        public List<PathInfo> AvailablePaths(List<PathInfo> incompatablePaths)
+        {
+            List<PathInfo> availablePaths = new List<PathInfo>();
+
+            foreach (PathInfo path in AvailablePaths())
+            {
+                if (!incompatablePaths.Contains(path))
+                {
+                    availablePaths.Add(path);
+                }
+            }
+
+            return availablePaths;
+        }
+        public List<PathInfo> PreviousPaths(int currentIndex)
+        {
+
+            if (currentIndex == 0) { return AvailablePaths(); }
+            if (currentIndex >= roomsInUse.Count) { return AvailablePaths(); }
+
+            var availablePaths = AvailablePaths(roomsInUse[currentIndex - 1].GetComponent<RoomInfo>());
+            if (availablePaths.Count > 0)
+            {
+                return availablePaths;
+            }
+            else
+            {
+                return PreviousPaths(currentIndex - 1);
+            }
+
+
+        }
+        public void ClearIncompatablePaths(RoomInfo roomInfo, List<PathInfo> availablePaths)
+        {
+            for (int i = 0; i < availablePaths.Count; i++)
+            {
+                if (roomInfo.incompatablePaths.Contains(availablePaths[i]))
+                {
+                    availablePaths.Remove(availablePaths[i]);
+                    i--;
+                }
+            }
+        }
+        public List<PathInfo> AvailablePaths(RoomInfo room)
+        {
+            var availablePaths = new List<PathInfo>();
+
+            foreach (PathInfo path in room.paths)
             {
                 if (!path.isUsed)
                 {
                     availablePaths.Add(path);
                 }
             }
-        }
 
-        return availablePaths;
-    }
-    public List<PathInfo> AvailablePaths(List<PathInfo> incompatablePaths)
-    {
-        List<PathInfo> availablePaths = new List<PathInfo>();
-
-        foreach (PathInfo path in AvailablePaths())
-        {
-            if (!incompatablePaths.Contains(path))
-            {
-                availablePaths.Add(path);
-            }
-        }
-
-        return availablePaths;
-    }
-    public List<PathInfo> PreviousPaths(int currentIndex)
-    {
-
-        if (currentIndex == 0) { return AvailablePaths(); }
-        if (currentIndex >= roomsInUse.Count) { return AvailablePaths(); }
-
-        var availablePaths = AvailablePaths(roomsInUse[currentIndex - 1].GetComponent<RoomInfo>());
-        if (availablePaths.Count > 0)
-        {
             return availablePaths;
         }
-        else
+        void ClearNullPaths()
         {
-            return PreviousPaths(currentIndex - 1);
-        }
-
-
-    }
-    public void ClearIncompatablePaths(RoomInfo roomInfo, List<PathInfo> availablePaths)
-    {
-        for (int i = 0; i < availablePaths.Count; i++)
-        {
-            if (roomInfo.incompatablePaths.Contains(availablePaths[i]))
+            for (int i = 0; i < paths.Count; i++)
             {
-                availablePaths.Remove(availablePaths[i]);
-                i--;
+                if (paths[i] == null)
+                {
+                    paths.RemoveAt(i);
+
+                    i--;
+                }
             }
         }
-    }
-    public List<PathInfo> AvailablePaths(RoomInfo room)
-    {
-        var availablePaths = new List<PathInfo>();
-
-        foreach (PathInfo path in room.paths)
+        public List<PathInfo> RoomPaths(RoomInfo room)
         {
-            if (!path.isUsed)
+            List<PathInfo> pathList = new List<PathInfo>();
+
+            foreach (PathInfo path in paths)
             {
-                availablePaths.Add(path);
+                if (path.room == room)
+                {
+                    pathList.Add(path);
+                }
             }
+
+            return pathList;
         }
-
-        return availablePaths;
-    }
-    void ClearNullPaths()
-    {
-        for (int i = 0; i < paths.Count; i++)
+        public void ClearNullRooms()
         {
-            if (paths[i] == null)
+            for (int i = 0; i < roomsInUse.Count; i++)
             {
-                paths.RemoveAt(i);
-
-                i--;
-            }
-        }
-    }
-    public List<PathInfo> RoomPaths(RoomInfo room)
-    {
-        List<PathInfo> pathList = new List<PathInfo>();
-
-        foreach (PathInfo path in paths)
-        {
-            if (path.room == room)
-            {
-                pathList.Add(path);
+                if (roomsInUse[i] == null)
+                {
+                    roomsInUse.RemoveAt(i);
+                    i--;
+                }
             }
         }
 
-        return pathList;
-    }
-    public void ClearNullRooms()
-    {
-        for (int i = 0; i < roomsInUse.Count; i++)
+        //Event Handlers
+
+        public void OnEntitiesGenerated(MapEntityGenerator entityGenerator)
         {
-            if (roomsInUse[i] == null)
-            {
-                roomsInUse.RemoveAt(i);
-                i--;
-            }
+            HandleHideRooms();
         }
-    }
-
-    //Event Handlers
-
-    public void OnEntitiesGenerated(MapEntityGenerator entityGenerator)
-    {
-        HandleHideRooms();
     }
 }
+
