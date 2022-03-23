@@ -86,6 +86,8 @@ public class AudioManager : MonoBehaviour
             {
                 if (!source.isPlaying)
                 {
+                    
+
                     source.PlayOneShot(clip);
                     return source;
                 }
@@ -105,7 +107,7 @@ public class AudioManager : MonoBehaviour
         {
             audioRoutineIsActive = true;
             var clipLength = clip.length;
-            StartCoroutine(CheckAudioRoutine(clipLength + .25f));
+           StartCoroutine(CheckAudioRoutine(clipLength + .25f));
         }
 
         return newAudioSource;
@@ -123,7 +125,10 @@ public class AudioManager : MonoBehaviour
     public AudioSource PlaySoundLoop(AudioClip clip)
     {
         var audioSource = PlaySound(clip);
+        audioSource.Stop();
+        audioSource.clip = clip;
         audioSource.loop = true;
+        audioSource.Play();
 
         return audioSource;
     }
@@ -138,6 +143,8 @@ public class AudioManager : MonoBehaviour
             }
         }
     }
+
+    
 
 
 

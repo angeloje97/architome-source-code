@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Threading.Tasks;
 
 namespace Architome
 {
@@ -18,16 +19,48 @@ namespace Architome
 
         public string selectedString;
         public int selectedIndex;
+
+        public bool isOver;
         void Start()
         {
         }
 
         // Update is called once per frame
-        void Update()
+        private void OnMouseEnter()
         {
+            isOver = true;
+            MouseEnterRoutine();
+        
+            async void MouseEnterRoutine()
+            {
+                while (isOver)
+                {
+                    await Task.Yield();
 
+                    if (!Mouse.IsMouseOverUI() && isOver)
+                    {
+                        if (ClickableManager.active.currentClickableHover != gameObject)
+                        {
+                            ClickableManager.active.currentClickableHover = gameObject;
+                        }
+                    }
+                    else
+                    {
+                        if (ClickableManager.active.currentClickableHover != null)
+                        {
+                            ClickableManager.active.currentClickableHover = null;
+                        }
+                    }
+                }
+
+            }
         }
 
+        private void OnMouseExit()
+        {
+            isOver = false;
+            ClickableManager.active.currentClickableHover = null;
+        }
 
         public void CancelOption()
         {
@@ -41,6 +74,7 @@ namespace Architome
             selectedIndex = options.IndexOf(option);
             selectedString = option;
             OnSelectOption?.Invoke(this);
+            
 
             selectedIndex = -1;
             selectedString = null;

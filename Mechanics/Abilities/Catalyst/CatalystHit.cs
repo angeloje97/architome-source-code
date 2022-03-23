@@ -151,7 +151,7 @@ public class CatalystHit : MonoBehaviour
 
             if (catalystInfo.entityInfo.CanAttack(targetHit.gameObject))
             {
-                var combatData= new CombatEventData(catalystInfo, catalystInfo.entityInfo, value);
+                var combatData = new CombatEventData(catalystInfo, catalystInfo.entityInfo, value);
                 targetHit.Damage(combatData);
                 catalystInfo.OnDamage?.Invoke(targetHit.gameObject);
                 ApplyBuff(targetHit, BuffTargetType.Harm);

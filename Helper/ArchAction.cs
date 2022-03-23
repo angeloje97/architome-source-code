@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Architome
 {
-    public class ArchAction
+    public struct ArchAction
     {
         // Start is called before the first frame update
         public static async void Delay(Action action, float seconds)
@@ -15,7 +15,15 @@ namespace Architome
             await Task.Delay(milliSeconds);
 
             action();
+        }
 
+        public static async Task DelayT(Action action, float seconds)
+        {
+            int milliSeconds = (int)(seconds * 1000);
+
+            await Task.Delay(milliSeconds);
+
+            action();
         }
 
         public static async void Update(Action action)
@@ -26,7 +34,6 @@ namespace Architome
                 await Task.Yield();
             }
         }
-
         public static async void UpdateFor(Action action, float seconds)
         {
             float currentTime = 0f;
@@ -39,17 +46,17 @@ namespace Architome
 
             }
         }
-
-        public static async void UpdateWhile(Action action,  bool condition)
+        public static async Task UpdateForT(Action action, float seconds)
         {
-            while (condition)
+            float currentTime = 0f;
+
+            while (currentTime < seconds)
             {
                 action();
+                currentTime += Time.deltaTime;
                 await Task.Yield();
             }
-
         }
-
         public static async void LateUpdate(Action action)
         {
             while(true)
@@ -58,16 +65,113 @@ namespace Architome
                 action();
             }
         }
-
-        public static async void Interval(Action action, float seconds)
+        public static async void Interval(Action action, float interval, bool invokeOnStart = false)
         {
-            int milliSeconds = (int)(seconds * 1000);
+            int milliSeconds = (int)(interval * 1000);
+
+            if (invokeOnStart)
+            {
+                action();
+            }
 
             while(true)
             {
-                action();
                 await Task.Delay(milliSeconds);
+                action();
             }
         }
+
+        public static async void IntervalT(Action action, float interval, bool invokeOnStart = false)
+        {
+            int milliSeconds = (int)(interval * 1000);
+
+            if (invokeOnStart)
+            {
+                action();
+            }
+
+            while (true)
+            {
+                await Task.Delay(milliSeconds);
+                action();
+            }
+        }
+
+        public static async void IntervalFor(Action action, float interval, float seconds, bool invokeOnStart = false)
+        {
+            float currentTime = 0;
+            int milliSeconds = (int)(interval * 1000);
+
+            if (invokeOnStart)
+            {
+                action();
+            }
+
+            while (currentTime < seconds)
+            {
+                await Task.Delay(milliSeconds);
+                currentTime += interval;
+                action();
+            }
+        }
+
+        public static async Task IntervalForT(Action action, float interval, float seconds, bool invokeOnStart = false)
+        {
+            float currentTime = 0;
+            int milliSeconds = (int)(interval * 1000);
+
+            if (invokeOnStart)
+            {
+                action();
+            }
+
+            while (currentTime < seconds)
+            {
+                await Task.Delay(milliSeconds);
+                currentTime += interval;
+                action();
+            }
+        }
+
+        public static async void RepeateFor(Action action, float interval, int amount, bool invokeOnStart = false)
+        {
+            int count = 0;
+            int milliSeconds = (int)interval * 1000;
+
+            if (invokeOnStart)
+            {
+                action();
+            }
+
+            while (count < amount)
+            {
+                await Task.Delay(milliSeconds);
+
+                action();
+
+                count++;
+            }
+        }
+
+        public static async Task RepeateForT(Action action, float interval, int amount, bool invokeOnStart = false)
+        {
+            int count = 0;
+            int milliSeconds = (int)interval * 1000;
+
+            if (invokeOnStart)
+            {
+                action();
+            }
+
+            while (count < amount)
+            {
+                await Task.Delay(milliSeconds);
+
+                action();
+
+                count++;
+            }
+        }
+
     }
 }

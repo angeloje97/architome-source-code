@@ -41,6 +41,11 @@ namespace Architome
             HandleMemberSpotRestrictions();
         }
 
+        public void OnNewPlayableParty(PartyInfo party, int index)
+        {
+
+        }
+
 
         public void OnValidate()
         {

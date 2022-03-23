@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using System;
+using System.Linq; 
 
 
 namespace Architome
@@ -27,6 +28,10 @@ namespace Architome
         public bool clicked;
         public bool left;
 
+        public Action<GameObject, GameObject> OnNewHoverTarget;
+
+        GameObject hoverTargetCheck;
+
         void Start()
         {
             hoverTargets = new List<GameObject>();
@@ -50,6 +55,16 @@ namespace Architome
             HandleUserMouseOvers();
             HandleUserInputs();
             HandleNullMouseOver();
+            HandleEvents();
+        }
+
+        public void HandleEvents()
+        {
+            if (hoverTargetCheck != currentHover)
+            {
+                OnNewHoverTarget?.Invoke(hoverTargetCheck, currentHover);
+                hoverTargetCheck = currentHover;
+            }
         }
 
         public void HandleUserMouseOvers()
@@ -59,7 +74,10 @@ namespace Architome
             else if (IsOverPortrait()) { }
             else
             {
-                ClearHovers();
+                if(hoverTargets.Count > 0)
+                {
+                    ClearHovers();
+                }
                 //if (hoverTargets.Count > 0) { hoverTargets.Clear(); }
                 //currentHover = null;
             }
@@ -172,8 +190,8 @@ namespace Architome
                         }
                     }
 
-                    //selectedTargets.Clear();
                     ClearSelected();
+
                 }
 
 
@@ -237,6 +255,7 @@ namespace Architome
 
         public void ClearSelected()
         {
+            ClearNullSelected();
             for(int i = 0; i < selectedTargets.Count; i++)
             {
                 selectedTargets[i].GetComponent<EntityInfo>().targetableEvents.OnSelect?.Invoke(false);
@@ -247,6 +266,8 @@ namespace Architome
 
         public void ClearHovers(bool clearCurrentHover = true)
         {
+            ClearNullHovers();
+
             for(int i = 0; i < hoverTargets.Count; i++)
             {
                 hoverTargets[i].GetComponent<EntityInfo>().targetableEvents.OnHover?.Invoke(false);
@@ -259,6 +280,16 @@ namespace Architome
                 HoverRemove();
             }
 
+        }
+
+        public void ClearNullSelected()
+        {
+            selectedTargets = selectedTargets.Where(target => target != null).ToList();
+        }
+
+        public void ClearNullHovers()
+        {
+            hoverTargets = hoverTargets.Where(target => target != null).ToList();
         }
         public void Hover(GameObject target)
         {
@@ -294,6 +325,40 @@ namespace Architome
                 }
 
             }
+        }
+
+        public void AddMouseOver(EntityInfo target)
+        {
+            if (!hoverTargets.Contains(target.gameObject))
+            {
+                hoverTargets.Add(target.gameObject);
+            }
+
+            currentHover = target.gameObject;
+
+            target.targetableEvents.OnHover?.Invoke(true);
+
+        }
+        
+        public void RemoveMouseOver(EntityInfo target)
+        {
+            if (!hoverTargets.Contains(target.gameObject))
+            {
+                return;
+            }
+
+            hoverTargets.Remove(target.gameObject);
+            target.targetableEvents.OnHover?.Invoke(false);
+
+            if (hoverTargets.Count > 0)
+            {
+                AddMouseOver(hoverTargets[0].GetComponent<EntityInfo>());
+            }
+            else
+            {
+                currentHover = null;
+            }
+            
         }
 
 

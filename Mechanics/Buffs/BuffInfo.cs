@@ -37,6 +37,10 @@ public class BuffInfo : MonoBehaviour
     public GameObject hostObject;
     public EntityInfo hostInfo;
 
+    [Header("Target")]
+    public GameObject targetObject;
+    public EntityInfo targetInfo;
+
     public BuffTargetType buffTargetType;
     public Sprite buffIcon;
     public int buffId;

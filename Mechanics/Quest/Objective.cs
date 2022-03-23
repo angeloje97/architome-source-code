@@ -16,6 +16,7 @@ namespace Architome
 
         public Action<Objective> OnActivate;
         public Action<Objective> OnChange;
+        public Action<Objective> OnComplete;
 
         public void GetDependencies()
         {
@@ -30,6 +31,7 @@ namespace Architome
             isActive = false;
             isComplete = true;
             questInfo.CompleteObjective(this);
+            OnComplete?.Invoke(this);
             
         }
 

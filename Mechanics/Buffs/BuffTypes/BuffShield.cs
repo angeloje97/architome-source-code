@@ -60,19 +60,6 @@ public class BuffShield : MonoBehaviour
         shieldAmount = 0;
         buffInfo.hostInfo.UpdateShield();
     }
-    //void HandleBuffExpire()
-    //{
-    //    if (buffInfo.buffTimeComplete || buffInfo.cleansed)
-    //    {
-    //        if (!expired)
-    //        {
-    //            shieldAmount = 0;
-    //            expired = true;
-
-    //        }
-    //        buffInfo.hostInfo.UpdateShield();
-    //    }
-    //}
 
     public float DamageShield(float value)
     {

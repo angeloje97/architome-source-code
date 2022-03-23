@@ -25,6 +25,7 @@ namespace Architome
         public Action<AbilityInfo> OnTryCast;
         public Action<AbilityInfo> OnCastStart;
         public Action<AbilityInfo> OnCastRelease;
+        public Action<AbilityInfo> OnCastEnd;
         public Action<AbilityInfo> OnCastReleasePercent;
         public Action<AbilityInfo> OnCastChannelStart;
         public Action<AbilityInfo> OnCastChannelInterval;

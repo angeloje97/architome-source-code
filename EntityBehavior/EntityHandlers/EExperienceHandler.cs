@@ -1,12 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
+using System;
 
 namespace Architome
 {
     public class EExperienceHandler : EntityProp
     {
         // Start is called before the first frame update
+        
+
         public new void GetDependencies()
         {
             base.GetDependencies();
@@ -16,6 +20,8 @@ namespace Architome
             entityInfo.OnDamageDone += OnDamageDone;
             entityInfo.OnHealingDone += OnHealingDone;
         }
+
+
 
         public void Start()
         {
@@ -52,6 +58,11 @@ namespace Architome
             entityInfo.entityStats.Level++;
             entityInfo.entityStats.experience = 0;
             entityInfo.entityStats.UpdateExperienceRequiredToLevel();
+
+            entityInfo.OnLevelUp?.Invoke(entityInfo.entityStats.Level);
+            entityInfo.entityStats.UpdateCoreStats();
+            entityInfo.UpdateCurrentStats();
+            entityInfo.RestoreFull();
         }
         public void OnDamagePreventedFromShields(CombatEventData eventData)
         {

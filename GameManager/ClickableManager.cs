@@ -12,6 +12,12 @@ namespace Architome
 
         public Action<Clickable> OnClickableObject;
 
+        public GameObject currentClickableHover;
+
+        public Action<GameObject, GameObject> OnNewClickableHover;
+
+        GameObject clickableHoverCheck;
+
         void Start()
         {
 
@@ -25,14 +31,24 @@ namespace Architome
         void Update()
         {
             HandleUserInput();
+            HandleEvents();
+        }
+
+        void HandleEvents()
+        {
+            if (clickableHoverCheck != currentClickableHover)
+            {
+                OnNewClickableHover?.Invoke(clickableHoverCheck, currentClickableHover);
+                clickableHoverCheck = currentClickableHover;
+            }
         }
 
         public void HandleUserInput()
         {
             if(Input.GetKeyDown(KeyBindings.active.keyBinds["Action"]))
             {
+                if (Mouse.IsMouseOverUI()) return;
                 var clickableObject = Mouse.CurrentHoverObject();
-
 
                 if(clickableObject == null || clickableObject.GetComponent<Clickable>() == null) { return; }
 
@@ -41,8 +57,6 @@ namespace Architome
                 if (HandlePartyClicked(clickable)) { return; }
 
                 HandleSelectedClicked(clickable);
-                
-
             }
         }
 

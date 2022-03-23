@@ -23,6 +23,7 @@ namespace Architome
         {
             targetEntity = target;
             targetEntity.OnDeath += OnEntityDeath;
+            prompt = $"Slay {target.entityName}";
         }
 
         public void OnEntityDeath(CombatEventData eventData)
@@ -33,6 +34,8 @@ namespace Architome
             {
                 CompleteObjective();
             }
+
+
 
             HandleObjectiveChange();
         }

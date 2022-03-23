@@ -12,6 +12,14 @@ public class EntitySFX : MonoBehaviour
 
     public EntitySoundPack entitySoundPack;
 
+    public struct SFXAudioSources
+    {
+        public AudioSource castingAudioSource;
+        public AudioSource channelingAudioSource;
+    }
+
+    public SFXAudioSources sources;
+
     void GetDependencies()
     {
         if(GetComponentInParent<EntityInfo>())
@@ -25,7 +33,11 @@ public class EntitySFX : MonoBehaviour
             entityInfo.OnBuffApply += OnBuffyApply;
 
             abilityManager.OnCastRelease += OnCastRelease;
-            abilityManager.OnCatalystRelease += OnCatalystRelease;
+
+            abilityManager.OnCastStart += OnCastStart;
+            abilityManager.OnCatalystRelease += OnCastEnd;
+            abilityManager.OnCancelCast += OnCastEnd;
+            
         }
     }
 
@@ -60,17 +72,32 @@ public class EntitySFX : MonoBehaviour
     {
         
     }
+    
 
-    public void OnCatalystRelease(AbilityInfo ability)
+    public void OnCastStart(AbilityInfo ability)
     {
-        //var catalyst = ability.catalystInfo;
+        if(ability.catalystInfo == null) { return; }
+        var catalyst = ability.catalystInfo;
+        if(catalyst.effects.castingSounds.Count == 0)
+        {
+            return;
+        }
 
-        //if (catalyst.effects != null && catalyst.effects.castReleaseSounds != null)
-        //{
-        //    var sounds = catalyst.effects.castReleaseSounds;
+        
+        var randomSound = catalyst.effects.castingSounds[Random.Range(0, catalyst.effects.castingSounds.Count)];
 
-        //    PlayRandomSound(sounds);
-        //}
+        sources.castingAudioSource = soundEffects.PlaySoundLoop(randomSound);
+
+
+    }
+
+    public void OnCastEnd(AbilityInfo ability)
+    {
+        if (sources.castingAudioSource == null) return;
+
+        sources.castingAudioSource.Stop();
+
+        sources.castingAudioSource = null;
     }
 
     public void OnBuffyApply(BuffInfo buff, EntityInfo source)

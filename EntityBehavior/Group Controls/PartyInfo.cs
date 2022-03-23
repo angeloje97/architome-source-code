@@ -130,9 +130,8 @@ namespace Architome
         void Start()
         {
             GetDependencies();
-            AddMembersToGameManager();
             ProcessMembers();
-            //Invoke("SetActionBars", .125f);
+            ArchAction.Delay(() => { AddMembersToGameManager(); }, .50f);
         }
 
         // Update is called once per frame

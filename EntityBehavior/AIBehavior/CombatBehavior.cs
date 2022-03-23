@@ -46,6 +46,8 @@ public class CombatBehavior : MonoBehaviour
     //Event Triggers
     public GameObject previousTarget;
 
+    private float tryingMoveTimer;
+
     public void GetDependencies()
     {
         if(GetComponentInParent<EntityInfo>())
@@ -58,6 +60,7 @@ public class CombatBehavior : MonoBehaviour
             {
                 movement = entityInfo.Movement();
                 movement.OnNewPathTarget += OnNewPathTarget;
+                movement.OnTryMove += OnTryMove;
             }
 
             if(entityInfo.AbilityManager())
@@ -89,6 +92,9 @@ public class CombatBehavior : MonoBehaviour
         if (threatManager) { StartCoroutine(CombatRoutine()); }
     }
 
+
+
+    
     public void OnLifeChange(bool isAlive)
     {
         if(isAlive) { return; }
@@ -134,7 +140,9 @@ public class CombatBehavior : MonoBehaviour
 
     public void OnNewPathTarget(Movement movement, Transform before, Transform after)
     {
-        if(focusTarget != null && after != focusTarget.transform)
+        if (entityInfo.currentState == EntityState.Taunted) return;
+
+        if(focusTarget != after.gameObject)
         {
             focusTarget = null;
         }
@@ -155,7 +163,6 @@ public class CombatBehavior : MonoBehaviour
     {
         focusTarget = target;
     }
-
     public GameObject GetFocus()
     {
         return focusTarget;
@@ -165,7 +172,18 @@ public class CombatBehavior : MonoBehaviour
     {
         target = threatManager.highestThreat;
 
+        if (behavior.behaviorType == AIBehaviorType.HalfPlayerControl && behavior.behaviorState != BehaviorState.Idle)
+        {
+            return;
+        }
+
         InitCombatActions();
+        
+    }
+
+    public void OnTryMove(Movement movement)
+    {
+        tryingMoveTimer = 1f;
     }
     public void OnRemoveThreat(ThreatManager.ThreatInfo threatInfo)
     {
@@ -180,6 +198,8 @@ public class CombatBehavior : MonoBehaviour
     void Update()
     {
         HandleEvents();
+
+        HandleTimers();
     }
     void HandleEvents()
     {
@@ -207,11 +227,29 @@ public class CombatBehavior : MonoBehaviour
         }
         
     }
+
+    void HandleTimers()
+    {
+        if (tryingMoveTimer > 0)
+        {
+            tryingMoveTimer -= Time.deltaTime;
+        }
+
+        if (tryingMoveTimer < 0)
+        {
+            tryingMoveTimer = 0;
+        }
+    }
     IEnumerator CombatRoutine()
     {
         while(true)
         {
             yield return new WaitForSeconds(.125f);
+            if (tryingMoveTimer > 0)
+            {
+                yield return new WaitForSeconds(tryingMoveTimer);
+                continue;
+            }
             if(!entityInfo.isAlive){continue;}
             InitCombatActions();
         }
@@ -219,6 +257,7 @@ public class CombatBehavior : MonoBehaviour
     public void InitCombatActions()
     {
         if (!entityInfo.isAlive) { return; }
+        
         HandleThreat();
         HandleNoControl();
         HandleHalfControl();
@@ -311,6 +350,48 @@ public class CombatBehavior : MonoBehaviour
             }
         }
     }
+
+    public void HandleNoControl2()
+    {
+        if (behavior.behaviorType != AIBehaviorType.NoControl) return;
+        if (!entityInfo.isInCombat) { return; }
+
+        var target = focusTarget ? focusTarget : this.target;
+        if (UseSpecialAbility())
+        {
+            return;
+        }
+        UseAttack();
+        
+        bool UseSpecialAbility()
+        {
+            foreach (var special in specialAbilities)
+            {
+                if (!abilityManager.Ability(special.abilityIndex).IsReady()) continue;
+
+               // var blackListedTarget = threatManager.RandomTargetBlackList(special.randomTargetBlackList);
+                //if (blackListedTarget == null) continue;
+
+                abilityManager.target = target;
+
+                abilityManager.Cast(special.abilityIndex);
+
+                abilityManager.target = null;
+
+                return true;
+            }
+
+            return false;
+        }
+
+        void UseAttack()
+        {
+            abilityManager.target = target;
+            abilityManager.Attack();
+            abilityManager.target = null;
+        }
+
+    }
     public void HandleHalfControl(bool ignoreIdleState= false)
     {
         if (behavior.behaviorType != AIBehaviorType.HalfPlayerControl)
@@ -319,7 +400,7 @@ public class CombatBehavior : MonoBehaviour
         }
 
         if(behavior.combatType == CombatBehaviorType.Passive && focusTarget == null) { return; }
-        if(behavior.behaviorState != BehaviorState.Idle && !ignoreIdleState) { return; }
+        if(behavior.behaviorState != BehaviorState.Idle) { return; }
 
 
         if(HandleAbilities()) { return; }

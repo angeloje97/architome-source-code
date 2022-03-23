@@ -273,7 +273,6 @@ namespace Architome
             }
         }
 
-
         public void OnTriggerEnter(Collider other)
         {
             OnTriggerEvent?.Invoke(this, other, true);
@@ -346,14 +345,18 @@ namespace Architome
 
                 float criticalRole = UnityEngine.Random.Range(0, 100);
 
-                if(source.stats.criticalStrikeChance * 100 > criticalRole)
+                if (source)
                 {
-                    combatData.critical = true;
-                    combatData.value *= source.stats.criticalDamage;
-                }
-                
+                    if (source.stats.criticalStrikeChance * 100 > criticalRole)
+                    {
+                        combatData.critical = true;
+                        combatData.value *= source.stats.criticalDamage;
+                    }
 
-                combatData.value *= source.stats.damageMultiplier;
+
+                    combatData.value *= source.stats.damageMultiplier;
+                }
+
                 combatData.value *= stats.damageTakenMultiplier;
                 combatData.value -= combatData.value * stats.damageReduction;
 
@@ -393,7 +396,9 @@ namespace Architome
             //}
             void HandleDamage()
             {
-                source.OnDamageDone?.Invoke(combatData);
+                if (source != null) source.OnDamageDone?.Invoke(combatData);
+
+                OnDamageTaken?.Invoke(combatData);
                 DamageShield();
                 DamageHealth();
 
@@ -408,7 +413,7 @@ namespace Architome
                     foreach (var buff in buffs)
                     {
                         if (buff.shieldAmount == 0) continue;
-                        if (combatData.value <= 0) continue;
+                        if (combatData.value <= 0) break;
 
                         combatData.value = buff.DamageShield(combatData.value);
 
@@ -455,9 +460,6 @@ namespace Architome
                     {
                         health -= combatData.value;
                     }
-
-
-                    OnDamageTaken?.Invoke(combatData);
                 }
             }
         }
@@ -526,7 +528,6 @@ namespace Architome
             return true;
 
         }
-
         public bool IsEnemy(GameObject target)
         {
             if (!target.GetComponent<EntityInfo>()) return false;
@@ -557,38 +558,6 @@ namespace Architome
             {
                 OnReactToInteraction?.Invoke(eventData);
             }
-        }
-        //public void GainExp(float value)
-        //{
-        //    if (!canLevel) { return; }
-        //    OnExperienceGain?.Invoke(value);
-        //    //if (GMHelper.GameManager() && GMHelper.Difficulty())
-        //    //{
-        //    //    experienceMultiplier = GMHelper.Difficulty().settings.experienceMultiplier;
-        //    //}
-
-        //    //experienceRequiredToLevel = entityStats.Level * experienceMultiplier;
-
-        //    //if (experience + value > experienceRequiredToLevel)
-        //    //{
-        //    //    LevelUp();
-        //    //    value = (experience + value) - (experienceRequiredToLevel);
-        //    //    experience = 0;
-        //    //    GainExp(value);
-        //    //}
-        //    //else
-        //    //{
-        //    //    experience += value;
-        //    //}
-        //}
-        public void LevelUp()
-        {
-            entityStats.Level++;
-            OnLevelUp?.Invoke(entityStats.Level);
-            entityStats.UpdateCoreStats();
-            UpdateCurrentStats();
-            health = maxHealth;
-            mana = maxMana;
         }
         public void Use(float value)
         {
@@ -629,17 +598,6 @@ namespace Architome
             }
 
         }
-        public void Reveal()
-        {
-            if (GraphicsInfo())
-            {
-                GraphicsInfo().gameObject.SetActive(true);
-            }
-            if (CharacterInfo())
-            {
-                CharacterInfo().gameObject.SetActive(true);
-            }
-        }
         public void Die()
         {
             isAlive = false;
@@ -654,6 +612,11 @@ namespace Architome
             {
                 StartCoroutine(Decay());
             }
+        }
+        public void RestoreFull()
+        {
+            health = maxHealth;
+            mana = maxMana;
         }
         public void Revive(CombatEventData combatData)
         {
@@ -729,7 +692,6 @@ namespace Architome
 
             return false;
         }
-
         public bool CanHelp(NPCType npcType)
         {
             if(npcType == NPCType.Untargetable) { return false; }
@@ -988,43 +950,42 @@ namespace Architome
 
             return null;
         }
-
         public ETaskHandler TaskHandler()
         {
             return GetComponentInChildren<ETaskHandler>();
         }
-
-        public void ShowEntity(bool val, bool hideGraphics = true, bool hideRenders = true, bool hideLights = true, bool destroys = false)
+        public async void ShowEntity(bool val, bool hideGraphics = true, bool hideRenders = true, bool hideLights = true, bool destroys = false)
         {
-
+            var tasks = new List<Task>();
 
             if(hideGraphics)
             {
-                ShowGraphics(val);
+                tasks.Add(ShowGraphics(val));
             }
 
             if(hideRenders)
             {
-                ShowRenders(val);
+                tasks.Add(ShowRenders(val));
             }
 
             if(hideLights)
             {
-                ShowLights(val);
+                tasks.Add(ShowLights (val));
             }
+
+            await Task.WhenAll(tasks);
         }
-        async void ShowRenders(bool val)
+        async Task ShowRenders(bool val)
         {
             var renders = GetComponentsInChildren<Renderer>();
-
             foreach (var render in renders)
             {
                 render.enabled = val;
                 await Task.Yield();
             }
-            
+
         }
-        async void ShowGraphics(bool val)
+        async Task ShowGraphics(bool val)
         {
             var canvases = GetComponentsInChildren<Canvas>();
 
@@ -1035,7 +996,7 @@ namespace Architome
                 await Task.Yield();
             }
         }
-        async void ShowLights(bool val)
+        async Task ShowLights(bool val)
         {
             var lights = GetComponentsInChildren<Light>();
 

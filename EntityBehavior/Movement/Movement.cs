@@ -234,6 +234,8 @@ public class Movement : MonoBehaviour
         hasArrivedCheck = false;
         this.location.transform.position = location;
         destinationSetter.target = this.location.transform;
+        hasArrived = false;
+        isMovingChange = true;
         path.endReachedDistance = 0;
         OnChangePath?.Invoke(this);
     }
@@ -242,11 +244,38 @@ public class Movement : MonoBehaviour
         if (!entityInfo.isAlive) { return; }
         path.endReachedDistance = endReachDistance;
         hasArrivedCheck = false;
+        isMovingChange = true;
 
         if(destinationSetter.target != locationTransform)
         {
             destinationSetter.target = locationTransform;
         }
+    }
+
+    public bool IsInRangeFromTarget()
+    {
+        if(destinationSetter.target == null)
+        {
+            return false;
+        }
+
+        var distanceFromTarget = DistanceFromTarget();
+        var endReachDistance = path.endReachedDistance;
+
+        if (distanceFromTarget <= endReachDistance + 3f)
+        {
+            return true;
+        }
+
+
+        return false;
+    }
+
+    public float DistanceFromTarget()
+    {
+        if(destinationSetter.target == null) { return float.PositiveInfinity; }
+
+        return V3Helper.Distance(destinationSetter.target.position, entityObject.transform.position);
     }
     public Vector3 TargetPosition()
     {

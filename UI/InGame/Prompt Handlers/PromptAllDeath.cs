@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Threading.Tasks;
 
 namespace Architome
 {
@@ -11,20 +12,11 @@ namespace Architome
     
         public void SelectRevive()
         {
-            var deadPlayers = GMHelper.EntityDeathHandler().DeadPlayableEntities();
-            var worldActions = GMHelper.WorldActions();
+            var playerSpawnBeacon = GMHelper.WorldInfo().lastPlayerSpawnBeacon;
 
-            try
-            {
-                foreach(var deadPlayer in deadPlayers)
-                {
-                    worldActions.ReviveAtSpawnBeacon(deadPlayer.gameObject);
-                }
-            }
-            catch
-            {
+            var spawnBeaconHandler = playerSpawnBeacon.GetComponentInChildren<PlayerSpawnBeaconHandler>();
 
-            }
+            spawnBeaconHandler.ReviveDeadPartyMembers();
         }
     }
 }

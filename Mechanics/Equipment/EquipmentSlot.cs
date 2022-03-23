@@ -62,7 +62,31 @@ public class EquipmentSlot : MonoBehaviour
     {
         if(equipmentSlotType != EquipmentSlotType.MainHand && equipmentSlotType != EquipmentSlotType.OffHand) { return; }
 
-        Sheath(val);
+        if(val)
+        {
+            ArchAction.Delay(() => {
+                if (charInfo.properties.combatSheath)
+                {
+
+                    Sheath(true);
+                    return;
+                }
+
+                Sheath(val);
+            }, .125f);
+        }
+        else
+        {
+            if(charInfo.properties.combatSheath)
+            {
+                Sheath(true);
+                return;
+            }
+
+            Sheath(val);
+        }
+        
+        
     }
 
 

@@ -88,6 +88,7 @@ namespace Architome
             bool resetsTimer = buffProperties.reapplyResetsTimer;
             bool resetBuff = buffProperties.reapplyResetsBuff;
 
+
             HandleExistingBuff();
             HandleNewBuff();
             UpdateBuffs();
@@ -145,6 +146,13 @@ namespace Architome
                 newBuff.sourceObject = sourceInfo.gameObject;
                 newBuff.sourceAbility = sourceAbility;
                 newBuff.sourceCatalyst = sourceCatalyst;
+
+                if (sourceCatalyst && sourceCatalyst.target)
+                {
+                    
+                    newBuff.targetObject = sourceCatalyst.target;
+                    newBuff.targetInfo = sourceCatalyst.target.GetComponent<EntityInfo>();
+                }
 
                 newBuff.properties = buffProperties;
 

@@ -12,38 +12,16 @@ public class EntityPortraitManager : MonoBehaviour
     
     void Start()
     {
-        Invoke("SetPartyPortraits", .250f);
+        GameManager.active.OnNewPlayableEntity += OnNewPlayableEntity;
     }
-
     // Update is called once per frame
-    void Update()
+
+    public void OnNewPlayableEntity(EntityInfo newEntity, int index)
     {
-        
-    }
-
-    public void SetPartyPortraits()
-    {
-        PartyInfo pInfo;
-        if(GMHelper.GameManager() && GMHelper.GameManager().playableParties != null && GMHelper.GameManager().playableParties.Count == 1)
+        if(memberPortraits.Count > index)
         {
-            pInfo = GMHelper.GameManager().playableParties[0];
-        }
-        else
-        {
-            return;
-        }
-        if(memberPortraits == null) { return; }
-
-
-        foreach(GameObject member in pInfo.members)
-        {
-            var i = pInfo.members.IndexOf(member);
-            
-            if(i < memberPortraits.Count)
-            {
-                memberPortraits[i].gameObject.SetActive(true);
-                memberPortraits[i].SetEntity(member.GetComponent<EntityInfo>());
-            }
+            memberPortraits[index].gameObject.SetActive(true);
+            memberPortraits[index].SetEntity(newEntity);
         }
     }
 }

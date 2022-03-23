@@ -118,6 +118,7 @@ namespace Architome.Enums
         Casting,
         Moving,
         WantsToCast,
+        Fleeing,
     }
 
     public enum Difficulty
@@ -135,6 +136,13 @@ namespace Architome.Enums
         Active,
         Completed,
         Failed
+    }
+
+    public enum QuestType
+    {
+        Main,
+        Side,
+        Dungeon,
     }
 
     public enum CombatBehaviorType

@@ -285,14 +285,18 @@ public struct TaskProgressBarHandler
 
     void OnStartTask(TaskEventData eventData)
     {
+        var prop = eventData.task.properties;
+
+        progressBar.fillAmount = prop.workDone / prop.workAmount;
+
         progressBar.transform.parent.gameObject.SetActive(true);
     }
 
     void WhileWorkingOnTask(TaskEventData eventData)
     {
-        var task = eventData.task;
+        var prop = eventData.task.properties;
 
-        progressBar.fillAmount = task.currentWork / task.workAmount;
+        progressBar.fillAmount = prop.workDone / prop.workAmount;
         
     }
     void OnEndTask(TaskEventData eventData)

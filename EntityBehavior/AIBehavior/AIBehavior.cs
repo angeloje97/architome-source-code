@@ -58,7 +58,7 @@ public class AIBehavior : MonoBehaviour
 
         IEnumerator DependenciesLate()
         {
-            yield return new WaitForSeconds(.125f);
+            yield return new WaitForSeconds(.51f);
 
             if(GMHelper.GameManager().playableEntities.Contains(entityInfo))
             {

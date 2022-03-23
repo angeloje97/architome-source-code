@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using System;
 using System.Threading.Tasks;
 using Architome.Enums;
@@ -10,132 +11,217 @@ namespace Architome
     [Serializable]
     public class TaskInfo
     {
-        public string workString;
-        public WorkInfo station;
-        
-        public float currentWork;
-        public float workAmount;
+        [Serializable]
+        public struct TaskProperties
+        {
+            [Header("Task Information")]
+            public string workString;
+            public WorkType workType;
+            public WorkInfo station;
 
-        public int maxWorkers;
-        public List<EntityInfo> workers;
-        public List<EntityInfo> workersOnTheWay;
+            public float workDone;
+            public float workAmount;
+            public float deltaWork;
 
-        public bool canRepeat;
-        public bool autoRepeat;
-        public bool resetOnCancel;
-        
-        public WorkType workType;
-        public TaskState currentState;
-        
+            [Header("Task Rules")]
+            public int maxWorkers;
+            public bool canRepeat;
+            public bool autoRepeat;
+            public bool resetOnCancel;
+
+            [Header("Effects")]
+            public int taskAnimationID;
+            public AudioClip workingSound;
+            public AudioClip completionSound;
 
 
-        public bool isBeingWorkedOn;
+            //Private variables
+        }
+
+        [Serializable]
+        struct TaskWorkers
+        {
+            public List<EntityInfo> working;
+            public List<EntityInfo> onTheWay;
+
+            public void Reset()
+            {
+                working = new();
+                onTheWay = new();
+            }
+
+            public int Total()
+            {
+                return working.Count + onTheWay.Count;
+            }
+        }
+
+        [Serializable]
+        public struct TaskStates
+        {
+            public bool isBeingWorkedOn;
+            public TaskState currentState;
+        }
+
+        [Serializable]
+        struct TaskCompletionEvent
+        {
+            public UnityEvent OnCompleted;
+            public UnityEvent OnFailed;
+        }
+
+        public TaskProperties properties;
+        [SerializeField]
+        TaskWorkers workers;
+        [SerializeField]
+        public TaskStates states;
+        [SerializeField]
+        TaskCompletionEvent completionEvents;
+
+        //Private variables
+        float previousWorkDone;
+
 
 
         public TaskInfo(WorkInfo station)
         {
-            this.station = station;
-            workType = WorkType.Use;
-            currentState = TaskState.Available;
-            maxWorkers = 1;
-            currentWork = 0;
-            workAmount = 5;
-            canRepeat = true;
-            resetOnCancel = true;
+            properties.station = station;
+            properties.workType = WorkType.Use;
+            states.currentState = TaskState.Available;
+            properties.maxWorkers = 1;
+            properties.workDone = 0;
+            properties.workAmount = 5;
+            properties.canRepeat = true;
+            properties.resetOnCancel = true;
 
-            workers = new List<EntityInfo>();
-            workersOnTheWay = new List<EntityInfo>();
+            workers.working = new List<EntityInfo>();
+            workers.onTheWay = new List<EntityInfo>();
         }
 
-        public void HandleWork()
+        public TaskInfo(TaskProperties properties)
         {
-            if (isBeingWorkedOn) return;
-            isBeingWorkedOn = true;
-            WhileWorking();
+            properties.maxWorkers = properties.maxWorkers == 0 ? 1 : properties.maxWorkers;
 
+            this.properties = properties;
 
+            states.currentState = TaskState.Available;
+
+            workers.onTheWay = new();
+            workers.working = new();
+            
         }
 
-        public async void WhileWorking()
+
+        async void HandleWork()
         {
-            while(isBeingWorkedOn)
+            if (states.isBeingWorkedOn) return;
+            
+            states.isBeingWorkedOn = true;
+
+            properties.station.taskEvents.OnStartTask?.Invoke(new TaskEventData(this));
+            var success = await WhileWorking();
+
+            properties.station.taskEvents.OnEndTask?.Invoke(new TaskEventData(this));
+
+            properties.deltaWork = 0;
+            
+
+            if (success)
+            {
+                HandleComplete();
+                properties.workDone = 0;
+            }
+            else
+            {
+                HandleTaskCancel();
+            }
+        }
+
+        public async Task<bool> WhileWorking()
+        {
+            var success = false;
+
+            while(states.isBeingWorkedOn)
             {
                 await Task.Yield();
 
                 HandleWork();
                 HandleWorkerEvents();
                 HandleWorkerCount();
-
-
-                
             }
+
+            return success;
 
             void HandleWork()
             {
-                if(currentWork < workAmount)
+                if(properties.workDone < properties.workAmount)
                 {
-                    currentWork += Time.deltaTime;
+                    properties.workDone += Time.deltaTime * workers.working.Count;
+
+                    properties.deltaWork = properties.workDone - previousWorkDone;
+
+                    previousWorkDone = properties.workDone;
+                    
                 }
-                else if(currentWork >= workAmount)
+                else if(properties.workDone >= properties.workAmount)
                 {
-                    currentWork = 0;
-                    HandleComplete();
+                    states.isBeingWorkedOn = false;
+                    success = true;
                 }
             }
 
             void HandleWorkerEvents()
             {
-                for (int i = 0; i < workers.Count; i++)
+                for (int i = 0; i < workers.working.Count; i++)
                 {
-                    workers[i].taskEvents.WhileWorkingOnTask?.Invoke(new TaskEventData(this));
+                    workers.working[i].taskEvents.WhileWorkingOnTask?.Invoke(new TaskEventData(this));
                 }
             }
 
             void HandleWorkerCount()
             {
-                if (workers.Count == 0)
+                if (workers.working.Count == 0)
                 {
-                    isBeingWorkedOn = false;
-                    HandleTaskCancel();
+                    states.isBeingWorkedOn = false;
+                    success = false;
                 }
             }
         }
 
         public void HandleTaskCancel()
         {
-            if(resetOnCancel)
+            if(properties.resetOnCancel)
             {
-                currentWork = 0;
+                properties.workDone = 0;
             }
         }
 
         public void HandleComplete()
         {
 
-            currentState = canRepeat ? TaskState.Available : TaskState.Done;
-            isBeingWorkedOn = false;
+            states.currentState = properties.canRepeat ? TaskState.Available : TaskState.Done;
+            states.isBeingWorkedOn = false;
 
             HandleWorkerEvents();
             HandleStationEvents();
 
+            completionEvents.OnCompleted?.Invoke();
+
             void HandleWorkerEvents()
             {
-                for (int i = 0; i < workers.Count; i++)
+                for (int i = 0; i < workers.working.Count; i++)
                 {
-                    workers[i].taskEvents.OnTaskComplete?.Invoke(new TaskEventData(this));
+                    workers.working[i].taskEvents.OnTaskComplete?.Invoke(new TaskEventData(this));
                 }
             }
 
             void HandleStationEvents()
             {
-                station.taskEvents.OnTaskComplete?.Invoke(new TaskEventData(this));
+                properties.station.taskEvents.OnTaskComplete?.Invoke(new TaskEventData(this));
             }
 
-            
 
-            
         }
-
 
 
         public bool CanStartWork(EntityInfo entity)
@@ -145,19 +231,20 @@ namespace Architome
 
         public bool CanWork(EntityInfo entity)
         {
-            return currentState == TaskState.Available;
-        }
-
-        public int TotalWorkers()
-        {
-            return workers.Count + workersOnTheWay.Count;
+            return states.currentState == TaskState.Available;
         }
 
         public bool AddWorkerOnTheWay(EntityInfo entity)
         {
+            if (workers.onTheWay == null)
+            {
+                workers.onTheWay = new();
+            }
+
             if (!CanWork(entity)) return false;
 
-            workersOnTheWay.Add(entity);
+
+            workers.onTheWay.Add(entity);
 
             UpdateState();
             return true;
@@ -165,14 +252,18 @@ namespace Architome
 
         public bool AddWorker(EntityInfo entity)
         {
-            if(!workersOnTheWay.Contains(entity))
+            if (workers.working == null) workers.working = new();
+
+            if(!workers.onTheWay.Contains(entity))
             {
                 return false;
             }
 
-            workersOnTheWay.Remove(entity);
+
+
+            workers.onTheWay.Remove(entity);
             
-            workers.Add(entity);
+            workers.working.Add(entity);
             HandleWork();
             UpdateState();
 
@@ -183,34 +274,32 @@ namespace Architome
         {
 
 
-            if(workersOnTheWay.Contains(entity))
+            if(workers.onTheWay.Contains(entity))
             {
-                workersOnTheWay.Remove(entity);
+                workers.onTheWay.Remove(entity);
                 entity.taskEvents.OnCancelMovingToTask?.Invoke(new TaskEventData(this));
             }
 
-            if(workers.Contains(entity))
+            if(workers.working.Contains(entity))
             {
-                workers.Remove(entity);
+                workers.working.Remove(entity);
                 entity.taskEvents.OnEndTask?.Invoke(new TaskEventData(this));
             }
-
-
 
             UpdateState();
         }
 
         public void UpdateState()
         {
-            if(TotalWorkers() == maxWorkers)
+            if(workers.Total() == properties.maxWorkers)
             {
-                currentState = TaskState.Occupied;
+                states.currentState = TaskState.Occupied;
                 return;
             }
 
-            if(currentState == TaskState.Occupied)
+            if(states.currentState == TaskState.Occupied)
             {
-                currentState = TaskState.Available;
+                states.currentState = TaskState.Available;
             }
         }
 

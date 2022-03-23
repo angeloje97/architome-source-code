@@ -6,6 +6,7 @@ using System.Linq;
 
 namespace Architome
 {
+    [RequireComponent(typeof(Clickable))]
     public class WorkInfo : MonoBehaviour
     {
         public static List<WorkInfo> workObjects;
@@ -17,6 +18,7 @@ namespace Architome
         public TaskEvents taskEvents;
 
         public Transform workSpot;
+
 
         void GetDependencies()
         {
@@ -32,51 +34,44 @@ namespace Architome
                 workObjects = new List<WorkInfo>();
             }
             workObjects.Add(this);
+
         }
 
         public void SetClickable()
         {
             clickable.ClearOptions();
 
+            if(tasks.Count == 0) { return; }
+
             foreach(var task in tasks)
             {
-                clickable.AddOption(task.workString);
+                clickable.AddOption(task.properties.workString);
             }
         }
 
         public void CreateTask(TaskInfo task)
         {
+            task.properties.station = this;
+
             tasks.Add(task);
 
-            
-
-            clickable.AddOption(task.workString);
+            clickable.AddOption(task.properties.workString);
             
         }
 
         public void OnSelectAction(Clickable eventData)
         {
-
-
             var task = Task(eventData.selectedString);
 
             if(task == null) { return; }
 
-            if(task.currentState != Enums.TaskState.Available)
-            {
-                return;
-            }
-
             var entities = eventData.clickedEntities;
 
-            for(int i = 0; i < task.maxWorkers; i++)
-            {
-                if(i >= entities.Count)
-                {
-                    break;
-                }
+            if (entities.Count == 0) return;
 
-                entities[i].TaskHandler().StartWork(task);
+            foreach (var entity in entities)
+            {
+                entity.TaskHandler().StartWork(task);
             }
         }
         
@@ -88,6 +83,14 @@ namespace Architome
             GetDependencies();
         }
 
+        private void OnValidate()
+        {
+            foreach(var task in tasks)
+            {
+                task.properties.station = this;
+            }
+        }
+
         // Update is called once per frame
         void Update()
         {
@@ -96,7 +99,7 @@ namespace Architome
 
         public TaskInfo Task(string taskString)
         {
-            return tasks.Find(task => task.workString.Equals(taskString));
+            return tasks.Find(task => task.properties.workString.Equals(taskString));
         }
     }
 

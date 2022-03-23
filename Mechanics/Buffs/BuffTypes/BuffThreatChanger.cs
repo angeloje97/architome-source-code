@@ -6,9 +6,10 @@ public class BuffThreatChanger : MonoBehaviour
 {
     // Start is called before the first frame update
     BuffInfo buffInfo;
-    public GameObject originalFocus;
     public bool increasesThreat;
 
+
+    
     void Start()
     {
         if(GetComponent<BuffInfo>())
@@ -39,8 +40,6 @@ public class BuffThreatChanger : MonoBehaviour
 
         val = increasesThreat ? val : -val;
 
-        originalFocus = buffInfo.hostInfo.CombatBehavior().GetFocus();
-        buffInfo.hostInfo.CombatBehavior().SetFocus(buffInfo.sourceInfo.gameObject);
         buffInfo.hostInfo.ThreatManager().IncreaseThreat(buffInfo.sourceObject, val, true);
 
         return true;
@@ -51,11 +50,9 @@ public class BuffThreatChanger : MonoBehaviour
 
     public void OnBuffCompletion(BuffInfo info)
     {
-        buffInfo.hostInfo.CombatBehavior().SetFocus(originalFocus);
     }
 
     public void OnBuffCleanse(BuffInfo info)
     {
-        buffInfo.hostInfo.CombatBehavior().SetFocus(originalFocus);
     }
 }

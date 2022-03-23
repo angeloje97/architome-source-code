@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 namespace Architome
 {
@@ -13,6 +14,13 @@ namespace Architome
         public float spawnHeight;
         public bool isActive;
 
+        public struct SpawnerEvents
+        {
+            public Action<EntityInfo> OnSpawnEntity;
+        }
+
+        //Events
+        public SpawnerEvents spawnEvents;
 
         private void Start()
         {
@@ -31,9 +39,9 @@ namespace Architome
                 spawnPoint = transform;
             }
             
-            float x = spawnPoint.position.x + Random.Range(0, spawnRadius);
-            float z = spawnPoint.position.z + Random.Range(0, spawnRadius);
-            float y = spawnPoint.position.y + Random.Range(-spawnHeight, spawnHeight);
+            float x = spawnPoint.position.x + UnityEngine.Random.Range(0, spawnRadius);
+            float z = spawnPoint.position.z + UnityEngine.Random.Range(0, spawnRadius);
+            float y = spawnPoint.position.y + UnityEngine.Random.Range(-spawnHeight, spawnHeight);
 
             return new Vector3(x, y, z);
 

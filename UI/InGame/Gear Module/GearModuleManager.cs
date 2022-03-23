@@ -24,42 +24,41 @@ public class GearModuleManager : MonoBehaviour
     }
     void Start()
     {
-        GetDependencies();
-        UpdatePortraits();
-        SetEntity(0);
+        GameManager.active.OnNewPlayableEntity += OnNewPlayableEntity;
+        
+    }
+
+    public void OnNewPlayableEntity(EntityInfo newEntity, int index)
+    {
+        if(entityButtons.Count <= index)
+        {
+            return;
+        }
+
+        playableEntities.Add(newEntity);
+        entityButtons[index].transform.parent.gameObject.SetActive(true);
+
+        if(newEntity.entityPortrait)
+        {
+            
+            entityButtons[index].sprite = newEntity.entityPortrait;
+        }
+
+
+        if(index == 0)
+        {
+            SetEntity(0);
+        }
+
+        for (int i = index + 1; i < entityButtons.Count; i++)
+        {
+            entityButtons[i].transform.parent.gameObject.SetActive(false);
+        }
     }
 
     private void Update()
     {
-        HandleNewPlayableEntities();
     }
-
-    void HandleNewPlayableEntities()
-    {
-        if(GMHelper.GameManager() == null) { return; }
-        if(playableEntities != GMHelper.GameManager().playableEntities)
-        {
-            playableEntities = GMHelper.GameManager().playableEntities;
-            UpdatePortraits();
-            if(playableEntities.Count > 0)
-            {
-                SetEntity(0);
-            }
-        }
-    }
-
-    void UpdatePortraits()
-    {
-        for(int i = 0; i < playableEntities.Count; i++)
-        {
-            var entity = playableEntities[i];
-            if(i < entityButtons.Count && entity.entityPortrait != null)
-            {
-                entityButtons[i].sprite = entity.entityPortrait;
-            }
-        }
-    }
-
     // Update is called once per frame
 
     public void SetEntity(int index)

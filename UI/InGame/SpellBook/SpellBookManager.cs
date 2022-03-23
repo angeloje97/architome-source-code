@@ -18,31 +18,35 @@ public class SpellBookManager : MonoBehaviour
     //Events
     public Action<EntityInfo> OnNewEntity;
 
-    public void GetDependencies()
-    {
-        if(GMHelper.GameManager().playableEntities != null)
-        {
-            playableEntities = GMHelper.GameManager().playableEntities;
 
-            SetPortaits();
-        }
-
-        SetEntity(0);
-    }
-
-    public void SetPortaits()
-    {
-        for(int i = 0; i < playableEntities.Count; i++)
-        {
-            if(i >= portraitIcons.Count) { break; }
-
-            portraitIcons[i].sprite = playableEntities[i].entityPortrait;
-        }
-    }
     void Start()
     {
-        Invoke("GetDependencies", .5f);
+        //Invoke("GetDependencies", .5f);
+        GameManager.active.OnNewPlayableEntity += OnNewPlayableEntity;
     }
+
+
+    public void OnNewPlayableEntity(EntityInfo newEntity, int index)
+    {
+        if(index >= portraitIcons.Count)
+        {
+            return;
+        }
+
+        playableEntities.Add(newEntity);
+
+        if(newEntity.entityPortrait)
+        {
+            portraitIcons[index].sprite = newEntity.entityPortrait;
+        }
+
+        if(index == 0)
+        {
+            SetEntity(0);
+        }
+    }
+
+
 
     public void SetEntity(int num)
     {

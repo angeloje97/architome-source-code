@@ -30,8 +30,8 @@ public class GameManager : MonoBehaviour
     public bool isPaused;
     public bool reloadCurrentScene;
 
-    public Action<EntityInfo> OnNewPlayableEntity;
-    public Action<PartyInfo> OnNewPlayableParty;
+    public Action<EntityInfo, int> OnNewPlayableEntity;
+    public Action<PartyInfo, int> OnNewPlayableParty;
 
     void Awake()
     {
@@ -74,16 +74,16 @@ public class GameManager : MonoBehaviour
     {
         if(playableEntities == null) { playableEntities = new List<EntityInfo>(); }
 
-        OnNewPlayableEntity?.Invoke(playableChar);
         playableEntities.Add(playableChar);
+        OnNewPlayableEntity?.Invoke(playableChar, playableEntities.IndexOf(playableChar));
     }
 
     public void AddPlayableParty(PartyInfo playableParty)
     {
         if(playableParties == null) { playableParties = new List<PartyInfo>(); }
-        OnNewPlayableParty?.Invoke(playableParty);
 
         playableParties.Add(playableParty);
+        OnNewPlayableParty?.Invoke(playableParty, playableParties.IndexOf(playableParty));
     }
 
     public void ReloadScene()

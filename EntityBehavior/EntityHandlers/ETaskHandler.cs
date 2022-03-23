@@ -29,10 +29,12 @@ namespace Architome
                 movement = entityInfo.Movement();
                 movement.OnNewPathTarget += OnNewPathTarget;
                 movement.OnArrival += OnArrival;
+                movement.OnEndMove += OnEndMove;
             }
 
             entityInfo.taskEvents.OnNewTask += OnNewTask;
             entityInfo.taskEvents.OnTaskComplete += OnTaskComplete;
+            
         }
 
         // Update is called once per frame
@@ -40,7 +42,6 @@ namespace Architome
         {
             HandleEvents();
         }
-
         public void HandleEvents()
         {
             if(previousTask != currentTask)
@@ -55,18 +56,29 @@ namespace Architome
                 entityInfo.workerState = currentState;
             }
         }
-
-
         public void OnArrival(Movement movement, Transform target)
         {
             if(target == null) { return; }
             if(currentTask == null) { return; }
-            if(currentTask.station == null) { return; }
+            if(currentTask.properties.station == null) { return; }
 
 
-            ArchAction.Delay(() => { WorkOn(currentTask); }, .25f);
+            //ArchAction.Delay(() => { WorkOn(currentTask); }, .45f);
+        }
+
+        public void OnEndMove(Movement movement)
+        {
+            var target = movement.Target();
+            ArchAction.Delay(() => {
+                if (target == null) { return; }
+                if (currentTask == null) { return; }
+                if (currentTask.properties.station == null) { return; }
+                if (!movement.IsInRangeFromTarget()) { return; }
+                WorkOn(currentTask); 
+            }, .125f);
             
             
+
         }
 
         public void OnNewTask(TaskInfo previous, TaskInfo current)
@@ -134,10 +146,12 @@ namespace Architome
 
         public void StartWork(TaskInfo task)
         {
+            Debugger.InConsole(18964, $"{task}");
+            if(task == null) { return; }
             if(!task.AddWorkerOnTheWay(entityInfo)) { return; }
 
             currentTask = task;
-            currentStation = task.station;
+            currentStation = task.properties.station;
 
             var hasWorkSpot = currentStation.workSpot != null;
 

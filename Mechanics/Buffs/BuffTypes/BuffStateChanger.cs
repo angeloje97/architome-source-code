@@ -2,20 +2,23 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
+using System;
 public class BuffStateChanger : MonoBehaviour
 {
     public BuffInfo buffInfo;
     public EntityState stateToChange;
     public EntityState originalEntityState;
     public bool applied;
+
+    public Action<BuffStateChanger, EntityState> OnSuccessfulStateChange;
+    public Action<BuffStateChanger, EntityState> OnStateChangerEnd;
     // Start is called before the first frame update
     void GetDependencies()
     {
         if (GetComponent<BuffInfo>())
         {
             buffInfo = GetComponent<BuffInfo>();
-            buffInfo.OnBuffCleanse += OnBuffCleanse;
-            buffInfo.OnBuffCompletion += OnBuffCompletion;
+            buffInfo.OnBuffEnd += OnBuffEnd;
 
 
             originalEntityState = buffInfo.hostInfo.currentState;
@@ -23,6 +26,10 @@ public class BuffStateChanger : MonoBehaviour
             if (!ApplyBuff())
             {
                 buffInfo.Cleanse();
+            }
+            else
+            {
+                OnSuccessfulStateChange?.Invoke(this, stateToChange);
             }
         }
     }
@@ -45,13 +52,7 @@ public class BuffStateChanger : MonoBehaviour
         
     }
 
-
-    public void OnBuffCompletion(BuffInfo buff)
-    {
-        HandleRemoveState(buff);
-    }
-
-    public void OnBuffCleanse(BuffInfo buff)
+    public void OnBuffEnd(BuffInfo buff)
     {
         HandleRemoveState(buff);
     }
@@ -69,5 +70,7 @@ public class BuffStateChanger : MonoBehaviour
         }
 
         buff.hostInfo.ChangeState(newState);
+
+        OnStateChangerEnd?.Invoke(this, newState);
     }
 }

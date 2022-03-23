@@ -7,6 +7,14 @@ using Architome;
 
 public class CharacterInfo : MonoBehaviour
 {
+    [Serializable]
+    public struct CharProperties
+    {
+        public bool combatSheath;
+    }
+
+    public CharProperties properties;
+
     // Start is called before the first frame update
     public GameObject entityObject;
 
@@ -16,14 +24,17 @@ public class CharacterInfo : MonoBehaviour
     public AbilityInfo currentCasting;
     public List<GameObject> characterProperties;
     public Stats totalEquipmentStats;
-
+    public bool sheathed;
     public List<EquipmentSlot> equipment;
 
     public Vector3 currentDirection;
 
+    CharacterTaskHandler taskHandler;
+
     public Action<EquipmentSlot, Equipment, Equipment> OnChangeEquipment;
     public Action<bool> OnChangeSheath;
 
+    bool sheathCheck;
     public void GetDependencies()
     {
         if(movement == null)
@@ -66,6 +77,7 @@ public class CharacterInfo : MonoBehaviour
     void Start()
     {
         GetProperties();
+        taskHandler.SetCharacter(this);
         Invoke("UpdateCharacterModel", .125f);
         Invoke("UpdateEquipmentStats", .125f);
     }
@@ -76,6 +88,17 @@ public class CharacterInfo : MonoBehaviour
         GetDependencies();
         HandleLookAt();
         UpdateMovementDirection();
+        HandleEvents();
+    }
+
+    public void HandleEvents()
+    {
+        if(sheathed != sheathCheck)
+        {
+
+            sheathCheck = sheathed;
+            OnChangeSheath?.Invoke(sheathed);
+        }
     }
     void HandleLookAt()
     {
@@ -97,10 +120,7 @@ public class CharacterInfo : MonoBehaviour
         {
             if(currentCasting == null) { return; }
             if(currentCasting.targetLocked == null) { return; }
-            var targetLocation = currentCasting.targetLocked.transform.position;
-            targetLocation.y = transform.position.y;
-
-            transform.LookAt(targetLocation);
+            LookAt(currentCasting.targetLocked.transform);
         }
 
         void LookAtLocation()
@@ -148,9 +168,32 @@ public class CharacterInfo : MonoBehaviour
         }
     }
 
+    public bool IsFacing(Vector3 position)
+    {
+        var angle = 90f;
+
+        var angleFromTarget = AngleFromTarget(position);
+
+        if (angle > angleFromTarget)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public float AngleFromTarget(Vector3 position)
+    {
+        var direction = V3Helper.Direction(position, transform.position);
+
+        var angleDifference = direction - transform.forward;
+
+        return V3Helper.Abs(angleDifference) * 180 / (float) Math.PI;
+    }
+
     public void SheathWeapons(bool val)
     {
-        OnChangeSheath?.Invoke(val);
+        sheathed = val;
     }
     public void UpdateCharacterModel()
     {
@@ -314,4 +357,37 @@ public class CharacterInfo : MonoBehaviour
         return null;
     }
     
+}
+
+public struct CharacterTaskHandler
+{
+    EntityInfo entityInfo;
+    CharacterInfo character;
+
+    public void SetCharacter(CharacterInfo character)
+    {
+        this.character = character; 
+        entityInfo = character.GetComponentInParent<EntityInfo>();
+        
+        if(entityInfo == null) { return; }
+
+        entityInfo.taskEvents.OnStartTask += OnStartTask;
+        entityInfo.taskEvents.OnEndTask += OnEndTask;
+    }
+
+    public void OnStartTask(TaskEventData eventData)
+    {
+        
+        character.SheathWeapons(true);
+
+        if(eventData.task.properties.station)
+        {
+            character.LookAt(eventData.task.properties.station.transform);
+        }
+    }
+
+    public void OnEndTask(TaskEventData eventData)
+    {
+        character.SheathWeapons(false);
+    }
 }

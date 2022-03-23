@@ -114,6 +114,7 @@ namespace Architome
                 movement = entityInfo.Movement();
                 movement.OnStartMove += OnStartMove;
                 movement.OnEndMove += OnEndMove;
+                movement.OnTryMove += OnTryMove;
             }
 
             if(entityInfo.AbilityManager())
@@ -157,16 +158,48 @@ namespace Architome
             stateMachine.Permit(BehaviorState.Assisting, Transition.OnStateChange, BehaviorState.Idle);
             stateMachine.Permit(BehaviorState.Assisting, Transition.OnStateChange, BehaviorState.Moving);
 
+            stateMachine.Permit(BehaviorState.Fleeing, Transition.OnCastStart, BehaviorState.Casting);
+            stateMachine.Permit(BehaviorState.Fleeing, Transition.OnCastStart, BehaviorState.Assisting);
+            stateMachine.Permit(BehaviorState.Fleeing, Transition.OnCastStart, BehaviorState.Attacking);
+
+
+
         }
 
 
         public void OnStartMove(Movement movement)
         {
-            stateMachine.Transition(Transition.OnStartMove, BehaviorState.Moving);
+            //stateMachine.Transition(Transition.OnStartMove, BehaviorState.Moving);
 
             //if (wantsToCast) { return; }
             //if(behavior.behaviorState == BehaviorState.Casting) { return; }
             //behavior.behaviorState = BehaviorState.Moving;
+        }
+
+        public void OnTryMove(Movement movement)
+        {
+
+            ArchAction.Delay(() => {
+
+                if (Entity.IsEntity(movement.Target().gameObject))
+                {
+                    return;
+                }
+
+
+                var target = behavior.CombatBehavior().target;
+                
+                if (target && !entityInfo.CharacterInfo().IsFacing(target.transform.position))
+                {
+                    stateMachine.TransitionAnyState(BehaviorState.Fleeing);
+                    return;
+                }
+
+                stateMachine.TransitionAnyState(BehaviorState.Moving);
+                //behavior.behaviorState = BehaviorState.Moving;
+
+            }, .03125f);
+            
         }
 
         public void OnEndMove(Movement movement)

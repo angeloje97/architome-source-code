@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Linq;
 using Architome.Enums;
 
 namespace Architome
@@ -17,10 +18,11 @@ namespace Architome
         public int questId;
 
         [Serializable]
-        public class QuestInfo
+        public struct QuestInfo
         {
             public QuestState state;
             public CompletionType completionType;
+            public QuestType questType;
             public bool failed;
             public bool isActive;
         }
@@ -49,6 +51,11 @@ namespace Architome
         void Update()
         {
         
+        }
+
+        public List<Objective> ActiveObjectives()
+        {
+            return questObjectives.Where(objective => objective.isActive == true).ToList();
         }
 
         public bool Activate()

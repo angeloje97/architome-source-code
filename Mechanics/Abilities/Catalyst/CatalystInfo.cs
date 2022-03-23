@@ -92,6 +92,7 @@ public class CatalystInfo : MonoBehaviour
     public Action<CatalystDeathCondition> OnCatalystDestroy;
 
     private GameObject targetCheck;
+
     public void GetDependencies()
     {
         if(abilityInfo)
@@ -124,15 +125,19 @@ public class CatalystInfo : MonoBehaviour
             {
                 target = abilityInfo.targetLocked;
             }
-            if (!abilityInfo.nullifyDamage)
-            {
-                value = abilityInfo.value;
-            }
-            else
+
+            CalculateValue();
+        }
+
+        void CalculateValue()
+        {
+            if (abilityInfo.nullifyDamage)
             {
                 value = 0;
+                return;
             }
 
+            value = abilityInfo.value;
         }
     }
     public void HandleComponents()

@@ -28,11 +28,28 @@ namespace Architome
                 entitiesToKill.Add(entity.entityName);
             }
 
-
             killGoal++;
+
+            UpdateSlainPercentPrompt();
         }
 
-        
+        public void UpdateSlainPercentPrompt(bool completed = false)
+        {
+            if(completed)
+            {
+
+                prompt = $"Enemy forces slain: (100%)";
+                return;
+            }
+
+            var currentSlain = (float)currentEntitiesSlain;
+            var goal = (float)killGoal;
+
+
+            prompt = $"Enemy forces slain: ({Mathg.Round((currentSlain/goal)*100, 2)}%)";
+
+        }
+
         public void OnEntityDeath(CombatEventData eventData)
         {
             if (!isActive) return;
@@ -40,13 +57,18 @@ namespace Architome
             {
                 currentEntitiesSlain++;
 
+                UpdateSlainPercentPrompt();
                 if(currentEntitiesSlain == killGoal)
                 {
+
+                    UpdateSlainPercentPrompt(true);
                     CompleteObjective();
                 }
 
                 HandleObjectiveChange();
             }
+
+
         }
 
 

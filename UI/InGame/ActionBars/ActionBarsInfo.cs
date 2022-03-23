@@ -21,7 +21,8 @@ public class ActionBarsInfo : MonoBehaviour
 
     void Start()
     {
-        Invoke("SetPartyActionBars", .250f);
+        //Invoke("SetPartyActionBars", .250f);
+        GameManager.active.OnNewPlayableEntity += OnNewPlayableEntity;
     }
 
     // Update is called once per frame
@@ -43,6 +44,34 @@ public class ActionBarsInfo : MonoBehaviour
     //    if(actionBarIndex >= actionBars.Count) { return; }
     //    actionBars[actionBarIndex].SetCharacterPortrait(entity);
     //}
+
+    public void OnNewPlayableEntity(EntityInfo newEntity, int index)
+    {
+        Debugger.InConsole(6493, $"New Member ({newEntity}) Index: {index}");
+
+        var signature = newEntity.AbilityManager().Ability(AbilityType2.MainAbility);
+        var party = newEntity.AbilityManager().Ability(AbilityType2.PartyAbility);
+        var utility = newEntity.AbilityManager().Ability(AbilityType2.Utility);
+
+        
+        if(index == defaultPartyMemberIndex)
+        {
+            if(newEntity.AbilityManager().Ability(AbilityType2.PartyAbility))
+            {
+                partyActionBar.SetActionBar(newEntity.AbilityManager().Ability(AbilityType2.PartyAbility));
+            }
+        }
+
+        if(actionBars.Count > index && signature != null)
+        {
+            actionBars[index].SetActionBar(signature);
+        }
+
+        if(miscActionBars.Count > index)
+        {
+            miscActionBars[index].SetActionBar(utility);
+        }
+    }
 
     public void SetPartyActionBars()
     {

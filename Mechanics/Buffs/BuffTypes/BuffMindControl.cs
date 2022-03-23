@@ -16,8 +16,7 @@ public class BuffMindControl : BuffStateChanger
         if(!GetComponent<BuffInfo>()) return;
 
         buffInfo = GetComponent<BuffInfo>();
-        buffInfo.OnBuffCleanse += OnBuffCleanse;
-        buffInfo.OnBuffCompletion += OnBuffCompletion;
+        buffInfo.OnBuffEnd += OnBuffEnd;
 
 
         
@@ -51,14 +50,7 @@ public class BuffMindControl : BuffStateChanger
     }
 
     // Update is called once per frame
-    public new void OnBuffCleanse(BuffInfo buffInfo)
-    {
-        if (!applied) return;
-        HandleRemoveState(buffInfo);
-        buffInfo.hostInfo.ChangeBehavior(originalNPCType, originalBehaviorType);
-    }
-
-    public new void OnBuffCompletion(BuffInfo buffInfo)
+    public new void OnBuffEnd(BuffInfo buffInfo)
     {
         if (!applied) return;
         HandleRemoveState(buffInfo);

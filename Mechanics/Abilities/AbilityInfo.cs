@@ -174,6 +174,7 @@ public class AbilityInfo : MonoBehaviour
         public bool destroyOnOutOfRange;
         public bool destroyOnLiveTime;
         public bool destroyOnDeadTarget;
+        public bool destroyOnCantFindTarget;
     }
 
     public DestroyConditions destroyConditions;
@@ -638,7 +639,7 @@ public class AbilityInfo : MonoBehaviour
             return;
         }
 
-        abilityManager.OnCastRelease?.Invoke(this); 
+        abilityManager.OnCastRelease?.Invoke(this);
         HandleResources();
         HandleChannel();
         HandleAbilityType();

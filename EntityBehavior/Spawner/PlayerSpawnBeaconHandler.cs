@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Architome
 {
@@ -53,32 +55,6 @@ namespace Architome
                 HandleActivateObjects();
             }
         }
-        void HandleWork()
-        {
-            if(workInfo == null) { return; }
-            ArchAction.Delay(() => 
-            {
-                workInfo.CreateTask(new TaskInfo(workInfo)
-                {
-                    workString = "Set Spawn Beacon",
-                    workType = WorkType.Use,
-                    workAmount = 2,
-                    resetOnCancel = true
-                });
-
-                workInfo.CreateTask(new TaskInfo(workInfo)
-                {
-                    workString = "Revive Allies",
-                    workType = WorkType.Use,
-                    workAmount = 10,
-                    resetOnCancel = true
-                });
-
-            }, .125f);
-            
-
-
-        }
         void HandleDisableOnStart()
         {
             foreach(var i in disableOnStart)
@@ -97,7 +73,6 @@ namespace Architome
         {
             HandleDisableOnStart();
             GetDependencies();
-            HandleWork();
         }
         public void OnSelectOption(Clickable clickable)
         {
@@ -109,8 +84,29 @@ namespace Architome
             if (!Entity.IsPlayer(entity)) { return; }
             activated = true;
 
-            worldInfo.lastPlayerSpawnBeacon = spawnerInfo;
+            SetAsLastPlayerSpawnBeacon();
             HandleActivateObjects();
+        }
+
+        async public void ReviveDeadPartyMembers()
+        {
+            var lastSpawnBeacon = GMHelper.WorldInfo().lastPlayerSpawnBeacon;
+            GMHelper.WorldInfo().lastPlayerSpawnBeacon = spawnerInfo;
+            var members = GameManager.active.playableEntities.Where(entity => !entity.isAlive).ToList();
+
+            foreach(var member in members)
+            {
+                WorldActions.active.ReviveAtSpawnBeacon(member.gameObject);
+                await Task.Delay(500);
+            }
+
+            GMHelper.WorldInfo().lastPlayerSpawnBeacon = lastSpawnBeacon;
+
+        }
+
+        public void SetAsLastPlayerSpawnBeacon()
+        {
+            worldInfo.lastPlayerSpawnBeacon = spawnerInfo;
         }
 
     }
