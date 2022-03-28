@@ -135,13 +135,13 @@ public class AudioManager : MonoBehaviour
 
     public void StopLoops()
     {
-        foreach(var source in audioSources)
-        {
-            if(source.loop)
-            {
-                source.Stop();
-            }
-        }
+        //foreach(var source in audioSources)
+        //{
+        //    if(source.loop && source.isPlaying)
+        //    {
+        //        source.Stop();
+        //    }
+        //}
     }
 
     

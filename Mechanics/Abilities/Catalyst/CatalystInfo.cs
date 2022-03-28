@@ -198,6 +198,11 @@ public class CatalystInfo : MonoBehaviour
                 gameObject.AddComponent<CatalystBuffOnDestroy>();
             }
 
+            if (abilityInfo.summoning.summons)
+            {
+                gameObject.AddComponent<CatalystSummon>();
+            }
+
             requiresLockOnTarget = abilityInfo.requiresLockOnTarget;
             ticks = abilityInfo.ticksOfDamage;
         }
@@ -263,7 +268,7 @@ public class CatalystInfo : MonoBehaviour
     {
         if(targetCheck != target)
         {
-            OnNewTarget.Invoke(targetCheck, target);
+            OnNewTarget?.Invoke(targetCheck, target);
             targetCheck = target;
         }
     }

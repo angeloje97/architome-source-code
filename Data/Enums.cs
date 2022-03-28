@@ -95,6 +95,8 @@ namespace Architome.Enums
 
     }
 
+    
+
     public enum EntityState
     {
         Active = 0,
@@ -158,6 +160,17 @@ namespace Architome.Enums
         Parallel,
         Linear,
         Radio
+    }
+
+    public enum SpecialTargeting
+    {
+        TargetsCurrent,
+        TargetsFocus,
+        TargetsRandom,
+        SkillShotPredict,
+        SkillShotRandom,
+        SkillShotNormal,
+        Use,
     }
 
     public enum EntityControlType

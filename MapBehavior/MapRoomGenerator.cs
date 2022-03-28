@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Linq;
 
 namespace Architome
 {
@@ -366,15 +367,26 @@ namespace Architome
             Vector3 MapMidPoint()
             {
                 var roomObjects = new List<Transform>();
+                var startingPoint = new Vector3();
 
-                foreach (Transform child in roomList)
+                var endPoints = new List<Transform>();
+
+                foreach (var roomInfo in roomList.GetComponentsInChildren<RoomInfo>())
                 {
-                    foreach (Transform room in child.GetComponent<RoomInfo>().allObjects)
+                    var allObjects = roomInfo.allObjects;
+
+                    var furthestObject = allObjects.OrderByDescending(current => V3Helper.Distance(current.position, startingPoint)).ToList()[0];
+                    
+                    if (furthestObject)
                     {
-                        roomObjects.Add(room);
+                        roomObjects.Add(furthestObject);
                     }
 
-
+                    //foreach (Transform room in child.GetComponent<RoomInfo>().allObjects)
+                    //{
+                        
+                    //    roomObjects.Add(room);
+                    //}
                 }
 
                 return V3Helper.MidPoint(roomObjects);
@@ -384,13 +396,25 @@ namespace Architome
             {
                 var rooms = new List<Transform>();
 
-                foreach (Transform child in roomList)
+                var startingPoint = new Vector3();
+
+                foreach(var roomInfo in roomList.GetComponentsInChildren<RoomInfo>())
                 {
-                    foreach (Transform roomObject in child.GetComponent<RoomInfo>().allObjects)
+                    var furthestObject = roomInfo.allObjects.OrderByDescending(current => V3Helper.Distance(current.position, startingPoint)).ToList()[0];
+
+                    if (furthestObject)
                     {
-                        rooms.Add(child);
+                        rooms.Add(furthestObject);
                     }
                 }
+
+                //foreach (Transform child in roomList)
+                //{
+                //    foreach (Transform roomObject in child.GetComponent<RoomInfo>().allObjects)
+                //    {
+                //        rooms.Add(child);
+                //    }
+                //}
 
                 var maxDistance = V3Helper.MaxDistance(MapMidPoint(), rooms);
                 return new Vector3(maxDistance, height, maxDistance);

@@ -51,12 +51,25 @@ namespace Architome
 
         public void OnEndTask(TaskEventData eventData)
         {
+            var station = eventData.task.properties.station;
 
             if(workingAudioSource == null) { return; }
 
             workingAudioSource.Stop();
-
             workingAudioSource = null;
+
+            ArchAction.IntervalFor(() =>
+            {
+                foreach (var stationTask in station.tasks)
+                {
+                    if (stationTask.states.isBeingWorkedOn)
+                    {
+                        return;
+                    }
+                }
+
+                audioManager.StopLoops();
+            }, .25f, 3);
         }
 
         public void OnTaskComplete(TaskEventData eventData)
@@ -70,18 +83,7 @@ namespace Architome
 
 
             audioManager.PlaySound(completionSound);
-            ArchAction.IntervalFor(() => 
-            {
-                foreach (var stationTask in workStation.tasks)
-                {
-                    if (stationTask.states.isBeingWorkedOn)
-                    {
-                        return;
-                    }
-                }
-
-                audioManager.StopLoops();
-            }, .25f, 3);
+            
 
         }
 

@@ -22,14 +22,20 @@ namespace Architome
         public Vector3 location;
 
         //Events
+        public Action<AbilityInfo> OnAbilityStart;
+        public Action<AbilityInfo> WhileAbilityActive;
+        public Action<AbilityInfo> OnAbilityEnd;
         public Action<AbilityInfo> OnTryCast;
         public Action<AbilityInfo> OnCastStart;
         public Action<AbilityInfo> OnCastRelease;
         public Action<AbilityInfo> OnCastEnd;
         public Action<AbilityInfo> OnCastReleasePercent;
-        public Action<AbilityInfo> OnCastChannelStart;
-        public Action<AbilityInfo> OnCastChannelInterval;
-        public Action<AbilityInfo> OnCastChannelEnd;
+        //public Action<AbilityInfo> OnCastChannelStart;
+        //public Action<AbilityInfo> OnCastChannelInterval;
+        //public Action<AbilityInfo> OnCastChannelEnd;
+        public Action<AbilityInfo> OnChannelStart;
+        public Action<AbilityInfo> OnChannelInterval;
+        public Action<AbilityInfo> OnChannelEnd;
         public Action<AbilityInfo> OnCancelCast;
         public Action<AbilityInfo> OnCancelChannel;
         public Action<AbilityInfo> OnNewAbility;
@@ -52,6 +58,7 @@ namespace Architome
 
                 entityInfo.OnLifeChange += OnLifeChange;
                 entityInfo.OnStateChange += OnStateChange;
+                entityInfo.OnChangeStats += OnChangeStats;
 
                 if(entityInfo.Movement())
                 {
@@ -142,12 +149,29 @@ namespace Architome
             }
         }
 
+        public void OnChangeStats(EntityInfo entity)
+        {
+            foreach (var ability in GetComponentsInChildren<AbilityInfo>())
+            {
+                ability.UpdateAbility();
+            }
+        }
+
         public void OnStartMove(Movement movement)
         {
             if(currentlyCasting && currentlyCasting.cancelCastIfMoved)
             {
                 currentlyCasting.CancelCast();
             }
+        }
+
+        public bool IsCasting()
+        {
+            if(currentlyCasting == null) { return false; }
+            if(currentlyCasting.isAttack) { return false; }
+
+
+            return true;
         }
 
         public AbilityInfo Ability(int num)
@@ -180,16 +204,14 @@ namespace Architome
                 return;
             }
 
-            else
-            {
-                Debugger.InConsole(1115, $"Your code made it this far");
 
-                if (target) { abilities[value].target = target; }
-                else { abilities[value].target = null; }
+            Debugger.InConsole(1115, $"Your code made it this far");
 
-                abilities[value].location = location;
-                abilities[value].Cast();
-            }
+            if (target) { abilities[value].target = target; }
+            else { abilities[value].target = null; }
+
+            abilities[value].location = location;
+            abilities[value].Cast();
         }
         public void Attack()
         {

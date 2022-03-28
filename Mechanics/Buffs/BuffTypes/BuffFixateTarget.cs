@@ -14,7 +14,7 @@ namespace Architome
 
             buffInfo.OnBuffEnd += OnBuffEnd;
 
-            ApplyBuff();
+            ArchAction.Delay(() => { ApplyBuff(); }, .125f);
         }
 
         public void ApplyBuff()

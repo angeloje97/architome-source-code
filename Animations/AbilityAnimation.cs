@@ -24,12 +24,15 @@ public class AbilityAnimation
         abilityManager.OnCastStart += OnCastStart;
         abilityManager.OnCastRelease += OnCastRelease;
         abilityManager.OnCastReleasePercent += OnCastReleasePercent;
-        abilityManager.OnCastChannelStart += OnCastChannelStart;
-        abilityManager.OnCastChannelInterval += OnCastChannelInterval;
-        abilityManager.OnCastChannelEnd += OnCastChannelEnd;
+        abilityManager.OnChannelStart += OnChannelStart;
+        abilityManager.OnChannelInterval += OnChannelInterval;
+        abilityManager.OnChannelEnd += OnCastChannelEnd;
         abilityManager.OnCancelCast += OnCancelCast;
         abilityManager.OnCancelChannel += OnCancelChannel;
         abilityManager.OnCastChange += OnCastChange;
+
+        abilityManager.OnAbilityStart += OnAbilityStart;
+        abilityManager.OnAbilityEnd += OnAbilityEnd;
 
         this.anim = anim;
         this.animator = anim.anim;
@@ -61,6 +64,9 @@ public class AbilityAnimation
 
     public void OnCastReleasePercent(AbilityInfo ability)
     {
+        if (ability.isAttack) return;
+        if (ability.channel.enabled) return;
+
         animator.SetTrigger("ReleaseAbility");
         SetCast(false);
     }
@@ -68,7 +74,7 @@ public class AbilityAnimation
     {
         if (ability.isAttack) { SetCast(false); }
     }
-    public void OnCastChannelStart(AbilityInfo ability)
+    public void OnChannelStart(AbilityInfo ability)
     {
         //SetAnimTrigger(currentCatalyst, 2, false);
 
@@ -76,25 +82,33 @@ public class AbilityAnimation
         animator.SetTrigger("ActivateAbility");
 
     }
-    public void OnCastChannelInterval(AbilityInfo ability)
+    public void OnChannelInterval(AbilityInfo ability)
     {
         animator.SetTrigger("Repeat");
     }
     public void OnCastChannelEnd(AbilityInfo ability)
     {
         //SetAnimTrigger(currentCatalyst, 3, false);
+    }
+
+    public void OnAbilityStart(AbilityInfo ability)
+    {
+        SetCast(true);
+
+    }
+
+    public void OnAbilityEnd(AbilityInfo ability)
+    {
         SetCast(false);
     }
     public void OnCancelCast(AbilityInfo ability)
     {
         animator.SetTrigger("CancelAbility");
         animator.SetTrigger("CancelAttack");
-        SetCast(false);
     }
     public void OnCancelChannel(AbilityInfo ability)
     {
         animator.SetTrigger("CancelAbility");
-        SetCast(false);
     }
 
     public void SetAnimTrigger(CatalystInfo catalyst, int index, bool val)

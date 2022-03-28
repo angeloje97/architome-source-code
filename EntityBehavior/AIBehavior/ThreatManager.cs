@@ -59,6 +59,11 @@ public class ThreatManager : MonoBehaviour
                         RemoveThreat();
                     }
 
+                    if (!sourceObject.GetComponent<EntityInfo>().CanAttack(threatObject))
+                    {
+                        RemoveThreat();
+                    }
+
                     if (!sourceObject.GetComponent<EntityInfo>().isAlive)
                     {
                         threatManager.ClearThreats();
@@ -203,6 +208,7 @@ public class ThreatManager : MonoBehaviour
     }
     public void OnDamageTaken(CombatEventData eventData)
     {
+        if(eventData.source == null) { return; }
         var val = eventData.value;
         var source = eventData.source;
 
@@ -217,7 +223,7 @@ public class ThreatManager : MonoBehaviour
                 threatVal *= GMHelper.Difficulty().settings.tankThreatMultiplier;
             }
         }
-
+        
         IncreaseThreat(source.gameObject, threatVal, true);
     }
 

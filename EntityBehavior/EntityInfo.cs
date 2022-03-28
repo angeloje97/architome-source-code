@@ -36,6 +36,18 @@ namespace Architome
         public RoomInfo currentRoom;
         public EntityState currentState = EntityState.Active;
         public WorkerState workerState;
+        
+        [Serializable]
+        public struct SummonedEntity
+        {
+            public bool isSummoned;
+            public EntityInfo master;
+            public float timeRemaining;
+
+
+        }
+
+        public SummonedEntity summon;
 
         public PresetStats presetStats;
         public bool fixedStats;
@@ -59,6 +71,9 @@ namespace Architome
         public bool canLevel;
 
         public LayerMask walkableLayer;
+
+
+
 
 
         //Events
@@ -89,6 +104,7 @@ namespace Architome
         public Action<EntityInfo, Collider, bool> OnTriggerEvent;
         public Action<EntityInfo, Collision, bool> OnCollisionEvent;
         public Action<EntityInfo, GameObject, bool> OnPhysicsEvent;
+        public Action<EntityInfo> OnChangeStats;
         public TaskEvents taskEvents = new();
         public TargetableEvents targetableEvents = new();
         
@@ -315,6 +331,8 @@ namespace Architome
             UpdateCoreStats();
             UpdateResources(false);
 
+            OnChangeStats?.Invoke(this);
+
             void UpdateCoreStats()
             {
                 stats = currentStats;
@@ -463,6 +481,7 @@ namespace Architome
                 }
             }
         }
+
         public void Heal(CombatEventData combatData)
         {
             if (!isAlive) { return; }
@@ -521,6 +540,8 @@ namespace Architome
                 OnStateNegated?.Invoke(currentState, state);
                 return false; 
             }
+
+            Debugger.InConsole(94543, $"Successfully changed state to {state}");
 
             OnStateChange?.Invoke(currentState, state);
             currentState = state;
@@ -586,7 +607,7 @@ namespace Architome
 
             shield = totalShield;
         }
-        public void Gain(float value)
+        public void GainResource(float value)
         {
             if (mana + value > maxMana)
             {
@@ -755,14 +776,7 @@ namespace Architome
         }
         public Movement Movement()
         {
-            foreach (Transform child in transform)
-            {
-                if (child.GetComponent<Movement>())
-                {
-                    return child.GetComponent<Movement>();
-                }
-            }
-            return null;
+            return GetComponentInChildren<Movement>();
         }
         public AbilityManager AbilityManager()
         {
@@ -980,6 +994,10 @@ namespace Architome
             var renders = GetComponentsInChildren<Renderer>();
             foreach (var render in renders)
             {
+                if (render == null)
+                {
+                    return;
+                }
                 render.enabled = val;
                 await Task.Yield();
             }
@@ -991,6 +1009,10 @@ namespace Architome
 
             foreach (var canvas in canvases)
             {
+                if (canvas == null)
+                {
+                    return;
+                }
                 canvas.enabled = val;
 
                 await Task.Yield();
@@ -1002,6 +1024,10 @@ namespace Architome
 
             foreach (var light in lights)
             {
+                if (light == null)
+                {
+                    return;
+                }
                 light.enabled = val;
                 await Task.Yield();
             }

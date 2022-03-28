@@ -6,6 +6,7 @@ public class MainCamera3 : MonoBehaviour
 {
     // Start is called before the first frame update
     public Camera currentCamera;
+    public static Camera active;
 
     public bool perspective;
     public bool orthographic;
@@ -51,6 +52,7 @@ public class MainCamera3 : MonoBehaviour
     private void Awake()
     {
         Mouse.mainCamera = GetComponent<Camera>();
+        active = GetComponent<Camera>();
     }
 
     // Update is called once per frame

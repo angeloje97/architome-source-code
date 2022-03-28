@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
 using Architome;
+using System.Linq;
 public class LineOfSight : MonoBehaviour
 {
     public GameObject entityObject;
@@ -282,6 +283,14 @@ public class LineOfSight : MonoBehaviour
 
         return entityList;
     }
+
+    public List<EntityInfo> DetectedAllies()
+    {
+        var entities = Entity.ToEntities(entitiesDetected);
+
+        return entities.Where(entity => entity.npcType == entityInfo.npcType).ToList();
+    }
+
     public List<EntityInfo> EntitiesLOS()
     {
         var entityList = new List<EntityInfo>();
@@ -365,7 +374,7 @@ public class LineOfSight : MonoBehaviour
     }
     public bool HasLineOfSight(GameObject target)
     {
-
+        if (target == null) return false;
         var direction = V3Helper.Direction(target.transform.position, entityInfo.transform.position);
         var distance = V3Helper.Distance(target.transform.position, entityInfo.transform.position);
         if(!Physics.Raycast(entityInfo.transform.position, direction, distance, obstructionLayer))

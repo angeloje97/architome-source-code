@@ -106,6 +106,12 @@ namespace Architome
                 HandleNullMouseOver();
             }
 
+
+            if (gameManager.playableEntities.Count <= 0)
+            {
+                return;
+            }
+
             if (gameManager.playableEntities[0].CanAttack(entity.gameObject))
             {
                 SetCursor("Attack");

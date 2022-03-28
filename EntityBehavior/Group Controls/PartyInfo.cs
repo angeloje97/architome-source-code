@@ -172,7 +172,11 @@ namespace Architome
                         }
                         else if (targetManager.currentHover != null)
                         {
-                            Attack(targetManager.currentHover);
+                            if (members[0].GetComponent<EntityInfo>().CanAttack(targetManager.currentHover))
+                            {
+                                Attack(targetManager.currentHover);
+
+                            }
                         }
                     }
 

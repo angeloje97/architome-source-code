@@ -54,14 +54,19 @@ public class ProgressBarsBehavior : MonoBehaviour
             {
                 abilityManager = entityInfo.AbilityManager();
 
-                abilityManager.OnCastStart += OnCastStart;
-                abilityManager.OnCastRelease += OnCastRelease;
-                abilityManager.OnCancelCast += OnCancelCast;
-                abilityManager.OnCastChannelStart += OnCastChannelStart;
-                abilityManager.OnCastChannelEnd += OnCastChannelEnd;
-                abilityManager.OnCancelChannel += OnCancelChannel;
-            }
+                //abilityManager.OnCastStart += OnCastStart;
+                //abilityManager.OnCastRelease += OnCastRelease;
+                //abilityManager.OnCancelCast += OnCancelCast;
+                //abilityManager.OnChannelStart += OnCastChannelStart;
+                //abilityManager.OnChannelEnd += OnCastChannelEnd;
+                //abilityManager.OnCancelChannel += OnCancelChannel;
 
+                abilityManager.OnAbilityStart += OnAbilityStart;
+                abilityManager.OnAbilityEnd += OnAbilityEnd;
+                abilityManager.WhileCasting += WhileCasting;
+
+
+            }
         }
 
         if(GetComponentInParent<GraphicsInfo>())
@@ -154,6 +159,7 @@ public class ProgressBarsBehavior : MonoBehaviour
     }
     void HandleHideMana()
     {
+
         if(entityInfo && entityInfo.npcType == NPCType.Hostile)
         {
             if(resourceBar)
@@ -207,6 +213,33 @@ public class ProgressBarsBehavior : MonoBehaviour
     public void UpdateCastBar()
     {
         castBar.transform.parent.gameObject.SetActive(castBarActive);
+    }
+
+    public void OnAbilityStart(AbilityInfo ability)
+    {
+        if(!ability.vfx.showCastBar) { return; }
+
+        currentAbility = ability;
+        castBar.fillAmount = ability.progress;
+        castBarActive = true;
+
+        UpdateCastBar();
+    }
+
+    public void OnAbilityEnd(AbilityInfo ability)
+    {
+        if (!ability.vfx.showCastBar) return;
+
+        castBarActive = false;
+        UpdateCastBar();
+        
+    }
+
+    public void WhileCasting(AbilityInfo ability)
+    {
+        if (!castBarActive) return;
+
+        castBar.fillAmount = ability.progress;
     }
     public void OnCastStart(AbilityInfo ability)
     {

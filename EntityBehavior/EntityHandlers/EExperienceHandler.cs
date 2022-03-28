@@ -31,14 +31,15 @@ namespace Architome
         public void GainExp(float value)
         {
             if (!entityInfo.canLevel) { return; }
+            if(value < 0) { return; }
 
             entityInfo.entityStats.UpdateExperienceRequiredToLevel();
 
             if (entityInfo.entityStats.experience + value > entityInfo.entityStats.experienceReq)
             {
-                
+                var pastExperienceReq = entityInfo.entityStats.experienceReq;
                 LevelUp();
-                value = entityInfo.entityStats.experience + value - entityInfo.entityStats.experienceReq;
+                value = entityInfo.entityStats.experience + value - pastExperienceReq;
                 
                 GainExp(value);
             }

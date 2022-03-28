@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using UnityEngine.EventSystems;
 using Architome;
+using System;
 public class PortraitBehavior : MonoBehaviour
 {
     // Start is called before the first frame update
@@ -56,6 +56,10 @@ public class PortraitBehavior : MonoBehaviour
     public float currentExperience;
     public float experienceRequired;
 
+    public Action<EntityInfo, EntityInfo> OnEntityChange;
+
+    public EntityInfo entityInfoCheck;
+
     public void GetDependencies()
     {
         if(targetManager == null)
@@ -73,9 +77,20 @@ public class PortraitBehavior : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        HandleEvents();
         if (!isActive || entity == null) { return; }
         UpdateBars();
         UpdateLevel();
+
+    }
+
+    void HandleEvents()
+    {
+        if(entityInfoCheck != entity)
+        {
+            OnEntityChange?.Invoke(entityInfoCheck, entity);
+            entityInfoCheck = entity;
+        }
     }
 
 

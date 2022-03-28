@@ -59,10 +59,14 @@ public class ActionBarBehavior : MonoBehaviour
         if (!abilityInfo.entityInfo.isAlive) { return; }
         if(Input.GetKeyDown(keyBindings.keyBinds[keyBind]))
         {
-            if(abilityInfo.IsReady())
+            if (abilityInfo.IsReady())
             {
                 abilityInfo.Use();
+                return;
             }
+
+            abilityInfo.Recast();
+            
 
 
             //UpdateUI();
@@ -190,7 +194,13 @@ public class ActionBarBehavior : MonoBehaviour
     public void SetActionBar(AbilityInfo abilityInfo)
     {
         Debugger.InConsole(8463, $"{abilityInfo}");
-        if (abilityInfo.abilityIcon == null) { return; }
+        //if (abilityInfo.catalyst == null) return;
+        //var icon = abilityInfo.catalyst.GetComponent<CatalystInfo>().catalystIcon;
+
+        //if (icon == null) return;
+
+        if (abilityInfo.abilityIcon == null) return;
+
         this.abilityInfo = abilityInfo;
         iconMain.sprite = abilityInfo.abilityIcon;
         iconDark.sprite = abilityInfo.abilityIcon;

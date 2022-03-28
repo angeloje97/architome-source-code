@@ -16,23 +16,22 @@ public class CatalystDeathCondition : MonoBehaviour
 
     public void GetDependencies()
     {
-        if(catalystInfo == null)
+        catalystInfo = GetComponent<CatalystInfo>();
+
+        if (catalystInfo)
         {
-            if(gameObject.GetComponent<CatalystInfo>())
-            {
-                catalystInfo = gameObject.GetComponent<CatalystInfo>();
-                catalystInfo.OnWrongTargetHit += OnWrongTargetHit;
-                catalystInfo.OnTickChange += OnTickChange;
-                catalystInfo.OnReturn += OnReturn;
-            }
+            abilityInfo = catalystInfo.abilityInfo;
+
+            catalystInfo.OnWrongTargetHit += OnWrongTargetHit;
+            catalystInfo.OnTickChange += OnTickChange;
+            catalystInfo.OnReturn += OnReturn;
+            catalystInfo.OnCantFindEntity += OnCantFindEntity;
         }
-        if (abilityInfo == null)
+
+        if (abilityInfo)
         {
-            if(catalystInfo.abilityInfo)
-            {
-                conditions = catalystInfo.abilityInfo.destroyConditions;
-                abilityInfo = catalystInfo.abilityInfo;
-            }
+            conditions = catalystInfo.abilityInfo.destroyConditions;
+            abilityInfo = catalystInfo.abilityInfo;
         }
     }
     void Start()
@@ -57,7 +56,7 @@ public class CatalystDeathCondition : MonoBehaviour
             }
         }
 
-        
+
     }
 
     public void OnTickChange(CatalystInfo catalyst, int ticks)
@@ -69,6 +68,14 @@ public class CatalystDeathCondition : MonoBehaviour
                 DestroySelf("No Ticks");
             }
 
+        }
+    }
+
+    public void OnCantFindEntity(CatalystInfo catalyst)
+    {
+        if (conditions.destroyOnCantFindTarget)
+        {
+            DestroySelf("Cant Find Entity");
         }
     }
 
@@ -106,50 +113,44 @@ public class CatalystDeathCondition : MonoBehaviour
     public void HandleRange()
     {
         if(catalystInfo.range == -1) { return; }
-        if (conditions.destroyOnOutOfRange)
+        if (!conditions.destroyOnOutOfRange) return;
+        if (catalystInfo.currentRange > catalystInfo.range)
         {
-            if (catalystInfo.currentRange > catalystInfo.range)
+            DestroySelf("Out of Range");
+        }
+
+        if (gameObject.GetComponent<CatalystFreeScan>())
+        {
+            if (V3Helper.Abs(gameObject.transform.localScale) > catalystInfo.range*2)
             {
                 DestroySelf("Out of Range");
-            }
-
-            if (gameObject.GetComponent<CatalystFreeScan>())
-            {
-                if (V3Helper.Abs(gameObject.transform.localScale) > catalystInfo.range*2)
-                {
-                    DestroySelf("Out of Range");
-                }
             }
         }
     }
     public void HandleLiveTime()
     {
-        if(catalystInfo && abilityInfo)
-        {
-            if(catalystInfo.liveTime > abilityInfo.liveTime && conditions.destroyOnLiveTime)
-            {
-                DestroySelf("Expired");
-            }
-        }
+        if (catalystInfo == null || abilityInfo == null) return;
+        if (!conditions.destroyOnLiveTime) return;
+        if (catalystInfo.liveTime < abilityInfo.liveTime) return;
+
+        DestroySelf("Expired");
     }
 
 
-    public void DestroySelf(string reason)
+    public void DestroySelf(string reason = "Generic Destroy")
     {
         catalystInfo.OnCatalystDestroy?.Invoke(this);
         destroyReason = reason;
         Debugger.InConsole(1294, $"Catalyst Destroyed for {reason}");
-        StartCoroutine(DestroyDelay());
-        IEnumerator DestroyDelay()
+
+        ArchAction.Delay(() => 
         {
-            yield return new WaitForSeconds(destroyDelay);
-            if(gameObject!= null)
+            if (gameObject != null)
             {
                 catalystInfo.isDestroyed = true;
                 Destroy(gameObject);
-
             }
-        }
+        }, destroyDelay);
     }
     
 }

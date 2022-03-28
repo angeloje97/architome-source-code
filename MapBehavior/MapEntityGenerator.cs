@@ -6,11 +6,13 @@ using Architome;
 using System.Threading.Tasks;
 public class MapEntityGenerator : MonoBehaviour
 {
+    public static MapEntityGenerator active;
     // Start is called before the first frame update
     public MapInfo mapInfo;
     public bool generatedEntities;
 
     public Transform entityList;
+    public Transform miscEntities;
 
     [Serializable] public class PatrolGroup
     {
@@ -40,6 +42,11 @@ public class MapEntityGenerator : MonoBehaviour
             }
         }
     }
+
+    void Awake()
+    {
+        active = this;
+    }
     void Start()
     {
         GetDependencies();
@@ -51,7 +58,12 @@ public class MapEntityGenerator : MonoBehaviour
     {
         if(mapInfo.generateEntities)
         {
-            HandleEntities();
+            ArchAction.Delay(() => 
+            {
+
+                HandleEntities();
+            }, 1f);
+            
         }
         else
         {

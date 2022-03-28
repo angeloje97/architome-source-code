@@ -23,14 +23,15 @@ public class BuffStateChanger : MonoBehaviour
 
             originalEntityState = buffInfo.hostInfo.currentState;
 
-            if (!ApplyBuff())
-            {
-                buffInfo.Cleanse();
-            }
-            else
+            ApplyBuff();
+
+            if (applied == true)
             {
                 OnSuccessfulStateChange?.Invoke(this, stateToChange);
+                return;
             }
+
+            buffInfo.Cleanse();
         }
     }
 
@@ -39,11 +40,10 @@ public class BuffStateChanger : MonoBehaviour
         GetDependencies();
     }
 
-    public bool ApplyBuff()
+    public void ApplyBuff()
     {
-        bool applied = buffInfo.hostInfo.ChangeState(stateToChange);
+        applied = buffInfo.hostInfo.ChangeState(stateToChange);
 
-        return applied;
     }
 
     // Update is called once per frame
@@ -59,6 +59,7 @@ public class BuffStateChanger : MonoBehaviour
 
     public void HandleRemoveState(BuffInfo buff)
     {
+        if (!applied) return;
         var buffs = buff.hostInfo.Buffs().Buffs();
         var newState = EntityState.Active;
         foreach (var i in buffs)

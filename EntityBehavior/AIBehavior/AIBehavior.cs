@@ -133,26 +133,11 @@ public class AIBehavior : MonoBehaviour
     }
     public LineOfSight LineOfSight()
     {
-        foreach(Transform child in transform)
-        {
-            if(child.GetComponent<LineOfSight>())
-            {
-                return child.GetComponent<LineOfSight>();
-            }
-        }
-
-        return null;
+        return GetComponentInChildren<LineOfSight>();
     }
     public ThreatManager ThreatManager()
     {
-        foreach (Transform child in transform)
-        {
-            if (child.GetComponent<ThreatManager>())
-            {
-                return child.GetComponent<ThreatManager>();
-            }
-        }
-        return null;
+        return GetComponentInChildren<ThreatManager>();
     }
     public CombatBehavior CombatBehavior()
     {

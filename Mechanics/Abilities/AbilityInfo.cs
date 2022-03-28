@@ -5,6 +5,7 @@ using Architome.Enums;
 using Architome;
 using UnityEngine.UI;
 using System;
+using System.Threading.Tasks;
 
 public class AbilityInfo : MonoBehaviour
 {
@@ -45,6 +46,19 @@ public class AbilityInfo : MonoBehaviour
     public Vector3 locationLocked;
     public Vector3 directionLocked;
 
+    [Serializable]
+    public struct SummoningProperty
+    {
+        public bool summons;
+        public List<GameObject> SummonableEntities;
+
+        [Header("Summoning Settings")]
+        public float radius;
+        public float valueContributionToStats;
+    }
+
+    public SummoningProperty summoning;
+
     [Header("Catalyst Info")]
     public float speed = 35;
     public float range = 15;
@@ -75,10 +89,11 @@ public class AbilityInfo : MonoBehaviour
     public bool maxChargesOnStart = true;
 
     [Serializable]
-    public class AbilityVisualEffects
+    public struct AbilityVisualEffects
     {
         public bool showCastBar;
         public bool showChannelBar;
+        public bool showTargetIconOnTarget;
     }
 
     public AbilityVisualEffects vfx;
@@ -111,13 +126,43 @@ public class AbilityInfo : MonoBehaviour
     public bool growsForward;
     public bool growsWidth;
 
+    [Serializable]
+    public struct ChannelProperties
+    {
+        public bool enabled;
+        public bool active;
+        public float time;
+        public int invokeAmount;
+        public bool cancel;
+
+        [Header("Restrictions")]
+        public bool canMove;
+        public bool cancelChannelOnMove;
+        public float deltaMovementSpeed;
+
+    }
+
     [Header("ChannelProperties")]
+    public ChannelProperties channel;
+
+
     public float channelTime = 3;
     public float channelIntervals = 1f;
     public int channelInvokes = 0;
     public bool cancelChannelOnMove = false;
     public bool cantMoveWhenChanneling;
     public float channelMovementSpeedReduction;
+
+    public void OnValidate()
+    {
+        channel.enabled = abilityFunctions.Contains(AbilityFunction.Channel);
+        channel.time = channelTime;
+        channel.invokeAmount =(int)  (channelTime / channelIntervals);
+
+        channel.cancelChannelOnMove = cancelChannelOnMove;
+        channel.deltaMovementSpeed = channelMovementSpeedReduction;
+        
+    }
 
     [Header("Recastable Propertiers")]
     public float canRecast;
@@ -142,6 +187,7 @@ public class AbilityInfo : MonoBehaviour
     public bool cantMoveWhenCasting;
 
     [Header("AbilityRestrictions")]
+    public bool activated;
     public bool usesGlobalCoolDown;
     public bool playerAiming;
     public bool canCastSelf;
@@ -165,7 +211,7 @@ public class AbilityInfo : MonoBehaviour
 
 
     [Serializable]
-    public class DestroyConditions
+    public struct DestroyConditions
     {
         public bool destroyOnCollisions;
         public bool destroyOnStructure;
@@ -180,7 +226,7 @@ public class AbilityInfo : MonoBehaviour
     public DestroyConditions destroyConditions;
 
     [Serializable]
-    public class RecastProperties
+    public struct RecastProperties
     {
         public bool recastable;
         public bool isActive;
@@ -209,11 +255,13 @@ public class AbilityInfo : MonoBehaviour
     public float currentCharges;
     public float globalCoolDownTimer;
     public bool globalCoolDownActive;
+    public bool canceledCast;
     public float channelTimer;
     public bool isChanneling;
     public bool isCasting;
     public float timerPercent;
     public bool timerPercentActivated;
+    public float progress;
 
     [Header("Lock On Behaviors")]
     private bool wantsToCast;
@@ -307,6 +355,7 @@ public class AbilityInfo : MonoBehaviour
     }
     public void OnTryCast(AbilityInfo ability)
     {
+        if (!ability.IsReady()) return;
         if (ability.isAttack) { return; }
         if(isAttack)
         {
@@ -323,6 +372,16 @@ public class AbilityInfo : MonoBehaviour
     }
     public void OnTryMove(Movement movement)
     {
+        if (wantsToCast)
+        {
+            DeactivateWantsToCast();
+        }
+
+        if (isCasting)
+        {
+            CancelCast();
+        }
+
         target = null;
         targetLocked = null;
     }
@@ -337,29 +396,46 @@ public class AbilityInfo : MonoBehaviour
     }
     public void OnNewPathTarget(Movement movement, Transform before, Transform after)
     {
-        if(target != null && after != target.transform)
+        if (abilityType != AbilityType.LockOn) return;
+        if(target && after == target.transform) { return; }
+        if (wantsToCast)
         {
-            if (wantsToCast)
-            {
-                DeactivateWantsToCast();
-                
-            }
-
-            if(isAttack)
-            {
-                target = null;
-                targetLocked = null;
-                isAutoAttacking = false;
-            }
+            DeactivateWantsToCast();
         }
+
+        if (isAutoAttacking)
+        {
+            CancelCast();
+        }
+
+        target = null;
+        targetLocked = null;
+        isAutoAttacking = false;
+        
+
+        //if(target != null && after != target.transform)
+        //{
+        //    if (wantsToCast)
+        //    {
+        //        DeactivateWantsToCast();
+                
+        //    }
+
+        //    if(isAttack)
+        //    {
+        //        target = null;
+        //        targetLocked = null;
+        //        isAutoAttacking = false;
+        //    }
+        //}
     }
     public void HandleTimers()
     {
         CoolDownTimer();
-        CastTimer();
-        ChannelTimer();
+        //CastTimer();
+        //ChannelTimer();
         GlobalCoolDownTimer();
-        HandleCastTimerPercent();
+        //HandleCastTimerPercent();
 
         void CoolDownTimer()
         {
@@ -414,9 +490,8 @@ public class AbilityInfo : MonoBehaviour
                 if(castTimer <= 0)
                 {
                     EndChannel();
-                    abilityManager.OnCastChannelInterval?.Invoke(this);
+                    //abilityManager.OnCastChannelInterval?.Invoke(this);
                     HandleAbilityType();
-                    StopCoroutine(ChannelCast());
                     entityInfo.stats.movementSpeed += channelMovementSpeedReduction;
                     if(cantMoveWhenChanneling)
                     {
@@ -446,41 +521,134 @@ public class AbilityInfo : MonoBehaviour
             }
         }
     }
+
+    async Task<bool> CastTimer()
+    {
+        if (isCasting) return false;
+
+        abilityManager.OnCastStart?.Invoke(this);
+        isCasting = true;
+
+        var success = true;
+
+        while (castTimer < castTime)
+        {
+            await Task.Yield();
+            WhileCasting();
+            castTimer += Time.deltaTime;
+            timerPercent = castTimer / castTime;
+            abilityManager.WhileCasting?.Invoke(this);
+            HandleCastTimerPercent();
+            progress = castTimer / castTime;
+
+            if (!CanContinue())
+            {
+                success = false;
+                break;
+                
+            }
+
+            if (canceledCast)
+            {
+                canceledCast = false;
+                success = false;
+                abilityManager.OnCancelCast?.Invoke(this);
+                break;
+            }
+
+
+        }
+
+
+        castTimer = 0;
+
+
+        abilityManager.OnCastEnd?.Invoke(this);
+        return success;
+
+
+        bool CanContinue()
+        {
+            if (!IsCorrectTarget(targetLocked))
+            {
+                return false;
+            }
+
+            if (canceledCast)
+            {
+                canceledCast = false;
+                return false;
+            }
+
+            if (targetLocked != target)
+            {
+                targetLocked = target;
+            }
+
+            return true;
+        }
+    }
     public void EndChannel()
     {
         castTimer = 0;
         isChanneling = false;
         isCasting = false;
-        abilityManager.currentlyCasting = null;
+        //abilityManager.currentlyCasting = null;
         castTime = originalCastTime;
         channelInvokes = 0;
-        abilityManager.OnCastChannelEnd?.Invoke(this);
+        abilityManager.OnCastEnd?.Invoke(this);
+        //abilityManager.OnCastChannelEnd?.Invoke(this);
     }
-    public void Cast()
+
+    public async Task Progress()
     {
-        if (!active) { return; }
-        if (isCasting) { return; }
-        Recast();
-        CancelAutoAttack();
-        if (abilityManager.currentlyCasting != null){ return; }
-        if (!CanCast()) return;
-        if(globalCoolDownActive) { return; }
-        if(currentCharges <= 0) { return; }
-        if(onlyCastOutOfCombat && entityInfo.isInCombat) { return; }
+        while (isCasting || channel.active)
+        {
+            await Task.Yield();
+        }
+    }
+    async public void Cast()
+    {
+        Activate();
+        return;
+        if (!CanCast2()) return;
 
         HandleCastMovement();
-        isCasting = true;
         locationLocked = location;
-        abilityManager.currentlyCasting = gameObject.GetComponent<AbilityInfo>();
+        
         if (usesGlobalCoolDown) { globalCoolDownActive = true; }
 
         HandleNoMoveOnCast(false);
         HandleAutoAttackCast();
         HandleCastMovementSpeed();
-        Recast(true);
+
+        abilityManager.currentlyCasting = this;
+
+        abilityManager.OnAbilityStart?.Invoke(this);
         abilityManager.OnCastStart?.Invoke(this);
 
+        var success = await CastTimer();
 
+        abilityManager.OnCastEnd?.Invoke(this);
+
+        HandleNoMoveOnCast(true);
+
+        if (!success)
+        {
+            abilityManager.OnAbilityEnd?.Invoke(this);
+            abilityManager.currentlyCasting = null;
+            return;
+        }
+
+        EndCast();
+
+        await ExtraAbilityFunctions();
+
+        abilityManager.OnAbilityEnd?.Invoke(this);
+
+        abilityManager.currentlyCasting = null;
+
+        
         void HandleCastMovement()
         {
             if(movement)
@@ -497,6 +665,67 @@ public class AbilityInfo : MonoBehaviour
         }
     }
 
+    public async Task ExtraAbilityFunctions()
+    {
+        await ChannelTimer();
+
+    }
+
+    public bool IsBusy()
+    {
+        if (isCasting) return true;
+
+        if (channel.active) return true;
+
+        return false;
+    }
+
+    public async Task ChannelTimer()
+    {
+        if (!channel.enabled) return;
+        if (channel.active) return;
+
+        channel.active = true;
+
+        abilityManager.OnChannelStart?.Invoke(this);
+
+        float timer = channel.time;
+        int invokes = channel.invokeAmount;
+        float percentPerInvoke = (channel.time / channel.invokeAmount);
+
+        Debugger.InConsole(4104, $"Total invokes is {invokes}");
+
+        while (timer > 0)
+        {
+            await Task.Yield();
+            timer -= Time.deltaTime;
+            var percent = timer / channel.time;
+
+            castTimer = castTime * percent;
+            
+
+
+            if (invokes > (timer / channelIntervals) + 1 && invokes > 0)
+            {
+                invokes--;
+                abilityManager.OnChannelInterval?.Invoke(this);
+                Debugger.InConsole(4104, $"{invokes} invokes left");
+                
+            }
+
+            if (channel.cancel)
+            {
+                abilityManager.OnCancelChannel?.Invoke(this);
+                channel.cancel = false;
+                break;
+            }
+        }
+
+        channel.active = false;
+
+        abilityManager.OnChannelEnd?.Invoke(this);
+    }
+
     public void WhileCasting()
     {
         abilityManager.WhileCasting?.Invoke(this);
@@ -505,38 +734,50 @@ public class AbilityInfo : MonoBehaviour
         {
             CancelCast();
         }
+        if (targetLocked != target)
+        {
+            targetLocked = target;
+        }
     }
 
     public void WhileChanneling()
     {
         abilityManager.WhileChanneling?.Invoke(this);
     }
-    public void Recast(bool activate = false, bool deactivate = false)
+    public void Recast()
     {
-        if (!recastProperties.recastable) { return; }
-
-        if(activate)
+        if (!recastProperties.isActive) return;
+        if (recastProperties.maxRecast == -1)
         {
-            if(recastProperties.isActive != activate)
-            {
-                recastProperties.isActive = activate;
-                recastProperties.currentRecast = recastProperties.maxRecast;
-                ArchAction.Delay(() => { Recast(false, true); }, recastProperties.recastTimeFrame);
-            }
+            recastProperties.currentRecast += 1;
+            recastProperties.OnRecast?.Invoke(this);
             return;
         }
 
-        if(deactivate)
-        {
-            recastProperties.isActive = false;
-            recastProperties.currentRecast = 0;
-            return;
-        }
+        if (recastProperties.currentRecast < recastProperties.maxRecast) return;
 
-        if (!recastProperties.isActive) { return; }
-        if (recastProperties.currentRecast == 0 && recastProperties.maxRecast != -1) return;
+        recastProperties.currentRecast += 1;
 
         recastProperties.OnRecast?.Invoke(this);
+    }
+
+    async void SetRecast()
+    {
+        if (!recastProperties.recastable) return;
+        if (recastProperties.isActive) return;
+
+        recastProperties.isActive = true;
+
+        var recastTimer = 0f;
+
+        while (recastTimer < recastProperties.recastTimeFrame)
+        {
+            await Task.Yield();
+            recastTimer += Time.deltaTime;
+
+        }
+
+        recastProperties.isActive = false;
 
     }
     public bool CanCast()
@@ -548,75 +789,145 @@ public class AbilityInfo : MonoBehaviour
         return true;
 
         
-        bool HandleRequiresTargetLocked()
+        
+    }
+
+    public bool CanCast2()
+    {
+        if (!IsReady()) return false;
+        if (IsBusy()) return false;
+        if (!AbilityManagerCanCast()) return false;
+        if (!HasManaRequired()) return false;
+        if (!HandleRequiresTargetLocked()) return false;
+        if (!CorrectCombat()) return false;
+
+        return true;
+
+        bool CorrectCombat()
         {
-            if (!requiresLockOnTarget)
+            if (!onlyCastOutOfCombat) return true;
+
+            if (onlyCastOutOfCombat && !entityInfo.isInCombat)
             {
                 return true;
             }
 
-            if(onlyCastSelf || abilityType == AbilityType.Use)
+            return false;
+        }
+
+        bool AbilityManagerCanCast()
+        {
+            if (abilityManager.currentlyCasting == null) return true;
+            if (abilityManager.currentlyCasting && abilityManager.currentlyCasting.isAttack)
             {
-                target = entityObject;
+                abilityManager.currentlyCasting.CancelCast();
+                return true;
             }
 
-            if (!target)
-            {
-                return false;
-            }
-
-            if (target)
-            {
-                targetLocked = target;
-                if (!IsCorrectTarget(targetLocked)) { return false; }
-                movement.MoveTo(target.transform, range);
-                if (targetLocked == null) { return false; }
-            }
-
-            if (IsInRange() && HasLineOfSight()) { return true; }
-            
             return false;
 
-            bool IsInRange()
-            {
-                if(range == -1)
-                {
-                    return true;
-                }
-
-                if (V3Helper.Distance(target.transform.position, entityObject.transform.position) > range)
-                {
-                    movement.MoveTo(target.transform, range - 1);
-                    ActivateWantsToCast();
-                    return false;
-                }
-                return true;
-            }
-
-            bool HasLineOfSight()
-            {
-                if (!lineOfSight)
-                {
-                    return true;
-                }
-
-                if (!requiresLineOfSight)
-                {
-                    return true;
-                }
-
-                if (!lineOfSight.HasLineOfSight(target))
-                {
-                    if (movement)
-                    {
-                        movement.MoveTo(target.transform);
-                        ActivateWantsToCast();
-                    }
-                    return false;
-                }
-                return true;
-            }
         }
+    }
+
+    bool HandleRequiresTargetLocked()
+    {
+        if (!requiresLockOnTarget)
+        {
+            locationLocked = location;
+            return true;
+        }
+
+
+        if (onlyCastSelf || abilityType == AbilityType.Use)
+        {
+            target = entityObject;
+        }
+
+        if (!target)
+        {
+            return false;
+        }
+
+        if (target)
+        {
+            targetLocked = target;
+            if (!IsCorrectTarget(targetLocked)) { return false; }
+            movement.MoveTo(target.transform, range);
+            if (targetLocked == null) { return false; }
+        }
+
+        if (IsInRange() && HasLineOfSight()) { return true; }
+
+        return false;
+
+        bool IsInRange()
+        {
+            if (range == -1)
+            {
+                return true;
+            }
+
+            if (V3Helper.Distance(target.transform.position, entityObject.transform.position) > range)
+            {
+                movement.MoveTo(target.transform, range);
+                ActivateWantsToCast();
+                return false;
+            }
+            return true;
+        }
+
+        bool HasLineOfSight()
+        {
+            if (!lineOfSight)
+            {
+                return true;
+            }
+
+            if (!requiresLineOfSight)
+            {
+                return true;
+            }
+
+            if (!lineOfSight.HasLineOfSight(target))
+            {
+                if (movement)
+                {
+                    movement.MoveTo(target.transform);
+                    ActivateWantsToCast();
+                }
+                return false;
+            }
+            return true;
+        }
+    }
+
+
+    public bool CanCastAt(GameObject target)
+    {
+        if (entityInfo.CanAttack(target) && isHarming)
+        {
+            return true;
+        }
+
+        if (entityInfo.CanHelp(target) && (isHealing || isAssisting))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public bool AbilityIsInRange(GameObject target)
+    {
+        var distance = catalystInfo.range;
+
+        if (V3Helper.Distance(target.transform.position, entityObject.transform.position) <= distance)
+        {
+            return true;
+        }
+
+
+        return false;
     }
     public bool HasManaRequired()
     {
@@ -640,6 +951,7 @@ public class AbilityInfo : MonoBehaviour
         }
 
         abilityManager.OnCastRelease?.Invoke(this);
+
         HandleResources();
         HandleChannel();
         HandleAbilityType();
@@ -647,45 +959,41 @@ public class AbilityInfo : MonoBehaviour
         HandleNoMoveOnCast(true);
         HandleCanMoveOnChannel();
         HandleCastMovementSpeed();
+        SetRecast();
 
 
         void HandleResources()
         {
-            abilityManager.currentlyCasting = null;
             
             currentCharges--;
             timerPercentActivated = false;
             timerPercent = 0f;
-            HandleCastStatus();
+            //HandleCastStatus();
             UseMana();
             HandleResourceProduction();
 
             void HandleResourceProduction()
             {
-                entityInfo.Gain(manaProduced);
-                entityInfo.Gain(manaProducedPercent * entityInfo.maxMana);
+                entityInfo.GainResource(manaProduced);
+                entityInfo.GainResource(manaProducedPercent * entityInfo.maxMana);
             }
 
-            void HandleCastStatus()
-            {
-                if (!abilityFunctions.Contains(AbilityFunction.Channel)) isCasting = false;
-            }
             
         }
         void HandleChannel()
         {
-            if(abilityFunctions.Contains(AbilityFunction.Channel))
-            {
-                abilityManager.OnCastChannelStart?.Invoke(this);
-                isChanneling = true;
-                isCasting = true;
-                castTimer = channelTime;
-                castTime = channelTime;
-                abilityManager.currentlyCasting = GetComponent<AbilityInfo>();
-                channelInvokes++;
-                entityInfo.stats.movementSpeed -= channelMovementSpeedReduction;
-                StartCoroutine(ChannelCast());
-            }
+            //if (abilityFunctions.Contains(AbilityFunction.Channel))
+            //{
+            //    abilityManager.OnCastChannelStart?.Invoke(this);
+            //    isChanneling = true;
+            //    isCasting = true;
+            //    castTimer = channelTime;
+            //    castTime = channelTime;
+            //    abilityManager.currentlyCasting = GetComponent<AbilityInfo>();
+            //    channelInvokes++;
+            //    entityInfo.stats.movementSpeed -= channelMovementSpeedReduction;
+            //    StartCoroutine(ChannelCast());
+            //}
         }
         bool IsInRange()
         {
@@ -699,6 +1007,8 @@ public class AbilityInfo : MonoBehaviour
                 return false;
             }
 
+            if (range == -1) return true;
+
             if(V3Helper.Distance(entityObject.transform.position, targetLocked.transform.position) > range)
             {
                 return false; 
@@ -708,6 +1018,7 @@ public class AbilityInfo : MonoBehaviour
         bool HasLineOfSight()
         {
             if (!requiresLockOnTarget) { return true; }
+            if(range == -1) { return true; }
             if(!requiresLineOfSight || lineOfSight == null)
             {
                 return true;
@@ -741,7 +1052,7 @@ public class AbilityInfo : MonoBehaviour
             {
                 if (targetInfo.health == targetInfo.maxHealth)
                 {
-                    isAutoAttacking = false;
+                    //isAutoAttacking = false;
                 }
             }
         }
@@ -773,33 +1084,14 @@ public class AbilityInfo : MonoBehaviour
 
         }
     }
-    public IEnumerator ChannelCast()
-    {
-        while(isChanneling)
-        {
-            yield return new WaitForSeconds(channelIntervals);
-
-            if (isChanneling)
-            {
-                if (channelInvokes > 0)
-                {
-                    //RepeatAnim();
-                    abilityManager.OnCastChannelInterval?.Invoke(this);
-
-                }
-                HandleAbilityType();
-                channelInvokes++;
-                
-            }
-            
-        }
-        
-    }
     public void CancelCast(bool resetTargets = false, bool stopMoving = false)
     {
+        if (!isCasting) return;
+
         if(abilityManager)
         {
-            abilityManager.currentlyCasting = null;
+            //abilityManager.currentlyCasting = null;
+            abilityManager.OnCastEnd?.Invoke(this);
             abilityManager.OnCancelCast?.Invoke(this);
         }
 
@@ -814,10 +1106,9 @@ public class AbilityInfo : MonoBehaviour
             }
         }
 
-        timerPercentActivated = false;
 
-        castTimer = 0;
-        isCasting = false;
+
+        canceledCast = true;
 
         
 
@@ -829,9 +1120,12 @@ public class AbilityInfo : MonoBehaviour
     }
     public void CancelChannel()
     {
+        if (!isChanneling) return;
+        channel.cancel = true;
         if (abilityManager)
         {
-            abilityManager.currentlyCasting = null;
+            //abilityManager.currentlyCasting = null;
+            
             abilityManager.OnCancelChannel?.Invoke(this);
         }
 
@@ -845,7 +1139,6 @@ public class AbilityInfo : MonoBehaviour
         timerPercentActivated = false;
 
         EndChannel();
-        StopCoroutine(ChannelCast());
     }
     public void HandleAbilityType()
     {
@@ -881,7 +1174,7 @@ public class AbilityInfo : MonoBehaviour
             Instantiate(catalyst, entityObject.transform.position, transform.localRotation);
 
 
-            if (!isChanneling && !isAttack)
+            if (!channel.enabled && !isAttack)
             {
                 targetLocked = null;
                 target = null;
@@ -896,12 +1189,6 @@ public class AbilityInfo : MonoBehaviour
             catalyst.GetComponent<CatalystInfo>().abilityInfo = this;
             Instantiate(catalyst, entityObject.transform.position, transform.localRotation);
 
-            if(!isChanneling && !isAttack)
-            {
-                targetLocked = null;
-                target = null;
-
-            }
 
             abilityManager.OnCatalystRelease?.Invoke(this);
         }
@@ -989,7 +1276,7 @@ public class AbilityInfo : MonoBehaviour
         if(target == null) {
             DeactivateWantsToCast();
             return; }
-        if(CanCast())
+        if(CanCast2())
         {
             Cast();
             DeactivateWantsToCast();
@@ -1018,9 +1305,9 @@ public class AbilityInfo : MonoBehaviour
         
         if (catalyst)
         {
-            
             catalystInfo = catalyst.GetComponent<CatalystInfo>();
 
+            abilityIcon = catalystInfo.catalystIcon;
             range = catalystInfo.range;
             speed = catalystInfo.speed;
             
@@ -1081,14 +1368,15 @@ public class AbilityInfo : MonoBehaviour
     public bool IsReady()
     {
         if(!active) { return false; }
+
+        if (globalCoolDownActive) return false;
+
         if(entityInfo.mana < (manaRequired + manaRequiredPercent*entityInfo.maxMana))
         {
             return false;
         }
-        if(currentCharges <= 0)
-        {
-            return false;
-        }
+
+        if(currentCharges <= 0) { return false; }
 
         return true;
     }
@@ -1176,5 +1464,226 @@ public class AbilityInfo : MonoBehaviour
         this.target = target;
         Cast();
     }
+
+
+    //New Generation of Casting;
+
+    public async void Activate()
+    {
+        if (activated) return;
+        if (!CanCast2()) return;
+
+        activated = true;
+
+        abilityManager.OnAbilityStart?.Invoke(this);
+        abilityManager.currentlyCasting = this;
+
+        bool success = await Casting();
+
+        if (success)
+        {
+            await Channeling();
+        }
+
+        abilityManager.OnAbilityEnd?.Invoke(this);
+        abilityManager.currentlyCasting = null;
+        
+        
+
+        activated = false;
+        HandleAttack();
+        
+        if (!isAutoAttacking)
+        {
+            ClearTargets();
+        }
+
+        async Task<bool> Casting()
+        {
+            var success = true;
+            var timer = 0f;
+            progress = 0;
+
+            BeginCast();
+
+            while (timer < castTime && castTime > 0)
+            {
+                await Task.Yield();
+                timer += Time.deltaTime;
+                progress = timer / castTime;
+
+                WhileCasting1();
+
+                if (!CanContinue())
+                {
+                    success = false;
+                    break;
+                }
+            }
+
+
+            EndCast1();
+
+            return success;
+
+            void BeginCast()
+            {
+                isCasting = true;
+                timerPercentActivated = false;
+                abilityManager.OnCastStart?.Invoke(this);
+            }
+
+            void EndCast1()
+            {
+                if (success)
+                {
+                    EndCast();
+                }
+                isCasting = false;
+                timerPercentActivated = false;
+                
+            }
+
+            void WhileCasting1()
+            {
+                HandleTimerPercent();
+
+                abilityManager.WhileCasting?.Invoke(this);
+
+                void HandleTimerPercent()
+                {
+                    if (timerPercentActivated) return;
+                    if (progress < catalystInfo.releasePercent) return;
+
+                    timerPercentActivated = true;
+
+
+                    abilityManager.OnCastReleasePercent?.Invoke(this);
+                }
+            }
+        }
+
+        async Task Channeling()
+        {
+            if (!channel.enabled) return;
+            if (channel.active) return;
+
+
+            StartChannel();
+
+            var timer = 0f;
+            
+
+            float progressPerInvoke = (1f / channel.invokeAmount);
+            float progressBlock = progressPerInvoke;
+
+            while (timer < channel.time)
+            {
+                await Task.Yield();
+                timer += Time.deltaTime;
+                progress = 1 - (timer / channel.time);
+
+                abilityManager.WhileCasting?.Invoke(this);
+
+                if (!CanContinue())
+                {
+                    break;
+                }
+
+                if (progressBlock < (timer / channel.time))
+                {
+                    HandleAbilityType();
+                    abilityManager.OnChannelInterval?.Invoke(this);
+                    progressBlock += progressPerInvoke;
+                }
+
+            }
+
+            EndChannel();
+
+            
+
+            void StartChannel()
+            {
+                progress = 1;
+                channel.active = true;
+                abilityManager.OnChannelStart?.Invoke(this);
+            }
+
+            void EndChannel()
+            {
+                progress = 0;
+                channel.active = false;
+                abilityManager.OnChannelEnd?.Invoke(this);
+            }
+        }
+
+        async void HandleAttack()
+        {
+            if (!success) return;
+            if (!isAttack) return;
+
+            isAutoAttacking = true;
+            var target = targetLocked;
+
+            while (currentCharges <= 0)
+            {
+                await Task.Yield();
+            }
+
+            if (!isAutoAttacking) return;
+            if (target != targetLocked) return;
+            Cast();
+        }
+    }
+
+    public bool CanContinue()
+    {
+        if (targetLocked)
+        {
+            if (!IsCorrectTarget(targetLocked))
+            {
+                return false;
+            }
+        }
+
+        if (canceledCast && isCasting)
+        {
+            canceledCast = false;
+            return false;
+        }
+
+        if (channel.active && channel.cancel)
+        {
+            channel.cancel = false;
+            return false;
+        }
+
+        if (!entityInfo.isAlive)
+        {
+            return false;
+        }
+
+        
+        return true;
+    }
+    
+
+    public void ClearTargets()
+    {
+        target = null;
+        targetLocked = null;
+    }
+
+
+
+    
+    
+
+    
+
+    
+
+
 
 }

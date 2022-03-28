@@ -16,9 +16,14 @@ public class BuffProperties
     public float intervals;
     public float time;
     public float radius;
-    public int stacksPerApplication;
-    public bool selfBuffOnDestroy;
+    [Header("Stacks")]
     public bool canStack;
+    public bool loseStackAndResetTimer;
+    public int stacksPerApplication;
+    public int maxStacks;
+    public float valueStackMultiplier;
+
+    public bool selfBuffOnDestroy;
     public bool reapplyResetsTimer;
     public bool reapplyResetsBuff;
 }
@@ -69,9 +74,9 @@ public class BuffInfo : MonoBehaviour
     public Action<BuffInfo> OnBuffInterval;
     public Action<BuffInfo> OnBuffDeplete;
     public Action<BuffInfo> OnBuffEnd;
+    public Action<BuffInfo, int, float> OnStack;
     public Action<BuffInfo, float, float> OnChangeValue;
 
-    public Action<int> OnStack;
 
     //static variables
 
@@ -135,9 +140,35 @@ public class BuffInfo : MonoBehaviour
 
     public void OnBuffStack(BuffInfo buff)
     {
-        if(buff != this) { return; }
+        if(buff.buffId != buffId) { return; }
+        if(stacks == properties.maxStacks) { return; }
+        if (!properties.canStack) { return; }
 
-        stacks++;
+        ChangeStack(properties.stacksPerApplication);
+    }
+
+    public void ChangeStack(int amount)
+    {
+        var newStacks = stacks + amount;
+
+        if (newStacks > properties.maxStacks)
+        {
+            newStacks = properties.maxStacks;
+        }
+        if (newStacks < 0)
+        {
+            newStacks = 0;
+        }
+
+        var stackDifference = newStacks - stacks;
+
+        var valueIncrease = (sourceAbility.value * properties.valueContributionToBuff) * properties.valueStackMultiplier * stackDifference;
+        properties.value += valueIncrease;
+
+        stacks = newStacks;
+
+        OnStack?.Invoke(this, stacks, valueIncrease);
+
     }
 
     public void OnResetBuff(BuffInfo buff)
@@ -157,8 +188,6 @@ public class BuffInfo : MonoBehaviour
         OnChangeValue?.Invoke(this, properties.value, newValue);
         properties.value = newValue;
     }
-
-
     public void HandleTimer()
     {
         HandleBuffTimer();
@@ -173,6 +202,12 @@ public class BuffInfo : MonoBehaviour
             }
             if (buffTimer <= 0)
             {
+                if (properties.canStack && properties.loseStackAndResetTimer && stacks > 1)
+                {
+                    buffTimer = properties.time;
+                    ChangeStack(-1);
+                    return;
+                }
                 buffTimer = 0;
                 buffTimeComplete = true;
                 OnBuffCompletion?.Invoke(this);
@@ -180,7 +215,6 @@ public class BuffInfo : MonoBehaviour
             }
         }
     }
-
     public void Deplete()
     {
         OnBuffDeplete?.Invoke(this);
@@ -194,6 +228,7 @@ public class BuffInfo : MonoBehaviour
     }
     public void CompleteEarly()
     {
+        stacks = 0;
         buffTimer = 0;
     }
     public IEnumerator Expire()
@@ -293,4 +328,6 @@ public class BuffInfo : MonoBehaviour
             target.Heal(combatData);
         }
     }
+
+    
 }

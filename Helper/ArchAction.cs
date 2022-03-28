@@ -25,7 +25,7 @@ namespace Architome
 
             action();
         }
-
+        
         public static async void Update(Action action)
         {
             while(true)

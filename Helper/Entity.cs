@@ -52,6 +52,20 @@ public class Entity : MonoBehaviour
         return entityList;
     }
 
+    public static List<EntityInfo> ToEntities(List<GameObject> entityObjects)
+    {
+        List<EntityInfo> entities = new();
+        foreach (var entity in entityObjects)
+        {
+            if (entity.GetComponent<EntityInfo>())
+            {
+                entities.Add(entity.GetComponent<EntityInfo>());
+            }
+        }
+
+        return entities;
+    }
+
     public static bool IsOfEntity(GameObject objectCheck)
     {
         if(objectCheck.GetComponent<EntityInfo>() || objectCheck.GetComponentInParent<EntityInfo>())

@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 using Architome.Enums;
+using TMPro;
 
 namespace Architome
 {
@@ -21,6 +22,8 @@ namespace Architome
             public Image mainSprite;
             public Image backGroundSprite;
             public Image borderSprite;
+            public TextMeshProUGUI stacks;
+            public Image stackBackDrop;
         }
 
         [Serializable]
@@ -62,6 +65,7 @@ namespace Architome
             SetBorderColor();
             SetSpriteIcons();
             SetEventListeners();
+            ManageStackNum();
 
             isActive = true;
 
@@ -74,6 +78,16 @@ namespace Architome
                 var buffColor = DetermineColor(buff.buffTargetType);
                 dependencies.borderSprite.color = buffColor;
             }
+
+            void ManageStackNum()
+            {
+                ArchAction.Delay(() => { }, .125f);
+                if (!buff.properties.canStack) return;
+                dependencies.stackBackDrop.gameObject.SetActive(buff.properties.canStack);
+                dependencies.stacks.enabled = true;
+                dependencies.stacks.text = $"{buff.stacks}";
+            }
+
 
             void SetSpriteIcons()
             {
@@ -98,6 +112,7 @@ namespace Architome
             {
                 buff.OnBuffEnd += OnBuffEnd;
                 buff.hostInfo.OnLifeChange += OnLifeChange;
+                buff.OnStack += OnStack;
             }
 
 
@@ -127,6 +142,11 @@ namespace Architome
             {                
                 DestroySelf();
             }
+        }
+
+        public void OnStack(BuffInfo buff, int stackNum, float deltaValue)
+        {
+            dependencies.stacks.text = $"{stackNum}";
         }
 
         public void SetSprite(Sprite sprite)
