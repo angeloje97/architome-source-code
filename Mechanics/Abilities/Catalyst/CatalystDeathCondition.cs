@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome;
+using System.Threading.Tasks;
 public class CatalystDeathCondition : MonoBehaviour
 {
     // Start is called before the first frame update
@@ -139,18 +140,27 @@ public class CatalystDeathCondition : MonoBehaviour
 
     public void DestroySelf(string reason = "Generic Destroy")
     {
-        catalystInfo.OnCatalystDestroy?.Invoke(this);
-        destroyReason = reason;
-        Debugger.InConsole(1294, $"Catalyst Destroyed for {reason}");
-
-        ArchAction.Delay(() => 
+        if (catalystInfo.isDestroyed) return;
+        catalystInfo.isDestroyed = true;
+        try
         {
-            if (gameObject != null)
+            catalystInfo.OnCatalystDestroy?.Invoke(this);
+            destroyReason = reason;
+            Debugger.InConsole(1294, $"Catalyst Destroyed for {reason}");
+
+            ArchAction.Delay(() =>
             {
-                catalystInfo.isDestroyed = true;
-                Destroy(gameObject);
-            }
-        }, destroyDelay);
+                if (gameObject != null)
+                {
+                    Destroy(gameObject);
+                }
+            }, destroyDelay);
+        }
+        catch
+        {
+
+        }
+        
     }
     
 }

@@ -83,7 +83,7 @@ namespace Architome
 
         public void OnCombatChange(bool val)
         {
-            if (entityInfo.currentState == EntityState.MindControlled)
+            if (entityInfo.states.Contains(EntityState.MindControlled))
             {
                 HandleWalking(true);
                 HandleSheathing(true);

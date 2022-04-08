@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
 using System;
+using System.Linq;
 using Architome;
 
-public class CharacterInfo : MonoBehaviour
+public class CharacterInfo : EntityProp
 {
     [Serializable]
     public struct CharProperties
@@ -17,47 +18,64 @@ public class CharacterInfo : MonoBehaviour
 
     // Start is called before the first frame update
     public GameObject entityObject;
-
-    public EntityInfo entityInfo;
     public Movement movement;
     public AbilityManager abilityManager;
     public AbilityInfo currentCasting;
     public List<GameObject> characterProperties;
     public Stats totalEquipmentStats;
     public bool sheathed;
+    public bool isCasting;
     public List<EquipmentSlot> equipment;
 
     public Vector3 currentDirection;
 
     CharacterTaskHandler taskHandler;
+    CharacterAbilityHandler abilityHandler;
 
     public Action<EquipmentSlot, Equipment, Equipment> OnChangeEquipment;
     public Action<bool> OnChangeSheath;
 
+
     bool sheathCheck;
-    public void GetDependencies()
+    public new void GetDependencies()
     {
-        if(movement == null)
-        {
-            if(entityInfo == null)
-            {
-                if(GetComponentInParent<EntityInfo>())
-                {
-                    entityInfo = GetComponentInParent<EntityInfo>();
-                    entityObject = entityInfo.gameObject;
+        base.GetDependencies();
 
-                    if(entityInfo.Movement())
-                    {
-                        movement = entityInfo.Movement();
-                    }
-                }
-            }
-        }
-
-        if(abilityManager == null && entityInfo && entityInfo.AbilityManager())
+        if (entityInfo)
         {
+            movement = entityInfo.Movement();
             abilityManager = entityInfo.AbilityManager();
         }
+
+        if (movement)
+        {
+
+        }
+
+        if (abilityManager)
+        {
+
+        }
+
+        //if(movement == null)
+        //{
+        //    if(entityInfo == null)
+        //    {
+        //        if(GetComponentInParent<EntityInfo>())
+        //        {
+        //            entityInfo = GetComponentInParent<EntityInfo>();
+        //            entityObject = entityInfo.gameObject;
+
+        //            if(entityInfo.Movement())
+        //            {
+        //                movement = entityInfo.Movement();
+        //            }
+        //        }
+        //    }
+        //}
+
+        abilityHandler.SetCharacter(this);
+
     }
 
     public void GetProperties()
@@ -77,15 +95,14 @@ public class CharacterInfo : MonoBehaviour
     void Start()
     {
         GetProperties();
+        GetDependencies();
         taskHandler.SetCharacter(this);
-        Invoke("UpdateCharacterModel", .125f);
         Invoke("UpdateEquipmentStats", .125f);
     }
     // Update is called once per frame
     void Update()
     {
         if(entityInfo && !entityInfo.isAlive) { return; }
-        GetDependencies();
         HandleLookAt();
         UpdateMovementDirection();
         HandleEvents();
@@ -102,38 +119,11 @@ public class CharacterInfo : MonoBehaviour
     }
     void HandleLookAt()
     {
-        if(abilityManager.currentlyCasting == null)
-        {
-            currentCasting = null;
-            LookAtMovementDirection();
-            return;
-        }
-
-        currentCasting = abilityManager.currentlyCasting;
-
-        if(currentCasting.requiresLockOnTarget){ LookAtTarget(); }
-        else { LookAtLocation(); }
-
-
-
-        void LookAtTarget()
-        {
-            if(currentCasting == null) { return; }
-            if(currentCasting.targetLocked == null) { return; }
-            LookAt(currentCasting.targetLocked.transform);
-        }
-
-        void LookAtLocation()
-        {
-            var location = currentCasting.location;
-
-            location.y = transform.position.y;
-
-            transform.LookAt(location);
-        }
+        LookAtMovementDirection();
 
         void LookAtMovementDirection()
         {
+            if (isCasting) return;
             if (movement && movement.isMoving)
             {
                 var currentVelocity = movement.velocity;
@@ -146,8 +136,12 @@ public class CharacterInfo : MonoBehaviour
 
     public void LookAt(Transform target)
     {
-        var position = target.position;
+        LookAt(target.position);
+    }
 
+    public void LookAt(Vector3 location)
+    {
+        var position = location;
         position.y = transform.position.y;
 
         transform.LookAt(position);
@@ -195,43 +189,6 @@ public class CharacterInfo : MonoBehaviour
     {
         sheathed = val;
     }
-    public void UpdateCharacterModel()
-    {
-        ApplyOriginal();
-        ApplyEquipment();
-
-        void ApplyOriginal()
-        {
-            if (ArchiChar() == null) { return; }
-            if (ArchiChar().originalParts == null) { return; }
-
-            var original = ArchiChar().originalParts;
-
-            foreach (Vector2 current in original)
-            {
-                ArchiChar().SetPart((int)current.x, (int)current.y);
-            }
-        }
-        void ApplyEquipment()
-        {
-            if (ArchiChar() == null) { return; }
-            foreach (EquipmentSlot current in equipment)
-            {
-                if (current.equipment == null) { continue; }
-
-                var currentEquip = current.equipment;
-
-                if (currentEquip.equipmentOverRide == null) { continue; }
-
-                var overRide = currentEquip.equipmentOverRide;
-
-                foreach (Vector2 currentOverRide in overRide)
-                {
-                    ArchiChar().SetPart((int)currentOverRide.x, (int)currentOverRide.y);
-                }
-            }
-        }
-    }
     public void UpdateEquipmentStats()
     {
         if (totalEquipmentStats == null) { totalEquipmentStats = new Stats(); }
@@ -240,12 +197,9 @@ public class CharacterInfo : MonoBehaviour
 
         void UpdateStats()
         {
-            foreach (EquipmentSlot currentEquip in equipment)
+            foreach (var equipment in EquippedItems())
             {
-                if (!currentEquip.equipment) { continue; }
-
-                var current = currentEquip.equipment;
-                totalEquipmentStats = totalEquipmentStats.Sum(totalEquipmentStats, current.stats);
+                totalEquipmentStats = totalEquipmentStats.Sum(totalEquipmentStats, equipment.stats);
             }
         }
 
@@ -276,6 +230,14 @@ public class CharacterInfo : MonoBehaviour
         }
         return null;
     }
+
+    public List<Equipment> EquippedItems()
+    {
+        var equipments = GetComponentsInChildren<EquipmentSlot>().Where(slot => slot.equipment != null).Select(slot => slot.equipment).ToList();
+        return equipments;
+
+    }
+
     public Weapon WeaponItem(EquipmentSlotType slotType)
     {
         var equipments = GetComponentsInChildren<EquipmentSlot>();
@@ -373,6 +335,7 @@ public struct CharacterTaskHandler
 
         entityInfo.taskEvents.OnStartTask += OnStartTask;
         entityInfo.taskEvents.OnEndTask += OnEndTask;
+        entityInfo.taskEvents.OnLingeringEnd += OnLingeringEnd;
     }
 
     public void OnStartTask(TaskEventData eventData)
@@ -386,8 +349,60 @@ public struct CharacterTaskHandler
         }
     }
 
-    public void OnEndTask(TaskEventData eventData)
+    public void OnLingeringEnd(TaskEventData eventData)
     {
         character.SheathWeapons(false);
+    }
+
+    public void OnEndTask(TaskEventData eventData)
+    {
+        if (eventData.task.properties.allowLinger && eventData.TaskComplete) return;
+        character.SheathWeapons(false);
+    }
+}
+
+public struct CharacterAbilityHandler
+{
+    EntityInfo entityInfo;
+    CharacterInfo character;
+    AbilityManager abilityManager;
+    public void SetCharacter(CharacterInfo character)
+    {
+        this.character = character;
+        entityInfo = character.GetComponentInParent<EntityInfo>();
+
+        if (entityInfo == null) return;
+        abilityManager = entityInfo.AbilityManager();
+
+        if (abilityManager == null) return;
+
+        abilityManager.OnAbilityStart += OnAbilityStart;
+        abilityManager.OnAbilityEnd += OnAbilityEnd;
+        abilityManager.WhileCasting += WhileCasting;
+        
+        
+    }
+
+    public void OnAbilityStart(AbilityInfo ability)
+    {
+        character.isCasting = true;
+
+        var target = ability.target != null ? ability.target.transform.position : ability.locationLocked;
+
+        if (ability.abilityType == AbilityType.Use) return;
+        character.LookAt(target);
+    }
+
+    public void WhileCasting(AbilityInfo ability)
+    {
+        var target = ability.targetLocked != null ? ability.targetLocked.transform.position : ability.locationLocked;
+
+        if (ability.abilityType == AbilityType.Use) return;
+        character.LookAt(target);
+    }
+
+    public void OnAbilityEnd(AbilityInfo ability)
+    {
+        character.isCasting = false;
     }
 }

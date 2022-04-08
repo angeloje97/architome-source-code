@@ -58,9 +58,11 @@ namespace Architome
 
         //Events
         public event Action<GameObject, GameObject> OnNewTarget;
+        public event Action<GameObject> OnSetFocus;
 
         //Event Triggers
         public GameObject previousTarget;
+        public GameObject previousFocusTarget;
 
         public float tryMoveTimer;
 
@@ -157,7 +159,7 @@ namespace Architome
 
         public void OnNewPathTarget(Movement movement, Transform before, Transform after)
         {
-            if (entityInfo.currentState == EntityState.Taunted) return;
+            if (entityInfo.states.Contains(EntityState.Taunted)) return;
 
             if (focusTarget != after.gameObject)
             {
@@ -209,8 +211,13 @@ namespace Architome
         }
         public void SetFocus(GameObject target)
         {
-            if (entityInfo.currentState == EntityState.Taunted) return;
+            if (entityInfo.states.Contains(EntityState.Taunted)) return;
             focusTarget = target;
+            if (target != null)
+            {
+                OnSetFocus?.Invoke(target);
+            }
+
         }
         public GameObject GetFocus()
         {
@@ -264,12 +271,17 @@ namespace Architome
 
             void HandleOnNewTarget()
             {
-                var currentTarget = focusTarget ? focusTarget : target;
-
-                if (previousTarget != currentTarget)
+                if (previousTarget != target)
                 {
-                    OnNewTarget?.Invoke(previousTarget, currentTarget);
-                    previousTarget = currentTarget;
+                    OnNewTarget?.Invoke(previousTarget, target);
+                    previousTarget = target;
+                }
+
+                if (previousFocusTarget != focusTarget)
+                {
+
+                    OnNewTarget?.Invoke(previousFocusTarget, focusTarget);
+                    previousFocusTarget = focusTarget;
                 }
             }
 

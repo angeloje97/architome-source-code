@@ -60,6 +60,7 @@ namespace Architome
 
         bool UsingAbility()
         {
+            
             var currentAbility = abilityManager.currentlyCasting;
 
             if (currentAbility != null && !currentAbility.isAttack) return false;
@@ -85,11 +86,11 @@ namespace Architome
 
                     return true;
                 }
-                else
+                else if (special.targeting == SpecialTargeting.Use)
                 {
                     if (ability.requiresLockOnTarget)
                     {
-                        abilityManager.target = target;
+                        abilityManager.target = entity.gameObject;
                     }
 
                     abilityManager.Cast(special.abilityIndex);
@@ -119,10 +120,13 @@ namespace Architome
                 return;
             }
 
-
-            if (!AttackReactive(target))
+            if (behavior.combatType == CombatBehaviorType.Reactive)
             {
-                AttackReactive2();
+                if (!AttackReactive(target))
+                {
+                    AttackReactive2();
+                }
+
             }
 
             AttackProactive(target);
@@ -162,12 +166,13 @@ namespace Architome
         {
             if ((int) behavior.combatType < 2) return;
             if (entity.role != Role.Healer) return;
-            if (entity.mana / entity.maxMana < .60) return;
+            if (combat.GetFocus() != null) return;
+            if (entity.mana / entity.maxMana < combat.healSettings.minMana) return;
 
             var allies = los.DetectedEntities(entity.npcType);
             allies.Add(entity);
 
-            allies = allies.Where(ally => ally.health / ally.maxHealth <= .80 && ally.isAlive).ToList();
+            allies = allies.Where(ally => ally.health / ally.maxHealth <= combat.healSettings.targetHealth && ally.isAlive).ToList();
 
             if (allies.Count == 0) return;
 

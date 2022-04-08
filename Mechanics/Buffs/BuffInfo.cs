@@ -27,6 +27,8 @@ public class BuffProperties
     public bool reapplyResetsTimer;
     public bool reapplyResetsBuff;
 }
+
+[RequireComponent(typeof(BuffFXHandler))]
 public class BuffInfo : MonoBehaviour
 {
     // Start is called before the first frame update
@@ -57,8 +59,6 @@ public class BuffInfo : MonoBehaviour
     public DamageType damageType;
     public int stacks = 0;
     private bool buffTimeComplete = false;
-    private bool cleansed = false;
-    private bool depleted = false;
     public float buffTimer;
 
     [Header("Buff FX")]
@@ -68,12 +68,40 @@ public class BuffInfo : MonoBehaviour
     public AudioClip buffSound;
 
 
+    [Serializable]
+    public struct BuffFX
+    {
+        public Vector3 scalePortions;
+
+        
+
+        [Header("Particles")]
+        public ParticleSystem startingParticles;
+        public ParticleSystem intervalParticle;
+        public GameObject radiusParticle;
+
+        [Header("Audio")]
+        public AudioClip startingSound;
+        public AudioClip intervalSound;
+        public AudioClip endingSound;
+        public AudioClip loopingSound;
+
+        [Header("Transform Effects")]
+        public bool shrinkOnEnd;
+    }
+
+    public BuffFX effects;
+
     //Events
-    public  Action<BuffInfo> OnBuffCompletion;
-    public  Action<BuffInfo> OnBuffCleanse;
+    public Action<BuffInfo> OnAcquireVessel;
+    public Action<BuffInfo> OnBuffStart;
+    public Action<BuffInfo> OnBuffCompletion;
+    public Action<BuffInfo> OnBuffCleanse;
     public Action<BuffInfo> OnBuffInterval;
     public Action<BuffInfo> OnBuffDeplete;
     public Action<BuffInfo> OnBuffEnd;
+    public Action<CombatEventData> OnBuffDamage;
+    public Action<CombatEventData> OnBuffHeal;
     public Action<BuffInfo, int, float> OnStack;
     public Action<BuffInfo, float, float> OnChangeValue;
 
@@ -130,8 +158,13 @@ public class BuffInfo : MonoBehaviour
         buffTimeComplete = false;
         buffTimer = properties.time;
         GetVessel();
-        Invoke("SpawnParticle", .125f);
+        //Invoke("SpawnParticle", .125f);
         StartCoroutine(BuffIntervalHandler());
+    }
+
+    public void Start()
+    {
+        ArchAction.Delay(() => { OnBuffStart?.Invoke(this); }, .0625f);
     }
     private void Update()
     {
@@ -222,7 +255,6 @@ public class BuffInfo : MonoBehaviour
     }
     public void Cleanse()
     {
-        cleansed = true;
         OnBuffCleanse?.Invoke(this);
         StartCoroutine(Expire());
     }
@@ -234,7 +266,7 @@ public class BuffInfo : MonoBehaviour
     public IEnumerator Expire()
     {
         OnBuffEnd?.Invoke(this);
-        yield return new WaitForSeconds(expireDelay);
+
         if(transform.parent && GetComponentInParent<BuffsManager>())
         {
             if(GetComponentInParent<BuffsManager>().buffObjects.Contains(gameObject))
@@ -250,16 +282,23 @@ public class BuffInfo : MonoBehaviour
             buffsManager.OnResetBuff -= OnResetBuff;
         }
 
+        yield return new WaitForSeconds(1f);
         Destroy(gameObject);
     }
     IEnumerator BuffIntervalHandler()
     {
+        
         while(true)
         {
             if(sourceAbility == null) 
             { 
                 yield return new WaitForSeconds(.125f);
                 continue;
+            }
+
+            if (properties.intervals == 0)
+            {
+                break;
             }
 
             yield return new WaitForSeconds(properties.intervals);
@@ -270,7 +309,7 @@ public class BuffInfo : MonoBehaviour
     public List<EntityInfo> EnemiesWithinRange()
     {
 
-        var entitiesWithinRange = Entity.EntitiesWithinRange(hostObject, properties.radius);
+        var entitiesWithinRange = Entity.EntitiesWithinRange(hostObject.transform.position, properties.radius);
 
 
         for(int i = 0; i < entitiesWithinRange.Count; i++)
@@ -290,7 +329,7 @@ public class BuffInfo : MonoBehaviour
     }
     public List<EntityInfo> AlliesWithinRange()
     {
-        var allyList = Entity.EntitiesWithinRange(hostObject, properties.radius);
+        var allyList = Entity.EntitiesWithinRange(hostObject.transform.position, properties.radius);
 
         for (int i = 0; i < allyList.Count; i++)
         {
@@ -308,10 +347,10 @@ public class BuffInfo : MonoBehaviour
 
         return allyList;
     }
-
     public void HandleTargetHealth(EntityInfo target, float val, BuffTargetType targettingType)
     {
         var combatData = new CombatEventData(this, sourceInfo, val);
+        combatData.target = target;
 
         HandleDamage();
         HandleHealing();
@@ -320,12 +359,14 @@ public class BuffInfo : MonoBehaviour
         {
             if(targettingType == BuffTargetType.Assist) { return; }
             target.Damage(combatData);
+            OnBuffDamage?.Invoke(combatData);
         }
 
         void HandleHealing()
         {
             if(targettingType == BuffTargetType.Harm) { return; }
             target.Heal(combatData);
+            OnBuffHeal?.Invoke(combatData);
         }
     }
 

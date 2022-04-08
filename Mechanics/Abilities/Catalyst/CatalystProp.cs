@@ -11,6 +11,10 @@ namespace Architome
         public CatalystInfo catalyst;
         public EntityInfo entity;
 
+
+        public CatalystDeathCondition deathCondition;
+        public CatalystHit catalystHit;
+
         public void GetDependencies()
         {
             catalyst = GetComponent<CatalystInfo>();
@@ -20,6 +24,9 @@ namespace Architome
                 ability = catalyst.abilityInfo;
                 entity = catalyst.entityInfo;
             }
+
+            deathCondition = GetComponent<CatalystDeathCondition>();
+            catalystHit = GetComponent<CatalystHit>();
         }
     }
 

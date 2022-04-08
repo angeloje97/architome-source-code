@@ -49,54 +49,6 @@ public class CastBar : MonoBehaviour
     void Update()
     {
         GetDependencies();
-        UpdateCastBar();
-    }
-
-    void UpdateCastBar()
-    {
-        if(!abilityManager)
-        {
-            return;
-        }
-        if(abilityManager.currentlyCasting && abilityManager.currentlyCasting.isAttack)
-        {
-            return;
-        }
-        if(abilityManager.currentlyCasting && abilityManager.currentlyCasting.castTime == 0
-            && !abilityManager.currentlyCasting.abilityFunctions.Contains(AbilityFunction.Channel))
-        {
-            return;
-        }
-
-        bool isCasting = abilityManager.currentlyCasting != null;
-       
-
-        SetActive(isCasting);
-
-
-        if(isCasting)
-        {
-            var abilityInfo = abilityManager.currentlyCasting;
-
-            bool isChanneling = abilityInfo.isChanneling;
-            float castTime;
-            float castTimer;
-
-            if (isChanneling)
-            {
-                castTime = abilityInfo.channelTime;
-                castTimer = abilityInfo.castTimer;
-            }
-            else
-            {
-                castTime = abilityInfo.castTime;
-                castTimer = abilityInfo.castTimer;
-            }
-            
-
-            slider.fillAmount = castTimer / castTime;
-        }
-
     }
 
     void SetActive(bool status)

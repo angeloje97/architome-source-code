@@ -74,7 +74,5 @@ public class WorldActions : MonoBehaviour
         Revive(entity, randomPosition, .25f, .25f);
 
         lastSpawnBeacon.spawnEvents.OnSpawnEntity?.Invoke(entityInfo);
-
-
     }
 }

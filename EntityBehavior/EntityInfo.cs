@@ -16,6 +16,7 @@ namespace Architome
         public string entityName;
         [Multiline]
         public string entityDescription;
+        public ArchClass archClass;
         public Sprite entityPortrait;
 
         public EntitySoundPack entitySound;
@@ -34,7 +35,7 @@ namespace Architome
         public bool isHover = false;
         public Role role;
         public RoomInfo currentRoom;
-        public EntityState currentState = EntityState.Active;
+        public List<EntityState> states;
         public WorkerState workerState;
         
         [Serializable]
@@ -45,6 +46,8 @@ namespace Architome
             public float timeRemaining;
 
 
+
+
         }
 
         public SummonedEntity summon;
@@ -53,7 +56,6 @@ namespace Architome
         public bool fixedStats;
         public Role roleFixed;
         public Stats entityStats;
-        public Stats equipmentStats;
         public Stats stats;
 
         [Header("Resources")]
@@ -77,6 +79,19 @@ namespace Architome
 
 
         //Events
+        public struct CombatEvents
+        {
+            public Action<CombatEventData> OnFixate;
+            public Action<List<EntityState>, List<EntityState>> OnStatesChange;
+            public Action<List<EntityState>, EntityState> OnStateNegated;
+        }
+
+        public struct PartyEvents
+        {
+            public Action<GroupFormationBehavior> OnRotationFormationStart;
+            public Action<GroupFormationBehavior> OnRotateFormationEnd;
+        }
+
         public event Action<CombatEventData> OnDamageTaken;
         public event Action<CombatEventData> OnDamageDone;
         public event Action<CombatEventData> OnHealingTaken;
@@ -98,8 +113,7 @@ namespace Architome
         public Action<SocialEventData> OnReactToInteraction;
         public Action<RoomInfo, RoomInfo> OnRoomChange;
         public Action<RoomInfo, bool> OnCurrentShowRoom;
-        public Action<EntityState, EntityState> OnStateChange;
-        public Action<EntityState, EntityState> OnStateNegated;
+        
         public Action<NPCType, NPCType> OnChangeNPCType;
         public Action<EntityInfo, Collider, bool> OnTriggerEvent;
         public Action<EntityInfo, Collision, bool> OnCollisionEvent;
@@ -107,9 +121,7 @@ namespace Architome
         public Action<EntityInfo> OnChangeStats;
         public TaskEvents taskEvents = new();
         public TargetableEvents targetableEvents = new();
-        
-
-
+        public CombatEvents combatEvents;
 
         //Non Player Events
         public Action<EntityInfo, PartyInfo> OnPlayerLineOfSight;
@@ -152,9 +164,10 @@ namespace Architome
             }
             else if (presetStats)
             {
+                presetStats = Instantiate(presetStats);
                 entityName = presetStats.name;
                 role = presetStats.Role;
-                entityStats = new Stats().Sum(entityStats,presetStats.Stats());
+                entityStats = new Stats().Sum(entityStats,presetStats.Stats);
                 npcType = presetStats.npcType;
 
 
@@ -320,23 +333,26 @@ namespace Architome
         }
         public void UpdateCurrentStats()
         {
-            if (CharacterInfo() == null) { return; }
-            if (CharacterInfo().totalEquipmentStats == null) { return; }
             if (entityStats == null) { return; }
 
-            CharacterInfo().UpdateEquipmentStats();
-            var currentStats = new Stats();
-            currentStats = currentStats.Sum(entityStats, CharacterInfo().totalEquipmentStats);
+            var currentStats = entityStats;
 
-            UpdateCoreStats();
+            if (Buffs())
+            {
+                currentStats = currentStats.Sum(currentStats, Buffs().stats);
+            }
+
+            if (CharacterInfo())
+            {
+                CharacterInfo().UpdateEquipmentStats();
+                currentStats = currentStats.Sum(currentStats, CharacterInfo().totalEquipmentStats);
+            }
+
+            stats = currentStats;
             UpdateResources(false);
 
             OnChangeStats?.Invoke(this);
 
-            void UpdateCoreStats()
-            {
-                stats = currentStats;
-            }
         }
         public void Damage(CombatEventData combatData)
         {
@@ -362,9 +378,11 @@ namespace Architome
                 
 
                 float criticalRole = UnityEngine.Random.Range(0, 100);
+                
 
                 if (source)
                 {
+                    Debugger.InConsole(47438, $"Critical Role is {criticalRole} entity crit chance is {source.stats.criticalStrikeChance * 100}");
                     if (source.stats.criticalStrikeChance * 100 > criticalRole)
                     {
                         combatData.critical = true;
@@ -533,22 +551,50 @@ namespace Architome
                 source.OnHealingDone?.Invoke(combatData);
             }
         }
-        public bool ChangeState(EntityState state)
+
+        public bool AddState(EntityState state)
         {
-            if (stateImmunities.Contains(state)) 
+            if (stateImmunities.Contains(state))
             {
-                OnStateNegated?.Invoke(currentState, state);
-                return false; 
+                combatEvents.OnStateNegated?.Invoke(states, state);
+                return false;
             }
+            var previousStates = states.ToList();
 
-            Debugger.InConsole(94543, $"Successfully changed state to {state}");
-
-            OnStateChange?.Invoke(currentState, state);
-            currentState = state;
+            states.Add(state);
+            combatEvents.OnStatesChange?.Invoke(previousStates, states);
 
             return true;
-
         }
+
+        public bool RemoveState(EntityState state)
+        {
+            if (!states.Contains(state))
+            {
+                return false;
+            }
+
+            var previousStates = states.ToList();
+
+            states.Remove(state);
+
+            combatEvents.OnStatesChange?.Invoke(previousStates, states);
+
+            return true;
+        }
+
+        public Transform Target()
+        {
+            var movement = Movement();
+
+            if (movement != null)
+            {
+                return movement.Target();
+            }
+
+            return null;
+        }
+
         public bool IsEnemy(GameObject target)
         {
             if (!target.GetComponent<EntityInfo>()) return false;
@@ -743,7 +789,7 @@ namespace Architome
 
             void HandleHealthRegen()
             {
-                if(currentState == EntityState.MindControlled) { return; }
+                if(states.Contains(EntityState.MindControlled)) { return; }
                 if(isInCombat) { return; }
 
 

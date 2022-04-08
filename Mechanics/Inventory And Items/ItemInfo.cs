@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 using TMPro;
 using System;
 using Architome;
-public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
+public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, IDropHandler, IPointerEnterHandler, IPointerExitHandler
 {
     // Start is called before the first frame update
     public Item item;
@@ -21,6 +21,7 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
     public TextMeshProUGUI amountText;
 
     public Action<InventorySlot> OnNewSlot;
+    public Action<ItemInfo> OnUpdate;
 
     //3d World Trigger
     private void OnTriggerEnter(Collider other)
@@ -54,7 +55,8 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
         GetComponent<RectTransform>().sizeDelta = currentSlot.GetComponent<RectTransform>().sizeDelta;
         if (currentSlot.GetComponentInParent<ModuleInfo>() && currentSlot.GetComponentInParent<ModuleInfo>().itemBin)
         {
-            transform.SetParent(currentSlot.GetComponentInParent<ModuleInfo>().itemBin);
+            transform.SetParent(currentSlot.transform);
+            //transform.SetParent(currentSlot.GetComponentInParent<ModuleInfo>().itemBin);
         }
     }
 
@@ -71,10 +73,15 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
         void HandleGearSlot()
         {
             if(slot.GetType() != typeof(GearSlot)) { return; }
-            if (Item.IsEquipment(item) && Item.IsWeapon(item)) { return; }
+            
 
 
             var gearSlot = (GearSlot)slot;
+
+            if (!gearSlot.CanEquip(item))
+            {
+                return;
+            }
 
             var equipment = (Equipment)item;
 
@@ -122,15 +129,47 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
             }
         }
     }
+    public void HandleItem(ItemInfo item)
+    {
+        if (SameItem())
+        {
+
+        }
+        else
+        {
+
+        }
+
+        bool SameItem()
+        {
+            if (item.item.itemID != this.item.itemID) return false;
+            return true;
+        }
+    }
+
+    public void OnDrop(PointerEventData eventData)
+    {
+        var dragging = eventData.pointerDrag;
+        if (dragging == null) return;
+        var itemInfo = dragging.GetComponent<ItemInfo>();
+        if (itemInfo == null) return;
+
+        HandleItem(itemInfo);
+    }
 
     public void OnPointerDown(PointerEventData eventData)
     {
         if(isInInventory == false) { return; }
 
+        var module = GetComponentInParent<ModuleInfo>();
+
+        if (module && module.itemBin)
+        {
+            transform.SetParent(module.itemBin);
+        }
+
         currentSlotHover = null;
     }
-
-    //UI Triggers
 
     void OnValidate()
     {
@@ -146,6 +185,8 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
 
         UpdateStackText();
         UpdateItemIcon();
+
+        OnUpdate?.Invoke(this);
 
         void UpdateItemIcon()
         {
@@ -167,5 +208,15 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
             
             amountText.text = $"{currentStacks}";
         }
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+
     }
 }

@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using Pathfinding;
 using System;
+using System.Linq;
 using Architome.Enums;
 using System.Threading.Tasks;
+using UnityEngine.Events;
 
 namespace Architome
 {
@@ -42,6 +44,7 @@ namespace Architome
         public Action<Movement> OnStartMove;
         public Action<Movement> OnEndMove;
         public Action<Movement> OnTryMove;
+        public UnityEvent OnTryMoveEvent;
         public Action<Movement> OnChangePath;
         public Action<Movement, Transform> OnArrival;
         public Action<Movement, Transform> OnAway;
@@ -83,7 +86,7 @@ namespace Architome
                 }
 
                 entityInfo.OnLifeChange += OnLifeCheck;
-                entityInfo.OnStateChange += OnStateChange;
+                entityInfo.combatEvents.OnStatesChange += OnStatesChange;
             }
 
             if (destinationSetter.target == null)
@@ -135,23 +138,24 @@ namespace Architome
             if (isAlive)
             {
                 MoveTo(entityObject.transform);
-                MoveTo(entityObject.transform.position);
             }
             else
             {
                 destinationSetter.target = entityObject.transform;
             }
         }
-        public void OnStateChange(EntityState previous, EntityState current)
+        public void OnStatesChange(List<EntityState> previous, List<EntityState> states)
         {
             if (!entityInfo.isAlive) { return; }
             var immobilizedStates = new List<EntityState>()
-        {
-            EntityState.Stunned,
-            EntityState.Immobalized
-        };
+            {
+                EntityState.Stunned,
+                EntityState.Immobalized
+            };
 
-            if (immobilizedStates.Contains(current))
+            var intersection = states.Intersect(immobilizedStates).ToList();
+
+            if (intersection.Count > 0)
             {
                 SetValues(false);
                 return;
@@ -167,7 +171,6 @@ namespace Architome
             path.enabled = val;
             rigidBody.constraints = val ? originalConstraints : RigidbodyConstraints.FreezeAll;
         }
-
         public void RestrictMovements(bool restrict)
         {
             rigidBody.constraints = restrict ? RigidbodyConstraints.FreezeAll : originalConstraints;
@@ -242,12 +245,13 @@ namespace Architome
         {
             if (!entityInfo.isAlive) { return; }
             OnTryMove?.Invoke(this);
+            OnTryMoveEvent?.Invoke();
             if (!canMove) { return; }
             hasArrivedCheck = false;
             this.location.transform.position = location;
             destinationSetter.target = this.location.transform;
-            hasArrived = false;
-            isMovingChange = true;
+
+            TriggerEvents();
             path.endReachedDistance = 0;
             OnChangePath?.Invoke(this);
         }
@@ -255,13 +259,20 @@ namespace Architome
         {
             if (!entityInfo.isAlive) { return; }
             path.endReachedDistance = endReachDistance;
-            hasArrivedCheck = false;
+
+            hasArrivedCheck = !hasArrived;
             isMovingChange = true;
 
             if (destinationSetter.target != locationTransform)
             {
                 destinationSetter.target = locationTransform;
             }
+        }
+
+        public void TriggerEvents()
+        {
+            hasArrivedCheck = !hasArrived;
+            isMovingChange = !isMoving;
         }
 
         public bool IsInRangeFromTarget()

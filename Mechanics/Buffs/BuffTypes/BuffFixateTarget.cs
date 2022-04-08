@@ -14,7 +14,7 @@ namespace Architome
 
             buffInfo.OnBuffEnd += OnBuffEnd;
 
-            ArchAction.Delay(() => { ApplyBuff(); }, .125f);
+            ApplyBuff();
         }
 
         public void ApplyBuff()
@@ -30,7 +30,17 @@ namespace Architome
             }
 
             originalFocusTarget = buffInfo.hostInfo.CombatBehavior().GetFocus();
+
             buffInfo.hostInfo.CombatBehavior().SetFocus(buffInfo.targetObject);
+
+            if (buffInfo.hostInfo.AbilityManager().attackAbility)
+            {
+                var combatEventData = new CombatEventData(buffInfo, buffInfo.sourceInfo, buffInfo.properties.value);
+                buffInfo.targetInfo.combatEvents.OnFixate?.Invoke(combatEventData);
+                buffInfo.hostInfo.AbilityManager().target = buffInfo.targetObject;
+                buffInfo.hostInfo.AbilityManager().Attack();
+                buffInfo.hostInfo.AbilityManager().target = null;
+            }
         }
         void Start()
         {

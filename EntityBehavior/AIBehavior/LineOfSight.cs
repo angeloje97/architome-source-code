@@ -286,7 +286,7 @@ public class LineOfSight : MonoBehaviour
 
     public List<EntityInfo> DetectedAllies()
     {
-        var entities = Entity.ToEntities(entitiesDetected);
+        var entities = entitiesDetected.Select(entity => entity.GetComponent<EntityInfo>()).ToList();
 
         return entities.Where(entity => entity.npcType == entityInfo.npcType).ToList();
     }

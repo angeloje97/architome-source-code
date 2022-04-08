@@ -11,18 +11,29 @@ namespace Architome
     public class RoomInfo : MonoBehaviour
     {
         // Start is called before the first frame update
+        
+
         [Header("Room Properties")]
         public bool isEntranceRoom;
         public bool badSpawn;
         public Transform roomCenter;
         public PathInfo originPath;
         public MapInfo mapInfo;
+        public Transform prefab;
 
         [Header("Path Properties")]
         public List<PathInfo> paths;
         public List<PathInfo> incompatablePaths;
         //public Transform bin;
 
+        [Serializable]
+        public class IncompatablePath
+        {
+            public PathInfo roomPath = new();
+            public List<PathInfo> otherPaths = new();
+        }
+
+        public List<IncompatablePath> incompatables;
 
         [Header("Spawn Positions")]
         public Transform tier1EnemyPos;
@@ -72,56 +83,30 @@ namespace Architome
         {
             allRenderers = GetComponentsInChildren<Renderer>();
         }
-        public void ShowRoom(bool val, Vector3 point = new Vector3())
+        public void ShowRoom(bool val, Vector3 point = new Vector3(), bool forceShow = false)
         {
-            ShowRoomAsyncPoint(val, point, percentReveal);
-            return;
-
-            GetAllObjects();
-            for (int i = 0; i < allObjects.Length; i++)
+            if (forceShow)
             {
-                if (HandleActivator(allObjects[i].gameObject)) { continue; }
-                if (Entity.IsOfEntity(allObjects[i].gameObject)) { continue; }
-
-
-                if (allObjects[i].GetComponent<Renderer>())
-                {
-                    allObjects[i].GetComponent<Renderer>().enabled = val;
-                }
+                if (Entity.PlayerIsInRoom(this) != val) return;
             }
 
-            isRevealed = val;
-            OnShowRoom?.Invoke(this, val);
-
+            ShowRoomAsyncPoint(val, point, percentReveal);
         }
 
-        public async void ShowRoomAsync(bool val)
+        public void ClosePaths()
         {
-            GetAllRenderers();
-            List<Task> tasks = new List<Task>();
-            var lights = GetComponentsInChildren<Light>().ToList();
-
-
-            for (int i = 0; i < allRenderers.Length; i++)
+            foreach (var path in GetComponentsInChildren<PathInfo>())
             {
-                if (Entity.IsOfEntity(allRenderers[i].gameObject) ||
-                    HandleActivator(allRenderers[i].gameObject))
-                {
-                    continue;
-                }
-                tasks.Add(Render(allRenderers[i], val));
+                path.Close();
             }
+        }
 
-            foreach (var i in lights)
+        public void OpenPaths()
+        {
+            foreach (var path in GetComponentsInChildren<PathInfo>())
             {
-                tasks.Add(Set(i, val));
+                path.Open();
             }
-
-            await Task.WhenAll(tasks);
-            isRevealed = val;
-            OnShowRoom?.Invoke(this, val);
-
-
         }
 
         public async void ShowRoomAsyncPoint(bool val, Vector3 pointPosition, float percent = .025f)
@@ -160,6 +145,12 @@ namespace Architome
                         continue;
                     }
 
+                    if (orderedRenders[count].enabled == val)
+                    {
+                        count++;
+                        continue;
+                    }
+
                     orderedRenders[count].enabled = val;
                     count++;
                     if (count % increments == 0) { await Task.Yield(); }
@@ -193,17 +184,6 @@ namespace Architome
             return true;
         }
 
-        public async Task Render(Renderer current, bool val)
-        {
-            current.enabled = val;
-            await Task.Yield();
-        }
-
-        public async Task Set(Light light, bool val)
-        {
-            light.enabled = val;
-            await Task.Yield();
-        }
         void Start()
         {
             GetDependencies();
@@ -211,15 +191,47 @@ namespace Architome
             if (!ignoreCheckRoomCollison)
             {
                 badSpawn = false;
-                Invoke("CheckRoomCollision", .0625f);
+                ArchAction.Delay(() => {
+                    if (!CheckRoomCollision())
+                    {
+                        badSpawn = true;
+                    }
+                    else if(!CheckRoomAbove())
+                    {
+                        badSpawn = true;
+                    }
+
+                    if (badSpawn)
+                    {
+                        var incompatable = incompatables.Find(incompatable => incompatable.roomPath == Entrance);
+
+                        if (incompatable == null)
+                        {
+                            incompatable = new() { roomPath = Entrance };
+                            incompatables.Add(incompatable);
+                        }
+
+                        incompatable.otherPaths.Add(originPath);
+
+                        incompatablePaths.Add(originPath);
+                        if (mapInfo) { mapInfo.RoomGenerator().badSpawnRooms.Add(gameObject); }
+                    }
+
+                    foreach (PathInfo path in paths)
+                    {
+                        if (!path.isEntrance)
+                        {
+                            path.isUsed = false;
+                        }
+                    }
+
+                    //if (!CheckRoomBelow())
+                    //{
+
+                    //}
+                }, .0625f);
             }
-            foreach (PathInfo path in paths)
-            {
-                if (!path.isEntrance)
-                {
-                    path.isUsed = false;
-                }
-            }
+            
 
             if (!badSpawn)
             {
@@ -233,10 +245,10 @@ namespace Architome
         {
 
         }
-        public void CheckRoomCollision()
+        bool CheckRoomCollision()
         {
-            if (roomCenter == null) { return; }
-            if (isEntranceRoom) { return; }
+            if (roomCenter == null) { return true; }
+            if (isEntranceRoom) { return true; }
             foreach (Transform probe in roomCenter)
             {
                 foreach (Transform child in allObjects)
@@ -250,20 +262,18 @@ namespace Architome
                     {
                         if (!allObjects.Contains(hit.transform))
                         {
-                            badSpawn = true;
-                            incompatablePaths.Add(originPath);
-                            if (mapInfo) { mapInfo.RoomGenerator().badSpawnRooms.Add(gameObject); }
-                            return;
+                            return false;
                         }
                     }
                 }
             }
-            CheckRoomAbove();
+
+            return true;
         }
-        public void CheckRoomAbove()
+        bool CheckRoomAbove()
         {
-            if (roomCenter == null) { return; }
-            if (isEntranceRoom) { return; }
+            if (roomCenter == null) { return true; }
+            if (isEntranceRoom) { return true; }
 
             foreach (Transform probe in roomCenter)
             {
@@ -274,14 +284,44 @@ namespace Architome
                 {
                     if (!allObjects.Contains(hit.transform))
                     {
-                        badSpawn = true;
-                        incompatablePaths.Add(originPath);
-                        if (mapInfo) { mapInfo.RoomGenerator().badSpawnRooms.Add(gameObject); }
-                        return;
+                        return false;
                     }
                 }
             }
 
+            return true;
+
+        }
+
+        public static RoomInfo GetRoom(Vector3 point)
+        {
+            List<Ray> rays = new();
+
+            rays.Add(new Ray(point, Vector3.down));
+            rays.Add(new Ray(point, Vector3.left));
+            rays.Add(new Ray(point, Vector3.right));
+            rays.Add(new Ray(point, Vector3.forward));
+            rays.Add(new Ray(point, Vector3.back));
+
+
+            foreach (var ray in rays)
+            {
+                if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, GMHelper.LayerMasks().structureLayerMask))
+                {
+                    if (hit.transform.GetComponentInParent<RoomInfo>())
+                    {
+                        return hit.transform.GetComponentInParent<RoomInfo>();
+                    }
+                }
+            }
+
+            return null;
+
+        }
+
+        public PathInfo Entrance
+        {
+            get { return paths.Find(path => path.isEntrance == true); } 
         }
         public void CheckRoomBelow()
         {

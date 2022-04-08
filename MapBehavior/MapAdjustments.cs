@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Architome
 {
@@ -33,22 +34,29 @@ namespace Architome
 
         }
 
-        public void AdjustBackground(Vector3 position, Vector3 size)
+        async public void AdjustBackground(Vector3 position, Vector3 size)
         {
             if (background == null) { return; }
             position.y = background.transform.position.y;
             background.transform.position = position;
-            background.transform.localScale = new Vector3(size.x * 5, size.y, size.z * 5);
+            background.transform.localScale = new Vector3(size.x * 5, 1, size.z * 5);
             Bounds bound = new Bounds(position, size);
 
             var layeredGraph = AstarPath.active.data.layerGridGraph;
 
             layeredGraph.center = position;
 
-            layeredGraph.SetDimensions((int)size.x * 3, (int)size.z * 3, 1);
+            layeredGraph.SetDimensions((int)(size.x), (int)( size.z), 1);
 
+            float timer = 0f;
+            foreach (var progress in AstarPath.active.ScanAsync())
+            {
+                await Task.Yield();
+                timer += Time.deltaTime;
+            }
 
-
+            Debugger.InConsole(54382, $"A star pathfinding project scan took {timer} seconds");
+            
         }
 
         void OnEntitiesGenerated(MapEntityGenerator entityGenerator)

@@ -190,6 +190,18 @@ namespace Architome.Enums
         Boss = 4
     }
 
+    public enum Rarity
+    {
+        Poor = 0,
+        Common = 1,
+        Uncommon = 2,
+        Rare = 3,
+        Epic = 4,
+        Legendary = 5,
+        Artifact = 6,
+        Heirloom = 7,
+    }
+
     public enum ProjectileType
     {
         LockOn,
@@ -273,12 +285,20 @@ namespace Architome.Enums
     }
     public enum WeaponType
     {
-        TwoHanded,
-        OneHand,
+        TwoHandedSword,
+        OneHandSword,
         Bow,
         Crossbow,
         Staff,
         Shield
+    }
+
+    public enum ArmorType
+    {
+        Plate = 4,
+        Mail = 3,
+        Leather = 2,
+        Cloth = 1,
     }
 
     public enum DamageType
@@ -312,6 +332,7 @@ namespace Architome.Enums
         Idle,
         MovingToWork,
         Working,
+        Lingering,
     }
     
 }

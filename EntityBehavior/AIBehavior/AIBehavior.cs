@@ -4,6 +4,7 @@ using UnityEngine;
 using Architome.Enums;
 using Architome;
 using System;
+using System.Linq;
 public class AIBehavior : MonoBehaviour
 {
     // Start is called before the first frame update
@@ -45,7 +46,7 @@ public class AIBehavior : MonoBehaviour
                 var abilityManager = entityInfo.AbilityManager();
             }
 
-            entityInfo.OnStateChange += OnStateChange;
+            entityInfo.combatEvents.OnStatesChange += OnStatesChange;
 
             if(entityInfo.npcType == NPCType.Hostile)
             {
@@ -85,18 +86,19 @@ public class AIBehavior : MonoBehaviour
             originalBehaviorType = behaviorType;
         }
     }
-    public void OnStateChange(EntityState previous, EntityState next)
+    public void OnStatesChange(List<EntityState> previous, List<EntityState> states)
     {
         var effectedBy = new List<EntityState>()
         {
             EntityState.Taunted 
         };
 
-        if(effectedBy.Contains(next))
+        var intersection = states.Intersect(effectedBy).ToList();
+
+        if(intersection.Count > 0)
         {
             behaviorType = AIBehaviorType.NoControl;
         }
-
         else
         {
             behaviorType = originalBehaviorType;

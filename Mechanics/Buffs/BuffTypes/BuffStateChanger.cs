@@ -7,7 +7,6 @@ public class BuffStateChanger : MonoBehaviour
 {
     public BuffInfo buffInfo;
     public EntityState stateToChange;
-    public EntityState originalEntityState;
     public bool applied;
 
     public Action<BuffStateChanger, EntityState> OnSuccessfulStateChange;
@@ -19,9 +18,6 @@ public class BuffStateChanger : MonoBehaviour
         {
             buffInfo = GetComponent<BuffInfo>();
             buffInfo.OnBuffEnd += OnBuffEnd;
-
-
-            originalEntityState = buffInfo.hostInfo.currentState;
 
             ApplyBuff();
 
@@ -42,7 +38,7 @@ public class BuffStateChanger : MonoBehaviour
 
     public void ApplyBuff()
     {
-        applied = buffInfo.hostInfo.ChangeState(stateToChange);
+        applied = buffInfo.hostInfo.AddState(stateToChange);
 
     }
 
@@ -60,18 +56,9 @@ public class BuffStateChanger : MonoBehaviour
     public void HandleRemoveState(BuffInfo buff)
     {
         if (!applied) return;
-        var buffs = buff.hostInfo.Buffs().Buffs();
-        var newState = EntityState.Active;
-        foreach (var i in buffs)
-        {
-            if (i != buff && i.GetComponent<BuffStateChanger>())
-            {
-                newState = i.GetComponent<BuffStateChanger>().stateToChange;
-            }
-        }
 
-        buff.hostInfo.ChangeState(newState);
+        buffInfo.hostInfo.RemoveState(stateToChange);
 
-        OnStateChangerEnd?.Invoke(this, newState);
+        OnStateChangerEnd?.Invoke(this, stateToChange);
     }
 }

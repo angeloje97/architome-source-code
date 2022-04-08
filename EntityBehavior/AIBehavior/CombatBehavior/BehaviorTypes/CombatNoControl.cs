@@ -12,6 +12,11 @@ namespace Architome
         new void GetDependencies()
         {
             base.GetDependencies();
+
+            if (combat)
+            {
+                combat.OnSetFocus += OnSetFocus;
+            }
         }
         void Start()
         {
@@ -39,7 +44,7 @@ namespace Architome
 
         void OnCombatRoutine()
         {
-            target = combat.GetFocus() != null ? combat.GetFocus() : combat.target;
+            target = combat.GetFocus() ? combat.GetFocus() : combat.target;
 
             if (UsingAbility())
             {
@@ -52,6 +57,12 @@ namespace Architome
                 abilityManager.target = null;
             }
 
+        }
+
+        void OnSetFocus(GameObject target)
+        {
+
+            OnCombatRoutine();
         }
 
 
@@ -77,9 +88,9 @@ namespace Architome
                 var ability = abilityManager.Ability(specialAbility.abilityIndex);
 
                 if (ability == null) continue;
+                if (ability.WantsToCast() || ability.isCasting) return true;
                 if (!ability.isHarming) continue;
                 if (!ability.IsReady()) continue;
-                if (ability.WantsToCast() || ability.isCasting) return true;
 
                 //Special Ability Targeting
                 if (TargetsCurrent(specialAbility)) return true;
@@ -98,7 +109,6 @@ namespace Architome
 
                 abilityManager.target = randomTarget;
                 abilityManager.Cast(special.abilityIndex);
-                abilityManager.target = null;
 
                 return true;
             }
@@ -111,7 +121,6 @@ namespace Architome
 
                 abilityManager.target = this.target;
                 abilityManager.Cast(special.abilityIndex);
-                abilityManager.target = null;
 
                 return true;
             }

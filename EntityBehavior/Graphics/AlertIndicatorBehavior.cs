@@ -71,18 +71,16 @@ namespace Architome
             if (alertImage == null) { return; }
             if (isFlashing) return;
 
+            await Task.Delay(250);
+
             isFlashing = true;
 
-            var enemiesTargeting = combatInfo.EnemiesTargetedBy();
-            var enemiesCasting = combatInfo.EnemiesCastedBy();
 
 
-            while (enemiesCasting.Count > 0 || enemiesTargeting.Count > 0)
+            while (combatInfo.IsBeingAttacked())
             {
                 
                 await Task.Delay(250);
-                enemiesTargeting = combatInfo.EnemiesTargetedBy();
-                enemiesCasting = combatInfo.EnemiesCastedBy();
                 alertImage.enabled = !alertImage.enabled;
             }
 

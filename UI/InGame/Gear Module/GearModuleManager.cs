@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Architome;
+using System;
 public class GearModuleManager : MonoBehaviour
 {
     // Start is called before the first frame update
@@ -11,7 +12,10 @@ public class GearModuleManager : MonoBehaviour
 
     public GearStatsUI stats;
     public GearSlotManager gearSlotManager;
-    
+
+
+    public Action<EntityInfo> OnSetEntity;
+
     
     
     void GetDependencies()
@@ -30,30 +34,12 @@ public class GearModuleManager : MonoBehaviour
 
     public void OnNewPlayableEntity(EntityInfo newEntity, int index)
     {
-        if(entityButtons.Count <= index)
+        if (index == 0)
         {
-            return;
-        }
-
-        playableEntities.Add(newEntity);
-        entityButtons[index].transform.parent.gameObject.SetActive(true);
-
-        if(newEntity.entityPortrait)
-        {
-            
-            entityButtons[index].sprite = newEntity.entityPortrait;
+            GetComponentInParent<ModuleInfo>().OnSelectEntity?.Invoke(newEntity);
         }
 
 
-        if(index == 0)
-        {
-            SetEntity(0);
-        }
-
-        for (int i = index + 1; i < entityButtons.Count; i++)
-        {
-            entityButtons[i].transform.parent.gameObject.SetActive(false);
-        }
     }
 
     private void Update()
@@ -61,11 +47,5 @@ public class GearModuleManager : MonoBehaviour
     }
     // Update is called once per frame
 
-    public void SetEntity(int index)
-    {
-        if(index >= playableEntities.Count) { return; }
 
-        stats.entityInfo = playableEntities[index];
-        gearSlotManager.entityInfo = playableEntities[index];
-    }
 }

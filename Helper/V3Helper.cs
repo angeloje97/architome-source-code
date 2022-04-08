@@ -57,36 +57,38 @@ public class V3Helper
 
     public static Vector3 MidPoint(List<Transform> transforms)
     {
-        //var positionSum = new Vector3();
+        var maxX = transforms.Max(trans => trans.position.x);
+        var minX = transforms.Min(trans => trans.position.x);
+        var maxY = transforms.Max(trans => trans.position.y);
+        var minY = transforms.Min(trans => trans.position.y);
+        var maxZ = transforms.Max(trans => trans.position.z);
+        var minZ = transforms.Min(trans => trans.position.z);
 
-        return Sum(transforms) / transforms.Count;
-        //var positionSumX = transforms.Sum(trans => trans.position.x);
-        //var positionSumY = transforms.Sum(trans => trans.position.y);
-        //var positionSumZ = transforms.Sum(trans => trans.position.y);
-
-        //var positionX = positionSumX / transforms.Count;
-        //var positionY = positionSumY / transforms.Count;
-        //var positionZ = positionSumZ / transforms.Count;
-
-        //return new Vector3(positionX, positionY, positionZ);
+        return new Vector3((maxX + minX) /2, (maxY + minY) /2 , (maxZ + minZ) / 2);
     }
 
     public static float MaxDistance(Vector3 point, List<Transform> transforms)
     {
 
+
+
         var orderedList = transforms.OrderByDescending(trans => Distance(trans.position, point)).ToList();
 
         return Distance(orderedList[0].position, point);
+    }
 
-        //foreach(Transform current in transforms)
-        //{
-        //    if(Distance(current.position, point) > maxDistance)
-        //    {
-        //        maxDistance = Distance(current.position, point);
-        //    }
-        //}
+    
+    public static Vector3 Dimensions(List<Transform> transforms)
+    {
+        var maxX = transforms.Max(trans => trans.position.x);
+        var minX = transforms.Min(trans => trans.position.x);
+        var maxY = transforms.Max(trans => trans.position.y);
+        var minY = transforms.Min(trans => trans.position.y);
+        var maxZ = transforms.Max(trans => trans.position.z);
+        var minZ = transforms.Min(trans => trans.position.z);
 
-        //return maxDistance;
+        return new Vector3(maxX - minX, maxY - minY, maxZ - minZ);
+
     }
 
     public static Vector3 InterceptionPoint(Vector3 source, Vector3 target, LayerMask interceptionLayerMask)

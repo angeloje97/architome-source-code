@@ -14,6 +14,7 @@ namespace Architome
 
         public GameObject entityObject;
         public EntityInfo entityInfo;
+        public Stats stats;
 
         public Action<BuffInfo> OnBuffStack;
         public Action<BuffInfo> OnBuffTimerReset;
@@ -38,6 +39,18 @@ namespace Architome
         void Update()
         {
 
+        }
+
+        public void UpdateStats()
+        {
+            stats.ZeroOut();
+
+            foreach (var buffStat in GetComponentsInChildren<BuffStatChange>())
+            {
+                stats = stats.Sum(stats, buffStat.stats);
+            }
+
+            entityInfo.UpdateCurrentStats();
         }
 
         public void OnLifeChange(bool isAlive)

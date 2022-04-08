@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
+using System.Linq;
 
 namespace Architome
 {
@@ -27,13 +28,13 @@ namespace Architome
                 buffInfo.hostInfo.stateImmunities.Add(state);
             }
 
-            foreach (var buff in transform.parent.GetComponentsInChildren<BuffStateChanger>())
+            var buffsToCleanse = buffInfo.buffsManager.Buffs()
+                                .Where(buffInfo => buffInfo.GetComponent<BuffStateChanger>() != null &&
+                                statesImmuneTo.Contains(buffInfo.GetComponent<BuffStateChanger>().stateToChange)).ToList();
+
+            foreach (var buff in buffsToCleanse)
             {
-                var buffInfo = buff.GetComponent<BuffInfo>();
-                if (buffInfo.buffTargetType == BuffTargetType.Harm)
-                {
-                    buffInfo.Cleanse();
-                }
+                buff.Cleanse();
             }
 
             

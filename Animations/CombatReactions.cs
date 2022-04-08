@@ -17,7 +17,7 @@ public class CombatReactions
     {
         entity.OnDamageTaken += OnDamageTaken;
         entity.OnLifeChange += OnLifeChange;
-        entity.OnStateChange += OnStateChange;
+        entity.combatEvents.OnStatesChange += OnStatesChange;
 
         this.animator = anim.anim;
     }
@@ -37,15 +37,14 @@ public class CombatReactions
         animator.SetBool("IsAlive", isAlive);
     }
 
-    public void OnStateChange(EntityState previous, EntityState current)
+    public void OnStatesChange(List<EntityState> previous, List<EntityState> states)
     {
-        if(current == EntityState.Active)
-        {
-            animator.SetInteger("EntityState", 0);
-        }
-        if(current == EntityState.Stunned)
+        if (states.Contains(EntityState.Stunned))
         {
             animator.SetInteger("EntityState", 1);
+            return;
         }
+
+        animator.SetInteger("EntityState", 0);
     }
 }

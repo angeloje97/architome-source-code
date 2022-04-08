@@ -16,7 +16,7 @@ public class CatalystHit : MonoBehaviour
     public bool isAssisting;
 
     public bool canSelfCast;
-    public bool isSplashing = false;
+    public bool appliesBuff = true;
 
     public float value;
 
@@ -74,7 +74,6 @@ public class CatalystHit : MonoBehaviour
         try
         {
             HandleTargetHit(targetHit);
-            HandleSplash(targetHit);
         }
         catch
         {
@@ -112,7 +111,6 @@ public class CatalystHit : MonoBehaviour
     public void HandleTargetHit(EntityInfo targetHit)
     {
         if (!IsDeadTargetable(targetHit)) { return; }
-        if(catalystInfo.Ticks() <= 0 && !isSplashing) { return; }
         HandleMainTarget(targetHit.gameObject);
         HandleEvent();
         HandleHeal();
@@ -139,7 +137,7 @@ public class CatalystHit : MonoBehaviour
                 AddAlliesHealed(targetHit);
                 if(isHealing && !isAssisting)
                 {
-                    if (!isSplashing) { catalystInfo.ReduceTicks(); }
+                    catalystInfo.ReduceTicks();
                 }
                 
             }
@@ -156,7 +154,7 @@ public class CatalystHit : MonoBehaviour
                 catalystInfo.OnDamage?.Invoke(targetHit.gameObject);
                 ApplyBuff(targetHit, BuffTargetType.Harm);
                 AddEnemyHit(targetHit);
-                if (!isSplashing) { catalystInfo.ReduceTicks(); }
+                catalystInfo.ReduceTicks();
             }
         }
         void HandleAssist()
@@ -183,9 +181,7 @@ public class CatalystHit : MonoBehaviour
                 AddAlliesAssisted(targetHit);
                 AddAlliesHealed(targetHit);
 
-                if(!isSplashing) {
-                    catalystInfo.ReduceTicks();
-                }
+                catalystInfo.ReduceTicks();
                 
 
             }
@@ -194,7 +190,10 @@ public class CatalystHit : MonoBehaviour
         {
             if (CanHit(targetHit))
             {
-                catalystInfo.OnHit?.Invoke(targetHit.gameObject);
+                ArchAction.Yield(() => {
+                    catalystInfo.OnHit?.Invoke(targetHit.gameObject);
+                });
+                
             }
         }
     }
@@ -243,7 +242,7 @@ public class CatalystHit : MonoBehaviour
     {
         if (!isHarming){ return false;}
         if (!catalystInfo.entityInfo.CanAttack(targetInfo.gameObject)) { return false; }
-        if (!EnemiesHitContains(targetInfo) || isSplashing)
+        if (!EnemiesHitContains(targetInfo))
         {
             return true;
         }
@@ -259,7 +258,7 @@ public class CatalystHit : MonoBehaviour
     {
         if(!isHealing) { return false; }
         if (!catalystInfo.entityInfo.CanHelp(targetInfo.gameObject)) { return false; }
-        if (!HealedContains(targetInfo) || isSplashing)
+        if (!HealedContains(targetInfo))
         {
             return true;
         }
@@ -304,7 +303,6 @@ public class CatalystHit : MonoBehaviour
     }
     public void AddEnemyHit(EntityInfo target)
     {
-        if(isSplashing) { return; }
         if(catalystInfo)
         {
             if(!catalystInfo.enemiesHit.Contains(target))
@@ -315,7 +313,6 @@ public class CatalystHit : MonoBehaviour
     }
     public void AddAlliesHealed(EntityInfo target)
     {
-        if (isSplashing) { return; }
         if (catalystInfo)
         {
             if(!catalystInfo.alliesHealed.Contains(target))
@@ -326,7 +323,6 @@ public class CatalystHit : MonoBehaviour
     }
     public void AddAlliesAssisted(EntityInfo target)
     {
-        if (isSplashing) { return; }
         if (catalystInfo)
         {
             if (!catalystInfo.alliesAssisted.Contains(target))
@@ -413,11 +409,12 @@ public class CatalystHit : MonoBehaviour
     public void ApplyBuff(EntityInfo targetInfo, BuffTargetType buffType)
     {
         if(catalystInfo.entityInfo == null || abilityInfo == null) { return; }
+        if (!appliesBuff) return;
         if (abilityInfo && abilityInfo.buffs.Count > 0)
         {
             foreach (GameObject buff in abilityInfo.buffs)
             {
-                if (buff.GetComponent<BuffInfo>() && buff.GetComponent<BuffInfo>().buffTargetType == buffType)
+                if (buff.GetComponent<BuffInfo>() && (buff.GetComponent<BuffInfo>().buffTargetType == buffType || buff.GetComponent<BuffInfo>().buffTargetType == BuffTargetType.Neutral))
                 {
                     if(targetInfo.Buffs())
                     {
@@ -425,94 +422,8 @@ public class CatalystHit : MonoBehaviour
                     }
                 }
             }
-        }
-    }
-    public void HandleSplash(EntityInfo targetInfo)
-    {
-        if(targetInfo == null) { return; }
-        if(abilityInfo == null) { return; }
-        if (!abilityInfo.splashes) { return; }
 
 
-        //Collider[] entitiesWithinRange = Physics.OverlapSphere(targetInfo.transform.position, abilityInfo.splashRadius, abilityInfo.targetLayer);
-
-        var entitiesWithinRange = catalystInfo.EntitiesWithinRadius(abilityInfo.splashRadius);
-        int maxSplashTargets = abilityInfo.maxSplashTargets;
-        var originalValue = value;
-        var originalAssist = isAssisting;
-
-        HandleOriginalValues();
-        HandleSplashTargets();
-        ResetToOriginalValues();
-
-        void HandleOriginalValues()
-        {
-            value = abilityInfo.valueContributionToSplash * value;
-            isAssisting = abilityInfo.splashAppliesBuffs;
-            isSplashing = true;
-        }
-        void HandleSplashTargets()
-        {
-            foreach (var target in entitiesWithinRange)
-            {
-                if (maxSplashTargets == 0)
-                {
-                    break;
-                }
-                else
-                {
-                    if (target.GetComponent<EntityInfo>().npcType == targetInfo.npcType && target.GetComponent<EntityInfo>() != targetInfo)
-                    {
-                        if (HasLineOfSight(target))
-                        {
-                            HandleTargetHit(target.GetComponent<EntityInfo>());
-                            maxSplashTargets--;
-                        }
-                    }
-                }
-            }
-
-            foreach (var target in entitiesWithinRange)
-            {
-                if (maxSplashTargets == 0)
-                {
-                    break;
-                }
-                if (target.GetComponent<EntityInfo>())
-                {
-                    if (CanHit(target.GetComponent<EntityInfo>()) && target.GetComponent<EntityInfo>() != targetInfo)
-                    {
-                        if (HasLineOfSight(target))
-                        {
-                            HandleTargetHit(target.GetComponent<EntityInfo>());
-                        }
-                        maxSplashTargets--;
-                    }
-                }
-            }
-        }
-        void ResetToOriginalValues()
-        {
-            value = originalValue;
-            isAssisting = originalAssist;
-            isSplashing = false;
-        }
-
-        bool HasLineOfSight(GameObject target)
-        {
-            if(!abilityInfo.splashRequiresLOS)
-            {
-                return true;
-            }
-            var distance = V3Helper.Distance(target.transform.position, transform.position);
-            var direction = V3Helper.Direction(target.transform.position, transform.position);
-
-            if(!Physics.Raycast(transform.position, direction, distance, abilityInfo.obstructionLayer))
-            {
-                return true;
-            }
-
-            return false;
         }
     }
 }

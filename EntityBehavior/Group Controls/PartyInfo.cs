@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
 using System.Linq;
+using System;
 
 namespace Architome
 {
@@ -49,7 +50,18 @@ namespace Architome
         public bool partyIsInCombat;
 
         //Party Events
+        public struct PartyEvents
+        {
+            public Action<bool> OnCombatChange;
+        }
 
+        public struct EventHandlers
+        {
+            public bool previousCombat;
+        }
+
+        public PartyEvents events;
+        public EventHandlers eventHandlers;
 
         public void GetDependencies()
         {
@@ -111,7 +123,6 @@ namespace Architome
                 GMHelper.GameManager().AddPlayableParty(this);
             }
         }
-
         public void ProcessMembers()
         {
             foreach (GameObject member in members)
@@ -139,6 +150,16 @@ namespace Architome
         {
             HandlePartyInputs();
             UpdateMidPoint();
+            HandleEvents();
+        }
+
+        void HandleEvents()
+        {
+            if (eventHandlers.previousCombat != partyIsInCombat)
+            {
+                eventHandlers.previousCombat = partyIsInCombat;
+                events.OnCombatChange?.Invoke(partyIsInCombat);
+            }
         }
         public bool IsPartyMember(GameObject checkEntity) { return members.Contains(checkEntity); }
         public void HandlePartyInputs()
@@ -193,7 +214,7 @@ namespace Architome
 
                 if (memberInfo.Movement())
                 {
-                    memberInfo.Movement().MoveTo(partyFormation.spots[i].transform.position);
+                    memberInfo.Movement().OnTryMove?.Invoke(memberInfo.Movement());
                     memberInfo.Movement().MoveTo(partyFormation.spots[i].transform);
                 }
             }
@@ -211,7 +232,7 @@ namespace Architome
                 {
                     var memberInfo = member.GetComponent<EntityInfo>();
                     var memberMovement = memberInfo.Movement();
-
+                    
                     memberMovement.MoveTo(position.position);
                 }
             }

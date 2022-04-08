@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Linq;
 using Architome;
 using System.Threading.Tasks;
 public class CombatInfo : MonoBehaviour
@@ -15,11 +16,18 @@ public class CombatInfo : MonoBehaviour
     [Serializable]
     public class CombatLogs
     {
-        public float damageDone;
-        public float damageTaken;
-        public float healingDone;
-        public float healingTaken;
-        public float threatGenerated;
+        [Serializable]
+        public struct Values
+        {
+            public float damageDone;
+            public float damageTaken;
+            public float healingDone;
+            public float healingTaken;
+            public float threatGenerated;
+        }
+
+        public Values values;
+
 
         public void ProcessEntity(EntityInfo entity)
         {
@@ -36,27 +44,27 @@ public class CombatInfo : MonoBehaviour
         public void OnDamageDone(CombatEventData eventData)
         {
 
-            damageDone += eventData.value;
+            values.damageDone += eventData.value;
         }
 
         public void OnDamageTaken(CombatEventData eventData)
         {
-            damageTaken += eventData.value;
+            values.damageTaken += eventData.value;
         }
 
         public void OnHealingDone(CombatEventData eventData)
         {
-            healingDone += eventData.value;
+            values.healingDone += eventData.value;
         }
            
         public void OnHealingTaken(CombatEventData eventData)
         {
-            healingTaken += eventData.value;
+            values.healingTaken += eventData.value;
         }
 
         public void OnGenerateThreat(ThreatManager.ThreatInfo threatInfo)
         {
-            threatGenerated += threatInfo.threatValue;
+            values.threatGenerated += threatInfo.threatValue;
         }
 
     }
@@ -65,13 +73,14 @@ public class CombatInfo : MonoBehaviour
     public List<GameObject> targetedBy;
     public List<GameObject> castedBy;
 
+    public bool isClearing;
+
     //Events
 
     public event Action<GameObject, List<GameObject>> OnNewTargetedBy;
     public event Action<GameObject, List<GameObject>> OnTargetedByRemove;
     public Action<CombatInfo> OnTargetedByEvent;
 
-    public bool isClearing;
 
     void Start()
     {
@@ -95,6 +104,11 @@ public class CombatInfo : MonoBehaviour
             abilityManager.OnAbilityStart += OnAbilityStart;
             abilityManager.OnAbilityEnd += OnAbilityEnd;
         }
+
+        if (entityInfo)
+        {
+            entityInfo.OnLifeChange += OnLifeChange;
+        }
     }
 
     protected void AddTarget(GameObject target)
@@ -104,6 +118,7 @@ public class CombatInfo : MonoBehaviour
             targetedBy.Add(target);
             OnNewTargetedBy?.Invoke(target, targetedBy);
             OnTargetedByEvent?.Invoke(this);
+            ClearEnemies();
         }
     }
 
@@ -123,6 +138,7 @@ public class CombatInfo : MonoBehaviour
 
         castedBy.Add(target);
         OnTargetedByEvent?.Invoke(this);
+        ClearEnemies();
     }
 
     protected void RemoveCaster(GameObject target)
@@ -165,50 +181,69 @@ public class CombatInfo : MonoBehaviour
         return false;
     }
 
-    public async Task BeingAttacked()
+    void ClearLogic()
     {
-        while (EnemiesTargetedBy().Count > 0 || EnemiesCastedBy().Count > 0)
+        if (entityInfo == null) return;
+        for(int i = 0; i < castedBy.Count; i++) 
         {
-            await Task.Delay(1000);
-            ClearAttackers();
+            var caster = castedBy[i];
+            var ability = caster.GetComponentInChildren<AbilityManager>().currentlyCasting;
+
+            if (ability && !ability.isAttack && ability.target == entityInfo.gameObject)
+            {
+                continue;
+            }
+
+            castedBy.RemoveAt(i);
+
+            i--;
+            OnTargetedByEvent?.Invoke(this);
+        }
+
+        for (int i = 0; i < targetedBy.Count; i++)
+        {
+            var target = targetedBy[i];
+
+            var combat = target.GetComponentInChildren<CombatBehavior>();
+            
+
+            if (combat.GetFocus() && combat.GetFocus() == entityInfo.gameObject)
+            {
+                continue;
+            }
+
+            if (combat.target == entityInfo.gameObject)
+            {
+                continue;
+            }
+
+            targetedBy.RemoveAt(i);
+            i--;
+            OnTargetedByEvent?.Invoke(this);
         }
     }
 
-    public void ClearAttackers()
+    async public void ClearEnemies()
     {
-        for (int i = 0; i < castedBy.Count; i++)
+        if (isClearing) return;
+        isClearing = true;
+
+        while (EnemiesCastedBy().Count > 0 || EnemiesTargetedBy().Count > 0)
         {
-            var remove = false;
-
-            if (castedBy[i] == null)
-            {
-                remove = true;
-            }
-
-            var currentlyCasting = castedBy[i].GetComponentInChildren<AbilityManager>().currentlyCasting;
-
-            if (currentlyCasting == null)
-            {
-                remove = true;
-            }
-            else
-            {
-                var target = currentlyCasting.targetLocked;
-
-                if (target != entityInfo.gameObject)
-                {
-                    remove = true;
-                }
-            }
-
-           
-
-            if(remove)
-            {
-                castedBy.RemoveAt(i);
-                i--;
-            }
+            await Task.Delay(1000);
+            if (entityInfo == null) break;
+            ClearLogic();
         }
+
+        isClearing = false;
+
+    }
+
+    public void OnLifeChange(bool isAlive)
+    {
+        if (isAlive) return;
+        castedBy.Clear();
+        targetedBy.Clear();
     }
 
 
@@ -234,12 +269,12 @@ public class CombatInfo : MonoBehaviour
 
     public List<GameObject> EnemiesTargetedBy()
     {
-        return targetedBy.FindAll(entity => entityInfo.CanAttack(entity));
+        return targetedBy.Where(entity => entity.GetComponent<EntityInfo>().CanAttack(entityInfo.gameObject)).ToList();
     }
 
     public List<GameObject> EnemiesCastedBy()
     {
-        return castedBy.FindAll(entity => entityInfo.CanAttack(entity));
+        return castedBy.Where(entity => entity.GetComponent<EntityInfo>().CanAttack(entityInfo.gameObject)).ToList();
     }
 
 

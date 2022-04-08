@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Architome;
+using System.Linq;
+
 public class EntityInventoryUI : MonoBehaviour
 {
     // Start is called before the first frame update
@@ -11,6 +13,7 @@ public class EntityInventoryUI : MonoBehaviour
     public InventoryManager inventoryManager;
     public List<InventorySlot> inventorySlots;
     public List<Item> items;
+    public ModuleInfo module;
 
     private EntityInfo currentEntity;
 
@@ -19,17 +22,16 @@ public class EntityInventoryUI : MonoBehaviour
 
     void GetDependencies()
     {
-        foreach(Transform child in transform)
-        {
-            if(child.GetComponent<InventorySlot>())
-            {
-                inventorySlots.Add(child.GetComponent<InventorySlot>());
-            }
-        }
+        inventorySlots = GetComponentsInChildren<InventorySlot>().ToList();
 
         if(GetComponentInParent<InventoryManager>())
         {
             inventoryManager = GetComponentInParent<InventoryManager>();
+        }
+
+        if (GameManager.active)
+        {
+            GameManager.active.OnNewPlayableEntity += OnNewPlayableEntity;
         }
     }
 
@@ -42,6 +44,11 @@ public class EntityInventoryUI : MonoBehaviour
     void Update()
     {
         HandleUpdateTriggers();
+    }
+
+    public void SetEntity(EntityInfo entity)
+    {
+
     }
     void HandleUpdateTriggers()
     {
@@ -69,11 +76,18 @@ public class EntityInventoryUI : MonoBehaviour
                     if (items[i] == null) { continue; }
                     if (inventorySlots[i].item != null) { continue; }
 
-                    CreateItem(items[i], inventorySlots[i]);
+                    var clone = Instantiate(items[i]);
+
+                    CreateItem(clone, inventorySlots[i]);
                    
                 }
             }
         }
+    }
+
+    public void OnNewPlayableEntity(EntityInfo newEntity, int index)
+    {
+
     }
     public void UpdateInventory()
     {

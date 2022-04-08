@@ -119,17 +119,35 @@ namespace Architome
                 movement.OnStartMove += OnStartMove;
                 movement.OnEndMove += OnEndMove;
                 movement.OnTryMove += OnTryMove;
+
+                ArchAction.Delay(() => {
+                    if (!entityInfo.isAlive)
+                    {
+                        stateMachine.TransitionAnyState(BehaviorState.Inactive);
+                        return;
+                    }
+                    if (movement.isMoving)
+                    {
+                        stateMachine.TransitionAnyState(BehaviorState.Moving);
+                    }
+                    else
+                    {
+                        stateMachine.TransitionAnyState(BehaviorState.Idle);
+                    }
+                }, 2f);
+                
             }
 
             if(entityInfo.AbilityManager())
             {
                 abilityManager = entityInfo.AbilityManager();
                 abilityManager.OnWantsToCastChange += OnWantsToCastChange;
-                abilityManager.OnCastStart += OnCastStart;
-                abilityManager.OnCastRelease += OnCastRelease;
-                abilityManager.OnCancelCast += OnCancelCast;
+                abilityManager.OnAbilityStart += OnAbilityStart;
+                abilityManager.OnAbilityEnd += OnAbilityEnd;
                 abilityManager.OnTryCast += OnTryCast;
             }
+
+            
 
             
         }
@@ -172,8 +190,6 @@ namespace Architome
 
 
         }
-
-
         public void OnStartMove(Movement movement)
         {
             //stateMachine.Transition(Transition.OnStartMove, BehaviorState.Moving);
@@ -216,15 +232,28 @@ namespace Architome
             fleeingIsActive = true;
             var combatInfo = entityInfo.GetComponentInChildren<CombatInfo>();
 
-            await combatInfo.BeingAttacked();
+
+            while (true)
+            {
+                await Task.Delay(1000);
+
+
+                if (behavior.behaviorState != BehaviorState.Fleeing)
+                {
+                    break;
+                }
+
+                if (combatInfo.EnemiesCastedBy().Count == 0 && combatInfo.EnemiesTargetedBy().Count == 0)
+                {
+                    break;
+                }
+            }
 
             fleeingIsActive = false;
 
             if (behavior.behaviorState == BehaviorState.Fleeing)
             {
 
-                await combatInfo.BeingAttacked();
-                await Task.Delay(1000);
                 if (movement.isMoving)
                 {
                     stateMachine.TransitionAnyState(BehaviorState.Moving);
@@ -249,15 +278,11 @@ namespace Architome
                 stateMachine.Transition(Transition.OnDamageTaken, BehaviorState.Idle);
             }
         }
-
-
-
         public void OnEndMove(Movement movement)
         {
             stateMachine.Transition(Transition.OnEndMove, BehaviorState.Idle);
 
         }
-
         public void OnChangeNPCType(NPCType before, NPCType after)
         {
             if(movement.isMoving)
@@ -308,7 +333,7 @@ namespace Architome
         public void OnTryCast(AbilityInfo ability)
         {
         }
-        public void OnCastStart(AbilityInfo ability)
+        public void OnAbilityStart(AbilityInfo ability)
         {
             if(ability.target == null)
             {
@@ -326,19 +351,7 @@ namespace Architome
             }
         }
 
-        public void OnCancelCast(AbilityInfo ability)
-        {
-            if(!movement.isMoving)
-            {
-                stateMachine.Transition(Transition.OnCastEnd, BehaviorState.Idle);
-            }
-            else
-            {
-                stateMachine.Transition(Transition.OnCastEnd, BehaviorState.Moving);
-            }
-        }
-        
-        public void OnCastRelease(AbilityInfo ability)
+        public void OnAbilityEnd(AbilityInfo ability)
         {
             if (!movement.isMoving)
             {

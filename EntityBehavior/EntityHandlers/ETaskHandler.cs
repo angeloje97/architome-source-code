@@ -74,6 +74,8 @@ namespace Architome
                 if (currentTask == null) { return; }
                 if (currentTask.properties.station == null) { return; }
                 if (!movement.IsInRangeFromTarget()) { return; }
+
+                movement.StopMoving();
                 WorkOn(currentTask); 
             }, .125f);
             
@@ -122,12 +124,7 @@ namespace Architome
         {
             if(currentStation == null) { return false; }
 
-            if(targetCheck.GetComponent<WorkInfo>() == currentStation)
-            {
-                return true;
-            }
-
-            if(targetCheck.GetComponentInParent<WorkInfo>())
+            if (currentStation.IsOfWorkStation(targetCheck))
             {
                 return true;
             }
@@ -166,7 +163,7 @@ namespace Architome
             }
             else
             {
-                movement.MoveTo(currentStation.transform, 2f);
+                movement.MoveTo(currentStation.transform, 3f);
             }
 
 

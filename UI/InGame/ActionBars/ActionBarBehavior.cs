@@ -86,12 +86,12 @@ public class ActionBarBehavior : MonoBehaviour
         void HandleCooldownTimer()
         {
             if(coolDownTimer == null) { return; }
-            bool coolDownActive = abilityInfo.currentCharges != abilityInfo.maxCharge;
+            bool coolDownActive = abilityInfo.coolDown.charges != abilityInfo.coolDown.maxCharges;
             coolDownTimer.gameObject.SetActive(coolDownActive);
             
             if(coolDownActive)
             {
-                int timeRemaining = (int)(abilityInfo.coolDown - abilityInfo.coolDownTimer);
+                int timeRemaining = (int)(abilityInfo.coolDown.progressTimer);
 
                 string text = "";
                 switch(timeRemaining)
@@ -115,50 +115,54 @@ public class ActionBarBehavior : MonoBehaviour
         }
         void HandleCharges()
         {
-            if(!charges.text.Equals(abilityInfo.currentCharges.ToString()) && abilityInfo.maxCharge > 1)
+            if(!charges.text.Equals(abilityInfo.coolDown.charges.ToString()) && abilityInfo.coolDown.maxCharges > 1)
             {
-                charges.text = $"{abilityInfo.currentCharges}";
+                charges.text = $"{abilityInfo.coolDown.charges}";
             }
 
-            if (abilityInfo.currentCharges > 0)
+            if (abilityInfo.coolDown.charges > 0)
             {
                 iconDark.color = halfDarkenedColor;
             }
-            if(abilityInfo.currentCharges == 0)
+            if(abilityInfo.coolDown.charges == 0)
             {
                 iconDark.color = darkenedColor;
             }
         }
         void HandleFillAmount()
         {
-            if (abilityInfo.currentCharges == abilityInfo.maxCharge && !abilityInfo.globalCoolDownActive)
+            if (iconMain.fillAmount != abilityInfo.coolDown.progress)
             {
-                iconMain.fillAmount = 1;
-                return;
+                iconMain.fillAmount = abilityInfo.coolDown.progress;
             }
+            //if (abilityInfo.coolDown.charges == abilityInfo.coolDown.maxCharges && !abilityInfo.globalCoolDownActive)
+            //{
+            //    iconMain.fillAmount = 1;
+            //    return;
+            //}
             
 
-            bool condition1 = abilityInfo.globalCoolDownActive && abilityInfo.currentCharges - 1 != 0 && abilityInfo.currentCharges != 0;
-            bool condition2 = !abilityInfo.isCasting && abilityInfo.globalCoolDownActive;
+            //bool condition1 = abilityInfo.globalCoolDownActive && abilityInfo.coolDown.charges - 1 != 0 && abilityInfo.coolDown.charges != 0;
+            //bool condition2 = !abilityInfo.isCasting && abilityInfo.globalCoolDownActive;
 
-            if (condition1 || condition2)
-            {
-                if (abilityInfo.currentCharges == 0) { return; }
-                iconMain.fillAmount = abilityInfo.globalCoolDownTimer / abilityInfo.globalCoolDown;
-            }
-            else
-            {
-                iconMain.fillAmount = abilityInfo.coolDownTimer / abilityInfo.coolDown;
-            }
+            //if (condition1 || condition2)
+            //{
+            //    if (abilityInfo.coolDown.charges == 0) { return; }
+            //    iconMain.fillAmount = abilityInfo.globalCoolDownTimer / abilityInfo.globalCoolDown;
+            //}
+            //else
+            //{
+            //    iconMain.fillAmount = abilityInfo.coolDown.progress;
+            //}
             
         }
     }
 
     public void HandleEvents()
     {
-        if(chargeCheck != abilityInfo.currentCharges)
+        if(chargeCheck != abilityInfo.coolDown.charges)
         {
-            chargeCheck = (int) abilityInfo.currentCharges;
+            chargeCheck = (int) abilityInfo.coolDown.charges;
             OnChargeChange?.Invoke(abilityInfo, chargeCheck);
         }
     }
@@ -179,7 +183,7 @@ public class ActionBarBehavior : MonoBehaviour
             coolDownTimer.gameObject.SetActive(val);
         }
 
-        if (abilityInfo && abilityInfo.maxCharge > 1)
+        if (abilityInfo && abilityInfo.coolDown.maxCharges > 1)
         {
             charges.gameObject.SetActive(true);
         }

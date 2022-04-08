@@ -74,11 +74,18 @@ public class MainCamera3 : MonoBehaviour
 
         if (Input.mouseScrollDelta.y > 0)
         {
-            zoomOffset -= 4;
+            if (!Mouse.IsMouseOverUI())
+            {
+                zoomOffset -= 4;
+            }
         }
         else if (Input.mouseScrollDelta.y < 0)
         {
-            zoomOffset += 4;
+            if (!Mouse.IsMouseOverUI())
+            {
+                zoomOffset += 4;
+            }
+
         }
 
         var smoothedPosition = Mathf.Lerp(zoom, zoomOffset, smoothSpeed);
@@ -101,11 +108,19 @@ public class MainCamera3 : MonoBehaviour
 
         if (Input.mouseScrollDelta.y > 0)
         {
-            zoomOffset -= 4;
+
+            if (!Mouse.IsMouseOverUI())
+            {
+                zoomOffset -= 4;
+            }
+
         }
         else if (Input.mouseScrollDelta.y < 0)
         {
-            zoomOffset += 4;
+            if (!Mouse.IsMouseOverUI())
+            {
+                zoomOffset += 4;
+            }
         }
 
         var smoothedPosition = Mathf.Lerp(zoom, zoomOffset, smoothSpeed);

@@ -4,6 +4,7 @@ using UnityEngine;
 using Architome.Enums;
 using System.Linq;
 using System.Threading.Tasks;
+using System;
 
 namespace Architome
 {
@@ -19,6 +20,7 @@ namespace Architome
 
         public WorldInfo worldInfo;
 
+        public 
 
         WorkInfo workInfo;
         public 
@@ -94,9 +96,13 @@ namespace Architome
             GMHelper.WorldInfo().lastPlayerSpawnBeacon = spawnerInfo;
             var members = GameManager.active.playableEntities.Where(entity => !entity.isAlive).ToList();
 
+            spawnerInfo.spawnEvents.OnStartRevivingParty?.Invoke(members.Count, GameManager.active.playableEntities.Count);
+
+
             foreach(var member in members)
             {
                 WorldActions.active.ReviveAtSpawnBeacon(member.gameObject);
+                spawnerInfo.spawnEvents.OnReviveEntity?.Invoke(member);
                 await Task.Delay(500);
             }
 
@@ -106,6 +112,7 @@ namespace Architome
 
         public void SetAsLastPlayerSpawnBeacon()
         {
+            spawnerInfo.spawnEvents.OnSetPlayerSpawnBeacon?.Invoke(spawnerInfo);
             worldInfo.lastPlayerSpawnBeacon = spawnerInfo;
         }
 

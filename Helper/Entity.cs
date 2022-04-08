@@ -1,123 +1,159 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Architome;
-public class Entity : MonoBehaviour
+using System.Linq;
+namespace Architome
 {
-    // Start is called before the first frame update
-    void Start()
+    public class Entity : MonoBehaviour
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    public static EntityInfo EntityInfo(GameObject entityObject)
-    {
-        
-        if (entityObject.GetComponent<EntityInfo>())
+        // Start is called before the first frame update
+        void Start()
         {
-            Debugger.InConsole(2, $"entity object has entity info? {entityObject.GetComponent<EntityInfo>()}");
-            return entityObject.GetComponent<EntityInfo>();
+
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+
+        }
+
+        public static EntityInfo EntityInfo(GameObject entityObject)
+        {
+
+            if (entityObject.GetComponent<EntityInfo>())
+            {
+                Debugger.InConsole(2, $"entity object has entity info? {entityObject.GetComponent<EntityInfo>()}");
+                return entityObject.GetComponent<EntityInfo>();
+
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public static List<EntityInfo> EntitiesFromRoom(RoomInfo room)
+        {
+            var entities = FindObjectsOfType<EntityInfo>();
+
+            return entities.Where(entity => entity.currentRoom == room).ToList();
+        }
+
+        
+
+        public static bool PlayerIsInRoom(RoomInfo room)
+        {
+            var entitiesInRoom = GameManager.active.playableEntities.Where(entity => entity.currentRoom == room).ToList();
+
+            return entitiesInRoom.Count > 0;
+        }
+
+        public static Vector3 PositionFacing(EntityInfo entity)
+        {
+            var character = entity.CharacterInfo();
+            if (character == null)
+            {
+                return entity.transform.position;
+            }
+
+            return character.transform.position + (Vector3.forward * 2);
+        }
+
+        
+
+        public static List<EntityInfo> EntitiesWithinRange(Vector3 location, float radius)
+        {
+            var entityList = new List<EntityInfo>();
+
+            Collider[] entitiesWithinRange = Physics.OverlapSphere(location, radius, GMHelper.LayerMasks().entityLayerMask);
+
+            entityList = entitiesWithinRange.Select(entity => entity.GetComponent<EntityInfo>()).OrderBy(entity => Vector3.Distance(entity.transform.position, location)).ToList();
+
             
+
+            return entityList;
         }
-        else
+
+        
+
+        public static List<EntityInfo> EntitesWithinLOS(Vector3 position, float radius)
         {
-            return null;
+            var obstructionLayer = GMHelper.LayerMasks().structureLayerMask;
+
+            return EntitiesWithinRange(position, radius)
+                .Where(entity => !V3Helper.IsObstructed(entity.transform.position, position, obstructionLayer))
+                .ToList();
         }
-    }
 
-    public static List<EntityInfo> EntitiesWithinRange(GameObject target, float radius)
-    {
-        var entityList = new List<EntityInfo>();
-
-        Collider[] entitiesWithinRange = Physics.OverlapSphere(target.transform.position, radius, GMHelper.LayerMasks().entityLayerMask);
-
-        foreach(var i in entitiesWithinRange)
+        public static List<EntityInfo> ToEntities(List<GameObject> entityObjects)
         {
-            if (!i.GetComponent<EntityInfo>()) { continue; }
-
-            var info = i.GetComponent<EntityInfo>();
-
-            if(!IsObstructed(target, i.gameObject))
+            List<EntityInfo> entities = new();
+            foreach (var entity in entityObjects)
             {
-                entityList.Add(info);
+                if (entity.GetComponent<EntityInfo>())
+                {
+                    entities.Add(entity.GetComponent<EntityInfo>());
+                }
             }
+
+            return entities;
         }
 
-        return entityList;
-    }
-
-    public static List<EntityInfo> ToEntities(List<GameObject> entityObjects)
-    {
-        List<EntityInfo> entities = new();
-        foreach (var entity in entityObjects)
+        public static bool IsOfEntity(GameObject objectCheck)
         {
-            if (entity.GetComponent<EntityInfo>())
-            {
-                entities.Add(entity.GetComponent<EntityInfo>());
-            }
-        }
-
-        return entities;
-    }
-
-    public static bool IsOfEntity(GameObject objectCheck)
-    {
-        if(objectCheck.GetComponent<EntityInfo>() || objectCheck.GetComponentInParent<EntityInfo>())
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    public static bool IsEntity(GameObject objectCheck)
-    {
-        return objectCheck.GetComponent<EntityInfo>() != null;
-
-    }
-
-    public static bool IsPlayer(GameObject objectCheck)
-    {
-        if(IsEntity(objectCheck))
-        {
-            var info = objectCheck.GetComponent<EntityInfo>();
-
-            if (GMHelper.GameManager().playableEntities.Contains(info))
+            if (objectCheck.GetComponent<EntityInfo>() || objectCheck.GetComponentInParent<EntityInfo>())
             {
                 return true;
             }
+
+            return false;
         }
 
-        return false;
-    }
-
-    public static bool IsObstructed(GameObject endTarget, GameObject sourceTarget)
-    {
-        var distance = Vector3.Distance(endTarget.transform.position, sourceTarget.transform.position);
-        var direction = V3Helper.Direction(endTarget.transform.position, sourceTarget.transform.position);
-
-        if(Physics.Raycast(sourceTarget.transform.position, direction, distance, GMHelper.LayerMasks().structureLayerMask))
+        public static bool IsEntity(GameObject objectCheck)
         {
-            return true;
+            return objectCheck.GetComponent<EntityInfo>() != null;
+
         }
 
+        public static bool IsPlayer(GameObject objectCheck)
+        {
+            if (IsEntity(objectCheck))
+            {
+                var info = objectCheck.GetComponent<EntityInfo>();
 
-        return false;
+                if (GMHelper.GameManager().playableEntities.Contains(info))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool IsObstructed(GameObject endTarget, GameObject sourceTarget)
+        {
+            var distance = Vector3.Distance(endTarget.transform.position, sourceTarget.transform.position);
+            var direction = V3Helper.Direction(endTarget.transform.position, sourceTarget.transform.position);
+
+            if (Physics.Raycast(sourceTarget.transform.position, direction, distance, GMHelper.LayerMasks().structureLayerMask))
+            {
+                return true;
+            }
+
+
+            return false;
+        }
+
+        public static List<EntityInfo> PlayableEntities()
+        {
+            return GMHelper.GameManager().playableEntities;
+        }
+
+        public static List<GameObject> LiveEntityObjects(List<GameObject> entityObjects)
+        {
+            return entityObjects.FindAll(entityObject => entityObject.GetComponent<EntityInfo>().isAlive);
+        }
     }
 
-    public static List<EntityInfo> PlayableEntities()
-    {
-        return GMHelper.GameManager().playableEntities;
-    }
-
-    public static List<GameObject> LiveEntityObjects(List<GameObject> entityObjects)
-    {
-        return entityObjects.FindAll(entityObject => entityObject.GetComponent<EntityInfo>().isAlive);
-    }
 }

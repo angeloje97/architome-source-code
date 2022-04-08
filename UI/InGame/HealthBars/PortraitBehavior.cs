@@ -83,7 +83,6 @@ public class PortraitBehavior : MonoBehaviour
         UpdateLevel();
 
     }
-
     void HandleEvents()
     {
         if(entityInfoCheck != entity)
@@ -92,70 +91,11 @@ public class PortraitBehavior : MonoBehaviour
             entityInfoCheck = entity;
         }
     }
-
-
     void UpdateBars()
     {
         UpdateHealth();
         UpdateResourceBar();
-        UpdateCastBar();
 
-        void UpdateCastBar()
-        {
-            if(castBar == null) { return; }
-
-            bool currentlyCasting = entity.AbilityManager() && entity.AbilityManager().currentlyCasting && !entity.AbilityManager().currentlyCasting.isAttack;
-
-            castBar.transform.parent.gameObject.SetActive(currentlyCasting);
-
-            if (!currentlyCasting) { return; }
-            
-            
-            var ability = entity.AbilityManager().currentlyCasting;
-            var abilityName = ability.abilityName;
-            var castTime = ability.castTime;
-            var castTimer = ability.castTimer;
-
-
-            UpdateFill();
-            UpdateCastBarTextTime();
-            UpdateAbilityName();
-
-            void UpdateFill()
-            {
-                castBar.fillAmount = castTimer / castTime;
-            }
-            void UpdateCastBarTextTime()
-            {
-                if (castBarTimer == null) { return; }
-                var timeLeft = 0f;
-                if(ability.isCasting && !ability.isChanneling)
-                {
-                    timeLeft = castTime - castTimer;
-                }
-                else if (ability.isChanneling)
-                {
-                    timeLeft = castTimer;
-                }
-                timeLeft = Mathg.Round(timeLeft, 1);
-
-                castBarTimer.text = $"{timeLeft}s";
-            }
-            void UpdateAbilityName()
-            {
-                bool hasName = abilityName.Length > 0;
-
-                if(castBarName.gameObject.activeSelf != hasName)
-                {
-                    castBarName.gameObject.SetActive(hasName);
-                    
-                }
-                if (castBarName.text != abilityName)
-                {
-                    castBarName.text = abilityName;
-                }
-            }
-        }
         void UpdateHealth()
         {
             if(!healthText || !healthBar || !secondaryHealth) { return; }
@@ -213,7 +153,6 @@ public class PortraitBehavior : MonoBehaviour
             experienceBarText.text = $"{(int)entity.entityStats.experience}/{(int)entity.entityStats.experienceReq}";
         }
     }
-
     void UpdateLevel()
     {
         if(!levelText) { return; }
@@ -222,7 +161,6 @@ public class PortraitBehavior : MonoBehaviour
 
         levelText.text = $"{level}";
     }
-
     public void OnNewTargetedBy(GameObject newTarget, List<GameObject> targetedBy)
     {
 
@@ -249,6 +187,11 @@ public class PortraitBehavior : MonoBehaviour
                 this.entity.CombatBehavior().CombatInfo().OnNewTargetedBy -= OnNewTargetedBy;
                 this.entity.CombatBehavior().CombatInfo().OnTargetedByRemove -= OnTargetedByRemove;
                 this.entity.OnExperienceGain -= OnExperienceGain;
+
+                this.entity.AbilityManager().OnAbilityStart -= OnAbilityStart;
+                this.entity.AbilityManager().OnAbilityEnd -= OnAbilityEnd;
+                this.entity.AbilityManager().WhileCasting -= WhileCasting;
+
             }
         }
     }
@@ -288,7 +231,67 @@ public class PortraitBehavior : MonoBehaviour
             entity.CombatBehavior().CombatInfo().OnNewTargetedBy += OnNewTargetedBy;
             entity.CombatBehavior().CombatInfo().OnTargetedByRemove += OnTargetedByRemove;
             entity.OnExperienceGain += OnExperienceGain;
+
+            entity.AbilityManager().OnAbilityStart += OnAbilityStart;
+            entity.AbilityManager().OnAbilityEnd += OnAbilityEnd;
+            entity.AbilityManager().WhileCasting += WhileCasting;
+
+
+            if (this.entity.AbilityManager().currentlyCasting)
+            {
+                if (this.entity.AbilityManager().currentlyCasting.vfx.showCastBar)
+                {
+                    OnAbilityStart(this.entity.AbilityManager().currentlyCasting);
+                }
+            }
+            else
+            {
+                SetCastBar(false);
+            }
         }
+    }
+
+    public void OnAbilityStart(AbilityInfo ability)
+    {
+        if (ability == null) return;
+        if (castBar == null) return;
+        if (!ability.vfx.showCastBar) return;
+        var hasName = false;
+        if (castBarName)
+        {
+            if (ability.abilityName.Length > 0)
+            {
+                castBarName.text = ability.abilityName;
+                hasName = true;
+            }
+        }
+
+        SetCastBar(true, hasName);
+    }
+
+    public void SetCastBar(bool enable, bool enableAbilityName = false)
+    {
+        if (castBar == null || castBarName == null) return;
+        castBar.transform.parent.gameObject.SetActive(enable);
+
+        castBarName.gameObject.SetActive(enableAbilityName);
+    }
+
+    public void WhileCasting(AbilityInfo ability)
+    {
+        if (castBar == null) return;
+        if (ability.isAttack) return;
+        if (!ability.vfx.showCastBar) return;
+        castBar.fillAmount = ability.progress;
+        castBarTimer.text = $"{Mathg.Round(ability.progressTimer, 1)}s";
+    }
+
+    public void OnAbilityEnd(AbilityInfo ability)
+    {
+        if (castBar == null) return;
+        if (!ability.vfx.showCastBar) return;
+
+        SetCastBar(false, true);
     }
 
 

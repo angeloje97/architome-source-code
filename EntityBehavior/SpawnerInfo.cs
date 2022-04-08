@@ -17,6 +17,9 @@ namespace Architome
         public struct SpawnerEvents
         {
             public Action<EntityInfo> OnSpawnEntity;
+            public Action<EntityInfo> OnReviveEntity;
+            public Action<int, int> OnStartRevivingParty;
+            public Action<SpawnerInfo> OnSetPlayerSpawnBeacon;
         }
 
         //Events

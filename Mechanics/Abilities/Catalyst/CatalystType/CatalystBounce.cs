@@ -51,6 +51,7 @@ public class CatalystBounce : MonoBehaviour
             obstructionLayer = abilityInfo.obstructionLayer;
             bounceRadius = abilityInfo.bounceRadius;
         }
+
         possibleNPCTypes = new List<NPCType>();
         possibleNPCTypes.Add(NPCType.Friendly);
         possibleNPCTypes.Add(NPCType.Hostile);
@@ -69,7 +70,20 @@ public class CatalystBounce : MonoBehaviour
     public void OnTickChange(CatalystInfo catalyst, int ticks)
     {
         if(ticks == 0) { return; }
+        HandleNearTargets();
         LookForNewTarget();
+    }
+
+    public void HandleNearTargets()
+    {
+        var entities = Entity.EntitesWithinLOS(transform.position, 2f);
+
+        if (entities.Count == 0) return;
+
+        foreach (var entity in entities)
+        {
+            catalystHit.HandleTargetHit(entity);
+        }
     }
 
     public void OnDeadTarget(GameObject target)

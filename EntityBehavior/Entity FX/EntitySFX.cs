@@ -34,9 +34,12 @@ public class EntitySFX : MonoBehaviour
 
             abilityManager.OnCastRelease += OnCastRelease;
 
-            abilityManager.OnCastStart += OnCastStart;
-            abilityManager.OnCatalystRelease += OnCastEnd;
-            abilityManager.OnCancelCast += OnCastEnd;
+            //abilityManager.OnCastStart += OnCastStart;
+            //abilityManager.OnCatalystRelease += OnCastEnd;
+            //abilityManager.OnCancelCast += OnCastEnd;
+
+            abilityManager.OnAbilityStart += OnAbilityStart;
+            abilityManager.OnAbilityEnd += OnAbilityEnd;
             
         }
     }
@@ -72,26 +75,32 @@ public class EntitySFX : MonoBehaviour
     {
         
     }
-    
 
-    public void OnCastStart(AbilityInfo ability)
+    public void OnAbilityStart(AbilityInfo ability)
     {
-        if(ability.catalystInfo == null) { return; }
+        if (ability.catalystInfo == null) { return; }
         var catalyst = ability.catalystInfo;
-        if(catalyst.effects.castingSounds.Count == 0)
+
+        soundEffects.PlayRandomSound(catalyst.effects.startCastSounds);
+
+        PlayCastingLoop();
+
+        void PlayCastingLoop()
         {
-            return;
+            if (catalyst.effects.castingSounds.Count == 0)
+            {
+                return;
+            }
+
+
+            var randomSound = catalyst.effects.castingSounds[Random.Range(0, catalyst.effects.castingSounds.Count)];
+
+            sources.castingAudioSource = soundEffects.PlaySoundLoop(randomSound);
         }
-
-        
-        var randomSound = catalyst.effects.castingSounds[Random.Range(0, catalyst.effects.castingSounds.Count)];
-
-        sources.castingAudioSource = soundEffects.PlaySoundLoop(randomSound);
-
-
     }
 
-    public void OnCastEnd(AbilityInfo ability)
+
+    public void OnAbilityEnd(AbilityInfo ability)
     {
         if (sources.castingAudioSource == null) return;
 

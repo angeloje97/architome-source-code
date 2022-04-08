@@ -16,10 +16,17 @@ public class CombatStatusHandler : MonoBehaviour
         {
             entityInfo = GetComponentInParent<EntityInfo>();
             entityInfo.ThreatManager().OnIncreaseThreat += OnIncreaseThreat;
-            entityInfo.AbilityManager().OnCastRelease += OnCastRelease;
             entityInfo.OnDamageDone += OnDamageDone;
             entityInfo.OnHealingDone += OnHealingDone;
             entityInfo.OnLifeChange += OnLifeChange;
+
+            if (entityInfo.AbilityManager())
+            {
+                var abilityManager = entityInfo.AbilityManager();
+                abilityManager.OnCastRelease += OnCastRelease;
+                abilityManager.OnAbilityStart += OnAbilityStart;
+                abilityManager.OnWantsToCastChange += OnWantsToCastChange;
+            }
 
             if(entityInfo.ThreatManager())
             {
@@ -97,6 +104,29 @@ public class CombatStatusHandler : MonoBehaviour
     {
         if(ability.targetLocked == null) { return; }
         if (!entityInfo.CanAttack(ability.targetLocked)) { return; }
+
+        SetCombatStatus(true);
+    }
+
+    public void OnAbilityStart(AbilityInfo ability)
+    {
+        if (ability.target == null) return;
+        if (!entityInfo.CanAttack(ability.target)) return;
+        SetCombatStatus(true);
+    }
+
+    public void OnWantsToCastChange(AbilityInfo ability, bool wantsToCast)
+    {
+        if (!wantsToCast)
+        {
+            if (threatManager.threats.Count == 0)
+            {
+                SetCombatStatus(false);
+            }
+            return;
+        }
+        if (ability.target == null) return;
+        if (!entityInfo.CanAttack(ability.target)) return;
 
         SetCombatStatus(true);
     }

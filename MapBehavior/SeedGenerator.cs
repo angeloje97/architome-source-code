@@ -7,6 +7,7 @@ namespace Architome
     public class SeedGenerator : MonoBehaviour
     {
         // Start is called before the first frame update
+        public static SeedGenerator active { get; private set; }
         public int seed;
         public string seedString;
 
@@ -64,6 +65,7 @@ namespace Architome
         }
         void Awake()
         {
+            active = this;
             GenerateSeed();
         }
 

@@ -5,6 +5,7 @@ using UnityEngine.Events;
 using System;
 using System.Threading.Tasks;
 using Architome.Enums;
+using System.Linq;
 
 namespace Architome
 {
@@ -25,12 +26,16 @@ namespace Architome
 
             [Header("Task Rules")]
             public int maxWorkers;
+            public bool noHostileMobsInRoom;
+            public bool noCombat;
             public bool canRepeat;
             public bool autoRepeat;
+            public bool allowLinger;
             public bool resetOnCancel;
 
             [Header("Effects")]
             public int taskAnimationID;
+            public int lingeringAnimationID;
             public AudioClip workingSound;
             public AudioClip completionSound;
 
@@ -43,6 +48,7 @@ namespace Architome
         {
             public List<EntityInfo> working;
             public List<EntityInfo> onTheWay;
+            public List<EntityInfo> lingering;
 
             public void Reset()
             {
@@ -52,7 +58,7 @@ namespace Architome
 
             public int Total()
             {
-                return working.Count + onTheWay.Count;
+                return working.Count + onTheWay.Count + lingering.Count;
             }
         }
 
@@ -129,6 +135,7 @@ namespace Architome
             if (success)
             {
                 HandleComplete();
+                await Task.Delay(125);
                 properties.workDone = 0;
             }
             else
@@ -201,28 +208,73 @@ namespace Architome
 
             states.currentState = properties.canRepeat ? TaskState.Available : TaskState.Done;
             states.isBeingWorkedOn = false;
+            var eventData = new TaskEventData(this);
 
+            HandleLingering();
             HandleWorkerEvents();
             HandleStationEvents();
 
             completionEvents.OnCompleted?.Invoke();
 
+            void HandleLingering()
+            {
+                if (!properties.allowLinger) return;
+                workers.lingering = workers.working.ToList();
+
+                foreach (var worker in workers.lingering)
+                {
+                    worker.taskEvents.OnLingeringStart?.Invoke(eventData);
+                }
+
+                WhileLingering();
+            }
+
             void HandleWorkerEvents()
             {
                 for (int i = 0; i < workers.working.Count; i++)
                 {
-                    workers.working[i].taskEvents.OnTaskComplete?.Invoke(new TaskEventData(this));
+                    workers.working[i].taskEvents.OnTaskComplete?.Invoke(eventData);
                 }
             }
 
             void HandleStationEvents()
             {
-                properties.station.taskEvents.OnTaskComplete?.Invoke(new TaskEventData(this));
+                properties.station.taskEvents.OnTaskComplete?.Invoke(eventData);
             }
 
 
         }
 
+
+        public async void WhileLingering()
+        {
+            while (workers.lingering.Count > 0)
+            {
+                await Task.Yield();
+
+                for (int i = 0; i < workers.lingering.Count; i++)
+                {
+                    var worker = workers.lingering[i];
+
+                    bool remove = false;
+
+                    if (!properties.station.IsOfWorkStation(worker.Target()))
+                    {
+                        remove = true;
+                    }
+
+                    if (remove)
+                    {
+                        worker.taskEvents.OnLingeringEnd?.Invoke(new TaskEventData(this));
+                        workers.lingering.RemoveAt(i);
+                        i--;
+
+                        UpdateState();
+                    }
+                }
+            }
+
+        }
 
         public bool CanStartWork(EntityInfo entity)
         {
@@ -231,7 +283,44 @@ namespace Architome
 
         public bool CanWork(EntityInfo entity)
         {
-            return states.currentState == TaskState.Available;
+            TaskEventData eventData = new(this);
+            if (states.currentState != TaskState.Available)
+            {
+                entity.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Task not available");
+                return false;
+            }
+
+            if (properties.noCombat && entity.isInCombat)
+            {
+                entity.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Must be out of combat");
+                return false;
+            }
+
+
+
+            if (HostileEntitiesInRoom() && properties.noHostileMobsInRoom)
+            {
+                entity.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Hostile mobs are still in this room");
+                return false;
+            }
+
+            return true;
+        }
+
+        bool HostileEntitiesInRoom()
+        {
+            var room = RoomInfo.GetRoom(properties.station.transform.position);
+
+            if (room == null) return false;
+
+            var hostileEntities = Entity.EntitiesFromRoom(room).Where(entity => entity.npcType == NPCType.Hostile && entity.isAlive).ToList();
+
+            if (hostileEntities.Count > 0)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public bool AddWorkerOnTheWay(EntityInfo entity)
@@ -313,6 +402,11 @@ namespace Architome
         {
             this.task = task;
         }
+
+        public bool TaskComplete { 
+            get { return task.properties.workAmount <= task.properties.workDone; } 
+        }
+
     }
 
     [SerializeField]
@@ -327,6 +421,10 @@ namespace Architome
         //For Entities
         public Action<TaskInfo, TaskInfo> OnNewTask;
         public Action<TaskEventData> OnEndTask;
+        public Action<TaskEventData> OnLingeringStart;
+        public Action<TaskEventData> OnLingeringEnd;
         public Action<TaskEventData> OnCancelMovingToTask;
+        public Action<TaskEventData, string> OnCantWorkOnTask;
+
     }
 }

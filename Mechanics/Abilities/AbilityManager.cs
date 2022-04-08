@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
 using System;
+using System.Linq;
+
 namespace Architome
 {
     public class AbilityManager : MonoBehaviour
@@ -30,6 +32,7 @@ namespace Architome
         public Action<AbilityInfo> OnCastRelease;
         public Action<AbilityInfo> OnCastEnd;
         public Action<AbilityInfo> OnCastReleasePercent;
+        public Action<AbilityInfo> OnGlobalCoolDown;
         //public Action<AbilityInfo> OnCastChannelStart;
         //public Action<AbilityInfo> OnCastChannelInterval;
         //public Action<AbilityInfo> OnCastChannelEnd;
@@ -39,7 +42,7 @@ namespace Architome
         public Action<AbilityInfo> OnCancelCast;
         public Action<AbilityInfo> OnCancelChannel;
         public Action<AbilityInfo> OnNewAbility;
-        public Action<AbilityInfo> OnCatalystRelease;
+        public Action<AbilityInfo, CatalystInfo> OnCatalystRelease;
         public Action<AbilityInfo> WhileCasting;
         public Action<AbilityInfo> WhileChanneling;
         public Action<AbilityInfo> OnDeadTarget;
@@ -57,7 +60,7 @@ namespace Architome
                 entityObject = entityInfo.gameObject;
 
                 entityInfo.OnLifeChange += OnLifeChange;
-                entityInfo.OnStateChange += OnStateChange;
+                entityInfo.combatEvents.OnStatesChange += OnStatesChange;
                 entityInfo.OnChangeStats += OnChangeStats;
 
                 if(entityInfo.Movement())
@@ -108,7 +111,7 @@ namespace Architome
             SetAbilities(isAlive, isAlive);
         }
 
-        public void OnStateChange(EntityState previous, EntityState current)
+        public void OnStatesChange(List<EntityState> previous, List<EntityState> states)
         {
             if(!entityInfo.isAlive) { return; }
             var interruptStates = new List<EntityState>() 
@@ -117,17 +120,23 @@ namespace Architome
             EntityState.Silenced
             };
 
-            if (interruptStates.Contains(current))
+            var intersection = states.Intersect(interruptStates).ToList();
+
+            if (intersection.Count > 0)
             {
                 if (currentlyCasting != null) { currentlyCasting.CancelCast(); }
                 
-                if(current == EntityState.Silenced)
+                if(states.Contains(EntityState.Silenced))
                 {
                     SetAbilities(false);
-                    return;
                 }
 
-                SetAbilities(false, false);
+                if (states.Contains(EntityState.Stunned))
+                {
+                    SetAbilities(false, false);
+                }
+
+
                 return;
             }
 

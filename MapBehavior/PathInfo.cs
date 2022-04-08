@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 namespace Architome
 {
@@ -23,6 +24,7 @@ namespace Architome
 
         public bool isUsed = false;
         public bool hasAnotherPath = false;
+
 
         void GetDependencies()
         {
@@ -53,28 +55,36 @@ namespace Architome
         {
 
         }
+
+        public void Close()
+        {
+            if (otherRoom == null) return;
+            if (pathBlock == null) return;
+
+            pathBlock.SetActive(true);
+        }
+
+        public void Open()
+        {
+            if (otherRoom == null) return;
+            if (pathBlock == null) return;
+
+            pathBlock.SetActive(false);
+        }
+
+
         public RoomInfo SpawnRoom(GameObject room, Transform parent)
         {
             if (!room.GetComponent<RoomInfo>()) { return null; }
-            //Vector3 localPathPos = entrancePath.transform.localPosition;
-            //var rotationAngle = -entrancePath.transform.localRotation.y;
 
-            otherRoom = Instantiate(room, roomAnchor.position, roomAnchor.rotation);
 
-            //otherRoom.transform.position = new Vector3(
-            //    otherRoom.transform.localPosition.x + localPathPos.x,
-            //    otherRoom.transform.localPosition.y + localPathPos.y,
-            //    otherRoom.transform.localPosition.z + localPathPos.z
-            //    );
+            otherRoom = Instantiate(room, roomAnchor.transform.position, roomAnchor.transform.rotation);
 
-            //otherRoom.transform.RotateAround(roomAnchor.position, new Vector3(0, 1, 0), rotationAngle);
-            //entrancePath.isUsed = true;
+            
 
             otherRoom.transform.parent = parent;
             otherRoom.GetComponent<RoomInfo>().originPath = this;
-            //pathBlock.gameObject.SetActive(false);
-            //pathActivator.gameObject.SetActive(true);
-            //pathActivator.activatedObjects.Add(otherRoom.gameObject);
+
             isUsed = true;
             return otherRoom.GetComponent<RoomInfo>();
 

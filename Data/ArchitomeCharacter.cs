@@ -179,6 +179,10 @@ public class ArchitomeCharacter : MonoBehaviour
         }
         SetSex(Sex.Male);
     }
+    public void SetDefaultMaterial()
+    {
+        SetMaterial(0);
+    }
     public void ToggleSex()
     {
         if(!maleBody || !femaleBody) { return; }
@@ -247,6 +251,48 @@ public class ArchitomeCharacter : MonoBehaviour
             
         }
     }
+    public void SetMaterial(int bodyPartNum, int partNum, Material material)
+    {
+        if (bodyParts.Count <= bodyPartNum) return;
+        List<GameObject> bodyPartObject = bodyParts[bodyPartNum];
+
+        if(bodyPartObject[0].transform.childCount <= partNum) { partNum = 0; }
+        if(partNum < 0) {  partNum = bodyPartObject[0].transform.childCount - 1; }
+
+        //Turns off all parts
+        foreach (var part in bodyPartObject)
+        {
+            if(ActivePart(part)) { ActivePart(part).SetActive(false); }
+        }
+
+        foreach (GameObject part in bodyPartObject)
+        {
+            if (part.transform.childCount > partNum)
+            {
+                part.transform.GetChild(partNum).GetComponent<Renderer>().material = material;
+            }
+        }
+
+    }
+    public void SetMaterial(int material)
+    {
+        Material current = materials[material];
+        foreach(List<GameObject> bodyPart in bodyParts)
+        {
+            foreach(GameObject part in bodyPart)
+            {
+                foreach(Transform child in part.transform)
+                {
+                    if(child.GetComponent<Renderer>())
+                    {
+                        var rend = child.GetComponent<Renderer>();
+                        rend.material = current;
+                    }
+                    
+                }
+            }
+        }
+    }
     public void NextPart(int bodyPartNum)
     {
         if (bodyParts.Count <= bodyPartNum) { return; }
@@ -302,29 +348,8 @@ public class ArchitomeCharacter : MonoBehaviour
 
         return 0;
     }
-    public void SetDefaultMaterial()
-    {
-        SetMaterial(0);
-    }
-    public void SetMaterial(int material)
-    {
-        Material current = materials[material];
-        foreach(List<GameObject> bodyPart in bodyParts)
-        {
-            foreach(GameObject part in bodyPart)
-            {
-                foreach(Transform child in part.transform)
-                {
-                    if(child.GetComponent<Renderer>())
-                    {
-                        var rend = child.GetComponent<Renderer>();
-                        rend.material = current;
-                    }
-                    
-                }
-            }
-        }
-    }
+    
+
     public void Highlight(bool val)
     {
         isHighlighted = val;

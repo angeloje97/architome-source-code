@@ -238,7 +238,7 @@ public class ProgressBarsBehavior : MonoBehaviour
     public void WhileCasting(AbilityInfo ability)
     {
         if (!castBarActive) return;
-
+        if (!ability.vfx.showCastBar) return;
         castBar.fillAmount = ability.progress;
     }
     public void OnCastStart(AbilityInfo ability)

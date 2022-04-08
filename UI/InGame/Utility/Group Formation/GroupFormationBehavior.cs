@@ -33,9 +33,11 @@ namespace Architome
             {
                 moduleInfo = GetComponent<ModuleInfo>();
             }
+
+            GameManager.active.OnNewPlayableParty += OnNewPlayableParty;
         }
 
-        void Awake()
+        void Start()
         {
             GetDependencies();
             HandleMemberSpotRestrictions();
@@ -43,7 +45,7 @@ namespace Architome
 
         public void OnNewPlayableParty(PartyInfo party, int index)
         {
-
+            UpdateFormation();
         }
 
 
@@ -62,6 +64,13 @@ namespace Architome
         {
             if (!moduleInfo.isActive) { return; }
 
+
+            UpdateFormation();
+            
+        }
+
+        void UpdateFormation()
+        {
             HandleNewPlayableCharacters();
             HandleUserInput();
             if (!IsInteracting()) { return; }

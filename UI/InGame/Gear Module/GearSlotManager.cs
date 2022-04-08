@@ -7,25 +7,42 @@ public class GearSlotManager : MonoBehaviour
 {
     // Start is called before the first frame update
     public EntityInfo entityInfo;
-    
+    public GearModuleManager moduleManager;
+    public ModuleInfo module;
 
     [Header("Gear Slot Manager Properties")]
     public Transform equipmentBin;
     public GameObject itemTemplate;
     public List<GearSlot> gearSlots;
 
+
+
     //Update Triggers
     private EntityInfo currentEntity;
+
+    void GetDependencies()
+    {
+        module = GetComponentInParent<ModuleInfo>();
+        if (GetComponentInParent<GearModuleManager>())
+        {
+            moduleManager = GetComponentInParent<GearModuleManager>();
+            
+        }
+
+        if (module)
+        {
+            module.OnSelectEntity += OnSelectEntity;
+        }
+    }
     void Start()
     {
-        
+        GetDependencies();
     }
 
     // Update is called once per frame
     void Update()
     {
-        if(!GetComponentInParent<ModuleInfo>().isActive){return;}
-        HandleNewEntity();
+        
     }
 
     public GearModuleManager GearManager()
@@ -34,27 +51,27 @@ public class GearSlotManager : MonoBehaviour
     }
 
     
-
-    void HandleNewEntity()
+    void OnSelectEntity(EntityInfo entity)
     {
-        if(currentEntity != entityInfo)
-        {
-            currentEntity = entityInfo;
-            SetGearSlots();
-            DestroyItems();
-            CreateItems();
-        }
+        if (entity == null) return;
 
-        void SetGearSlots()
+        entityInfo = entity;
+        SetGearSlots();
+        DestroyItems();
+        CreateItems();
+    }
+
+
+    void SetGearSlots()
+    {
+        if (entityInfo == null || entityInfo.CharacterInfo() == null) { return; }
+
+        foreach (GearSlot slot in gearSlots)
         {
-            if(entityInfo == null || entityInfo.CharacterInfo() == null) { return; }
-            
-            foreach(GearSlot slot in gearSlots)
-            {
-                slot.equipmentSlot = entityInfo.CharacterInfo().EquipmentSlot(slot.slotType);
-                slot.characterInfo = entityInfo.CharacterInfo();
-                slot.entityInfo = entityInfo;
-            }
+            slot.equipmentSlot = entityInfo.CharacterInfo().EquipmentSlot(slot.slotType);
+            slot.characterInfo = entityInfo.CharacterInfo();
+            slot.entityInfo = entityInfo;
+            slot.events.OnSetSlot?.Invoke(slot);
         }
     }
 
@@ -63,6 +80,11 @@ public class GearSlotManager : MonoBehaviour
         foreach(Transform child in equipmentBin)
         {
             Destroy(child.gameObject);
+        }
+
+        foreach (var slot in gearSlots)
+        {
+            slot.item = null;
         }
     }
 

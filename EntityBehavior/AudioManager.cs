@@ -49,6 +49,11 @@ public class AudioManager : MonoBehaviour
 
     }
 
+    public AudioSource AudioSourceFromClip(AudioClip clip)
+    {
+        return audioSources.Find(source => source.clip == clip);
+    }
+
     public bool IsPlaying()
     {
         foreach(var source in audioSources)

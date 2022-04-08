@@ -101,6 +101,21 @@ namespace Architome
         {
             return tasks.Find(task => task.properties.workString.Equals(taskString));
         }
+
+        public bool IsOfWorkStation(Transform tran)
+        {
+            if (tran == null) return false;
+            if (tran == transform) return true;
+
+            var workInfo = tran.GetComponentInParent<WorkInfo>();
+
+            if (workInfo && workInfo == this)
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 
 }

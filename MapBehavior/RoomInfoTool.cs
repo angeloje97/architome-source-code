@@ -25,7 +25,7 @@ namespace Architome
             ShowPatrolGroupSpots(showPatrolGroupSpots);
         }
 
-        private void Awake()
+        private void Start()
         {
             showEnemyPositions = false;
             showPatrolSpots = false;

@@ -51,6 +51,11 @@ public class EquipmentSlot : MonoBehaviour
             entityInfo = GetComponentInParent<EntityInfo>();
             entityObject = entityInfo.gameObject;
         }
+
+        if (equipment != null)
+        {
+            equipment = Instantiate(equipment);
+        }
         
     }
     void Start()
@@ -93,10 +98,7 @@ public class EquipmentSlot : MonoBehaviour
     void Update()
     {
         HandleNewEquipment();
-        if(Item.IsWeapon(equipment))
-        {
-            HandleWeapon();
-        }
+        HandleWeapon();
     }
     void HandleWeapon()
     {
@@ -134,56 +136,6 @@ public class EquipmentSlot : MonoBehaviour
             void UpdateNewEquipment()
             {
                 ShowWeapon();
-                UpdateEntity();
-                UpdateCharacter();
-                UpdateCatalyst();
-                
-
-                void UpdateCharacter()
-                {
-                    if(charInfo)
-                    {
-                        charInfo.UpdateCharacterModel();
-                    }
-                }
-
-                void UpdateEntity()
-                {
-                    if (entityInfo != null)
-                    {
-                        entityInfo.UpdateCurrentStats();
-                    }
-                }
-
-
-                void UpdateCatalyst()
-                {
-                    //if(equipmentSlotType != EquipmentSlotType.MainHand) { return; }
-                    //if(entityInfo == null) { return; }
-                    //if(entityInfo.AbilityManager() == null) { return; }
-
-                    //var attackAbility = entityInfo.AbilityManager().attackAbility;
-
-                    
-
-                    //var weapon = (Weapon) equipment ;
-                    
-                    
-                    //if(attackAbility == null) { return; }
-                    //if(weapon == null || weapon.weaponCatalyst == null)
-                    //{
-                    //    var defaultCatalyst = GMHelper.WorldSettings().defaultCatalyst;
-
-                    //    attackAbility.catalyst = defaultCatalyst;
-                    //    attackAbility.UpdateAbility();
-
-                    //    return; 
-                    //}
-
-                    //attackAbility.catalyst = weapon.weaponCatalyst;
-                    //attackAbility.UpdateAbility();
-                }
-
             }
 
 
@@ -394,9 +346,9 @@ public class EquipmentSlot : MonoBehaviour
     public bool IsWeapon()
     {
         if(equipment == null) { return false; }
-        var value = equipment.GetType();
-        if (value == typeof(Weapon)) { return true; }
-        return false;
+        if (!Item.IsWeapon(equipment)) return false;
+
+        return true;
     }
     public bool IsShield()
     {

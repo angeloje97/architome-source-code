@@ -10,7 +10,6 @@ namespace Architome
         public WorkInfo station;
         public AudioManager audioManager;
 
-        public AudioSource workingAudioSource;
         // Start is called before the first frame update
 
         public void GetDependencies()
@@ -45,36 +44,27 @@ namespace Architome
 
             if(workingClip == null) { return; }
 
-            workingAudioSource = audioManager.PlaySoundLoop(workingClip);
+            audioManager.PlaySoundLoop(workingClip);
 
         }
 
         public void OnEndTask(TaskEventData eventData)
         {
-            var station = eventData.task.properties.station;
+            var workingClip = eventData.task.properties.workingSound;
 
-            if(workingAudioSource == null) { return; }
+            if (workingClip == null) return;
 
-            workingAudioSource.Stop();
-            workingAudioSource = null;
+            var workingSource = audioManager.AudioSourceFromClip(workingClip);
 
-            ArchAction.IntervalFor(() =>
-            {
-                foreach (var stationTask in station.tasks)
-                {
-                    if (stationTask.states.isBeingWorkedOn)
-                    {
-                        return;
-                    }
-                }
+            if (workingSource == null) return;
 
-                audioManager.StopLoops();
-            }, .25f, 3);
+
+
+            workingSource.Stop();
         }
 
         public void OnTaskComplete(TaskEventData eventData)
         {
-            var workStation = eventData.task.properties.station;
 
             var task = eventData.task;
             var completionSound = task.properties.completionSound;

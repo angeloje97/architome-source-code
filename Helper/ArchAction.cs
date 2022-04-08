@@ -25,7 +25,30 @@ namespace Architome
 
             action();
         }
-        
+
+        public static async void Yield(Action action)
+        {
+            await Task.Yield();
+            action();
+        }
+
+        public static async void UpdateWhile(Action action, ArchCondition condition)
+        {
+            while (condition.IsMet())
+            {
+                action();
+                await Task.Yield();
+            }
+        }
+
+        public static async void UpDateUntil(Action action, ArchCondition condition)
+        {
+            while (!condition.IsMet())
+            {
+                action();
+                await Task.Yield();
+            }
+        }
         public static async void Update(Action action)
         {
             while(true)
@@ -173,5 +196,38 @@ namespace Architome
             }
         }
 
+    }
+
+
+    public class ArchCondition
+    {
+        public bool condition;
+
+        public float value;
+        public float maxValue;
+
+        public float range;
+        public float minRange;
+        public float maxRange;
+
+        public bool IsMet()
+        {
+            if (condition == true)
+            {
+                return true;
+            }
+
+            if (value > maxValue)
+            {
+                return true;
+            }
+
+            if (range < minRange && range < maxRange)
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 }

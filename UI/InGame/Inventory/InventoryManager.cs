@@ -26,10 +26,12 @@ public class InventoryManager : MonoBehaviour
             playableEntities = GMHelper.GameManager().playableEntities;
         }
 
-        if(GetComponent<CanvasGroup>())
+        if (GetComponent<CanvasGroup>())
         {
             canvasGroup = GetComponent<CanvasGroup>();
         }
+
+        GMHelper.GameManager().OnNewPlayableEntity += OnNewPlayableEntity;
     }
 
 
@@ -44,6 +46,16 @@ public class InventoryManager : MonoBehaviour
     void Update()
     {
         HandleUpdateTriggers();
+    }
+
+    public void OnNewPlayableEntity(EntityInfo entity, int index)
+    {
+        /* 
+        Instantiate a new Inventory Prefab and set the container where I'm going to store all the inventory grid
+        Then set that inventoryui to the entity.
+         */
+
+
     }
 
     void HandleUpdateTriggers()
@@ -81,6 +93,7 @@ public class InventoryManager : MonoBehaviour
 
             entityInventories[i].entityInfo = playableEntities[i];
             entityInventories[i].entityInventory = playableEntities[i].Inventory();
+            entityInventories[i].SetEntity(playableEntities[i]);
         }
     }
 
