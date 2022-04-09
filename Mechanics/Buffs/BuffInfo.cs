@@ -76,8 +76,9 @@ public class BuffInfo : MonoBehaviour
         
 
         [Header("Particles")]
-        public ParticleSystem startingParticles;
-        public ParticleSystem intervalParticle;
+        //public ParticleSystem startingParticles;
+        public List<ParticleSystem> startingParticles;
+        public List<ParticleSystem> intervalParticle;
         public GameObject radiusParticle;
 
         [Header("Audio")]

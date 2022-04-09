@@ -564,15 +564,6 @@ namespace Architome
                 if (!focusTarget.GetComponent<EntityInfo>().isAlive)
                 {
                     focusTarget = null;
-                    if (abilityManager && abilityManager.attackAbility && abilityManager.attackAbility.target)
-                    {
-                        if (!abilityManager.attackAbility.target.GetComponent<EntityInfo>().isAlive)
-                        {
-                            abilityManager.attackAbility.target = null;
-                            abilityManager.attackAbility.isAutoAttacking = false;
-                            abilityManager.attackAbility.DeactivateWantsToCast();
-                        }
-                    }
                 }
             }
 

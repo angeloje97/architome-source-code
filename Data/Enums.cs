@@ -12,6 +12,11 @@ namespace Architome.Enums
         Untargetable
     }
 
+    public enum ArchInputMode
+    {
+        Combat,
+    }
+
     public enum ObjectType
     {
         Entity,

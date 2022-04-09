@@ -109,9 +109,10 @@ namespace Architome
                 targetManager = GMHelper.TargetManager();
             }
 
-
+            //Input Manager
+            ArchInput.active.OnAlternateAction += OnAlternateAction;
+            ArchInput.active.OnActionMultiple += OnActionMultiple;
         }
-
         public void AddMembersToGameManager()
         {
             if (GMHelper.GameManager())
@@ -145,14 +146,46 @@ namespace Architome
             ArchAction.Delay(() => { AddMembersToGameManager(); }, .50f);
         }
 
-        // Update is called once per frame
         void Update()
         {
-            HandlePartyInputs();
             UpdateMidPoint();
             HandleEvents();
         }
 
+        //Player Input
+        public void OnAlternateAction(int index)
+        {
+            if (index >= members.Count) return;
+            if (partyControl != EntityControlType.PartyControl) return;
+
+            members[index].GetComponent<EntityInfo>().PlayerController().HandleActionButton(true);
+        }
+        public void OnActionMultiple()
+        {
+            if (partyControl != EntityControlType.PartyControl) return;
+
+            if (Mouse.CurrentHoverObject())
+            {
+                var currentObject = Mouse.CurrentHoverObject();
+
+                if (HandleClickable(currentObject)) { return; }
+                else if (partyFormation && targetManager.currentHover == null)
+                {
+                    var location = Mouse.CurrentPositionLayer(walkableLayer);
+                    if (location == new Vector3(0, 0, 0)) { return; }
+                    partyFormation.MoveFormation(location);
+                    MoveParty();
+                }
+                else if (targetManager.currentHover != null)
+                {
+                    if (members[0].GetComponent<EntityInfo>().CanAttack(targetManager.currentHover))
+                    {
+                        Attack(targetManager.currentHover);
+
+                    }
+                }
+            }
+        }
         void HandleEvents()
         {
             if (eventHandlers.previousCombat != partyIsInCombat)
@@ -162,50 +195,6 @@ namespace Architome
             }
         }
         public bool IsPartyMember(GameObject checkEntity) { return members.Contains(checkEntity); }
-        public void HandlePartyInputs()
-        {
-            if (partyControl != EntityControlType.PartyControl)
-            {
-                return;
-            }
-
-            HandlePartyActions();
-            HandlePartyLocation();
-
-            void HandlePartyLocation()
-            {
-                if (!Input.GetKey(keyBindings.keyBinds[selectMultipleButton])) { return; }
-                if (!targetManager) { return; }
-
-                if (Input.GetKeyDown(keyBindings.keyBinds[actionButton]))
-                {
-                    if (Mouse.CurrentHoverObject())
-                    {
-                        var currentObject = Mouse.CurrentHoverObject();
-
-                        if (HandleClickable(currentObject)) { return; }
-                        else if (partyFormation && targetManager.currentHover == null)
-                        {
-                            var location = Mouse.CurrentPositionLayer(walkableLayer);
-                            if (location == new Vector3(0, 0, 0)) { return; }
-                            partyFormation.MoveFormation(location);
-                            MoveParty();
-                        }
-                        else if (targetManager.currentHover != null)
-                        {
-                            if (members[0].GetComponent<EntityInfo>().CanAttack(targetManager.currentHover))
-                            {
-                                Attack(targetManager.currentHover);
-
-                            }
-                        }
-                    }
-
-                }
-
-
-            }
-        }
         public void MoveParty()
         {
             for (int i = 0; i < members.Count; i++)
@@ -261,45 +250,7 @@ namespace Architome
 
             }
         }
-        public void HandlePartyActions()
-        {
-            if (Input.GetKeyDown(keyBindings.keyBinds[alt1]))
-            {
-                if (members.Count > 0)
-                {
-                    members[0].GetComponent<EntityInfo>().PlayerController().HandleActionButton(true);
-                }
-            }
-            if (Input.GetKeyDown(keyBindings.keyBinds[alt2]))
-            {
-                if (members.Count > 1)
-                {
-                    members[1].GetComponent<EntityInfo>().PlayerController().HandleActionButton(true);
-                }
-            }
-            if (Input.GetKeyDown(keyBindings.keyBinds[alt3]))
-            {
-                if (members.Count > 2)
-                {
-                    members[2].GetComponent<EntityInfo>().PlayerController().HandleActionButton(true);
-                }
-            }
-            if (Input.GetKeyDown(keyBindings.keyBinds[alt4]))
-            {
-                if (members.Count > 3)
-                {
-                    members[3].GetComponent<EntityInfo>().PlayerController().HandleActionButton(true);
-                }
-            }
-            if (Input.GetKeyDown(keyBindings.keyBinds[alt5]))
-            {
-                if (members.Count > 4)
-                {
-                    members[4].GetComponent<EntityInfo>().PlayerController().HandleActionButton(true);
-                }
-            }
 
-        }
         public void UpdateMidPoint()
         {
             if (liveMembers.Count <= 0) { return; }

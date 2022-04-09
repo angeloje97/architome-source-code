@@ -2,27 +2,31 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ContainerMouseOvers : MonoBehaviour
+namespace Architome
 {
-    // Start is called before the first frame update
-    public List<GameObject> mouseOvers;
-    void Start()
+    public class ContainerMouseOvers : MonoBehaviour
     {
-        StartCoroutine(MouseOverRoutine());
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-    }
-
-    IEnumerator MouseOverRoutine()
-    {
-        while (true)
+        // Start is called before the first frame update
+        public List<GameObject> mouseOvers;
+        void Start()
         {
-            yield return new WaitForSeconds(.25f);
+            StartCoroutine(MouseOverRoutine());
+        }
 
-            mouseOvers = Mouse.AllMouseOvers();
+        // Update is called once per frame
+        void Update()
+        {
+        }
+
+        IEnumerator MouseOverRoutine()
+        {
+            while (true)
+            {
+                yield return new WaitForSeconds(.25f);
+
+                mouseOvers = Mouse.AllMouseOvers();
+            }
         }
     }
+
 }

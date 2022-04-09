@@ -36,7 +36,7 @@ namespace Architome
             if (buffInfo.hostInfo.AbilityManager().attackAbility)
             {
                 var combatEventData = new CombatEventData(buffInfo, buffInfo.sourceInfo, buffInfo.properties.value);
-                buffInfo.targetInfo.combatEvents.OnFixate?.Invoke(combatEventData);
+                buffInfo.targetInfo.combatEvents.OnFixate?.Invoke(combatEventData, true);
                 buffInfo.hostInfo.AbilityManager().target = buffInfo.targetObject;
                 buffInfo.hostInfo.AbilityManager().Attack();
                 buffInfo.hostInfo.AbilityManager().target = null;
@@ -47,14 +47,10 @@ namespace Architome
             GetDependencies();
         }
 
-        // Update is called once per frame
-        void Update()
-        {
-
-        }
-
         void OnBuffEnd(BuffInfo buff)
         {
+            var eventData = new CombatEventData(buff, buff.sourceInfo, buff.properties.value);
+            buffInfo.targetInfo.combatEvents.OnFixate?.Invoke(eventData, false);
             buffInfo.hostInfo.CombatBehavior().SetFocus(originalFocusTarget);
         }
     }

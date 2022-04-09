@@ -25,7 +25,7 @@ public class ActionBarBehavior : MonoBehaviour
 
     public bool isActive = false;
 
-    public string keyBind;
+    public int actionBarNum;
 
     //Events
     public Action<AbilityInfo, int> OnChargeChange;
@@ -39,6 +39,8 @@ public class ActionBarBehavior : MonoBehaviour
         {
             keyBindings = GMHelper.GameManager().keyBinds;
         }
+
+        ArchInput.active.OnAbilityKey += OnAbilityKey;
     }
     void Start()
     {
@@ -50,32 +52,21 @@ public class ActionBarBehavior : MonoBehaviour
     {
         if (!isActive) { return; }
         HandleActionBars();
-        HandleInput();
         HandleEvents();
     }
 
-    public void HandleInput()
+    public void OnAbilityKey(int number)
     {
-        if (!abilityInfo.entityInfo.isAlive) { return; }
-        if(Input.GetKeyDown(keyBindings.keyBinds[keyBind]))
+        if (!isActive) return;
+        if (number != actionBarNum) return;
+
+        if (abilityInfo.IsReady())
         {
-            if (abilityInfo.IsReady())
-            {
-                abilityInfo.Use();
-                return;
-            }
-
-            abilityInfo.Recast();
-            
-
-
-            //UpdateUI();
+            abilityInfo.Use();
+            return;
         }
 
-        //void UpdateUI()
-        //{
-        //    if (coolDownTimer) { coolDownTimer.gameObject.SetActive(true); }
-        //}
+        abilityInfo.Recast();
     }
     public void HandleActionBars()
     {
@@ -135,25 +126,6 @@ public class ActionBarBehavior : MonoBehaviour
             {
                 iconMain.fillAmount = abilityInfo.coolDown.progress;
             }
-            //if (abilityInfo.coolDown.charges == abilityInfo.coolDown.maxCharges && !abilityInfo.globalCoolDownActive)
-            //{
-            //    iconMain.fillAmount = 1;
-            //    return;
-            //}
-            
-
-            //bool condition1 = abilityInfo.globalCoolDownActive && abilityInfo.coolDown.charges - 1 != 0 && abilityInfo.coolDown.charges != 0;
-            //bool condition2 = !abilityInfo.isCasting && abilityInfo.globalCoolDownActive;
-
-            //if (condition1 || condition2)
-            //{
-            //    if (abilityInfo.coolDown.charges == 0) { return; }
-            //    iconMain.fillAmount = abilityInfo.globalCoolDownTimer / abilityInfo.globalCoolDown;
-            //}
-            //else
-            //{
-            //    iconMain.fillAmount = abilityInfo.coolDown.progress;
-            //}
             
         }
     }
@@ -166,6 +138,7 @@ public class ActionBarBehavior : MonoBehaviour
             OnChargeChange?.Invoke(abilityInfo, chargeCheck);
         }
     }
+
     public void SetImage(bool val)
     {
         if(iconMain)
@@ -188,11 +161,17 @@ public class ActionBarBehavior : MonoBehaviour
             charges.gameObject.SetActive(true);
         }
 
-        if(keyBindText)
+        if (keyBindText)
         {
-            keyBindText.text = keyBindings.keyBinds[keyBind].ToString().ToUpper();
+            keyBindText.text = keyBindings.keyBinds[$"Ability{actionBarNum}"].ToString().ToUpper();
             keyBindText.gameObject.SetActive(val);
         }
+
+        //if(keyBindText)
+        //{
+        //    keyBindText.text = keyBindings.keyBinds[keyBind].ToString().ToUpper();
+        //    keyBindText.gameObject.SetActive(val);
+        //}
         
     }
     public void SetActionBar(AbilityInfo abilityInfo)

@@ -81,7 +81,7 @@ namespace Architome
         //Events
         public struct CombatEvents
         {
-            public Action<CombatEventData> OnFixate;
+            public Action<CombatEventData, bool> OnFixate;
             public Action<List<EntityState>, List<EntityState>> OnStatesChange;
             public Action<List<EntityState>, EntityState> OnStateNegated;
         }
@@ -416,20 +416,6 @@ namespace Architome
                 }
 
             }
-            //void HandleExperience()
-            //{
-            //    if (GetComponent<DummyBehavior>()) { return; }
-            //    if (health + shield - combatData.value <= 0)
-            //    {
-            //        source.GainExp((combatData.value - health + shield) * .25f);
-            //        GainExp((combatData.value - health + shield) * .125f);
-            //    }
-            //    else
-            //    {
-            //        GainExp(combatData.value * .125f);
-            //        source.GainExp(combatData.value * .25f);
-            //    }
-            //}
             void HandleDamage()
             {
                 if (source != null) source.OnDamageDone?.Invoke(combatData);
@@ -454,41 +440,15 @@ namespace Architome
                         combatData.value = buff.DamageShield(combatData.value);
 
                     }
-                    return;
-
-                    if (Buffs() && Buffs().Buffs().Count > 0)
-                    {
-                        foreach (BuffInfo buff in Buffs().Buffs())
-                        {
-                            if (buff.GetComponent<BuffShield>() && buff.GetComponent<BuffShield>().shieldAmount > 0)
-                            {
-                                if (buff.GetComponent<BuffShield>().shieldAmount > combatData.value)
-                                {
-                                    buff.GetComponent<BuffShield>().DamageShield(combatData.value);
-                                    combatData.value = 0;
-                                    return;
-                                }
-                                else if (buff.GetComponent<BuffShield>().shieldAmount <= combatData.value)
-                                {
-
-                                    combatData.value -= buff.GetComponent<BuffShield>().shieldAmount;
-                                    buff.GetComponent<BuffShield>().DamageShield(buff.GetComponent<BuffShield>().shieldAmount);
-                                    buff.StartCoroutine(buff.Expire());
-                                    DamageShield();
-                                    return;
-                                }
-                            }
-                        }
-                    }
                 }
                 void DamageHealth()
                 {
                     if (health - combatData.value <= 0)
                     {
-                        health = 0;
                         Die();
-
                         EntityDeathHandler.active.HandleDeadEntity(combatData);
+
+                        
                         OnDeath?.Invoke(combatData);
                         source.OnKill?.Invoke(combatData);
                     }
@@ -669,7 +629,7 @@ namespace Architome
         {
             isAlive = false;
 
-            
+            health = 0;
 
             if(Entity.IsPlayer(gameObject))
             {

@@ -69,9 +69,7 @@ public class AbilityInfo : MonoBehaviour
     [Serializable]
     public class StatsContribution
     {
-        public float strength = 1f;
-        public float wisdom = 1f;
-        public float dexterity = 1f;
+        public float strength, wisdom, dexterity = 1f;
     }
 
     public void OnValidate()
@@ -420,7 +418,7 @@ public class AbilityInfo : MonoBehaviour
     {
         if (cancelCastIfMoved && isCasting)
         {
-            CancelCast(true);
+            CancelCast("Moved On Cast");
         }
 
         if (channel.enabled && channel.active)
@@ -441,14 +439,12 @@ public class AbilityInfo : MonoBehaviour
         if (ability.isAttack) { return; }
         if(isAttack)
         {
-            target = null;
-            targetLocked = null;
             isAutoAttacking = false;
 
 
             if(isCasting)
             {
-                CancelCast();
+                CancelCast("a non attack ability is trying to be casted.");
             }
         }
     }
@@ -466,7 +462,7 @@ public class AbilityInfo : MonoBehaviour
 
         if (isCasting)
         {
-            CancelCast();
+            CancelCast("Player tried to move");
         }
 
         
@@ -476,8 +472,7 @@ public class AbilityInfo : MonoBehaviour
         if(WantsToCast())
         {
             DeactivateWantsToCast();
-            target = null;
-            targetLocked = null;
+            ClearTargets();
         }
     }
     public void OnNewPathTarget(Movement movement, Transform before, Transform after)
@@ -491,11 +486,11 @@ public class AbilityInfo : MonoBehaviour
 
         if (isAutoAttacking)
         {
-            CancelCast();
+            CancelCast("New Path Target");
         }
 
-        target = null;
-        targetLocked = null;
+
+        ClearTargets();
         isAutoAttacking = false;
         
 
@@ -530,7 +525,8 @@ public class AbilityInfo : MonoBehaviour
 
         coolDown.globalCoolDownActive = true;
 
-        float timer = 1;
+        float timer = 1 - Haste() * 1;
+
 
         while (timer > 0)
         {
@@ -623,24 +619,6 @@ public class AbilityInfo : MonoBehaviour
         abilityManager.OnChannelEnd?.Invoke(this);
     }
 
-    public void WhileCasting()
-    {
-        abilityManager.WhileCasting?.Invoke(this);
-
-        if(!IsCorrectTarget(targetLocked))
-        {
-            CancelCast();
-        }
-        if (targetLocked != target)
-        {
-            targetLocked = target;
-        }
-    }
-
-    public void WhileChanneling()
-    {
-        abilityManager.WhileChanneling?.Invoke(this);
-    }
     public void Recast()
     {
         if (!recastProperties.isActive) return;
@@ -717,7 +695,7 @@ public class AbilityInfo : MonoBehaviour
             if (abilityManager.currentlyCasting == null) return true;
             if (abilityManager.currentlyCasting && abilityManager.currentlyCasting.isAttack)
             {
-                abilityManager.currentlyCasting.CancelCast(true);
+                abilityManager.currentlyCasting.CancelCast("Canceled auto to allow ability to cast");
                 ActivateWantsToCast();
                 abilityManager.currentlyCasting = null;
                 return true;
@@ -730,12 +708,13 @@ public class AbilityInfo : MonoBehaviour
 
     bool HandleRequiresTargetLocked()
     {
-        if (!requiresLockOnTarget)
-        {
-            locationLocked = location;
-            return true;
-        }
+        locationLocked = location;
+        //if (!requiresLockOnTarget)
+        //{
+        //    return true;
+        //}
 
+        if (abilityType != AbilityType.LockOn) return true;
 
         if (onlyCastSelf || abilityType == AbilityType.Use)
         {
@@ -842,7 +821,7 @@ public class AbilityInfo : MonoBehaviour
     {
         if(!IsInRange() || !HasLineOfSight())
         {
-            CancelCast();
+            CancelCast("Broke LOS or out of range");
 
             return;
         }
@@ -850,7 +829,6 @@ public class AbilityInfo : MonoBehaviour
         abilityManager.OnCastRelease?.Invoke(this);
 
         HandleResources();
-        HandleChannel();
         HandleAbilityType();
         HandleFullHealth();
         HandleCastMovementSpeed();
@@ -863,7 +841,6 @@ public class AbilityInfo : MonoBehaviour
             coolDown.charges--;
             timerPercentActivated = false;
             timerPercent = 0f;
-            //HandleCastStatus();
             UseMana();
             HandleResourceProduction();
 
@@ -874,21 +851,6 @@ public class AbilityInfo : MonoBehaviour
             }
 
             
-        }
-        void HandleChannel()
-        {
-            //if (abilityFunctions.Contains(AbilityFunction.Channel))
-            //{
-            //    abilityManager.OnCastChannelStart?.Invoke(this);
-            //    isChanneling = true;
-            //    isCasting = true;
-            //    castTimer = channelTime;
-            //    castTime = channelTime;
-            //    abilityManager.currentlyCasting = GetComponent<AbilityInfo>();
-            //    channelInvokes++;
-            //    entityInfo.stats.movementSpeed -= channelMovementSpeedReduction;
-            //    StartCoroutine(ChannelCast());
-            //}
         }
         bool IsInRange()
         {
@@ -947,53 +909,19 @@ public class AbilityInfo : MonoBehaviour
         }
 
     }
-    public void CanMove(bool val)
-    {
-        if(movement)
-        {
-            movement.canMove = val;
-        }
-    }
-    void HandleAutoAttackCast()
-    {
-        if (isAttack)
-        {
-            if (behavior)
-            {
-                if (behavior.CombatBehavior().GetFocus() == target)
-                {
-                    isAutoAttacking = true;
-                }
-            }
-
-        }
-    }
-    public void CancelCast(bool resetTargets = false, bool stopMoving = false)
+    public void CancelCast(string reason = "")
     {
         if (!isCasting) return;
+
+        LogCancel(reason);
 
         if(abilityManager)
         {
             abilityManager.OnCancelCast?.Invoke(this);
         }
 
-        if(movement && cantMoveWhenCasting)
-        {
-            movement.canMove = true;
-
-
-            if (stopMoving)
-            {
-                movement.StopMoving();
-            }
-        }
-
-
 
         canceledCast = true;
-
-        
-
     }
     public void CancelChannel(bool resetTarget = false)
     {
@@ -1051,8 +979,7 @@ public class AbilityInfo : MonoBehaviour
 
             if (!channel.enabled && !isAttack)
             {
-                targetLocked = null;
-                target = null;
+                ClearTargets();
             }
 
             abilityManager.OnCatalystRelease?.Invoke(this, catalystClone.GetComponent<CatalystInfo>());
@@ -1257,16 +1184,7 @@ public class AbilityInfo : MonoBehaviour
 
         return true;
     }
-    public void CancelAutoAttack()
-    {
-        if (abilityManager == null) return;
-        if(!abilityManager.currentlyCasting) { return; }
-        if (!abilityManager.currentlyCasting.isAttack) return;
-        if (isAttack) return;
-        //if (!IsReady()) return;
-        //if(!CanCast()) { return; }
-        abilityManager.currentlyCasting.CancelCast();
-    }
+    
     public void HandleAutoAttack()
     {
         if(isAutoAttacking)
@@ -1282,20 +1200,10 @@ public class AbilityInfo : MonoBehaviour
             {
                 if(!target.GetComponent<EntityInfo>().isAlive && !targetsDead)
                 {
-                    CancelCast();
+                    CancelCast("Target Is Dead");
                     CancelChannel();
                     wantsToCast = false;
                 }
-            }
-        }
-    }
-    public void HandleNoMoveOnCast(bool val)
-    {
-        if(movement)
-        {
-            if(cantMoveWhenCasting && isCasting)
-            {
-                CanMove(val);
             }
         }
     }
@@ -1310,7 +1218,6 @@ public class AbilityInfo : MonoBehaviour
             }
         }
     }
-
     public void CastAt(Vector3 position)
     {
         if (isCasting || channel.active) return;
@@ -1318,7 +1225,6 @@ public class AbilityInfo : MonoBehaviour
         location = position;
         Cast();
     }
-
     public void CastAt(GameObject target)
     {
         if (isCasting || channel.active) return;
@@ -1326,10 +1232,6 @@ public class AbilityInfo : MonoBehaviour
         this.target = target;
         Cast();
     }
-
-
-    //New Generation of Casting;
-
     public async Task<bool> Activate()
     {
         if (activated) return false;
@@ -1344,6 +1246,7 @@ public class AbilityInfo : MonoBehaviour
 
         if (success)
         {
+            ActivateGlobalCoolDown();
             await Channeling();
             SetRecast();
         }
@@ -1376,7 +1279,7 @@ public class AbilityInfo : MonoBehaviour
             
 
             var timer = castTime - castTime * Haste();
-
+            var startTime = timer;
 
             progress = 0;
 
@@ -1387,7 +1290,7 @@ public class AbilityInfo : MonoBehaviour
             {
                 await Task.Yield();
                 timer -= Time.deltaTime;
-                progress = 1 - (timer / castTime);
+                progress = 1 - (timer / startTime);
                 progressTimer = timer;
 
                 WhileCasting1();
@@ -1458,6 +1361,7 @@ public class AbilityInfo : MonoBehaviour
             StartChannel();
 
             var timer = channel.time - channel.time * Haste();
+            var startTime = timer;
 
 
             Debugger.InConsole(3245, $"Timer is {timer}");
@@ -1469,7 +1373,7 @@ public class AbilityInfo : MonoBehaviour
             {
                 await Task.Yield();
                 timer -= Time.deltaTime;
-                progress = (timer / channel.time);
+                progress = (timer / startTime);
 
                 WhileChanneling();
 
@@ -1518,7 +1422,6 @@ public class AbilityInfo : MonoBehaviour
             }
         }
     }
-
     float Haste()
     {
         if (entityInfo)
@@ -1528,19 +1431,34 @@ public class AbilityInfo : MonoBehaviour
 
         return 0;
     }
-
     public bool CanContinue()
     {
+        if (canceledCast && isCasting)
+        {
+            LogCancel("Canceled Cast");
+            canceledCast = false;
+            return false;
+        }
+
+        if (channel.active && channel.cancel)
+        {
+            LogCancel("Canceled Channel");
+            channel.cancel = false;
+            return false;
+        }
+
         if (requiresLockOnTarget)
         {
             if (target == null)
             {
+                LogCancel("Null Target");
                 return false;
             }
         }
 
         if (abilityManager.currentlyCasting != this && isAttack)
         {
+            LogCancel("Not equal to ability manager currently casting");
             return false;
         }
 
@@ -1548,40 +1466,28 @@ public class AbilityInfo : MonoBehaviour
         {
             if (!IsCorrectTarget(targetLocked))
             {
+                LogCancel("Incorrect Target");
                 return false;
             }
         }
 
-        if (isAttack)
-        {
-            if (abilityManager.currentlyCasting && abilityManager.currentlyCasting != this)
-            {
-                CancelCast();
-                return false;
-            }
-        }
 
-        if (canceledCast && isCasting)
-        {
-            canceledCast = false;
-            return false;
-        }
-
-        if (channel.active && channel.cancel)
-        {
-            channel.cancel = false;
-            return false;
-        }
 
         if (!entityInfo.isAlive)
         {
+            LogCancel("Entity Died");
             return false;
         }
 
         
         return true;
+
+        
     }
-    
+    void LogCancel(string reason)
+    {
+        Debugger.InConsole(9536, $"{entityInfo} stopped casting {this} because {reason}");
+    }
     async void SetCoolDownTimer()
     {
         if (coolDown.isActive) return;
@@ -1614,14 +1520,12 @@ public class AbilityInfo : MonoBehaviour
 
         coolDown.isActive = false;
     }
-
     public void ActivateGlobalCoolDown()
     {
         if (!coolDown.usesGlobal) return;
 
         abilityManager.OnGlobalCoolDown?.Invoke(this);
     }
-
     public void ClearTargets()
     {
         target = null;

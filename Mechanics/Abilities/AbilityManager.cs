@@ -107,7 +107,6 @@ namespace Architome
 
         public void OnLifeChange(bool isAlive)
         {
-            if(currentlyCasting != null) { currentlyCasting.CancelCast(); }
             SetAbilities(isAlive, isAlive);
         }
 
@@ -124,7 +123,7 @@ namespace Architome
 
             if (intersection.Count > 0)
             {
-                if (currentlyCasting != null) { currentlyCasting.CancelCast(); }
+                if (currentlyCasting != null) { currentlyCasting.CancelCast("State changed to interrupted state"); }
                 
                 if(states.Contains(EntityState.Silenced))
                 {
@@ -170,7 +169,7 @@ namespace Architome
         {
             if(currentlyCasting && currentlyCasting.cancelCastIfMoved)
             {
-                currentlyCasting.CancelCast();
+                currentlyCasting.CancelCast("Moved on non movable ability");
             }
         }
 

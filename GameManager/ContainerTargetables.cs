@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using System;
-using System.Linq; 
+using System.Linq;
+using System.Threading.Tasks;
 
 
 namespace Architome
@@ -25,12 +26,22 @@ namespace Architome
         public string selectKey = "Select";
         public string selectMultiple = "SelectMultiple";
 
-        public bool clicked;
-        public bool left;
+        bool isSelecting;
+        public bool IsSelecting
+        {
+            get { return isSelecting; }
+            protected set { isSelecting = value; }
+        }
 
         public Action<GameObject, GameObject> OnNewHoverTarget;
 
         GameObject hoverTargetCheck;
+
+        void GetDependencies()
+        {
+            ArchInput.active.OnSelectMultiple += OnSelectMultiple;
+            ArchInput.active.OnSelect += OnSelect;
+        }
 
         void Start()
         {
@@ -42,22 +53,18 @@ namespace Architome
                 keyBindings = GMHelper.KeyBindings();
             }
 
+            GetDependencies();
         }
-
         public void Awake()
         {
             active = this;
         }
-
-        // Update is called once per frame
         void Update()
         {
             HandleUserMouseOvers();
-            HandleUserInputs();
             HandleNullMouseOver();
             HandleEvents();
         }
-
         public void HandleEvents()
         {
             if (hoverTargetCheck != currentHover)
@@ -66,7 +73,6 @@ namespace Architome
                 hoverTargetCheck = currentHover;
             }
         }
-
         public void HandleUserMouseOvers()
         {
             if (IsOverHealthBar()) { }
@@ -169,73 +175,55 @@ namespace Architome
             }
             return false;
         }
-
-
-        public void HandleUserInputs()
+        void OnSelect()
         {
-
-
-
-            if (Input.GetKeyDown(keyBindings.keyBinds[selectKey]))
+            if (Mouse.IsMouseOverUI() && !IsOverPortrait() && !IsOverHealthBar())
             {
-                //Clear if the selectMultiple button is not pressed
-
-                if (!Input.GetKey(keyBindings.keyBinds[selectMultiple]))
-                {
-                    if (Mouse.IsMouseOverUI() && !IsOverPortrait())
-                    {
-                        if (!IsOverHealthBar())
-                        {
-                            return;
-                        }
-                    }
-
-                    ClearSelected();
-
-                }
-
-
-
-                if (currentHover)
-                {
-                    //currentHold = currentHover;
-                    Hold(currentHover);
-                    clicked = true;
-                }
+                return;
             }
 
-            if (Input.GetKeyUp(keyBindings.keyBinds[selectKey]))
-            {
-                if (currentHover == currentHold && !selectedTargets.Contains(currentHold))
-                {
-                    
 
-                    if (!left)
-                    {
-                        if (currentHold != null)
-                        {
-                            //selectedTargets.Add(currentHold);
-                            AddSelected(currentHold);
-                        }
-
-                    }
-                }
-
-                clicked = false;
-                left = false;
-
-
-                //currentHold = null;
-                UnHold();
-            }
+            ClearSelected();
+            SelectEvent(currentHover);
         }
+        void OnSelectMultiple()
+        {
+            SelectEvent(currentHover);
+        }
+        async void SelectEvent(GameObject target)
+        {
+            if (target == null) return;
+            if (isSelecting) return;
 
+            isSelecting = true;
+
+            Hold(target);
+            bool isHovering = true;
+
+            while (Input.GetKey(keyBindings.keyBinds["Select"]))
+            {
+                await Task.Yield();
+                if (currentHover != currentHold)
+                {
+                    isHovering = false;
+                }
+            }
+
+            UnHold();
+
+            if (isHovering)
+            {
+                AddSelected(target);
+            }
+
+            isSelecting = false;
+
+        }
         public void Hold(GameObject target)
         {
             target.GetComponent<EntityInfo>().targetableEvents.OnHold?.Invoke(true);
             currentHold = target;
         }
-
         public void UnHold()
         {
             if(currentHold != null)
@@ -245,14 +233,12 @@ namespace Architome
             }
 
         }
-
         public void AddSelected(GameObject target)
         {
             target.GetComponent<EntityInfo>().targetableEvents.OnSelect?.Invoke(true);
             selectedTargets.Add(target);
             
         }
-
         public void ClearSelected()
         {
             ClearNullSelected();
@@ -263,7 +249,6 @@ namespace Architome
                 i--;
             }
         }
-
         public void ClearHovers(bool clearCurrentHover = true)
         {
             ClearNullHovers();
@@ -281,12 +266,10 @@ namespace Architome
             }
 
         }
-
         public void ClearNullSelected()
         {
             selectedTargets = selectedTargets.Where(target => target != null).ToList();
         }
-
         public void ClearNullHovers()
         {
             hoverTargets = hoverTargets.Where(target => target != null).ToList();
@@ -326,7 +309,6 @@ namespace Architome
 
             }
         }
-
         public void AddMouseOver(EntityInfo target)
         {
             if (!hoverTargets.Contains(target.gameObject))
@@ -339,7 +321,6 @@ namespace Architome
             target.targetableEvents.OnHover?.Invoke(true);
 
         }
-        
         public void RemoveMouseOver(EntityInfo target)
         {
             if (!hoverTargets.Contains(target.gameObject))
@@ -360,8 +341,6 @@ namespace Architome
             }
             
         }
-
-
     }
 
     public struct TargetableEvents

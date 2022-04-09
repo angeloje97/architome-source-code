@@ -29,7 +29,7 @@ namespace Architome
         [Serializable]
         public class IncompatablePath
         {
-            public PathInfo roomPath = new();
+            public PathInfo roomPath;
             public List<PathInfo> otherPaths = new();
         }
 

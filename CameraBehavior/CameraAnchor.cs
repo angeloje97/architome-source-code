@@ -1,55 +1,69 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Threading.Tasks;
 
-public class CameraAnchor : MonoBehaviour
+namespace Architome
 {
-    public static CameraAnchor active;
-
-    public GameObject target;
-
-    public Vector3 anchorRotation;
-    public float anchorYVal;
-
-    public float smoothSpeed = .125f;
-    public float rotationSpeed = 5;
-    void Start()
+    public class CameraAnchor : MonoBehaviour
     {
-        active = this;
-    }
+        public static CameraAnchor active;
 
-    public void OnValidate()
-    {
-        active = this;
-    }
+        public GameObject target;
 
-    // Update is called once per frame
-    void FixedUpdate()
-    {
-        FollowTarget();
-        HandleRotation();
-    }
+        public Vector3 anchorRotation;
+        public float anchorYVal;
 
-    public void FollowTarget()
-    {
-        var smoothedPosition = Vector3.Lerp(transform.position, target.transform.position, smoothSpeed);
+        public float smoothSpeed = .125f;
+        public float rotationSpeed = 5;
 
-        transform.position = smoothedPosition;
-    }
-
-    public void HandleRotation()
-    {
-        if(Input.GetKey(KeyCode.Mouse2))
+        void GetDependencies()
         {
-            anchorYVal += Input.GetAxis("Mouse X")*rotationSpeed;
+            ArchInput.active.OnMiddleMouse += OnMiddleMouse;
+            CameraManager.active.cameraAnchor = this;
         }
-        
-        
-        Vector3 desiredRotation = new Vector3(0, anchorYVal, 0);
 
-        anchorRotation = Vector3.Lerp(anchorRotation, desiredRotation, smoothSpeed);
+        void Start()
+        {
+            GetDependencies();
+        }
 
-        transform.rotation = Quaternion.Euler(anchorRotation);
+        public void OnValidate()
+        {
+            active = this;
+        }
+
+        // Update is called once per frame
+        void FixedUpdate()
+        {
+            FollowTarget();
+            HandleRotation();
+        }
+        async void OnMiddleMouse()
+        {
+            while (!Input.GetKeyUp(KeyCode.Mouse2))
+            {
+                await Task.Yield();
+                anchorYVal += Input.GetAxis("Mouse X") * rotationSpeed;
+            }
+        }
+
+        public void FollowTarget()
+        {
+            var smoothedPosition = Vector3.Lerp(transform.position, target.transform.position, smoothSpeed);
+            transform.position = smoothedPosition;
+        }
+
+
+        public void HandleRotation()
+        {
+            Vector3 desiredRotation = new Vector3(0, anchorYVal, 0);
+
+            anchorRotation = Vector3.Lerp(anchorRotation, desiredRotation, smoothSpeed);
+
+            transform.rotation = Quaternion.Euler(anchorRotation);
+        }
+
     }
 
 }

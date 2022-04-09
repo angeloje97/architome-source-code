@@ -2,133 +2,109 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MainCamera3 : MonoBehaviour
+namespace Architome
 {
-    // Start is called before the first frame update
-    public Camera currentCamera;
-    public static Camera active;
-
-    public bool perspective;
-    public bool orthographic;
-
-    public float smoothSpeed;
-
-    public float zoom = 20f;
-    public float zoomOffset;
-
-    public float minZoom = 10f;
-    public float maxZoom = 20f;
-
-    public void GetDependencies()
+    public class MainCamera3 : MonoBehaviour
     {
-        if(gameObject.GetComponent<Camera>())
+        // Start is called before the first frame update
+        public Camera currentCamera;
+        public static Camera active { get; set; }
+
+        public bool perspective;
+        public bool orthographic;
+
+        public float smoothSpeed;
+
+        public float zoom = 20f;
+        public float zoomOffset;
+
+        public float minZoom = 10f;
+        public float maxZoom = 20f;
+
+        public void GetDependencies()
         {
-            currentCamera = gameObject.GetComponent<Camera>();
-        }
-    }
-
-    void Start()
-    {
-        GetDependencies();
-        HandleCameraType();
-    }
-
-    private void OnValidate()
-    {
-        GetDependencies();
-
-        HandleCameraType();
-    }
-
-    void HandleCameraType()
-    {
-        if(currentCamera.orthographic != orthographic)
-        {
-            orthographic = currentCamera.orthographic;
-            perspective = !orthographic;
-        }
-    }
-
-    private void Awake()
-    {
-        Mouse.mainCamera = GetComponent<Camera>();
-        active = GetComponent<Camera>();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        HandleScrollWheelOrthoGraphic();
-        HandleScrollWheelPerspective();
-        HandleCameraType();
-    }
-
-    public void HandleScrollWheelOrthoGraphic()
-    {
-        if (!orthographic)
-        {
-            return;
+            
+            
         }
 
-        currentCamera.orthographicSize = zoom;
-
-        if (Input.mouseScrollDelta.y > 0)
+        void Start()
         {
-            if (!Mouse.IsMouseOverUI())
+            GetDependencies();
+            HandleCameraType();
+            ArchInput.active.OnScrollWheel += OnScrollWheel;
+            CameraManager.active.SetCurrentCamera(currentCamera);
+        }
+
+        private void OnValidate()
+        {
+            GetDependencies();
+
+            HandleCameraType();
+        }
+
+        void HandleCameraType()
+        {
+            if (currentCamera.orthographic != orthographic)
             {
-                zoomOffset -= 4;
-            }
-        }
-        else if (Input.mouseScrollDelta.y < 0)
-        {
-            if (!Mouse.IsMouseOverUI())
-            {
-                zoomOffset += 4;
-            }
-
-        }
-
-        var smoothedPosition = Mathf.Lerp(zoom, zoomOffset, smoothSpeed);
-
-        zoom = smoothedPosition;
-
-        zoomOffset = Mathf.Clamp(zoomOffset, minZoom, maxZoom);
-
-        zoom = Mathf.Clamp(zoom, minZoom, maxZoom);
-    }
-
-    public void HandleScrollWheelPerspective()
-    {
-        if(!perspective)
-        {
-            return;
-        }
-
-        currentCamera.transform.localPosition = new Vector3(0, zoom, -(zoom*2/3));
-
-        if (Input.mouseScrollDelta.y > 0)
-        {
-
-            if (!Mouse.IsMouseOverUI())
-            {
-                zoomOffset -= 4;
-            }
-
-        }
-        else if (Input.mouseScrollDelta.y < 0)
-        {
-            if (!Mouse.IsMouseOverUI())
-            {
-                zoomOffset += 4;
+                orthographic = currentCamera.orthographic;
+                perspective = !orthographic;
             }
         }
 
-        var smoothedPosition = Mathf.Lerp(zoom, zoomOffset, smoothSpeed);
+        void OnScrollWheel(float value)
+        {
+            zoomOffset += -value*4;
+        }
 
-        zoom = smoothedPosition;
+        private void Awake()
+        {
+            active = GetComponent<Camera>();
+        }
 
-        zoomOffset = Mathf.Clamp(zoomOffset, minZoom, maxZoom);
+        // Update is called once per frame
+        void Update()
+        {
+            HandleScrollWheelOrthoGraphic();
+            HandleScrollWheelPerspective();
+            HandleCameraType();
+        }
 
-        zoom = Mathf.Clamp(zoom, minZoom, maxZoom);
+        public void HandleScrollWheelOrthoGraphic()
+        {
+            if (!orthographic)
+            {
+                return;
+            }
+
+            currentCamera.orthographicSize = zoom;
+
+            var smoothedPosition = Mathf.Lerp(zoom, zoomOffset, smoothSpeed);
+
+            zoom = smoothedPosition;
+
+            zoomOffset = Mathf.Clamp(zoomOffset, minZoom, maxZoom);
+
+            zoom = Mathf.Clamp(zoom, minZoom, maxZoom);
+        }
+
+        public void HandleScrollWheelPerspective()
+        {
+            if (!perspective)
+            {
+                return;
+            }
+
+            currentCamera.transform.localPosition = new Vector3(0, zoom, -(zoom * 2 / 3));
+
+
+            var smoothedPosition = Mathf.Lerp(zoom, zoomOffset, smoothSpeed);
+
+            zoom = smoothedPosition;
+
+            zoomOffset = Mathf.Clamp(zoomOffset, minZoom, maxZoom);
+
+            zoom = Mathf.Clamp(zoom, minZoom, maxZoom);
+        }
     }
+
 }

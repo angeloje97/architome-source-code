@@ -15,141 +15,61 @@ public class PlayerController : MonoBehaviour
     public KeyBindings keyBindings;
     public AIBehavior behavior;
 
-    [SerializeField]
-    [Header("User Key Bindings")]
-    public string actionButton = "Action";
-    public string selectMultiple = "SelectMultiple";
-
-    [Header("Ability Bindings")]
-    public string ability1 = "Ability1";
-    public string ability2 = "Ability2";
-    public string ability3 = "Ability3";
-    public string ability4 = "Ability4";
 
     public void GetDependencies()
     {
-        if (entityObject == null && transform.parent.gameObject.CompareTag("Entity"))
+        
+        entityInfo = GetComponentInParent<EntityInfo>();
+
+        if (entityInfo)
         {
-            entityObject = transform.parent.gameObject;
-        }
-        if(entityObject && entityInfo == null)
-        {
-            entityInfo = Entity.EntityInfo(transform.parent.gameObject);
-        }
-        if(movement == null)
-        {    
-            if(entityInfo && entityInfo.Movement())
-            {
-                movement = entityInfo.Movement();
-            }
+            entityObject = entityInfo.gameObject;
+            movement = entityInfo.Movement();
+            abilityManager = entityInfo.AbilityManager();
+            behavior = entityInfo.AIBehavior();
         }
 
-        if(abilityManager == null)
+        targetManager = ContainerTargetables.active;
+
+        if (GMHelper.KeyBindings())
         {
-            if(entityInfo && entityInfo.AbilityManager())
-            {
-                abilityManager = entityInfo.AbilityManager();
-            }
+            keyBindings = GMHelper.KeyBindings();
         }
 
-        if(targetManager == null)
+        if (ArchInput.active)
         {
-            if(GMHelper.TargetManager())
-            {
-                targetManager = GMHelper.TargetManager();
-            }
-        }
-
-        if(behavior == null)
-        {
-            if(entityInfo && entityInfo.AIBehavior())
-            {
-                behavior = entityInfo.AIBehavior();
-            }
+            ArchInput.active.OnAction += OnAction;
         }
         
     }
     void Start()
     {
-        if(GMHelper.KeyBindings())
-        {
-            keyBindings = GMHelper.KeyBindings();
-        }
+        GetDependencies();
     }
     // Update is called once per frame
     void Update()
     {
-        GetDependencies();
-        HandleEntityControl();
-        HandlePartyControl();
+        
+        //HandleEntityControl();
+        //HandlePartyControl();
     }
-    public void HandleEntityControl()
+    
+    public void OnAction()
     {
-        if(entityInfo.entityControlType != EntityControlType.EntityControl)
+        if (entityInfo.entityControlType == EntityControlType.EntityControl)
         {
-            return;
+            HandleActionButton();
         }
 
-        HandleUserInputs();
-
-        void HandleUserInputs()
+        if (entityInfo.entityControlType == EntityControlType.PartyControl)
         {
-            if(Input.GetKeyDown(keyBindings.keyBinds[actionButton]))
-            {
-                HandleActionButton();
-            }
-            if (Input.GetKeyDown(keyBindings.keyBinds[ability1]))
-            {
-                HandlePlayerTargetting();
-                Cast(0); 
-            }
-            if (Input.GetKeyDown(keyBindings.keyBinds[ability2])) 
-            {
-                HandlePlayerTargetting();
-                Cast(1); 
-            }
-            if (Input.GetKeyDown(keyBindings.keyBinds[ability3]))
-            {
-                HandlePlayerTargetting();
-                Cast(2); 
-            }
-            if (Input.GetKeyDown(keyBindings.keyBinds[ability4])) 
-            {
-                HandlePlayerTargetting();
-                Cast(3); 
-            }
-
-        }
-    }
-    public void HandlePartyControl()
-    {
-        if(entityInfo.entityControlType != EntityControlType.PartyControl)
-        {
-            return;
-        }
-
-        if(targetManager)
-        {
-            if(!targetManager.selectedTargets.Contains(entityObject))
-            {
-                return;
-            }  
-        }
-
-        if(Input.GetKey(keyBindings.keyBinds[selectMultiple])) { return; }
-
-        HandleUserInputs();
-
-        void HandleUserInputs()
-        {
-            if (Input.GetKeyDown(keyBindings.keyBinds[actionButton]))
+            if (targetManager.selectedTargets.Contains(entityObject))
             {
                 HandleActionButton();
             }
         }
-
-
     }
+
     void MoveTo(Vector3 location)
     {
         if (movement)

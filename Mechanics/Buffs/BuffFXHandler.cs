@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace Architome
 {
@@ -41,8 +42,10 @@ namespace Architome
 
             void PlayStartingParticles()
             {
-                if (buffInfo.effects.startingParticles == null) return;
-                buffInfo.effects.startingParticles.Play(true);
+                foreach (var particle in buff.effects.startingParticles)
+                {
+                    particle.Play(true);
+                }
                 
             }
 
@@ -96,8 +99,24 @@ namespace Architome
             void StopStartingParticle()
             {
                 if (buffInfo.effects.startingParticles == null) return;
-                buffInfo.expireDelay = buffInfo.effects.startingParticles.main.duration;
-                buffInfo.effects.startingParticles.Stop(true);
+
+
+                var maxDuration = 0f;
+
+                if (buffInfo.effects.startingParticles.Count > 0)
+                {
+                    maxDuration = buffInfo.effects.startingParticles.Max(particle => particle.main.duration);
+                }
+
+                if (maxDuration > 0)
+                {
+                    buffInfo.expireDelay = maxDuration;
+                }
+
+                foreach (var particle in buffInfo.effects.startingParticles)
+                {
+                    particle.Stop(true);
+                }
                 
             }
 

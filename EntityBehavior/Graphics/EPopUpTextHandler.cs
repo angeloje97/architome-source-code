@@ -78,7 +78,7 @@ namespace Architome
 
             buff.OnBuffEnd += OnBuffEnd;
 
-            popUpManager.DamagePopUp(transform, $"Shielded {shieldValue}"); 
+            popUpManager.DamagePopUp(transform, $"Shielded {shieldValue}");
         }
 
         void OnBuffEnd(BuffInfo buff)
@@ -91,13 +91,13 @@ namespace Architome
             buff.OnBuffEnd -= OnBuffEnd;
         }
 
-        public void OnFixate(CombatEventData eventData)
+        public void OnFixate(CombatEventData eventData, bool fixated)
         {
             if (popUpManager == null) return;
 
-
-
-            popUpManager.StateChangePopUp(transform, "Fixated");
+            var fixate = fixated ? "Fixated" : "Fixated Faded";
+            
+            popUpManager.StateChangePopUp(transform, fixate);
         }
 
         // Update is called once per frame

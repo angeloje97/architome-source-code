@@ -16,7 +16,6 @@ namespace Architome
 
             action();
         }
-
         public static async Task DelayT(Action action, float seconds)
         {
             int milliSeconds = (int)(seconds * 1000);
@@ -25,13 +24,11 @@ namespace Architome
 
             action();
         }
-
         public static async void Yield(Action action)
         {
             await Task.Yield();
             action();
         }
-
         public static async void UpdateWhile(Action action, ArchCondition condition)
         {
             while (condition.IsMet())
@@ -40,7 +37,6 @@ namespace Architome
                 await Task.Yield();
             }
         }
-
         public static async void UpDateUntil(Action action, ArchCondition condition)
         {
             while (!condition.IsMet())
@@ -103,7 +99,6 @@ namespace Architome
                 action();
             }
         }
-
         public static async void IntervalT(Action action, float interval, bool invokeOnStart = false)
         {
             int milliSeconds = (int)(interval * 1000);
@@ -119,7 +114,6 @@ namespace Architome
                 action();
             }
         }
-
         public static async void IntervalFor(Action action, float interval, float seconds, bool invokeOnStart = false)
         {
             float currentTime = 0;
@@ -137,7 +131,6 @@ namespace Architome
                 action();
             }
         }
-
         public static async Task IntervalForT(Action action, float interval, float seconds, bool invokeOnStart = false)
         {
             float currentTime = 0;
@@ -155,7 +148,6 @@ namespace Architome
                 action();
             }
         }
-
         public static async void RepeateFor(Action action, float interval, int amount, bool invokeOnStart = false)
         {
             int count = 0;
@@ -175,7 +167,6 @@ namespace Architome
                 count++;
             }
         }
-
         public static async Task RepeateForT(Action action, float interval, int amount, bool invokeOnStart = false)
         {
             int count = 0;
@@ -193,6 +184,22 @@ namespace Architome
                 action();
 
                 count++;
+            }
+        }
+
+        public static async Task<KeyCode> NewKey()
+        {
+            while (true)
+            {
+                await Task.Yield();
+
+                foreach (KeyCode keyCode in Enum.GetValues(typeof(KeyCode)))
+                {
+                    if (Input.GetKeyDown(keyCode))
+                    {
+                        return keyCode;
+                    }
+                }
             }
         }
 

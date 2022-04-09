@@ -221,12 +221,17 @@ namespace Architome
                 if (!properties.allowLinger) return;
                 workers.lingering = workers.working.ToList();
 
-                foreach (var worker in workers.lingering)
-                {
-                    worker.taskEvents.OnLingeringStart?.Invoke(eventData);
-                }
+                ArchAction.Delay(() => {
 
-                WhileLingering();
+                    foreach (var worker in workers.lingering)
+                    {
+                        worker.taskEvents.OnLingeringStart?.Invoke(eventData);
+                    }
+
+                    WhileLingering();
+
+                }, .0625f);
+                
             }
 
             void HandleWorkerEvents()

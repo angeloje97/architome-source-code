@@ -9,7 +9,7 @@ public class HealthBarToScreen : MonoBehaviour
     public Camera mainCamera;
     void Start()
     {
-        Architome.ArchAction.Delay(() => { mainCamera = MainCamera3.active; }, .125f);
+        //Architome.ArchAction.Delay(() => { mainCamera = MainCamera3.active; }, .125f);
     }
 
     // Update is called once per frame

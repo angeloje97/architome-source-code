@@ -4,6 +4,7 @@ using UnityEngine;
 using Architome.Enums;
 using Architome;
 using System.Linq;
+
 public class CatalystStop : MonoBehaviour
 {
     // Start is called before the first frame update
@@ -203,6 +204,7 @@ public class CatalystStop : MonoBehaviour
 
         void RemoveDead()
         {
+
             foreach(EntityInfo target in targets)
             {
                 if(!target.isAlive)
@@ -226,4 +228,5 @@ public class CatalystStop : MonoBehaviour
 
         return false;
     }
+
 }

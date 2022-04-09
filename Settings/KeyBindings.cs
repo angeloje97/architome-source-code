@@ -14,25 +14,25 @@ public class KeyBindings : MonoBehaviour
 
     public Dictionary<string, KeyCode> keyBinds = new Dictionary<string, KeyCode>()
     {
-        ["Ability1"] = KeyCode.Q,
-        ["Ability2"] = KeyCode.W,
-        ["Ability3"] = KeyCode.E,
-        ["Ability4"] = KeyCode.R,
-        ["Ability5"] = KeyCode.T,
-        ["Ability6"] = KeyCode.A,
-        ["Ability7"] = KeyCode.S,
-        ["Ability8"] = KeyCode.D,
-        ["Ability9"] = KeyCode.F,
-        ["Ability10"] = KeyCode.G,
+        ["Ability0"] = KeyCode.Q,
+        ["Ability1"] = KeyCode.W,
+        ["Ability2"] = KeyCode.E,
+        ["Ability3"] = KeyCode.R,
+        ["Ability4"] = KeyCode.T,
+        ["Ability5"] = KeyCode.A,
+        ["Ability6"] = KeyCode.S,
+        ["Ability7"] = KeyCode.D,
+        ["Ability8"] = KeyCode.F,
+        ["Ability9"] = KeyCode.G,
+        ["Ability10"] = KeyCode.X,
 
 
-        ["AlternateAction1"] = KeyCode.Alpha1,
-        ["AlternateAction2"] = KeyCode.Alpha2,
-        ["AlternateAction3"] = KeyCode.Alpha3,
-        ["AlternateAction4"] = KeyCode.Alpha4,
-        ["AlternateAction5"] = KeyCode.Alpha5,
+        ["AlternateAction0"] = KeyCode.Alpha1,
+        ["AlternateAction1"] = KeyCode.Alpha2,
+        ["AlternateAction2"] = KeyCode.Alpha3,
+        ["AlternateAction3"] = KeyCode.Alpha4,
+        ["AlternateAction4"] = KeyCode.Alpha5,
 
-        ["PartyAbility"] = KeyCode.X,
 
         ["NextCamera"] = KeyCode.Tab,
         ["ToggleFreeCam"] = KeyCode.Y,
@@ -49,25 +49,25 @@ public class KeyBindings : MonoBehaviour
 
     public static Dictionary<string, KeyCode> keyBindsDefault = new Dictionary<string, KeyCode>()
     {
-        ["Ability1"] = KeyCode.Q,
-        ["Ability2"] = KeyCode.W,
-        ["Ability3"] = KeyCode.E,
-        ["Ability4"] = KeyCode.R,
-        ["Ability5"] = KeyCode.T,
-        ["Ability6"] = KeyCode.A,
-        ["Ability7"] = KeyCode.S,
-        ["Ability8"] = KeyCode.D,
-        ["Ability9"] = KeyCode.F,
-        ["Ability10"] = KeyCode.G,
+        ["Ability0"] = KeyCode.Q,
+        ["Ability1"] = KeyCode.W,
+        ["Ability2"] = KeyCode.E,
+        ["Ability3"] = KeyCode.R,
+        ["Ability4"] = KeyCode.T,
+        ["Ability5"] = KeyCode.A,
+        ["Ability6"] = KeyCode.S,
+        ["Ability7"] = KeyCode.D,
+        ["Ability8"] = KeyCode.F,
+        ["Ability9"] = KeyCode.G,
+        ["Ability10"] = KeyCode.X,
 
 
-        ["AlternateAction1"] = KeyCode.Alpha1,
-        ["AlternateAction2"] = KeyCode.Alpha2,
-        ["AlternateAction3"] = KeyCode.Alpha3,
-        ["AlternateAction4"] = KeyCode.Alpha4,
-        ["AlternateAction5"] = KeyCode.Alpha5,
+        ["AlternateAction0"] = KeyCode.Alpha1,
+        ["AlternateAction1"] = KeyCode.Alpha2,
+        ["AlternateAction2"] = KeyCode.Alpha3,
+        ["AlternateAction3"] = KeyCode.Alpha4,
+        ["AlternateAction4"] = KeyCode.Alpha5,
 
-        ["PartyAbility"] = KeyCode.X,
 
         ["NextCamera"] = KeyCode.Tab,
         ["ToggleFreeCam"] = KeyCode.Y,
