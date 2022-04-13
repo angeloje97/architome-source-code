@@ -22,6 +22,7 @@ namespace Architome
 
         public bool isActive;
         public bool isHovering;
+        public bool blocksInput;
         public TextMeshProUGUI title;
 
         public Transform itemBin;
@@ -139,6 +140,15 @@ namespace Architome
 
                 }
             }
+
+            var iggui = GetComponentInParent<IGGUIInfo>();
+
+            if (iggui)
+            {
+                iggui.OnModuleEnableChange?.Invoke(this);
+            }
+
+            
         }
 
         public GameObject CreateItem(Item item, bool cloned = false)

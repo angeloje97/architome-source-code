@@ -24,27 +24,65 @@ public class CombatInfo : MonoBehaviour
             public float healingDone;
             public float healingTaken;
             public float threatGenerated;
+            public float deaths;
         }
+        public EntityInfo entity;
 
         public Values values;
+        public Values startCombatValues;
 
+        public float secondsInCombat;
+        public float totalSecondsInCombat;
+
+        bool isRecording;
 
         public void ProcessEntity(EntityInfo entity)
         {
+            this.entity = entity;
             entity.OnDamageDone += OnDamageDone;
             entity.OnDamageTaken += OnDamageTaken;
             entity.OnHealingDone += OnHealingDone;
             entity.OnHealingTaken += OnHealingTaken;
+            entity.OnLifeChange += OnLifeChange;
+            entity.OnCombatChange += OnCombatChange;
 
             var threatManager = entity.GetComponentInChildren<ThreatManager>();
 
             threatManager.OnGenerateThreat += OnGenerateThreat;
         }
 
+        async void OnCombatChange(bool isInCombat)
+        {
+            if (!isInCombat) return;
+            if (isRecording) return;
+
+            isRecording = true;
+            secondsInCombat = 0f;
+
+            startCombatValues = values;
+
+            while (entity.isInCombat || (entity.PartyInfo() && entity.PartyInfo().partyIsInCombat))
+            {
+                await Task.Delay(250);
+                secondsInCombat += .25f;
+                totalSecondsInCombat += .25f;
+            }
+
+            isRecording = false;
+        }
+
         public void OnDamageDone(CombatEventData eventData)
         {
 
             values.damageDone += eventData.value;
+        }
+        
+        public void OnLifeChange(bool val)
+        {
+            if (!val)
+            {
+                values.deaths++;
+            }
         }
 
         public void OnDamageTaken(CombatEventData eventData)
@@ -62,9 +100,9 @@ public class CombatInfo : MonoBehaviour
             values.healingTaken += eventData.value;
         }
 
-        public void OnGenerateThreat(ThreatManager.ThreatInfo threatInfo)
+        public void OnGenerateThreat(ThreatManager.ThreatInfo threatInfo, float value)
         {
-            values.threatGenerated += threatInfo.threatValue;
+            values.threatGenerated += value;
         }
 
     }

@@ -57,7 +57,64 @@ namespace Architome
 
         //events
 
-        public Action<RoomInfo, bool> OnShowRoom;
+        public struct Events
+        {
+            public Action<RoomInfo, bool> OnShowRoom;
+            
+        }
+
+        public Events events;
+
+        [Serializable]
+        public struct Entities
+        {
+            public List<EntityInfo> inRoom;
+            public bool playerDiscovered;
+
+            public Action<EntityInfo> OnEntityEnter;
+            public Action<EntityInfo> OnEntityExit;
+            public Action<EntityInfo> OnPlayerEnter;
+            public Action<EntityInfo> OnPlayerExit;
+            public Action<EntityInfo> OnPlayerDiscover;
+
+            public List<EntityInfo> PlayerInRoom { get { return inRoom.Where(entity => Entity.IsPlayer(entity.gameObject)).ToList(); } }
+            public List<EntityInfo> HostilesInRoom 
+            { get { return inRoom.Where(entity => entity.npcType == Enums.NPCType.Hostile && entity.isAlive).ToList(); } }
+
+            public void ClearNullEntities()
+            {
+                inRoom = inRoom.Where(entity => entity != null).ToList();
+            }
+
+            public void HandleEntityEnter(EntityInfo entity)
+            {
+                inRoom.Add(entity);
+                OnEntityEnter?.Invoke(entity);
+
+                if (Entity.IsPlayer(entity.gameObject))
+                {
+                    OnPlayerEnter?.Invoke(entity);
+                    if (!playerDiscovered)
+                    {
+                        OnPlayerDiscover?.Invoke(entity);
+                        playerDiscovered = true;
+                    }
+                }
+            }
+
+            public void HandleEntityExit(EntityInfo entity)
+            {
+                inRoom.Remove(entity);
+                OnEntityExit?.Invoke(entity);
+
+                if (Entity.IsPlayer(entity.gameObject))
+                {
+                    OnPlayerExit?.Invoke(entity);
+                }
+            }
+
+        }
+        public Entities entities;
 
         //Private properties
         private float percentReveal;
@@ -109,6 +166,7 @@ namespace Architome
             }
         }
 
+
         public async void ShowRoomAsyncPoint(bool val, Vector3 pointPosition, float percent = .025f)
         {
 
@@ -116,7 +174,7 @@ namespace Architome
 
             GetAllRenderers();
             isRevealed = val;
-            OnShowRoom?.Invoke(this, val);
+            events.OnShowRoom?.Invoke(this, val);
             if (val)
             {
                 orderedRenders = allRenderers.OrderBy(render => V3Helper.Distance(render.gameObject.transform.position, pointPosition)).ToList();
@@ -214,6 +272,7 @@ namespace Architome
                         incompatable.otherPaths.Add(originPath);
 
                         incompatablePaths.Add(originPath);
+                        mapInfo.RoomGenerator().fixTimer = mapInfo.RoomGenerator().fixTimeFrame;
                         if (mapInfo) { mapInfo.RoomGenerator().badSpawnRooms.Add(gameObject); }
                     }
 
@@ -235,6 +294,7 @@ namespace Architome
 
             if (!badSpawn)
             {
+                
                 percentReveal = MapInfo.active.RoomGenerator().roomRevealPercent;
             }
 
@@ -293,31 +353,7 @@ namespace Architome
 
         }
 
-        public static RoomInfo GetRoom(Vector3 point)
-        {
-            List<Ray> rays = new();
-
-            rays.Add(new Ray(point, Vector3.down));
-            rays.Add(new Ray(point, Vector3.left));
-            rays.Add(new Ray(point, Vector3.right));
-            rays.Add(new Ray(point, Vector3.forward));
-            rays.Add(new Ray(point, Vector3.back));
-
-
-            foreach (var ray in rays)
-            {
-                if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, GMHelper.LayerMasks().structureLayerMask))
-                {
-                    if (hit.transform.GetComponentInParent<RoomInfo>())
-                    {
-                        return hit.transform.GetComponentInParent<RoomInfo>();
-                    }
-                }
-            }
-
-            return null;
-
-        }
+        
 
         public PathInfo Entrance
         {

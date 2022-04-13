@@ -41,10 +41,12 @@ namespace Architome
             {
                 spawnPoint = transform;
             }
-            
-            float x = spawnPoint.position.x + UnityEngine.Random.Range(0, spawnRadius);
-            float z = spawnPoint.position.z + UnityEngine.Random.Range(0, spawnRadius);
+
+            float x = spawnPoint.position.x + UnityEngine.Random.Range(-spawnRadius, spawnRadius);
+            float z = spawnPoint.position.z + UnityEngine.Random.Range(-spawnRadius, spawnRadius);
             float y = spawnPoint.position.y + UnityEngine.Random.Range(-spawnHeight, spawnHeight);
+
+            
 
             return new Vector3(x, y, z);
 

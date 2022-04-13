@@ -12,8 +12,8 @@ public class EquipmentSlot : MonoBehaviour
     public CharacterBodyParts bodyParts;
 
 
-    public GameObject bodyPart;
-    public GameObject bodyPart2;
+    public Transform bodyPart;
+    public Transform bodyPart2;
     
     public EquipmentSlotType equipmentSlotType;
     public Equipment equipment;
@@ -21,7 +21,7 @@ public class EquipmentSlot : MonoBehaviour
 
     [Header("Sheath Properties")]
     public bool sheathed;
-    public GameObject sheathObject;
+    public Transform sheathObject;
     public Transform sheathPosition;
 
     public bool savePosition;
@@ -30,6 +30,9 @@ public class EquipmentSlot : MonoBehaviour
     //Private variables
     bool requiresUpdate;
     public Equipment previousEquipment;
+
+    Equipment original;
+    Weapon weapon;
 
     public void GetDependencies()
     {
@@ -54,7 +57,10 @@ public class EquipmentSlot : MonoBehaviour
 
         if (equipment != null)
         {
-            equipment = Instantiate(equipment);
+            original = equipment;
+            
+            //equipment = Instantiate(equipment);
+            weapon = (Weapon) equipment;
         }
         
     }
@@ -122,6 +128,10 @@ public class EquipmentSlot : MonoBehaviour
                 charInfo.OnChangeEquipment?.Invoke(this, previousEquipment, equipment);
                 previousEquipment = equipment;
                 requiresUpdate = true;
+                if (Item.IsWeapon(equipment))
+                {
+                    weapon = (Weapon)equipment;
+                }
             }
         }
         void HandleRequiresUpdate()
@@ -155,8 +165,8 @@ public class EquipmentSlot : MonoBehaviour
     }
     void StayOnPart()
     {
-        if(bodyPart2 != null) { return; }
-        if(sheathed && sheathObject != null) { return; }
+        if (weapon.usesSecondDraw) return;
+
         if(bodyPart)
         {
             transform.position = bodyPart.transform.position;
@@ -170,7 +180,7 @@ public class EquipmentSlot : MonoBehaviour
         if (sheathed) { return; }
         if (savePosition)
         {
-            var weapon = (Weapon)equipment;
+            var weapon = (Weapon)original;
             var child = new GameObject();
             foreach(Transform children in transform)
             {
@@ -279,66 +289,28 @@ public class EquipmentSlot : MonoBehaviour
         {
             
             var weapon = (Weapon)equipment;
-            if(weapon.sheathType == SheathType.None) { return; }
             if(bodyParts == null) { return; }
+            
 
-            switch(weapon.sheathType)
-            {
-                case SheathType.Back:
-                    if(bodyParts.backAttachment) { sheathObject = bodyParts.backAttachment; };
-                    break;
-                case SheathType.Hips:
-                    if(bodyParts.hips) { sheathObject = bodyParts.hips; };
-                    break;
-                case SheathType.Cape:
-                    if(bodyParts.capeAttachment) { sheathObject = bodyParts.capeAttachment; }
-                    break;
-                case SheathType.HipsAttachment:
-                    if (bodyParts.hipsAttachment) { sheathObject = bodyParts.hipsAttachment; };
-                    break;
-                case SheathType.None:
-                    sheathObject = null;
-                    break;
-            }
+            sheathObject = bodyParts.BodyPartTransform(weapon.sheathPart);
+
         }
 
         void DetermineUnSheathObject()
         {
             var weapon = (Weapon)equipment;
 
-            switch(weapon.weaponHolder)
-            {
-                case WeaponHolder.LeftHand:
-                    if(bodyParts.leftHand) { bodyPart = bodyParts.leftHand; }
-                    bodyPart2 = null;
-                    break;
-                case WeaponHolder.LeftRight:
-                    if(bodyParts.leftHand && bodyParts.rightHand)
-                    {
-                        bodyPart = bodyParts.leftHand;
-                        bodyPart2 = bodyParts.rightHand;
-                    }
-                    break;
+            bodyPart = bodyParts.BodyPartTransform(weapon.drawPart);
+            bodyPart2 = bodyParts.BodyPartTransform(weapon.secondDraw);
 
-                case WeaponHolder.RightLeft:
-                    if(bodyParts.leftHand && bodyParts.rightHand)
-                    {
-
-                        bodyPart = bodyParts.rightHand;
-                        bodyPart2 = bodyParts.leftHand;
-                    }
-                    break;
-                default:
-                    if(bodyParts.rightHand) { bodyPart = bodyParts.rightHand; }
-                    bodyPart2 = null;
-                    break;
-            }
         }
     }
     void StayOnMidPoint()
     {
         if(bodyPart2 == null || bodyPart == null) { return; }
         if (sheathed) { return; }
+        if (!weapon.usesSecondDraw) return;
+        
         transform.position = bodyPart.transform.position;
 
         transform.LookAt(bodyPart2.transform);

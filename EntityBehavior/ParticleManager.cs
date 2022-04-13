@@ -46,4 +46,31 @@ public class ParticleManager : MonoBehaviour
 
         Destroy(pSystem.gameObject);
     }
+
+    public async void PlayOnceAt(GameObject particle, Transform target, float time = 0f)
+    {
+        if (particle.GetComponent<ParticleSystem>() == null) return;
+        var currentTarget = target != null ? target : transform;
+        var pSystem = Instantiate(particle, transform).GetComponent<ParticleSystem>();
+
+
+
+        var duration = time > 0 ? time : pSystem.main.duration;
+
+        while (duration > 0)
+        {
+            await Task.Yield();
+            duration -= Time.deltaTime;
+            pSystem.transform.position = currentTarget.position;
+        }
+
+        pSystem.Stop();
+
+        await Task.Delay(1000);
+
+        Destroy(pSystem.gameObject);
+
+    }
+
+    
 }

@@ -81,7 +81,7 @@ public class CombatStatusHandler : MonoBehaviour
         }
     }
 
-    public void OnIncreaseThreat(ThreatManager.ThreatInfo threatInfo)
+    public void OnIncreaseThreat(ThreatManager.ThreatInfo threatInfo, float value)
     {
         SetCombatStatus(true);
     }

@@ -11,14 +11,20 @@ namespace Architome
         // Start is called before the first frame update
         [Header("Weapon Info")]
         public WeaponType weaponType;
-        public SheathType sheathType;
-        public WeaponHolder weaponHolder;
+        public BodyPart sheathPart;
+        public BodyPart drawPart;
+        public bool usesSecondDraw;
+        public BodyPart secondDraw;
+
+        [Header("Animation")]
 
         public Vector2 weaponAttackStyle;
         public int weaponMovementStyle;
         public GameObject weaponCatalyst;
         public AbilityInfo weaponAbility;
 
+
+        [Header("Saved Positions")]
         public Vector3 sheathPosition;
         public Quaternion sheathRotation;
 

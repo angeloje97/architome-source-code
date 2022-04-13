@@ -17,6 +17,9 @@ public class ArchitomeCharacter : MonoBehaviour
     public bool basePartsSet = false;
     public bool isHighlighted = false;
 
+    [SerializeField]
+    bool updateCharacter;
+
     public int currentMaterial = 0;
     public List<Material> materials;
     public Shader originalShader;
@@ -92,7 +95,7 @@ public class ArchitomeCharacter : MonoBehaviour
         bodyParts.Add(kneeAttachmentLeft);
         bodyParts.Add(extraElfEars);
 
-        GetOriginalShader();
+        //GetOriginalShader();
 
         void GetOriginalShader()
         {
@@ -117,6 +120,16 @@ public class ArchitomeCharacter : MonoBehaviour
 
         originalSex = sex;
 
+    }
+
+    private void OnValidate()
+    {
+        if (!updateCharacter) return;
+        updateCharacter = false;
+        GetDependencies();
+        SetMaterial(currentMaterial);
+        SetDefault();
+        LoadValues();
     }
     public void LoadValues()
     {
@@ -276,6 +289,7 @@ public class ArchitomeCharacter : MonoBehaviour
     }
     public void SetMaterial(int material)
     {
+        if (material >= materials.Count) return;
         Material current = materials[material];
         foreach(List<GameObject> bodyPart in bodyParts)
         {
@@ -319,6 +333,7 @@ public class ArchitomeCharacter : MonoBehaviour
             activePart--;
 
             SetPart(bodyPartNum, activePart);
+            break;
         }
     }
     public GameObject ActivePart(GameObject bodyPart)
@@ -348,8 +363,6 @@ public class ArchitomeCharacter : MonoBehaviour
 
         return 0;
     }
-    
-
     public void Highlight(bool val)
     {
         isHighlighted = val;

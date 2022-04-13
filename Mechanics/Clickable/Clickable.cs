@@ -2,14 +2,25 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
+using UnityEngine.Events;
 
 namespace Architome
 {
     public class Clickable : MonoBehaviour
     {
         // Start is called before the first frame update
-        public List<string> options;
+        [Serializable]
+        public struct Option
+        {
+            public string text;
+            public UnityEvent OnSelect;
+        }
+
+        public List<Option> options;
+
+        //public List<string> options;
         
         public List<EntityInfo> clickedEntities;
         public bool partyCanClick;
@@ -71,8 +82,10 @@ namespace Architome
 
         public void SelectOption(string option)
         {
-            selectedIndex = options.IndexOf(option);
+            
+            selectedIndex = options.IndexOf(options.Find(item => item.text == option));
             selectedString = option;
+            options[selectedIndex].OnSelect?.Invoke();
             OnSelectOption?.Invoke(this);
             
 
@@ -83,21 +96,22 @@ namespace Architome
 
         public void SetOptions(List<string> options)
         {
-            this.options = new List<string>(options);
+            this.options = options.Select(option => new Option() { text = option }).ToList();
         }
 
         public void AddOption(string option)
         {
-            this.options.Add(option);
+            this.options.Add(new() { text = option });
         }
 
         public void ClearOptions()
         {
-            this.options = new List<string>();
+            this.options = new();
         }
 
         public void Click(EntityInfo entity)
         {
+            if (options.Count == 0) return;
             clickedEntities.Clear();
             clickedEntities.Add(entity);
             ClickableManager.active.HandleClickable(this);

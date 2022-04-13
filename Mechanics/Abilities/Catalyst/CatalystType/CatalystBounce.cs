@@ -82,7 +82,11 @@ public class CatalystBounce : MonoBehaviour
 
         foreach (var entity in entities)
         {
-            catalystHit.HandleTargetHit(entity);
+            if (catalystHit.CanHit(entity))
+            {
+                catalystHit.HandleTargetHit(entity);
+            }
+
         }
     }
 

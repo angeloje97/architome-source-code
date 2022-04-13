@@ -41,8 +41,17 @@ namespace Architome
             gameManager = GameManager.active;
 
 
+            if (targetManager)
+            {
             targetManager.OnNewHoverTarget += OnNewHoverTarget;
-            clickableManager.OnNewClickableHover += OnNewClickableHover;
+
+            }
+
+            if (clickableManager)
+            {
+                clickableManager.OnNewClickableHover += OnNewClickableHover;
+            }
+
         }
         void Start()
         {

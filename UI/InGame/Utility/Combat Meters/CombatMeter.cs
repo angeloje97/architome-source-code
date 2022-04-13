@@ -5,6 +5,8 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using System.Threading.Tasks;
+using System.Threading;
+using Architome.Enums;
 
 namespace Architome
 {
@@ -14,8 +16,12 @@ namespace Architome
         public EntityInfo entity;
         public CombatInfo combatInfo;
         public CombatMeterManager meterManager;
+        public WidgetInfo widget;
+
         public CombatInfo.CombatLogs combatLogs;
         public CombatInfo.CombatLogs.Values startingValues;
+        public CombatInfo.CombatLogs.Values inCombatValues;
+
         public float value;
         public bool isActive;
         public bool isUpdating;
@@ -37,6 +43,7 @@ namespace Architome
         void Start()
         {
             meterManager = GetComponentInParent<CombatMeterManager>();
+            widget = GetComponentInParent<WidgetInfo>();
         }
 
         // Update is called once per frame
@@ -69,8 +76,26 @@ namespace Architome
 
         public void ResetMeter()
         {
+            if (meterManager.recordingMode == MeterRecordingMode.Dungeon) return;
             value = 0;
             info.progress.fillAmount = 0;
+        }
+
+        async public void UpdateDungeonStats()
+        {
+            while (true)
+            {
+                await Task.Delay(3000);
+
+                if (meterManager.recordingMode == MeterRecordingMode.CurrentFight)
+                {
+                    await Task.Delay(5000);
+                    continue;
+                }
+
+                HandleValueDungeon();
+                meterManager.UpdateMeters();
+            }
         }
 
         async public void OnCombatChange(bool isInCombat)
@@ -89,21 +114,51 @@ namespace Architome
                 await Task.Delay(250);
                 secondsInCombat += .25f;
 
+                if (!widget.isActive) continue;
 
                 UpdateMeter();
             }
+
+            UpdateCombatValues();
 
             isActive = false;
 
         }
 
+        private void UpdateCombatValues()
+        {
+            foreach (var field in inCombatValues.GetType().GetFields())
+            {
+                var combatValue = (float)field.GetValue(inCombatValues);
+                var startingValue = (float)field.GetValue(startingValues);
+                var totalValue = (float)field.GetValue(combatLogs.values);
+
+                field.SetValue(inCombatValues, combatValue + (totalValue - startingValue));
+
+            }
+        }
+
         public void UpdateMeter()
         {
-            HandleDamage();
-            HandleHeal();
+            HandleValueCombat();
+            HandleValueDungeon();
+            //HandleHeal();
             meterManager.UpdateMeters();
         }
 
+        public void UpdateProgressBarNonActive()
+        {
+
+            if (meterManager.highestValue > 0)
+            {
+                info.progress.fillAmount = value / meterManager.highestValue;
+            }
+            else
+            {
+                info.progress.fillAmount = 0;
+            }
+
+        }
         async public void UpdateProgressBar()
         {
             await Task.Delay(500);
@@ -125,22 +180,31 @@ namespace Architome
             }
         }
 
-        public void HandleDamage()
+        public void HandleValueCombat()
         {
-            if (entity.role == Enums.Role.Healer) return;
+            if (meterManager.recordingMode != MeterRecordingMode.CurrentFight) return;
 
-            var difference = combatLogs.values.damageDone - startingValues.damageDone;
+            if (secondsInCombat == 0) return;
+            var difference = (float)(meterManager.currentField.GetValue(combatLogs.values)) - (float)(meterManager.currentField.GetValue(startingValues));
+            
             value = difference / secondsInCombat;
-            info.valueText.text = $"{Mathg.Round(difference / secondsInCombat, 1)} dps";
+            //info.valueText.text = $"{Mathg.Round(difference / secondsInCombat, 1)}/s";
+            info.valueText.text = value != 0 ? $"{ArchString.FloatToSimple(difference / secondsInCombat)}/s" : "";
+            
+        }
+
+        public void HandleValueDungeon()
+        {
+            if (meterManager.recordingMode != MeterRecordingMode.Dungeon) return;
+
+            value = (float)meterManager.currentField.GetValue(combatLogs.values);
+
+
+            info.valueText.text = value != 0 ? $"{ArchString.FloatToSimple(value)}" : "";
         }
 
         public void HandleHeal()
         {
-            if (entity.role != Enums.Role.Healer) return;
-            var difference = combatLogs.values.healingDone - startingValues.healingDone;
-
-            value = difference / secondsInCombat;
-            info.valueText.text = $"{Mathg.Round(difference / secondsInCombat, 1)} hps";
         }
     }
 

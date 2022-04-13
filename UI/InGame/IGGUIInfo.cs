@@ -1,15 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
+using System.Linq;
 
 namespace Architome
 {
     public class IGGUIInfo : MonoBehaviour
     {
+        public static IGGUIInfo active;
         // Start is called before the first frame update
         public List<GameObject> properties;
         public List<GameObject> modules;
 
+        public Action<ModuleInfo> OnModuleEnableChange;
         public void GetProperties()
         {
             properties = new List<GameObject>();
@@ -18,15 +22,36 @@ namespace Architome
             {
                 properties.Add(child.gameObject);
             }
+
+            ArchInput.active.OnEscape += OnEscape;
         }
         void Start()
         {
             GetProperties();
         }
 
+        private void Awake()
+        {
+            active = this;
+        }
+
         // Update is called once per frame
         void Update()
         {
+
+        }
+
+        public void OnEscape()
+        {
+            if (SetModules(false))
+            {
+                return;
+            }
+
+            if (SetWidgets(false))
+            {
+                return;
+            }
 
         }
 
@@ -50,6 +75,21 @@ namespace Architome
 
 
         }
+        
+        public bool BlockingInput()
+        {
+            foreach (var module in modules)
+            {
+                var info = module.GetComponent<ModuleInfo>();
+
+                if (info.isActive && info.blocksInput)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         public void SetModule(int index, bool val)
         {
@@ -60,28 +100,50 @@ namespace Architome
             modules[index].GetComponent<ModuleInfo>().SetActive(val);
         }
 
-        public void SetModules(bool val)
+        public bool SetModules(bool val)
         {
-            foreach (var i in modules)
+            var changed = false;
+            foreach (var moduleObject in modules)
             {
-                if (i.GetComponent<ModuleInfo>() && !i.GetComponent<ModuleInfo>().isActive) { continue; }
-                var num = modules.IndexOf(i);
+                var module = moduleObject.GetComponent<ModuleInfo>();
 
-                SetModule(num, val);
+                if (module == null) continue;
+
+                if (module.isActive == val) continue;
+
+                if (module.GetType() != typeof(ModuleInfo)) continue;
+
+                module.SetActive(val);
+                
+                changed = true;
+                
             }
+
+            return changed;
         }
 
-        public bool ModulesActive()
+        public bool SetWidgets(bool val)
         {
-            foreach (GameObject module in modules)
+            var changed = false;
+
+            foreach (var widgetObject in modules)
             {
-                if (module.GetComponent<CanvasGroup>() && module.GetComponent<CanvasGroup>().interactable == true)
-                {
-                    return true;
-                }
+                var widget = widgetObject.GetComponent<WidgetInfo>();
+
+                if (widget == null) continue;
+
+                if (widget.isActive == val) continue;
+
+                if (widget.GetType() != typeof(WidgetInfo)) continue;
+
+                widget.SetActive(val);
+                changed = true;
             }
-            return false;
+
+            return changed;
         }
+
+
     }
 }
 

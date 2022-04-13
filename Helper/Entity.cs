@@ -35,12 +35,35 @@ namespace Architome
 
         public static List<EntityInfo> EntitiesFromRoom(RoomInfo room)
         {
-            var entities = FindObjectsOfType<EntityInfo>();
-
-            return entities.Where(entity => entity.currentRoom == room).ToList();
+            room.entities.ClearNullEntities();
+            return room.entities.inRoom;
         }
 
-        
+        public static RoomInfo Room(Vector3 point)
+        {
+            List<Ray> rays = new();
+
+            rays.Add(new Ray(point, Vector3.down));
+            rays.Add(new Ray(point, Vector3.left));
+            rays.Add(new Ray(point, Vector3.right));
+            rays.Add(new Ray(point, Vector3.forward));
+            rays.Add(new Ray(point, Vector3.back));
+
+
+            foreach (var ray in rays)
+            {
+                if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, GMHelper.LayerMasks().structureLayerMask))
+                {
+                    if (hit.transform.GetComponentInParent<RoomInfo>())
+                    {
+                        return hit.transform.GetComponentInParent<RoomInfo>();
+                    }
+                }
+            }
+
+            return null;
+
+        }
 
         public static bool PlayerIsInRoom(RoomInfo room)
         {

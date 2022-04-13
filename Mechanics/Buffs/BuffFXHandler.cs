@@ -11,12 +11,9 @@ namespace Architome
         // Start is called before the first frame update
         public BuffInfo buffInfo;
 
-        private void OnValidate()
-        {
-            buffInfo = GetComponent<BuffInfo>();
-        }
         void GetDependencies()
         {
+            buffInfo = GetComponent<BuffInfo>();
             buffInfo.OnBuffStart += OnBuffStart;
             buffInfo.OnBuffEnd += OnBuffEnd;
             buffInfo.OnBuffInterval += OnBuffInterval;
@@ -27,26 +24,57 @@ namespace Architome
         }
         public void OnBuffStart(BuffInfo buff)
         {
+            CalculateDelayTime(buff);
             PlayStartingSound();
+            PlayParticlePairs();
             PlayStartingParticles();
             AdjustRadiusParticle();
+
+            
             
             void PlayStartingSound()
             {
                 if (buffInfo.effects.startingSound == null) return;
-                if (buffInfo.hostInfo == null) return;
-                if (buffInfo.hostInfo.SoundEffect() == null) return;
+                
 
                 buffInfo.hostInfo.SoundEffect().PlaySound(buffInfo.effects.startingSound);
             }
 
             void PlayStartingParticles()
             {
+                if (buff.effects.startingParticles.Count == 0) return;
+
+                buff.expireDelay = buff.effects.startingParticles.Max(particle => particle.main.duration);
+
                 foreach (var particle in buff.effects.startingParticles)
                 {
                     particle.Play(true);
                 }
                 
+            }
+
+            async void PlayParticlePairs()
+            {
+                var bodyParts = buff.hostInfo.GetComponentInChildren<CharacterBodyParts>();
+                
+                foreach (var pair in buff.effects.startingParticlePair)
+                {
+                    pair.particle.Play();
+                    //pair.particle.transform.SetParent(bodyParts.BodyPartTransform(pair.target));
+                    pair.transform = bodyParts.BodyPartTransform(pair.target);
+                }
+
+                while (!buff.IsComplete)
+                {
+                    await Task.Yield();
+
+                    foreach (var pair in buff.effects.startingParticlePair)
+                    {
+                        pair.particle.transform.position = pair.transform.position;
+                    }
+                }
+
+
             }
 
             void AdjustRadiusParticle()
@@ -56,38 +84,29 @@ namespace Architome
                 var scalePortions = buffInfo.effects.scalePortions;
                 var radiusParticles = buffInfo.effects.radiusParticle;
 
-                if (scalePortions.x == 0)
-                {
-                    scalePortions.x = buffRadius * 2;
-                }
-
-                if (scalePortions.y == 0)
-                {
-                    scalePortions.y = buffRadius * 2;
-                }
-
-                if (scalePortions.z == 0)
-                {
-                    scalePortions.z = buffRadius * 2;
-                }
-
+                scalePortions.x = scalePortions.x == 0 ? buffRadius * 2 : scalePortions.x;
+                scalePortions.y = scalePortions.y == 0 ? buffRadius * 2 : scalePortions.y;
+                scalePortions.z = scalePortions.z == 0 ? buffRadius * 2 : scalePortions.z;
 
                 radiusParticles.transform.localScale = scalePortions;
-                
-
-                
             }
         }
+        void CalculateDelayTime(BuffInfo buff)
+        {
+            var particles = GetComponentsInChildren<ParticleSystem>();
+            if (particles.Length == 0) return;
 
+            buff.expireDelay = particles.Max(particle => particle.main.duration);
+        }
         public void OnBuffInterval(BuffInfo buff)
         {
 
         }
-
         public void OnBuffEnd(BuffInfo buff)
         {
             var lights = GetComponentsInChildren<Light>();
             StopStartingParticle();
+            StopPairs();
             ShrinkOnEnd();
             
             foreach (var light in lights)
@@ -100,24 +119,20 @@ namespace Architome
             {
                 if (buffInfo.effects.startingParticles == null) return;
 
-
-                var maxDuration = 0f;
-
-                if (buffInfo.effects.startingParticles.Count > 0)
-                {
-                    maxDuration = buffInfo.effects.startingParticles.Max(particle => particle.main.duration);
-                }
-
-                if (maxDuration > 0)
-                {
-                    buffInfo.expireDelay = maxDuration;
-                }
-
                 foreach (var particle in buffInfo.effects.startingParticles)
                 {
                     particle.Stop(true);
                 }
-                
+            }
+
+            void StopPairs()
+            {
+                foreach (var pair in buff.effects.startingParticlePair)
+                {
+                    if (pair.particle == null) continue;
+                    pair.particle.transform.SetParent(transform);
+                    pair.particle.Stop();
+                }
             }
 
             async void ShrinkOnEnd()
@@ -138,7 +153,6 @@ namespace Architome
             
             
         }
-
         async void DimLight(Light light)
         {
             var smoothening = (1 / buffInfo.expireDelay) * .250f;
@@ -151,7 +165,6 @@ namespace Architome
                 light.range = Mathf.Lerp(light.range, 0, smoothening);
             }
         }
-
         
     }
 

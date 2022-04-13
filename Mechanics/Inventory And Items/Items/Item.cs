@@ -18,6 +18,7 @@ namespace Architome
         public Sprite itemIcon;
         public int itemID;
         public Rarity rarity;
+        public bool playerObtainable;
         [Multiline]
         public string itemDescription;
         public ItemType itemType;

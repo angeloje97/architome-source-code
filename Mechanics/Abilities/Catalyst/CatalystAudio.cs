@@ -18,21 +18,6 @@ namespace Architome
         }
 
         // Update is called once per frame
-        void Update()
-        {
-            if (!isActive) { return; }
-            FollowCatalyst();
-        }
-
-        public void FollowCatalyst()
-        {
-            if (catalystInfo == null)
-            {
-                isActive = false;
-                return;
-            }
-            transform.position = catalystInfo.transform.position;
-        }
 
         public void Activate(CatalystInfo catalystInfo)
         {
@@ -46,12 +31,15 @@ namespace Architome
             catalystInfo.OnHeal += OnHeal;
             catalystInfo.OnDamage += OnDamage;
             catalystInfo.OnAssist += OnAssist;
+            catalystInfo.OnHit += OnHit;
 
             audioManager = gameObject.AddComponent<AudioManager>();
             audioManager.mixerGroup = GMHelper.Mixer().SoundEffect;
             audioManager.OnEmptyAudio += OnEmptyAudio;
 
             PlayCatalystReleaseSound();
+
+            transform.SetParent(catalystInfo.transform);
 
             isActive = true;
         }
@@ -60,6 +48,7 @@ namespace Architome
         {
             audioManager.PlayRandomSound(catalystInfo.effects.castReleaseSounds);
         }
+
 
         public void OnCatalingRelease(CatalystInfo sourceCatalyst, CatalystInfo cataling)
         {
@@ -85,13 +74,15 @@ namespace Architome
 
         public void OnHit(GameObject target)
         {
-
+            audioManager.PlayRandomSound(catalystInfo.effects.hitSounds);
         }
 
         public void OnCatalystDestroy(CatalystDeathCondition deathCondition)
         {
             destroyCatalyst = true;
             isActive = false;
+
+            transform.SetParent(null);
 
             PlayDestroySound();
 

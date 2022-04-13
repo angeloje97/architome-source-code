@@ -8,6 +8,7 @@ namespace Architome
     {
         // Start is called before the first frame update
         public Camera currentCamera;
+        public CameraAnchor anchor;
         public static Camera active { get; set; }
 
         public bool perspective;
@@ -23,7 +24,8 @@ namespace Architome
 
         public void GetDependencies()
         {
-            
+            currentCamera = GetComponent<Camera>();
+            anchor = GetComponentInParent<CameraAnchor>();
             
         }
 
@@ -53,6 +55,7 @@ namespace Architome
 
         void OnScrollWheel(float value)
         {
+            if (Mouse.IsMouseOverUI()) return;
             zoomOffset += -value*4;
         }
 
@@ -67,6 +70,14 @@ namespace Architome
             HandleScrollWheelOrthoGraphic();
             HandleScrollWheelPerspective();
             HandleCameraType();
+            LookAtAnchor();
+        }
+
+        void LookAtAnchor()
+        {
+            if (!anchor) return;
+
+            transform.LookAt(anchor.transform);
         }
 
         public void HandleScrollWheelOrthoGraphic()

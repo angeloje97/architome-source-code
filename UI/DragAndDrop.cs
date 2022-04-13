@@ -22,6 +22,7 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
 
     public void OnPointerDown(PointerEventData eventData)
     {
+        
         if (sameChildIndex) { return; }
         objectToDrag.SetAsLastSibling();
     }
@@ -32,6 +33,7 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        if (!Input.GetKey(KeyCode.Mouse0)) return;
         isDragging = true;
         canvasGroup.blocksRaycasts = false;
         canvasGroup.alpha = dragAlpha;
@@ -79,7 +81,8 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
 
         if (isDragging)
         {
-            objectToDrag.position = Input.mousePosition;
+
+            objectToDrag.position = Vector3.Lerp(objectToDrag.position, Input.mousePosition, .50f);
 
             //if (V3Helper.Abs(objectToDrag.localPosition) > localRadius)
             //{
@@ -99,8 +102,10 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
         }
 
         endPosition = Input.mousePosition;
+        var position = objectStartPosition - V3Helper.Difference(startingPosition, endPosition);
+        //objectToDrag.position = objectStartPosition - V3Helper.Difference(startingPosition, endPosition);
 
-        objectToDrag.position = objectStartPosition - V3Helper.Difference(startingPosition, endPosition);
+        objectToDrag.position = Vector3.Lerp(objectToDrag.position, position, .50f);
 
     }
     void HandleUserInput()

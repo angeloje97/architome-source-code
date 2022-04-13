@@ -14,7 +14,10 @@ namespace Architome.Enums
 
     public enum ArchInputMode
     {
+        Inactive,
+        InGameUI,
         Combat,
+        Colony,
     }
 
     public enum ObjectType
@@ -114,6 +117,12 @@ namespace Architome.Enums
         Casting = 7,
         Slowed = 8,
         Immune = 9,
+    }
+
+    public enum MeterRecordingMode
+    {
+        CurrentFight,
+        Dungeon
     }
 
     public enum BehaviorState
@@ -288,14 +297,37 @@ namespace Architome.Enums
         Boots,
         Shoulder
     }
+
+    public enum BodyPart
+    {
+        RightHand,
+        RightThumb,
+        LeftHand,
+        LeftThumb,
+        LeftLeg,
+        LeftFoot,
+        RightLeg,
+        RightFoot,
+        Spine,
+        Hips,
+        HipsAttachment,
+        BackAttachment,
+        CapeAttachment,
+        Head,
+        Chest,
+        Root,
+    }
+
     public enum WeaponType
     {
-        TwoHandedSword,
-        OneHandSword,
+        TwoHanded,
+        OneHand,
         Bow,
         Crossbow,
         Staff,
-        Shield
+        Shield,
+        Rifle,
+        Pistol,
     }
 
     public enum ArmorType

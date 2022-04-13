@@ -58,7 +58,7 @@ public class BuffInfo : MonoBehaviour
     [Header("Buff Properties")]
     public DamageType damageType;
     public int stacks = 0;
-    private bool buffTimeComplete = false;
+    bool buffTimeComplete = false;
     public float buffTimer;
 
     [Header("Buff FX")]
@@ -67,16 +67,28 @@ public class BuffInfo : MonoBehaviour
     public GameObject buffRadiusParticles;
     public AudioClip buffSound;
 
+    public bool IsComplete { get { return buffTimeComplete; } }
 
     [Serializable]
     public struct BuffFX
     {
+        [Serializable]
+        public class ParticlePair
+        {
+            public BodyPart target;
+            public ParticleSystem particle;
+            public Transform transform;
+            public Vector3 offset;
+        }
+
         public Vector3 scalePortions;
 
-        
+
 
         [Header("Particles")]
         //public ParticleSystem startingParticles;
+        public List<ParticlePair> startingParticlePair;
+        public List<ParticlePair> intervalParticlePair;
         public List<ParticleSystem> startingParticles;
         public List<ParticleSystem> intervalParticle;
         public GameObject radiusParticle;
@@ -267,6 +279,7 @@ public class BuffInfo : MonoBehaviour
     public IEnumerator Expire()
     {
         OnBuffEnd?.Invoke(this);
+        buffTimeComplete = true;
 
         if(transform.parent && GetComponentInParent<BuffsManager>())
         {

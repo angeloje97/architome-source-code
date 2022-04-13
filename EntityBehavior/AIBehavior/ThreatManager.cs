@@ -108,9 +108,9 @@ public class ThreatManager : MonoBehaviour
     public List<ThreatInfo> threats;
 
     public event Action<ThreatInfo> OnNewThreat;
-    public event Action<ThreatInfo> OnIncreaseThreat;
+    public event Action<ThreatInfo, float> OnIncreaseThreat;
     public event Action<ThreatInfo> OnRemoveThreat;
-    public event Action<ThreatInfo> OnGenerateThreat;
+    public event Action<ThreatInfo, float> OnGenerateThreat;
     public event Action<ThreatManager> OnEmptyThreats;
     public event Action<ThreatManager> OnClearThreats;
     public void GetDependencies()
@@ -364,8 +364,8 @@ public class ThreatManager : MonoBehaviour
             threatInfo.IncreaseThreat(value);
         }
 
-        OnIncreaseThreat?.Invoke(threatInfo);
-        sourceThreat.OnGenerateThreat?.Invoke(threatInfo);
+        OnIncreaseThreat?.Invoke(threatInfo, value);
+        sourceThreat.OnGenerateThreat?.Invoke(threatInfo, value);
 
         HandleMaxThreat();
 

@@ -3,154 +3,195 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
 using System;
-public class AudioManager : MonoBehaviour
+using System.Threading.Tasks;
+
+namespace Architome
 {
-    // Start is called before the first frame update
-    
-
-    public List<AudioSource> audioSources;
-    public AudioSource presetAudio;
-    public AudioMixerGroup mixerGroup;
-    public Action<AudioManager> OnEmptyAudio;
-
-
-    public bool audioRoutineIsActive;
-
-    void Start()
-    {
-        audioSources = new List<AudioSource>();
-    }
-
-    public void OnValidate()
-    {
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    public IEnumerator CheckAudioRoutine(float length = 1f)
+    public class AudioManager : MonoBehaviour
     {
 
-        yield return new WaitForSeconds(length);
+        public List<AudioSource> audioSources;
+        public AudioSource presetAudio;
+        public AudioMixerGroup mixerGroup;
+        public Action<AudioManager> OnEmptyAudio;
 
-        audioRoutineIsActive = IsPlaying();
+        public bool audioRoutineIsActive;
 
-        while(audioRoutineIsActive)
+        [Header("Audio Source Settings")]
+        public float spatialBlend = .5f;
+
+
+        void Start()
         {
-            yield return new WaitForSeconds(1f);
+            audioSources = new List<AudioSource>();
+        }
+
+        public void OnValidate()
+        {
+            spatialBlend = .5f;
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+
+        }
+
+        void CopyPresetFor(AudioSource source)
+        {
+            //if (presetAudio == null) return;
+            //foreach (var field in typeof(AudioSource).GetFields())
+            //{
+            //    field.SetValue(source, field.GetValue(presetAudio));
+            //}
+
+            //foreach (var property in typeof(AudioSource).GetProperties())
+            //{
+            //    property.SetValue(source, property.GetValue(presetAudio));
+            //}
+        }
+
+        public IEnumerator CheckAudioRoutine(float length = 1f)
+        {
+
+            yield return new WaitForSeconds(length);
+
             audioRoutineIsActive = IsPlaying();
-        }
 
-        ClearAudios();
-        OnEmptyAudio?.Invoke(this);
-
-    }
-
-    public AudioSource AudioSourceFromClip(AudioClip clip)
-    {
-        return audioSources.Find(source => source.clip == clip);
-    }
-
-    public bool IsPlaying()
-    {
-        foreach(var source in audioSources)
-        {
-            if(source.isPlaying)
+            while (audioRoutineIsActive)
             {
-                return true;
+                yield return new WaitForSeconds(1f);
+                audioRoutineIsActive = IsPlaying();
             }
+
+            ClearAudios();
+            OnEmptyAudio?.Invoke(this);
+
         }
 
-        return false;
-    }
-
-    public void ClearAudios()
-    {
-        for(int i = 0; i< audioSources.Count; i++)
+        public AudioSource AudioSourceFromClip(AudioClip clip)
         {
-            var source = audioSources[i];
+            return audioSources.Find(source => source.clip == clip);
+        }
 
-            if(!source.isPlaying)
+        public bool IsPlaying()
+        {
+            foreach (var source in audioSources)
             {
-                audioSources.RemoveAt(i);
-                Destroy(source);
-                i--;
+                if (source.isPlaying)
+                {
+                    return true;
+                }
             }
-        }
-    }
 
-    public AudioSource PlaySound(AudioClip clip)
-    {
-        if (audioSources == null) audioSources = new List<AudioSource>();
-        if(audioSources.Count > 0)
+            return false;
+        }
+
+        public void ClearAudios()
         {
-            foreach (AudioSource source in audioSources)
+            for (int i = 0; i < audioSources.Count; i++)
             {
+                var source = audioSources[i];
+
                 if (!source.isPlaying)
                 {
-                    
-
-                    source.PlayOneShot(clip);
-                    return source;
+                    audioSources.RemoveAt(i);
+                    Destroy(source);
+                    i--;
                 }
             }
         }
-        
-        var newAudioSource = gameObject.AddComponent<AudioSource>();
-        if (mixerGroup)
+
+        public AudioSource PlaySound(AudioClip clip)
         {
-            newAudioSource.outputAudioMixerGroup = mixerGroup;
+            if (audioSources == null) audioSources = new List<AudioSource>();
+            if (audioSources.Count > 0)
+            {
+                foreach (AudioSource source in audioSources)
+                {
+                    if (!source.isPlaying)
+                    {
+                        source.PlayOneShot(clip);
+                        return source;
+                    }
+                }
+            }
+
+            var newAudioSource = gameObject.AddComponent<AudioSource>();
+            if (mixerGroup)
+            {
+                newAudioSource.outputAudioMixerGroup = mixerGroup;
+            }
+            newAudioSource.spatialBlend = .5f;
+            CopyPresetFor(newAudioSource);
+            audioSources.Add(newAudioSource);
+            newAudioSource.PlayOneShot(clip);
+
+            if (!audioRoutineIsActive)
+            {
+                audioRoutineIsActive = true;
+                var clipLength = clip.length;
+                StartCoroutine(CheckAudioRoutine(clipLength + .25f));
+            }
+
+            return newAudioSource;
         }
-        newAudioSource.spatialBlend = .5f;
-        audioSources.Add(newAudioSource);
-        newAudioSource.PlayOneShot(clip);
-        
-        if(!audioRoutineIsActive)
+
+        public AudioSource PlayRandomSound(List<AudioClip> clips)
         {
-            audioRoutineIsActive = true;
-            var clipLength = clip.length;
-           StartCoroutine(CheckAudioRoutine(clipLength + .25f));
+            if (clips.Count == 0) { return null; }
+
+            var random = UnityEngine.Random.Range(0, clips.Count);
+
+            return PlaySound(clips[random]);
         }
 
-        return newAudioSource;
+        public AudioSource PlaySoundLoop(AudioClip clip, float maxLength = 0f)
+        {
+            var audioSource = PlaySound(clip);
+            audioSource.Stop();
+            audioSource.clip = clip;
+            audioSource.loop = true;
+            audioSource.Play();
+
+            if (maxLength != 0)
+            {
+                ArchAction.Delay(() => { audioSource.Stop(); }, maxLength);
+
+            }
+
+            return audioSource;
+        }
+
+        public AudioSource PlayRandomLoop(List<AudioClip> clips, float maxLength = 0f)
+        {
+            if (clips.Count == 0) return null;
+
+            return PlaySoundLoop(clips[UnityEngine.Random.Range(0, clips.Count)], maxLength);
+        }
+
+        public void StopLoops()
+        {
+            //foreach(var source in audioSources)
+            //{
+            //    if(source.loop && source.isPlaying)
+            //    {
+            //        source.Stop();
+            //    }
+            //}
+
+        }
+
+        public void StopAll()
+        {
+            foreach (var source in audioSources)
+            {
+                source.Stop();
+            }
+        }
+
+
+
     }
-
-    public AudioSource PlayRandomSound(List<AudioClip> clips)
-    {
-        if(clips.Count == 0) { return null; }
-
-        var random = UnityEngine.Random.Range(0, clips.Count);
-
-        return PlaySound(clips[random]);
-    }
-
-    public AudioSource PlaySoundLoop(AudioClip clip)
-    {
-        var audioSource = PlaySound(clip);
-        audioSource.Stop();
-        audioSource.clip = clip;
-        audioSource.loop = true;
-        audioSource.Play();
-
-        return audioSource;
-    }
-
-    public void StopLoops()
-    {
-        //foreach(var source in audioSources)
-        //{
-        //    if(source.loop && source.isPlaying)
-        //    {
-        //        source.Stop();
-        //    }
-        //}
-    }
-
-    
-
-
 
 }

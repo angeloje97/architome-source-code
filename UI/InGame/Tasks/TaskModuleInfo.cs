@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UltimateClean;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Architome
@@ -68,7 +69,7 @@ namespace Architome
             ClearOptions();
             currentClickable = data;
             SetTitle();
-            CreateOptions(data.options);
+            CreateOptions(data.options.Select(option => option.text).ToList());
             ArchAction.Delay(() => AdjustPosition(), .0625f);
             ArchAction.Delay(() => UpdateModule(true), .0626f);
         }

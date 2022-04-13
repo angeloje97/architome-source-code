@@ -19,7 +19,7 @@ namespace Architome
         public ArchClass archClass;
         public Sprite entityPortrait;
 
-        public EntitySoundPack entitySound;
+        public EntityFXPack entityFX;
 
         public EntityControlType entityControlType;
         [Header("Entity Properties")]
@@ -122,6 +122,7 @@ namespace Architome
         public TaskEvents taskEvents = new();
         public TargetableEvents targetableEvents = new();
         public CombatEvents combatEvents;
+        public PortalEvents portalEvents;
 
         //Non Player Events
         public Action<EntityInfo, PartyInfo> OnPlayerLineOfSight;
@@ -135,7 +136,6 @@ namespace Architome
         private float maxManaCheck;
         private float shieldCheck;
         private bool combatCheck;
-        private RoomInfo previousRoom;
         private bool isAliveCheck;
         private NPCType npcTypeCheck;
 
@@ -264,13 +264,6 @@ namespace Architome
                 combatCheck = isInCombat;
 
                 OnCombatChange?.Invoke(combatCheck);
-            }
-
-            if (currentRoom != previousRoom)
-            {
-                OnRoomChange?.Invoke(previousRoom, currentRoom);
-
-                previousRoom = currentRoom;
             }
 
             if (isAlive != isAliveCheck)
@@ -916,17 +909,15 @@ namespace Architome
         }
         public AudioManager SoundEffect()
         {
-            foreach (Transform child in transform)
-            {
-                if (child.GetComponent<AudioManager>() &&
-                    child.GetComponent<AudioManager>().mixerGroup == GMHelper.Mixer().SoundEffect)
-                {
-                    return child.GetComponent<AudioManager>();
-                }
-
-            }
-            return null;
+            return GetComponentsInChildren<AudioManager>().First(manager => manager.mixerGroup == GMHelper.Mixer().SoundEffect);
         }
+
+        public AudioManager VoiceEffect()
+        {
+            return GetComponentsInChildren<AudioManager>().First(manager => manager.mixerGroup == GMHelper.Mixer().Voice);
+        }
+
+        public EntitySpeech Speech { get { return GetComponentInChildren<EntitySpeech>(); } }
         public Inventory Inventory()
         {
             foreach (Transform child in transform)

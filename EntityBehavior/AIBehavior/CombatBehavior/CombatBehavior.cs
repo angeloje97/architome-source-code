@@ -224,7 +224,7 @@ namespace Architome
             return focusTarget;
         }
 
-        public void OnIncreaseThreat(ThreatManager.ThreatInfo threatInfo)
+        public void OnIncreaseThreat(ThreatManager.ThreatInfo threatInfo, float value)
         {
             target = threatManager.highestThreat;
 

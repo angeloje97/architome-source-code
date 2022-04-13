@@ -9,6 +9,8 @@ namespace Architome
     {
         // Start is called before the first frame update
 
+        public RoomInfo previousRoom;
+
         public void GetDependenices()
         {
             base.GetDependencies();
@@ -25,8 +27,18 @@ namespace Architome
 
         public void OnRoomChange(RoomInfo previousRoom, RoomInfo nextRoom)
         {
-            if(previousRoom) { previousRoom.OnShowRoom -= OnShowRoom; }
-            if(nextRoom) { nextRoom.OnShowRoom += OnShowRoom; }
+            if(previousRoom) 
+            { 
+                previousRoom.events.OnShowRoom -= OnShowRoom;
+                previousRoom.entities.HandleEntityExit(entityInfo);
+            }
+
+            if(nextRoom) 
+            {
+                nextRoom.events.OnShowRoom += OnShowRoom;
+                nextRoom.entities.HandleEntityEnter(entityInfo);
+            }
+
         }
 
         public void OnShowRoom(RoomInfo room, bool isShown)
@@ -38,7 +50,7 @@ namespace Architome
         {
             if(entityInfo.currentRoom)
             {
-                entityInfo.currentRoom.OnShowRoom -= OnShowRoom;
+                entityInfo.currentRoom.events.OnShowRoom -= OnShowRoom;
             }
         }
         void Start()
@@ -49,7 +61,16 @@ namespace Architome
         // Update is called once per frame
         void Update()
         {
+            HandleEvents();
+        }
 
+        void HandleEvents()
+        {
+            if (entityInfo.currentRoom != previousRoom)
+            {
+                entityInfo.OnRoomChange?.Invoke(previousRoom, entityInfo.currentRoom);
+                previousRoom = entityInfo.currentRoom;
+            }
         }
     }
 

@@ -9,25 +9,26 @@ using Architome.Enums;
 
 namespace Architome
 {
+    [RequireComponent(typeof(CanvasGroup))]
     public class AlertIndicatorBehavior : MonoBehaviour
     {
         // Start is called before the first frame update
         public EntityInfo entityInfo;
+        CombatInfo combatInfo;
         public PortraitBehavior portraitBehavior;
 
         public bool isFlashing;
 
         public Image alertImage;
+        public bool show;
+
+        public bool isPortrait;
+        public CanvasGroup cGroup;
+
         void GetDependencies()
         {
-            entityInfo = GetComponentInParent<EntityInfo>();
             portraitBehavior = GetComponentInParent<PortraitBehavior>();
-            if (entityInfo != null)
-            {
-                var combatInfo = entityInfo.GetComponentInChildren<CombatInfo>();
-                combatInfo.OnTargetedByEvent += OnTargetedByEvent;
-                return;
-            }
+            entityInfo = GetComponentInParent<EntityInfo>();
 
 
             if (portraitBehavior != null)
@@ -36,13 +37,16 @@ namespace Architome
 
                 if (portraitBehavior.entity)
                 {
-
-                    var combatInfo = portraitBehavior.entity.GetComponentInChildren<CombatInfo>();
-
-                    combatInfo.OnTargetedByEvent += OnTargetedByEvent;
+                    isPortrait = true;
+                    combatInfo = portraitBehavior.entity.GetComponentInChildren<CombatInfo>();
                 }
 
-
+                return;
+            }
+            if (entityInfo != null)
+            {
+                combatInfo = entityInfo.GetComponentInChildren<CombatInfo>();
+                combatInfo.OnTargetedByEvent += OnTargetedByEvent;
                 return;
             }
         }
@@ -52,16 +56,30 @@ namespace Architome
             GetDependencies();
         }
 
+        private void OnValidate()
+        {
+            cGroup = GetComponent<CanvasGroup>();
+            alertImage.enabled = true;
+            UpdateImage();
+        }
+
         async void FlashingRoutine()
         {
             while (isFlashing)
             {
                 await Task.Delay(250);
-                
-                alertImage.enabled = !alertImage.enabled;
+
+                show = !show;
+                UpdateImage();
             }
 
-            alertImage.enabled = false;
+            show = false;
+            UpdateImage();
+        }
+
+        void UpdateImage()
+        {
+            cGroup.alpha = show ? 1 : 0;
         }
 
         async void OnTargetedByEvent(CombatInfo combatInfo)
@@ -75,50 +93,32 @@ namespace Architome
 
             isFlashing = true;
 
+            FlashingRoutine();
 
-
-            while (combatInfo.IsBeingAttacked())
+            while (this.combatInfo.IsBeingAttacked())
             {
-                
-                await Task.Delay(250);
-                alertImage.enabled = !alertImage.enabled;
+                await Task.Delay(1000);
             }
 
             isFlashing = false;
-            alertImage.enabled = false;
+            show = false;
+            UpdateImage();
 
-            //if (!combatInfo.IsBeingAttacked())
-            //{
-            //    return;   
-            //}
-
-            //if (isFlashing)
-            //{
-            //    return;
-            //}
-
-            //isFlashing = true;
-
-            //FlashingRoutine();
-            //await combatInfo.BeingAttacked();
-            //isFlashing = false;
         }
 
         void OnEntityChange(EntityInfo previous, EntityInfo after)
         {
             if (entityInfo)
             {
-                var combatInfo = entityInfo.GetComponentInChildren<CombatInfo>();
-
+                combatInfo = entityInfo.GetComponentInChildren<CombatInfo>();
                 combatInfo.OnTargetedByEvent -= OnTargetedByEvent;
-
             }
 
             entityInfo = after;
 
             if (entityInfo)
             {
-                var combatInfo = entityInfo.GetComponentInChildren<CombatInfo>();
+                combatInfo = entityInfo.GetComponentInChildren<CombatInfo>();
                 combatInfo.OnTargetedByEvent += OnTargetedByEvent;
             }
         }

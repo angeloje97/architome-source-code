@@ -17,6 +17,7 @@ namespace Architome
         {
             [Header("Task Information")]
             public string workString;
+            public string completionMessage;
             public WorkType workType;
             public WorkInfo station;
 
@@ -292,12 +293,14 @@ namespace Architome
             if (states.currentState != TaskState.Available)
             {
                 entity.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Task not available");
+                properties.station.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Task not available");
                 return false;
             }
 
             if (properties.noCombat && entity.isInCombat)
             {
                 entity.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Must be out of combat");
+                properties.station.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Must be out of combat");
                 return false;
             }
 
@@ -306,6 +309,7 @@ namespace Architome
             if (HostileEntitiesInRoom() && properties.noHostileMobsInRoom)
             {
                 entity.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Hostile mobs are still in this room");
+                properties.station.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Hostile mobs are still in this room");
                 return false;
             }
 
@@ -314,11 +318,11 @@ namespace Architome
 
         bool HostileEntitiesInRoom()
         {
-            var room = RoomInfo.GetRoom(properties.station.transform.position);
+            var room = Entity.Room(properties.station.transform.position);
 
             if (room == null) return false;
 
-            var hostileEntities = Entity.EntitiesFromRoom(room).Where(entity => entity.npcType == NPCType.Hostile && entity.isAlive).ToList();
+            var hostileEntities = room.entities.HostilesInRoom;
 
             if (hostileEntities.Count > 0)
             {

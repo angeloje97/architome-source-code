@@ -9,38 +9,27 @@ public class EntitySFX : MonoBehaviour
     public EntityInfo entityInfo;
     public AbilityManager abilityManager;
     public AudioManager soundEffects;
+    public AudioManager voice;
 
-    public EntitySoundPack entitySoundPack;
-
-    public struct SFXAudioSources
-    {
-        public AudioSource castingAudioSource;
-        public AudioSource channelingAudioSource;
-    }
-
-    public SFXAudioSources sources;
+    public AudioSource castingSource;
 
     void GetDependencies()
     {
-        if(GetComponentInParent<EntityInfo>())
-        {
-            entityInfo = GetComponentInParent<EntityInfo>();
+        entityInfo = GetComponentInParent<EntityInfo>();
 
+        if (entityInfo)
+        {
             abilityManager = entityInfo.AbilityManager();
             soundEffects = GetComponent<AudioManager>();
 
             entityInfo.OnDamageTaken += OnDamageTaken;
             entityInfo.OnBuffApply += OnBuffyApply;
 
-            abilityManager.OnCastRelease += OnCastRelease;
-
-            //abilityManager.OnCastStart += OnCastStart;
-            //abilityManager.OnCatalystRelease += OnCastEnd;
-            //abilityManager.OnCancelCast += OnCastEnd;
+            abilityManager.OnCastStart += OnCastStart;
+            abilityManager.OnCastRelease += OnCastEnd;
 
             abilityManager.OnAbilityStart += OnAbilityStart;
             abilityManager.OnAbilityEnd += OnAbilityEnd;
-            
         }
     }
 
@@ -55,6 +44,10 @@ public class EntitySFX : MonoBehaviour
     {
         
     }
+    public void OnLevelUp()
+    {
+
+    }
 
     public void OnDamageTaken(CombatEventData eventData)
     {
@@ -67,16 +60,10 @@ public class EntitySFX : MonoBehaviour
             var sounds = catalyst.effects.harmSounds;
             PlayRandomSound(sounds);
         }
-
-
     }
 
-    public void OnCastRelease(AbilityInfo ability)
-    {
-        
-    }
 
-    public void OnAbilityStart(AbilityInfo ability)
+    void OnCastStart(AbilityInfo ability)
     {
         if (ability.catalystInfo == null) { return; }
         var catalyst = ability.catalystInfo;
@@ -92,21 +79,42 @@ public class EntitySFX : MonoBehaviour
                 return;
             }
 
-
             var randomSound = catalyst.effects.castingSounds[Random.Range(0, catalyst.effects.castingSounds.Count)];
 
-            sources.castingAudioSource = soundEffects.PlaySoundLoop(randomSound);
+            castingSource = soundEffects.PlaySoundLoop(randomSound, catalyst.castTime);
         }
+    }
+
+
+    void OnCastEnd(AbilityInfo ability)
+    {
+        if (castingSource == null) return;
+
+        castingSource.Stop();
+
+        foreach (var clip in ability.catalystInfo.effects.castingSounds)
+        {
+            if (soundEffects.AudioSourceFromClip(clip))
+            {
+                soundEffects.AudioSourceFromClip(clip).Stop();
+            }
+        }
+
+        castingSource = null;
+        if (ability.catalystInfo == null) return;
+        
+    }
+    
+
+    public void OnAbilityStart(AbilityInfo ability)
+    {
+        
     }
 
 
     public void OnAbilityEnd(AbilityInfo ability)
     {
-        if (sources.castingAudioSource == null) return;
-
-        sources.castingAudioSource.Stop();
-
-        sources.castingAudioSource = null;
+        
     }
 
     public void OnBuffyApply(BuffInfo buff, EntityInfo source)

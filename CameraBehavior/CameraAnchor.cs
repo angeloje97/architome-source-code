@@ -41,6 +41,7 @@ namespace Architome
         }
         async void OnMiddleMouse()
         {
+            if (Mouse.IsMouseOverUI()) return;
             while (!Input.GetKeyUp(KeyCode.Mouse2))
             {
                 await Task.Yield();

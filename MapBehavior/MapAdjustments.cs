@@ -34,7 +34,7 @@ namespace Architome
 
         }
 
-        async public void AdjustBackground(Vector3 position, Vector3 size)
+        async public Task AdjustBackground(Vector3 position, Vector3 size)
         {
             if (background == null) { return; }
             position.y = background.transform.position.y;

@@ -71,13 +71,17 @@ namespace Architome
                 StartCoroutine(ClearNullsRoutine());
                 await UpdateskeletonRooms();
                 await UpdateAvailableRooms();
-                HandleEndGeneration();
+                await HandleEndGeneration();
+
+                generatedRooms = true;
+                OnRoomsGenerated?.Invoke(this);
             }
             else
             {
+                await Task.Delay(250);
                 generatedRooms = true;
+                await HandleEndGeneration();
                 OnRoomsGenerated?.Invoke(this);
-                Invoke("HandleEndGeneration", .5f);
             }
         }
         void Start()
@@ -182,25 +186,60 @@ namespace Architome
                 skeletonRooms.RemoveAt(0);
             }
         }
-        IEnumerator ClearNullsRoutine()
+        async Task HandleBackgroundAdjustment()
         {
-            do
-            {
-                yield return new WaitForSeconds(spawnDelay / 2);
-                ClearNullPaths();
-                ClearNullRooms();
+            if (GetComponentInParent<MapAdjustments>() == null) { return; }
 
-            } while (generatingSkeleton || generatingAvailable);
+            var mapAdjustment = GetComponentInParent<MapAdjustments>();
+
+            var midPoint = MapMidPoint();
+            var size = MapSize(1);
+
+            await mapAdjustment.AdjustBackground(midPoint, size);
+
+
+            Vector3 MapMidPoint()
+            {
+                var roomObjects = new List<Transform>();
+
+
+                foreach (var roomInfo in roomList.GetComponentsInChildren<RoomInfo>())
+                {
+                    foreach (var roomObject in roomInfo.allObjects)
+                    {
+                        roomObjects.Add(roomObject);
+                    }
+
+                }
+
+                return V3Helper.MidPoint(roomObjects);
+            }
+            Vector3 MapSize(int height)
+            {
+                var rooms = new List<Transform>();
+
+
+                foreach (var room in roomList.GetComponentsInChildren<RoomInfo>())
+                {
+                    foreach (var roomObject in room.allObjects)
+                    {
+                        rooms.Add(roomObject);
+                    }
+                }
+
+                Debugger.InConsole(54892, $"The dimensions are {V3Helper.Dimensions(rooms)}");
+
+                return V3Helper.Dimensions(rooms);
+            }
         }
-        void HandleEndGeneration()
+        async Task HandleEndGeneration()
         {
             HandleCheckPaths();
-            HandleBackgroundAdjustment();
+            await HandleBackgroundAdjustment();
             AssignRooms();
             AssignPatrolPoints();
 
-            generatedRooms = true;
-            OnRoomsGenerated?.Invoke(this);
+            
 
 
             void AssignRooms()
@@ -224,18 +263,6 @@ namespace Architome
                     }
                 }
             }
-        }
-        public void HandleTimers()
-        {
-            if (fixTimer > 0 && badSpawnRooms.Count == 0)
-            {
-                fixTimer -= Time.deltaTime;
-            }
-            if (fixTimer < 0)
-            {
-                fixTimer = 0;
-            }
-
         }
         void HandleBadSpawnRooms()
         {
@@ -332,6 +359,28 @@ namespace Architome
                 return true;
             }
         }
+        IEnumerator ClearNullsRoutine()
+        {
+            do
+            {
+                yield return new WaitForSeconds(spawnDelay / 2);
+                ClearNullPaths();
+                ClearNullRooms();
+
+            } while (generatingSkeleton || generatingAvailable);
+        }
+        public void HandleTimers()
+        {
+            if (fixTimer > 0 && badSpawnRooms.Count == 0)
+            {
+                fixTimer -= Time.deltaTime;
+            }
+            if (fixTimer < 0)
+            {
+                fixTimer = 0;
+            }
+
+        }
         void HandleHideRooms()
         {
             if (!hideRooms) { return; }
@@ -363,82 +412,6 @@ namespace Architome
             foreach (PathInfo path in paths)
             {
                 path.CheckPath();
-            }
-
-
-        }
-        void HandleBackgroundAdjustment()
-        {
-            if (GetComponentInParent<MapAdjustments>() == null) { return; }
-
-            var mapAdjustment = GetComponentInParent<MapAdjustments>();
-
-            var midPoint = MapMidPoint();
-            var size = MapSize(1);
-
-            mapAdjustment.AdjustBackground(midPoint, size);
-
-
-            Vector3 MapMidPoint()
-            {
-                var roomObjects = new List<Transform>();
-
-                var endPoints = new List<Transform>();
-
-                foreach (var roomInfo in roomList.GetComponentsInChildren<RoomInfo>())
-                {
-                    foreach (var roomObject in roomInfo.allObjects)
-                    {
-                        roomObjects.Add(roomObject);
-                    }
-
-                    //foreach (Transform room in child.GetComponent<RoomInfo>().allObjects)
-                    //{
-                        
-                    //    roomObjects.Add(room);
-                    //}
-                }
-
-                return V3Helper.MidPoint(roomObjects);
-            }
-
-            Vector3 MapSize(int height)
-            {
-                var rooms = new List<Transform>();
-
-
-                foreach (var room in roomList.GetComponentsInChildren<RoomInfo>())
-                {
-                    foreach (var roomObject in room.allObjects)
-                    {
-                        rooms.Add(roomObject);
-                    }
-                }
-
-                Debugger.InConsole(54892, $"The dimensions are {V3Helper.Dimensions(rooms)}");
-
-                return V3Helper.Dimensions(rooms);
-
-                //foreach(var roomInfo in roomList.GetComponentsInChildren<RoomInfo>())
-                //{
-                //    var furthestObject = roomInfo.allObjects.OrderByDescending(current => V3Helper.Distance(current.position, startingPoint)).ToList()[0];
-
-                //    if (furthestObject)
-                //    {
-                //        rooms.Add(furthestObject);
-                //    }
-                //}
-
-                ////foreach (Transform child in roomList)
-                ////{
-                ////    foreach (Transform roomObject in child.GetComponent<RoomInfo>().allObjects)
-                ////    {
-                ////        rooms.Add(child);
-                ////    }
-                ////}
-
-                //var maxDistance = V3Helper.MaxDistance(MapMidPoint(), rooms);
-                //return new Vector3(maxDistance, height, maxDistance);
             }
 
 
@@ -557,11 +530,11 @@ namespace Architome
         }
 
         //Event Handlers
-
         public void OnEntitiesGenerated(MapEntityGenerator entityGenerator)
         {
             HandleHideRooms();
         }
+
     }
 }
 

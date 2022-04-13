@@ -2,7 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Linq;
 using Architome.Enums;
+using System.Threading.Tasks;
 
 namespace Architome
 {
@@ -11,7 +13,13 @@ namespace Architome
         public static ArchInput active;
         // Start is called before the first frame update
         KeyBindings bindings;
+        [SerializeField]
         ArchInputMode inputMode;
+
+        IGGUIInfo gui;
+
+        bool checkingBlockedInput;
+
 
         public ArchInputMode Mode { get { return inputMode; } }
 
@@ -23,13 +31,20 @@ namespace Architome
         public Action OnActionMultiple { get; set; }
         public Action OnSelectMultiple { get; set; }
         public Action<float> OnScrollWheel { get; set; }
-
         public Action OnMiddleMouse { get; set; }
+
+        public Action OnEscape { get; set; }
 
 
         void GetDependencies()
         {
             bindings = KeyBindings.active;
+            gui = IGGUIInfo.active;
+
+            if (gui)
+            {
+                gui.OnModuleEnableChange += OnModuleEnableChange;
+            }
         }
         void Start()
         {
@@ -41,11 +56,51 @@ namespace Architome
             active = this;
         }
 
+        async void OnModuleEnableChange(ModuleInfo changed)
+        {
+            if (checkingBlockedInput) return;
+
+            checkingBlockedInput = true;
+
+            var original = inputMode;
+
+            var modules = gui.modules;
+
+            for (int i = 0; i < modules.Count; i++)
+            {
+                var module = modules[i].GetComponent<ModuleInfo>();
+                if (module.isActive && module.blocksInput)
+                {
+                    inputMode = ArchInputMode.Inactive;
+
+                    while (module.isActive)
+                    {
+                        await Task.Yield();
+                    }
+
+                    i = 0;
+                }
+            }
+
+            inputMode = original;
+
+            checkingBlockedInput = false;
+        }
+
         // Update is called once per frame
         void Update()
         {
             if (bindings == null) return;
             HandleCombatInputs();
+            HandleGeneral();
+        }
+
+        void HandleGeneral()
+        {
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                OnEscape?.Invoke();
+            }
         }
 
         void HandleCombatInputs()

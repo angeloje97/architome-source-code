@@ -43,32 +43,9 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        HandleUserInputs();
         ReloadScene();
     }
 
-
-    public void HandleUserInputs()
-    {
-        if(Input.GetKeyDown(KeyCode.Escape))
-        {
-            if(IGGUIOn()){ return; }
-        }
-
-        bool IGGUIOn()
-        {
-            if(InGameUI)
-            {
-                if(InGameUI.ModulesActive())
-                {
-                    InGameUI.SetModules(false);
-                    return true;
-                }
-            }
-
-            return false;
-        }
-    }
 
     public void AddPlayableCharacter(EntityInfo playableChar)
     {

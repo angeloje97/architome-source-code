@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
 using Architome;
+using System.Threading;
 public class CatalystHit : MonoBehaviour
 {
     // Start is called before the first frame update
@@ -111,6 +112,7 @@ public class CatalystHit : MonoBehaviour
     public void HandleTargetHit(EntityInfo targetHit)
     {
         if (!IsDeadTargetable(targetHit)) { return; }
+        if (catalystInfo.Ticks() == 0) return;
         HandleMainTarget(targetHit.gameObject);
         HandleEvent();
         HandleHeal();
@@ -289,6 +291,8 @@ public class CatalystHit : MonoBehaviour
     }
     public bool CanHit(EntityInfo targetInfo)
     {
+        if (catalystInfo.Ticks() == 0) return false;
+
         if(targetInfo == catalystInfo.entityInfo && !canSelfCast)
         {
             return false;

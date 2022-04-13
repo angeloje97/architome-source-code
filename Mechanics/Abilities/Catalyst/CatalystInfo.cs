@@ -64,8 +64,9 @@ namespace Architome
             public List<AudioClip> assistSounds;
             public List<AudioClip> healSounds;
             public List<AudioClip> destroySounds;
+            public List<AudioClip> hitSounds;
 
-            [Header("Abbility Sound Effects")]
+            [Header("Ability Sound Effects")]
             public List<AudioClip> startCastSounds;
             public List<AudioClip> castingSounds;
             public List<AudioClip> castReleaseSounds;
