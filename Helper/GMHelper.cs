@@ -69,7 +69,7 @@ public class GMHelper : MonoBehaviour
 
         return null;
     }
-    public static WorldSettings WorldSettings()
+    public static World WorldSettings()
     {
         if(GameManager() && GameManager().worldSettings)
         {
@@ -79,7 +79,7 @@ public class GMHelper : MonoBehaviour
     }
     public static LayerMasksData LayerMasks()
     {
-        if(GameManager() && GameManager().layerMasks)
+        if (GameManager() && GameManager().layerMasks)
         {
             return GameManager().layerMasks;
         }

@@ -61,10 +61,8 @@ public class RevealSelf : MonoBehaviour
             difficulty = GMHelper.Difficulty();
         }
 
-        if (GMHelper.LayerMasks())
-        {
-            layerMasks = GMHelper.LayerMasks();
-        }
+
+        layerMasks = LayerMasksData.active;
     }
 
     void Start()

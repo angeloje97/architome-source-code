@@ -105,51 +105,6 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
 
         draggingItem.currentSlotHover = null;
     }
-
-    //InventorySlot Functions
-    //public bool InsertToSlot(ItemInfo itemInfo)
-    //{
-
-    //    var itemRect = itemInfo.GetComponent<RectTransform>();
-        
-
-    //    if(true)
-    //    {
-    //        if(itemInfo.currentSlot)
-    //        {
-    //            var otherSlot = itemInfo.currentSlot;
-    //            otherSlot.item = null;
-
-    //            if(otherSlot.InventoryUI())
-    //            {
-    //                otherSlot.InventoryUI().UpdateInventory();
-    //            }
-                
-    //            if(otherSlot.GetType() == typeof(GearSlot) && item == null)
-    //            {
-
-    //                var gearSlot = (GearSlot)otherSlot;
-    //                gearSlot.equipmentSlot.equipment = null;
-    //            }
-
-    //            if(otherSlot.inventory != this.inventory)
-    //            {
-    //                //otherSlot.inventory.OnRemoveItem?.Invoke(itemInfo.item);
-    //                //this.inventory.OnNewItem?.Invoke(itemInfo.item);
-    //            }
-    //        }
-            
-    //        itemInfo.currentSlot = this;
-    //        itemInfo.OnNewSlot?.Invoke(this);
-    //        this.item = itemInfo.item;
-    //        this.currentItemInfo = itemInfo;
-    //        itemRect.sizeDelta = GetComponent<RectTransform>().sizeDelta;
-    //        itemRect.transform.position = transform.position;
-    //        return true;
-    //    }
-        
-    //}
-
     public int SlotNum()
     {
         if(InventoryUI())

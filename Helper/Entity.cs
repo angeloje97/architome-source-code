@@ -93,8 +93,6 @@ namespace Architome
 
             entityList = entitiesWithinRange.Select(entity => entity.GetComponent<EntityInfo>()).OrderBy(entity => Vector3.Distance(entity.transform.position, location)).ToList();
 
-            
-
             return entityList;
         }
 
@@ -103,10 +101,23 @@ namespace Architome
         public static List<EntityInfo> EntitesWithinLOS(Vector3 position, float radius)
         {
             var obstructionLayer = GMHelper.LayerMasks().structureLayerMask;
+            var entityLayer = GMHelper.LayerMasks().entityLayerMask;
 
-            return EntitiesWithinRange(position, radius)
-                .Where(entity => !V3Helper.IsObstructed(entity.transform.position, position, obstructionLayer))
-                .ToList();
+            //var obstructionLayer = GMHelper.LayerMasks().structureLayerMask;
+            var entitiesInSight = new List<EntityInfo>();
+
+            var entitiesWithinRange = Physics.OverlapSphere(position, radius, entityLayer);
+
+            foreach (var collider in entitiesWithinRange)
+            {
+                if (!V3Helper.IsObstructed(collider.transform.position, position, obstructionLayer))
+                {
+                    entitiesInSight.Add(collider.GetComponent<EntityInfo>());
+                }
+            }
+
+            return entitiesInSight.OrderBy(entity => Vector3.Distance(entity.transform.position, position)).ToList();
+
         }
 
         public static List<EntityInfo> ToEntities(List<GameObject> entityObjects)

@@ -20,6 +20,16 @@ public class AIBehavior : MonoBehaviour
 
     public bool isPlayer;
 
+    public struct Events
+    {
+        public Action<GameObject> OnDetecedEntity;
+        public Action<GameObject> OnDetectedEnemy;
+        public Action<GameObject> OnSightedEntity;
+
+    }
+
+        public Events events;
+
     public Action<AIBehaviorType, AIBehaviorType> OnBehaviorChange;
     public Action<BehaviorState, BehaviorState> OnBehaviorStateChange;
     public Action<CombatBehaviorType, CombatBehaviorType> OnCombatBehaviorTypeChange;

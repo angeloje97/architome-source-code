@@ -148,6 +148,8 @@ namespace Architome
         void OnLevelUp(int level)
         {
             if (popUpManager == null) return;
+
+            popUpManager.StateChangePopUp(transform, $"Level {level}");
         }
 
     }

@@ -23,7 +23,7 @@ public class GameManager : MonoBehaviour
     [Header("Meta Data")]
     public KeyBindings keyBinds;
     public DifficultyModifications difficultyModifications;
-    public WorldSettings worldSettings;
+    public World worldSettings;
     public LayerMasksData layerMasks;
 
 

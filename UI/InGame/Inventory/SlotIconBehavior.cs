@@ -9,6 +9,14 @@ namespace Architome
     {
         // Start is called before the first frame update
         public InventorySlot slot;
+
+        public struct Info
+        {
+            public Image slotIconPlaceHolder;
+            public Image slotRarity;
+
+        }
+
         void Start()
         {
             slot = GetComponentInParent<InventorySlot>();

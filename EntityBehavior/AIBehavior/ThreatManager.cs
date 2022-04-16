@@ -115,15 +115,14 @@ public class ThreatManager : MonoBehaviour
     public event Action<ThreatManager> OnClearThreats;
     public void GetDependencies()
     {
-        if(GetComponentInParent<EntityInfo>())
+        entityInfo = GetComponentInParent<EntityInfo>();
+
+        
+        if(entityInfo)
         {
-            entityInfo = GetComponentInParent<EntityInfo>();
             entityObject = entityInfo.gameObject;
 
-            if(entityInfo.AbilityManager())
-            {
-                abilityManager = entityInfo.AbilityManager();
-            }
+            abilityManager = entityInfo.AbilityManager();
 
             entityInfo.OnKill += OnKill;
             entityInfo.OnDamageDone += OnDamageDone;
@@ -135,40 +134,52 @@ public class ThreatManager : MonoBehaviour
             entityInfo.OnBuffApply += OnBuffApply;
         }
 
-        if(GetComponentInParent<AIBehavior>())
-        { 
-            behavior = GetComponentInParent<AIBehavior>();
-            if(behavior.LineOfSight())
-            {
-                lineOfSight = behavior.LineOfSight();
-            }
+        behavior = GetComponentInParent<AIBehavior>();
 
-            combatInfo = transform.parent.GetComponentInChildren<CombatInfo>();
-        }
-
-        if(lineOfSight == null)
+        if (behavior)
         {
-            if (transform.parent.GetComponent<AIBehavior>())
-            {
-                behavior = transform.parent.GetComponent<AIBehavior>();
-
-                if (behavior.entityObject)
-                {
-                    entityObject = behavior.entityObject;
-                    entityInfo = entityObject.GetComponent<EntityInfo>();
-
-                    if (entityInfo.AbilityManager())
-                    {
-                        abilityManager = entityInfo.AbilityManager();
-                    }
-                }
-            }
-
-            if(behavior && behavior.LineOfSight())
-            {
-                lineOfSight = behavior.LineOfSight();
-            }
+            lineOfSight = behavior.LineOfSight();
+            behavior.events.OnSightedEntity += OnSighted;
+            combatInfo = behavior.GetComponentInChildren<CombatInfo>();
         }
+
+        //if(GetComponentInParent<AIBehavior>())
+        //{ 
+        //    behavior = GetComponentInParent<AIBehavior>();
+        //    if(behavior.LineOfSight())
+        //    {
+                
+        //    }
+
+        //    combatInfo = transform.parent.GetComponentInChildren<CombatInfo>();
+            
+        //}
+
+        //if(lineOfSight == null)
+        //{
+        //    if (transform.parent.GetComponent<AIBehavior>())
+        //    {
+        //        behavior = transform.parent.GetComponent<AIBehavior>();
+
+        //        if (behavior.entityObject)
+        //        {
+        //            entityObject = behavior.entityObject;
+        //            entityInfo = entityObject.GetComponent<EntityInfo>();
+
+        //            if (entityInfo.AbilityManager())
+        //            {
+        //                abilityManager = entityInfo.AbilityManager();
+        //            }
+        //        }
+
+                
+        //    }
+
+        //    if(behavior && behavior.LineOfSight())
+        //    {
+        //        lineOfSight = behavior.LineOfSight();
+        //    }
+        //}
        
     }
     void Start()
@@ -308,8 +319,19 @@ public class ThreatManager : MonoBehaviour
         }
     }
 
+    public void OnSighted(GameObject target)
+    {
+        if (behavior.combatType != CombatBehaviorType.Aggressive) return;
+        if (!entityInfo.CanAttack(target)) return;
+        if (entityInfo.isInCombat) return;
+
+        IncreaseThreat(target, 15, true);
+        behavior.events.OnDetectedEnemy?.Invoke(target);
+    }
+
     public async void CheckThreats(NPCType enemyType, bool checkForCombat = false, bool alertAllies = false)
     {
+        return;
         var enemiesDetected = lineOfSight.DetectedEntities(enemyType);
 
         if(enemiesDetected.Count == 0) { return; }
@@ -373,7 +395,7 @@ public class ThreatManager : MonoBehaviour
 
         if(alertAllies)
         {
-            StartCoroutine(AlertAllies(source));
+            AlertAllies(source);
         }
         
         
@@ -466,52 +488,26 @@ public class ThreatManager : MonoBehaviour
         }
         return target;
     }
-    public IEnumerator AlertAllies(GameObject target)
+    public async void AlertAllies(GameObject target)
     {
-        if(entityInfo.isAlive && 
-            highestThreat != null)
+        if (!entityInfo.isAlive) return;
+        
+
+        var allies = lineOfSight.DetectedAllies();
+
+        await Task.Delay((int)(.25f) * 1000);
+
+        foreach (var ally in allies)
         {
-            yield return new WaitForSeconds(.25f);
+            if (ally == entityInfo) continue;
+            if (ally.isInCombat) continue;
+            var threatManager = ally.GetComponentInChildren<ThreatManager>();
+            if (threatManager == null) continue;
 
-            if (lineOfSight)
-            {
-                Debugger.InConsole(19323, $"{entityObject} {lineOfSight != null}");
-                var allies = lineOfSight.DetectedEntities(entityInfo.npcType);
-                Debugger.InConsole(1842, $"{entityObject} has {allies.Count}, {entityInfo.npcType} allies");
-
-
-                if (allies.Count > 0)
-                {
-                    foreach (EntityInfo ally in allies)
-                    {
-                        if(ally == entityInfo) { continue; }
-                        if (!lineOfSight.HasLineOfSight(ally.gameObject)) { continue; }
-                        if (ally.ThreatManager() && ally.ThreatManager().Threat(target) == null/*&& highestThreat &&  highestThreat.GetComponent<EntityInfo>().isAlive && !ally.ThreatManager().Contains(highestThreat)*/)
-                        {
-                            ally.ThreatManager().IncreaseThreat(target, 15, true);
-                            //ally.ThreatManager().IncreaseThreat(highestThreat, 15);
-                            //ally.isInCombat = true;
-                            //ally.ThreatManager().StartCoroutine(HandleCombatStatus());
-
-                            //foreach(var threat in threats)
-                            //{
-                            //    if(!ally.ThreatManager().threats.ContainsKey(threat.Key))
-                            //    {
-                            //        if(highestThreat && threat.Key != highestThreat)
-                            //        {
-                            //            ally.ThreatManager().IncreaseThreat(threat.Key, 5);
-                            //        }
-                            //    }
-                            //}
-
-                        }
-                    }
-                }
-            }
-            
+            threatManager.IncreaseThreat(target, 15f);
         }
-
     }
+
     public void TriggerEnemies(GameObject source, float value)
     {
         try 

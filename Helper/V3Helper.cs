@@ -108,6 +108,37 @@ public class V3Helper
 
     }
 
+    public static Vector3 GroundPosition(Vector3 source, LayerMask groundLayerMask, float heightOffSet = 0f, float hitHeightOffset = 0f)
+    {
+        var position = new Vector3(source.x, source.y + heightOffSet, source.z);
+        var direction = Vector3.down;
+        var distance = Mathf.Infinity;
+
+        Ray ray = new Ray(position, direction);
+
+        if (Physics.Raycast(ray, out RaycastHit hit, distance, groundLayerMask))
+        {
+            return new Vector3(hit.point.x, hit.point.y + hitHeightOffset, hit.point.z);
+        }
+
+        return source;
+    }
+
+    public static float HeightFromGround(Vector3 source, LayerMask groundLayerMask)
+    {
+        if (Physics.Raycast(new(source, Vector3.down), out RaycastHit hit, Mathf.Infinity, groundLayerMask))
+        {
+            return Distance(hit.point, source);
+        }
+
+        if (Physics.Raycast(new(source, Vector3.up), out RaycastHit secondHit, Mathf.Infinity, groundLayerMask))
+        {
+            return -Distance(secondHit.point, source);
+        }
+
+        return 0;
+    }
+
     public static bool IsObstructed(Vector3 target, Vector3 source, LayerMask obstructionLayerMask)
     {
         var direction = Direction(target, source);

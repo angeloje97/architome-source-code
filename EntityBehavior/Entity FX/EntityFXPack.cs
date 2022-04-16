@@ -7,14 +7,16 @@ public class EntityFXPack : ScriptableObject
 {
     // Start is called before the first frame update
     [Header("Audio")]
-    public List<AudioClip> detectedPlayerSoud;
-    public List<AudioClip> hurtSound;
+    public List<AudioClip> detectedPlayerSounds;
+    public List<AudioClip> hurtSounds;
     public List<AudioClip> levelUpSounds;
     public AudioClip footStepSound;
+    public AudioClip levelUpSound;
+    public AudioClip reviveSound;
 
     [Header("Particle Effects")]
-    public List<GameObject> leveUpParticles;
-    public List<GameObject> reviveParticles;
+    public GameObject leveUpParticles;
+    public GameObject reviveParticles;
 
     [Header("Phrases")]
     public List<string> deathPhrases;

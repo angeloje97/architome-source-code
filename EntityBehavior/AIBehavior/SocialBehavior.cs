@@ -99,7 +99,7 @@ public class SocialBehavior : MonoBehaviour
     
     public void SociallyInteractWith(EntityInfo entity)
     {
-        Collider[] listeners = Physics.OverlapSphere(entityInfo.transform.position, 10, GMHelper.LayerMasks().entityLayerMask);
+        Collider[] listeners = Physics.OverlapSphere(entityInfo.transform.position, 10, LayerMasksData.active.entityLayerMask);
 
         foreach(Collider listener in listeners)
         {

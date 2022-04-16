@@ -4,15 +4,17 @@ using UnityEngine;
 using Architome.Enums;
 using Architome;
 using System.Linq;
+using System.Threading.Tasks;
 public class LineOfSight : MonoBehaviour
 {
     public GameObject entityObject;
     public EntityInfo entityInfo;
     public PartyInfo partyInfo;
+    public AIBehavior behavior;
 
     public List<GameObject> entitiesDetected;
     public List<GameObject> enemiesWithinLineOfSight;
-    //public List<GameObject> entitiesWithinLineOfSight;
+    public List<GameObject> entitiesWithinLineOfSight;
 
     public LayerMask targetLayer;
     public LayerMask obstructionLayer;
@@ -25,19 +27,17 @@ public class LineOfSight : MonoBehaviour
     public float detectionInterval;
     public void GetDependencies()
     {
-        if(GetComponentInParent<EntityInfo>())
+        behavior = GetComponentInParent<AIBehavior>();
+        entityInfo = GetComponentInParent<EntityInfo>();
+
+        if (entityInfo)
         {
-            entityInfo = GetComponentInParent<EntityInfo>();
-            if(entityInfo)
-            {
-                entityObject = entityInfo.gameObject;
-            }
-            else
-            {
-                return;
-            }
-
-
+            entityObject = entityInfo.gameObject;
+            entityInfo.OnChangeNPCType += OnChangeNPCType;
+        }
+        else
+        {
+            return;
         }
 
         if (GetComponentInParent<PartyInfo>())
@@ -97,7 +97,67 @@ public class LineOfSight : MonoBehaviour
         while(true)
         {
             yield return new WaitForSeconds(detectionInterval);
-            DetectionCheck();
+            //DetectionCheck();
+            Scan();
+        }
+    }
+
+    void OnChangeNPCType(NPCType before, NPCType after)
+    {
+        entitiesWithinLineOfSight.Clear();
+        var entities = Entity.EntitiesWithinRange(entityInfo.transform.position, radius);
+
+        ArchAction.Delay(() => {
+
+            foreach (var entity in entities)
+            {
+                var scanner = entity.GetComponentInChildren<LineOfSight>();
+
+                if (scanner == null) continue;
+
+                scanner.RemoveEntityFromLOS(entityObject);
+            }
+
+        }, .125f);
+    }
+
+    void RemoveEntityFromLOS(GameObject target)
+    {
+        if (!entitiesWithinLineOfSight.Contains(target)) return;
+
+        entitiesWithinLineOfSight.Remove(target);
+    }
+
+    void Scan()
+    {
+        var entities = Entity.EntitesWithinLOS(entityObject.transform.position, radius);
+
+
+        foreach (var entity in entities)
+        {
+            if (!entity.isAlive) continue;
+            if (entitiesWithinLineOfSight.Contains(entity.gameObject)) continue;
+
+            entitiesWithinLineOfSight.Add(entity.gameObject);
+            behavior.events.OnSightedEntity?.Invoke(entity.gameObject);
+        }
+
+        for (int i = 0; i < entitiesWithinLineOfSight.Count; i++)
+        {
+            var entity = entitiesWithinLineOfSight[i].GetComponent<EntityInfo>();
+
+            if (!entity.isAlive)
+            {
+                entitiesWithinLineOfSight.RemoveAt(i);
+                i--; continue;
+            }
+
+            if (!entities.Contains(entity))
+            {
+                entitiesWithinLineOfSight.RemoveAt(i);
+                i--;
+            }
+
         }
     }
     public void DetectionCheck()
@@ -108,6 +168,7 @@ public class LineOfSight : MonoBehaviour
         }
 
         Collider[] rangeChecks = Physics.OverlapSphere(entityObject.transform.position, radius, targetLayer);
+        var entities = Entity.EntitesWithinLOS(entityObject.transform.position, radius);
         
 
         foreach(Collider check in rangeChecks)
@@ -286,9 +347,8 @@ public class LineOfSight : MonoBehaviour
 
     public List<EntityInfo> DetectedAllies()
     {
-        var entities = entitiesDetected.Select(entity => entity.GetComponent<EntityInfo>()).ToList();
+        return entitiesWithinLineOfSight.Select(entity => entity.GetComponent<EntityInfo>()).Where(entity => entity.npcType == entityInfo.npcType).ToList();
 
-        return entities.Where(entity => entity.npcType == entityInfo.npcType).ToList();
     }
 
     public List<EntityInfo> EntitiesLOS()

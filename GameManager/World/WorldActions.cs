@@ -46,6 +46,7 @@ public class WorldActions : MonoBehaviour
             entityInfo.currentRoom = entityInfo.CurrentRoom();
         }
 
+
         Restore(entity, health, mana);
 
         OnWorldReviveA?.Invoke(entity);
@@ -57,6 +58,7 @@ public class WorldActions : MonoBehaviour
     {
         var entityInfo = entity.GetComponent<EntityInfo>();
         if(entityInfo == null) { return; }
+        entityInfo.Die();
         entityInfo.health = 0;
         entityInfo.isAlive = false;
     }
@@ -72,6 +74,7 @@ public class WorldActions : MonoBehaviour
         var randomPosition = lastSpawnBeacon.RandomPosition();
 
         Revive(entity, randomPosition, .25f, .25f);
+        entityInfo.OnReviveThis?.Invoke(new(lastSpawnBeacon) { percentValue = .25f });
 
         lastSpawnBeacon.spawnEvents.OnSpawnEntity?.Invoke(entityInfo);
     }

@@ -21,22 +21,9 @@ namespace Architome
             public TextMeshProUGUI itemQuantity;
         }
 
-        [Serializable]
-        public struct Presets
-        {
-            [Serializable]
-            public struct RarityColor
-            {
-                public Rarity rarity;
-                public Color color;
-            }
-
-            public List<RarityColor> rarityColors;
-        }
 
         
 
-        public Presets presets;
         public Info info;
         // Start is called before the first frame update
 
@@ -74,19 +61,10 @@ namespace Architome
             SetBorderRarityColor();
         }
 
-        public Color RarityColor(Rarity itemRarity)
-        {
-            var rarityPreset = presets.rarityColors.Find(preset => preset.rarity == itemRarity);
-
-            Debugger.InConsole(2359, $"{rarityPreset.rarity} is {rarityPreset.color}");
-            return rarityPreset.color;
-
-        }
 
         public void SetBorderRarityColor()
         {
-            var color = RarityColor(info.itemInfo.item.rarity);
-
+            var color = World.active.rarities.Find(rarity => rarity.name == info.itemInfo.item.rarity).color;
             info.borderImage.color = color;
         }
     }

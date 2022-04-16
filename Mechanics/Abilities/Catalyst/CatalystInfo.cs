@@ -40,12 +40,26 @@ namespace Architome
         public List<EntityInfo> alliesHealed;
         public List<EntityInfo> alliesAssisted;
 
-        [Header("AbilityInfo Properties")]
-        public float value;
-        public bool requiresLockOnTarget;
-        public GameObject target;
-        public Vector3 direction;
-        public Vector3 location;
+        public float value { get { return metrics.value; } set { metrics.value = value; } }
+        public bool requiresLockOnTarget { get; set; }
+        public GameObject target { get { return metrics.target; } set { metrics.target = value; } }
+        public Vector3 direction { get { return metrics.direction; } set { metrics.direction = value; } }
+        public Vector3 location { get { return metrics.location; } set { metrics.location = value; } }
+
+        [Serializable]
+        public struct Metrics
+        {
+            public GameObject target;
+
+            public Vector3 direction, location, startingLocation;
+
+            public float value, startingHeight, currentRange, liveTime, distanceFromTarget;
+
+            public int ticks;
+
+        }
+
+        public Metrics metrics;
 
         [Header("Catalyst Set Values")]
         public DamageType damageType;
@@ -144,10 +158,14 @@ namespace Architome
             {
                 direction = abilityInfo.directionLocked;
                 location = abilityInfo.locationLocked;
+
+
                 if (abilityInfo.targetLocked)
                 {
                     target = abilityInfo.targetLocked;
                 }
+
+                metrics.startingHeight = V3Helper.HeightFromGround(transform.position, LayerMasksData.active.walkableLayer);
 
                 CalculateValue();
             }
@@ -257,6 +275,7 @@ namespace Architome
             startPosition = transform.position;
             GetDependencies();
             HandleComponents();
+            transform.SetParent(CatalystManager.active.transform);
         }
         private void Start()
         {

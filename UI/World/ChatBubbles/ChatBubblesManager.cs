@@ -31,6 +31,31 @@ namespace Architome
             active = this;
         }
 
+        public ArchChatBubble ProcessSpeech(Transform target, string text, EntitySpeech.SpeechType type, float time = 1f)
+        {
+            var prefab = prefabs.say;
+
+            switch (type)
+            {
+                case EntitySpeech.SpeechType.Yell:
+                    prefab = prefabs.yell;
+                    break;
+                case EntitySpeech.SpeechType.Whisper:
+                    prefab = prefabs.whisper;
+                    break;
+
+            }
+
+
+            var chatBubble = Instantiate(prefab).GetComponent<ArchChatBubble>();
+
+            chatBubble.SetBubble(target, text, time);
+
+            return chatBubble;
+
+            
+        }
+
         public ArchChatBubble Say(Transform target, string text, float time = 1f)
         {
             if (prefabs.say == null) return null;

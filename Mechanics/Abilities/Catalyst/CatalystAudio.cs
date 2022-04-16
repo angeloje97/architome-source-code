@@ -82,7 +82,7 @@ namespace Architome
             destroyCatalyst = true;
             isActive = false;
 
-            transform.SetParent(null);
+            transform.SetParent(catalystInfo.transform.parent);
 
             PlayDestroySound();
 

@@ -70,7 +70,6 @@ namespace Architome
         public void HandleSpotPosition()
         {
             UpdateSpot();
-            FixSpot();
 
             void UpdateSpot()
             {
@@ -81,20 +80,14 @@ namespace Architome
                     var radius = radiusCircle.localScale.x;
                     var currentPos = spotPositions[i] * (radius / 2);
 
+
                     spots[i].transform.localPosition = new Vector3(currentPos.x, 0, currentPos.y);
-                }
-            }
 
-            void FixSpot()
-            {
-                for (int i = 0; i < spots.Count; i++)
-                {
-                    if (GMHelper.LayerMasks())
-                    {
-                        var structureLayer = GMHelper.LayerMasks().wallLayer;
-                        spots[i].transform.position = V3Helper.InterceptionPoint(radiusCircle.transform.position, spots[i].transform.position, structureLayer);
-                    }
+                    if (LayerMasksData.active == null) return;
 
+                    spots[i].transform.position = V3Helper.InterceptionPoint(radiusCircle.transform.position, spots[i].transform.position, LayerMasksData.active.wallLayer);
+                    spots[i].transform.position = V3Helper.GroundPosition(spots[i].transform.position, LayerMasksData.active.walkableLayer, 5f);
+                    
                 }
             }
         }

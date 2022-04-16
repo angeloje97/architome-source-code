@@ -28,6 +28,9 @@ namespace Architome
             this.target = target;
             info.text.text = text;
             cameraAnchor = CameraManager.active.cameraAnchor;
+
+            ArchAction.Delay(() => { Destroy(gameObject); }, time);
+
             return this;
         }
 

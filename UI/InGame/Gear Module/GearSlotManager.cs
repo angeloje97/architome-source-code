@@ -77,14 +77,9 @@ public class GearSlotManager : MonoBehaviour
 
     void DestroyItems()
     {
-        foreach(Transform child in equipmentBin)
+        foreach (var itemInfo in module.GetComponentsInChildren<ItemInfo>())
         {
-            Destroy(child.gameObject);
-        }
-
-        foreach (var slot in gearSlots)
-        {
-            slot.item = null;
+            Destroy(itemInfo.gameObject);
         }
     }
 
