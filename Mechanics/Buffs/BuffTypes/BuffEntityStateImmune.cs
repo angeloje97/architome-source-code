@@ -39,9 +39,14 @@ namespace Architome
 
             
         }
-        void Start()
+
+        private void Awake()
         {
             GetDependencies();
+        }
+        void Start()
+        {
+            //GetDependencies();
         }
 
         // Update is called once per frame

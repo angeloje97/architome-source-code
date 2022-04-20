@@ -310,11 +310,7 @@ namespace Architome.Enums
         RightFoot,
         Spine,
         Hips,
-        HipsAttachment,
-        BackAttachment,
-        CapeAttachment,
         Head,
-        Chest,
         Root,
     }
 

@@ -151,6 +151,18 @@ public class AIBehavior : MonoBehaviour
     {
         return GetComponentInChildren<ThreatManager>();
     }
+
+    public T CreateBehavior<T>() where T: MonoBehaviour
+    {
+        var newBehaviorObject = new GameObject();
+
+        newBehaviorObject.transform.SetParent(transform);
+        newBehaviorObject.transform.localPosition = new Vector3();
+
+        return newBehaviorObject.AddComponent<T>();
+
+
+    }
     public CombatBehavior CombatBehavior()
     {
         foreach(Transform child in transform)

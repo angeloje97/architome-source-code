@@ -133,7 +133,6 @@ public class PortraitBehavior : MonoBehaviour
             resourceText.text = $"{mana}/{maxMana}";
         }
     }
-
     void OnExperienceGain(float value)
     {
         HandleExperienceBar();
@@ -165,7 +164,6 @@ public class PortraitBehavior : MonoBehaviour
     {
 
     }
-
     public void OnTargetedByRemove(GameObject newTarget, List<GameObject> targetedBy)
     {
 
@@ -206,6 +204,8 @@ public class PortraitBehavior : MonoBehaviour
         entityName.text = $"{entity.entityName}";
         levelText.text = $"{entity.stats.Level}";
 
+        
+
         if(entity.entityPortrait == null)
         {
             icon.gameObject.SetActive(false); 
@@ -220,9 +220,11 @@ public class PortraitBehavior : MonoBehaviour
             experienceBar.fillAmount = entity.entityStats.experience / entity.entityStats.experienceReq;
         }
 
-        
-
         icon.sprite = entity.entityPortrait;
+
+        health = 1;
+        mana = 1;
+        shield = 1;
 
         HandleEvents();
 
@@ -250,7 +252,6 @@ public class PortraitBehavior : MonoBehaviour
             }
         }
     }
-
     public void OnAbilityStart(AbilityInfo ability)
     {
         if (ability == null) return;
@@ -268,7 +269,6 @@ public class PortraitBehavior : MonoBehaviour
 
         SetCastBar(true, hasName);
     }
-
     public void SetCastBar(bool enable, bool enableAbilityName = false)
     {
         if (castBar == null || castBarName == null) return;

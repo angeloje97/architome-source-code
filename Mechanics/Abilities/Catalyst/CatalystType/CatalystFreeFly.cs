@@ -13,12 +13,15 @@ public class CatalystFreeFly : MonoBehaviour
     public EntityInfo entityInfo;
     public AbilityInfo abilityInfo;
     public CatalystInfo catalystInfo;
-
-
-
-
     public void GetDependencies()
     {
+        catalystInfo = GetComponent<CatalystInfo>();
+
+        if (catalystInfo)
+        {
+            abilityInfo = catalystInfo.abilityInfo;
+        }
+
         if(abilityInfo)
         {
             direction = abilityInfo.directionLocked;
@@ -28,8 +31,16 @@ public class CatalystFreeFly : MonoBehaviour
     void Start()
     {
         GetDependencies();
-        //gameObject.GetComponent<Rigidbody>().velocity = direction * speed;
-        transform.LookAt(catalystInfo.location);
+    }
+
+    public void LookAtLocation(Vector3 location)
+    {
+        transform.LookAt(location);
+    }
+
+    public void ChangeDirection(Vector3 direction)
+    {
+        transform.eulerAngles = direction;
     }
 
     // Update is called once per frame

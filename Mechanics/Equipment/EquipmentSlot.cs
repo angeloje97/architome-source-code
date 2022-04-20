@@ -19,10 +19,12 @@ public class EquipmentSlot : MonoBehaviour
     public Equipment equipment;
 
 
+    [Header("Weapon Properties")]
+    public GameObject weaponObject;
+
     [Header("Sheath Properties")]
     public bool sheathed;
     public Transform sheathObject;
-    public Transform sheathPosition;
 
     public bool savePosition;
     public bool toggleSheath;
@@ -112,6 +114,8 @@ public class EquipmentSlot : MonoBehaviour
         HandleSavePosition();
         HandleToggleSheeth();
         HandleSaveSheathPosition();
+
+        if (!weapon.usesSecondDraw) return;
         StayOnPart();
         StayOnMidPoint();
         StayOnSheath();
@@ -126,12 +130,17 @@ public class EquipmentSlot : MonoBehaviour
             if (previousEquipment != equipment)
             {
                 charInfo.OnChangeEquipment?.Invoke(this, previousEquipment, equipment);
+                if (weaponObject != null)
+                {
+                    Destroy(weaponObject);
+                }
                 previousEquipment = equipment;
                 requiresUpdate = true;
                 if (Item.IsWeapon(equipment))
                 {
                     weapon = (Weapon)equipment;
                 }
+
             }
         }
         void HandleRequiresUpdate()
@@ -152,6 +161,7 @@ public class EquipmentSlot : MonoBehaviour
             void HandleNullEquipment()
             {
                 if(equipment != null) { return; }
+                
                 foreach(Transform child in transform)
                 {
                     Destroy(child.gameObject);
@@ -182,16 +192,16 @@ public class EquipmentSlot : MonoBehaviour
         {
             var weapon = (Weapon)original;
             var child = new GameObject();
-            foreach(Transform children in transform)
-            {
-                Destroy(child);
-                child = children.gameObject;
-            }
-            weapon.unsheathPosition = CurrentWeapon().transform.localPosition;
-            weapon.unsheathRotation = CurrentWeapon().transform.localRotation;
+            //foreach(Transform children in transform)
+            //{
+            //    Destroy(child);
+            //    child = children.gameObject;
+            //}
 
-            weapon.itemObject.transform.localPosition = CurrentWeapon().transform.localPosition;
-            weapon.itemObject.transform.localRotation = CurrentWeapon().transform.localRotation;
+            weapon.SetUnsheath(weaponObject.transform);
+            
+            //weapon.itemObject.transform.localPosition = CurrentWeapon().transform.localPosition;
+            //weapon.itemObject.transform.localRotation = CurrentWeapon().transform.localRotation;
 
             savePosition = false;
         }
@@ -211,8 +221,8 @@ public class EquipmentSlot : MonoBehaviour
                 Destroy(child);
                 child = children.gameObject;
             }
-            weapon.sheathPosition = CurrentWeapon().transform.localPosition;
-            weapon.sheathRotation = CurrentWeapon().transform.localRotation;
+
+            weapon.SetSheath(weaponObject.transform);
 
 
             savePosition = false;
@@ -248,28 +258,34 @@ public class EquipmentSlot : MonoBehaviour
     void UpdatePosition()
     {
         if (!IsWeapon()) { return; }
+        if (weaponObject == null) return;
         var weapon = (Weapon)equipment;
+        var sheathPart = bodyParts.BodyPartTransform(weapon.sheathPart);
+        var drawPart = bodyParts.BodyPartTransform(weapon.drawPart);
+
         if (sheathed)
         {
-            CurrentWeapon().transform.localPosition = weapon.sheathPosition;
-            CurrentWeapon().transform.localRotation = weapon.sheathRotation;
+            if (!weapon.usesSecondDraw)
+            {
+                weaponObject.transform.SetParent(sheathPart);
+            }
+            weaponObject.transform.localPosition = weapon.sheathPosition;
+            weaponObject.transform.localRotation = weapon.sheathRotation;
         }
         else
         {
-            CurrentWeapon().transform.localPosition = weapon.unsheathPosition;
-            CurrentWeapon().transform.localRotation = weapon.unsheathRotation;
+            if (!weapon.usesSecondDraw)
+            {
+                weaponObject.transform.SetParent(drawPart);
+            }
+
+            weaponObject.transform.localPosition = weapon.unsheathPosition;
+            weaponObject.transform.localRotation = weapon.unsheathRotation;
+
         }
     }
     public void ShowWeapon()
     {
-        if(equipmentSlotType == EquipmentSlotType.MainHand)
-        {
-            if(equipment == null)
-            {
-                
-            }
-        }
-
         if (equipment == null || entityObject == null || entityInfo == null)
         {
             return;
@@ -277,9 +293,22 @@ public class EquipmentSlot : MonoBehaviour
         if (!IsWeapon()) { return; }
         if(equipmentSlotType == equipment.equipmentSlotType || equipmentSlotType == equipment.secondarySlotType)
         {
+
+            var bodyPart = bodyParts.BodyPartTransform(weapon.drawPart);
+
+
+            weaponObject = Instantiate(equipment.itemObject, transform);
+
+            weaponObject.AddComponent<WeaponObject>().SetWeapon(this);
+
             
 
-            Instantiate(equipment.itemObject, transform);
+            if (bodyPart && !weapon.usesSecondDraw)
+            {
+                weaponObject.transform.SetParent(bodyPart);
+            }
+
+
             DetermineSheathObject();
             DetermineUnSheathObject();
             UpdatePosition();
@@ -337,11 +366,7 @@ public class EquipmentSlot : MonoBehaviour
     }
     public GameObject CurrentWeapon()
     {
-        if(transform.childCount > 0)
-        {
-            return transform.GetChild(0).gameObject;
-        }
-        return null;
+        return weaponObject;
     }
     public GameObject CurrentPrefab()
     {

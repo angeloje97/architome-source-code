@@ -19,7 +19,6 @@ public class AbilityInfo : MonoBehaviour
 
     public GameObject entityObject;
     public GameObject catalyst;
-    public GameObject cataling;
     public Sprite abilityIcon;
 
     public List<GameObject> buffs;
@@ -33,7 +32,6 @@ public class AbilityInfo : MonoBehaviour
     public AIBehavior behavior;
 
     public AbilityType abilityType;
-    public AbilityType catalingAbilityType;
     public AbilityType2 abilityType2;
     //public List<AbilityFunction> abilityFunctions;
     public LayerMask destructiveLayer;
@@ -72,6 +70,36 @@ public class AbilityInfo : MonoBehaviour
         public float strength, wisdom, dexterity = 1f;
     }
 
+    [Serializable]
+    public struct Cataling
+    {
+        public bool enable;
+        public GameObject catalyst;
+        public AbilityType catalingType;
+        public ReleaseCondition releaseCondition;
+        public int releasePerInterval;
+        public float interval, targetFinderRadius, valueContribution, rotationPerInterval, startDelay;
+        public Kinematics kinematics;
+        public enum ReleaseCondition 
+        {
+            OnAwake,
+            OnStop,
+            OnDestroy,
+            OnHit,
+        }
+    }
+
+    public Cataling cataling;
+
+    [Serializable]
+    public struct Kinematics
+    {
+        public bool enable, sticky;
+        public float gravity, startingYSpeed;
+    }
+
+    public Kinematics kinematics; 
+
     public void OnValidate()
     {
         coreContribution.strength = strengthContribution;
@@ -100,6 +128,7 @@ public class AbilityInfo : MonoBehaviour
     public float liveTime = 3;
     public int ticksOfDamage = 1;
 
+
     [Serializable]
     public struct AbilityVisualEffects
     {
@@ -116,9 +145,6 @@ public class AbilityInfo : MonoBehaviour
     public float decelleration;
     public bool splashesOnStop;
     public float maxSplashAmount;
-    public bool radiateCatalyngsOnStop;
-    public float radiateIntervals;
-    public float valueContributionToCataling;
 
     [Serializable]
     public struct Resources
@@ -1086,7 +1112,6 @@ public class AbilityInfo : MonoBehaviour
     }
     public void UpdateAbility()
     {
-        Debugger.InConsole(56489, $"{entityObject != null}");
         if (abilityManager)
         {
             if (entityObject)
@@ -1129,6 +1154,7 @@ public class AbilityInfo : MonoBehaviour
                     castTime = attackInterval *.25f;
                     coolDown.timePerCharge = attackInterval *.75f;
                 }
+
                 
                 
             }

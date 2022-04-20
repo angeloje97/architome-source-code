@@ -18,6 +18,7 @@ namespace Architome
         {
             public TextMeshProUGUI text;
             public float rangePlayerCanSee;
+            public Vector3 offset;
         }
 
         public Info info;
@@ -26,12 +27,26 @@ namespace Architome
         public ArchChatBubble SetBubble(Transform target, string text, float time = 1f)
         {
             this.target = target;
-            info.text.text = text;
+            GenerateText(text, time);
             cameraAnchor = CameraManager.active.cameraAnchor;
 
-            ArchAction.Delay(() => { Destroy(gameObject); }, time);
+            
 
             return this;
+        }
+
+        async void GenerateText(string text, float time)
+        {
+            int index = 0;
+            info.text.text = "";
+            while (info.text.text != text)
+            {
+                info.text.text += $"{text[index]}";
+                index++;
+                await Task.Yield();
+            }
+
+            ArchAction.Delay(() => { Destroy(gameObject); }, time);
         }
 
           
@@ -44,7 +59,7 @@ namespace Architome
 
         void FollowTarget()
         {
-            transform.position = CameraManager.active.Current.WorldToScreenPoint(target.position);
+            transform.position = CameraManager.active.Current.WorldToScreenPoint(target.position) + info.offset;
         }
     }
 

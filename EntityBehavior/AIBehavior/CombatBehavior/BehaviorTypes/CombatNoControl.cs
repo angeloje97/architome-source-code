@@ -21,6 +21,7 @@ namespace Architome
         void Start()
         {
             GetDependencies();
+            OnCombatRoutine();
         }
 
         // Update is called once per frame

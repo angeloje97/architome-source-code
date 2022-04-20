@@ -63,7 +63,11 @@ namespace Architome
             entityInfo.OnLevelUp?.Invoke(entityInfo.entityStats.Level);
             entityInfo.entityStats.UpdateCoreStats();
             entityInfo.UpdateCurrentStats();
-            entityInfo.RestoreFull();
+
+            if (entityInfo.isAlive)
+            {
+                entityInfo.RestoreFull();
+            }
         }
         public void OnDamagePreventedFromShields(CombatEventData eventData)
         {

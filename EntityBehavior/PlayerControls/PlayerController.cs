@@ -145,7 +145,8 @@ public class PlayerController : MonoBehaviour
             if(abilityManager)
             {
                 var location = Mouse.CurrentPositionLayer(entityInfo.walkableLayer);
-                location.y = entityObject.transform.position.y;
+                var heightFromGround = V3Helper.HeightFromGround(entityObject.transform.position, GMHelper.LayerMasks().walkableLayer);
+                location.y += heightFromGround;
 
                 abilityManager.location = location;
             }

@@ -34,6 +34,7 @@ public class LineOfSight : MonoBehaviour
         {
             entityObject = entityInfo.gameObject;
             entityInfo.OnChangeNPCType += OnChangeNPCType;
+            entityInfo.OnLifeChange += OnLifeChange;
         }
         else
         {
@@ -97,9 +98,15 @@ public class LineOfSight : MonoBehaviour
         while(true)
         {
             yield return new WaitForSeconds(detectionInterval);
+            if (!entityInfo.isAlive) continue;
             //DetectionCheck();
             Scan();
         }
+    }
+    
+    void OnLifeChange(bool isAlive)
+    {
+        entitiesWithinLineOfSight.Clear();
     }
 
     void OnChangeNPCType(NPCType before, NPCType after)

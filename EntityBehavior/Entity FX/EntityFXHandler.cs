@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
 using System.Linq;
-using System;
 
 namespace Architome
 {
     public class EntityFXHandler : EntityProp
     {
         // Start is called before the first frame update
+        
         CharacterBodyParts bodyParts;
         AbilityManager abilityManager;
-        ChatBubblesManager chatBubbleManager;
+        EntitySpeech speech;
         ParticleManager particleManager;
         AudioManager voiceFX;
         AudioManager soundFX;
@@ -20,8 +20,9 @@ namespace Architome
         {
             base.GetDependencies();
 
-            chatBubbleManager = ChatBubblesManager.active;
             particleManager = GetComponentInChildren<ParticleManager>();
+
+            
 
             foreach (var soundManager in GetComponentsInChildren<AudioManager>())
             {
@@ -38,11 +39,14 @@ namespace Architome
 
             if (entityInfo)
             {
+                if (entityInfo.entityFX == null) return;
                 abilityManager = entityInfo.AbilityManager();
                 bodyParts = entityInfo.GetComponentInChildren<CharacterBodyParts>();
+                speech = entityInfo.Speech;
 
                 entityInfo.OnLevelUp += OnLevelUp;
                 entityInfo.OnReviveThis += OnRevive;
+                entityInfo.OnDeath += OnDeath;
 
 
                 entityInfo.OnDamageTaken += OnDamageTaken;
@@ -53,12 +57,62 @@ namespace Architome
                 abilityManager.OnAbilityStart += OnAbilityStart;
                 abilityManager.OnAbilityEnd += OnAbilityEnd;
 
+                if (entityInfo.AIBehavior())
+                {
+                    entityInfo.AIBehavior().events.OnDetectedEnemy += OnDetectedEnemy;
+                }
+
             }
         }
+
 
         void Start()
         {
             GetDependencies();
+        }
+        private void OnDetectedEnemy(GameObject obj)
+        {
+            if (entityInfo.entityFX == null) return;
+            try
+            {
+                var role = Random.Range(0, 100);
+
+                //if (role > 25) return;
+
+                var phrases = entityInfo.entityFX.detectedPlayerPhrases;
+
+                if (phrases.Count == 0) return;
+                var randomPhrase = phrases[Random.Range(0, phrases.Count)];
+
+                speech.Yell(randomPhrase);
+            }
+            catch
+            {
+                throw;
+            }
+
+        }
+
+        void OnDeath(CombatEventData eventData)
+        {
+            try
+            {
+                if (!Entity.IsPlayer(eventData.source.gameObject)) return;
+                var role = Random.Range(0, 100);
+                //if (role > 25) return;
+
+                var phrases = entityInfo.entityFX.deathPhrases;
+
+
+                if (phrases.Count == 0) return;
+                var randomPhrase = phrases[Random.Range(0, phrases.Count)];
+
+                speech.Yell(randomPhrase);
+            }
+            catch
+            {
+
+            }
         }
 
         void OnLevelUp(int level)
@@ -98,7 +152,6 @@ namespace Architome
         {
 
         }
-
 
 
         void OnDamageTaken(CombatEventData eventData)

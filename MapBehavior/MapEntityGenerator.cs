@@ -13,6 +13,8 @@ public class MapEntityGenerator : MonoBehaviour
 
     public Transform entityList;
     public Transform miscEntities;
+    public Transform pets;
+    public Transform summons;
 
     [Serializable] public class PatrolGroup
     {
@@ -98,7 +100,7 @@ public class MapEntityGenerator : MonoBehaviour
                     {
                         foreach (Transform trans in roomInfo.tier1EnemyPos)
                         {
-                            SpawnEntity(tier1Entities[0], trans);
+                            SpawnEntity(tier1Entities[UnityEngine.Random.Range(0, tier1Entities.Count)], trans);
                             await Task.Yield();
                         }
 
@@ -142,7 +144,13 @@ public class MapEntityGenerator : MonoBehaviour
                         }
                     }
 
-                
+                    if (roomInfo.GetType() == typeof(BossRoom))
+                    {
+                        var bossRoom = (BossRoom)roomInfo;
+                        var bossPosition = bossRoom.bossPosition;
+                        var boss = bossRoom.bossToSpawn;
+
+                    }
                
                     if (roomInfo.bossPos &&
                     bossEntities.Count > 0)
@@ -163,6 +171,7 @@ public class MapEntityGenerator : MonoBehaviour
         }
         
     }
+
 
     void SpawnPatrolEntity(GameObject entity, Transform spot)
     {

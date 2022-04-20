@@ -81,13 +81,12 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
 
         if (isDragging)
         {
+            var mousePos = Input.mousePosition;
 
-            objectToDrag.position = Vector3.Lerp(objectToDrag.position, Input.mousePosition, .50f);
+            mousePos.x = Mathf.Clamp(mousePos.x, 0, Screen.width);
+            mousePos.y = Mathf.Clamp(mousePos.y, 0, Screen.height);
+            objectToDrag.position = Vector3.Lerp(objectToDrag.position, mousePos, .50f);
 
-            //if (V3Helper.Abs(objectToDrag.localPosition) > localRadius)
-            //{
-            //    objectToDrag.localPosition *= localRadius / (V3Helper.Abs(objectToDrag.localPosition));
-            //}
         }
     }
     void HandlePivotDrag()
@@ -102,8 +101,13 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
         }
 
         endPosition = Input.mousePosition;
+
+        
+
         var position = objectStartPosition - V3Helper.Difference(startingPosition, endPosition);
-        //objectToDrag.position = objectStartPosition - V3Helper.Difference(startingPosition, endPosition);
+
+        position.x = Mathf.Clamp(position.x, 0, Screen.width);
+        position.y = Mathf.Clamp(position.y, 0, Screen.height);
 
         objectToDrag.position = Vector3.Lerp(objectToDrag.position, position, .50f);
 

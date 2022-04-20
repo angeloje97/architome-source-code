@@ -324,6 +324,7 @@ public class ThreatManager : MonoBehaviour
         if (behavior.combatType != CombatBehaviorType.Aggressive) return;
         if (!entityInfo.CanAttack(target)) return;
         if (entityInfo.isInCombat) return;
+        if (!entityInfo.isAlive) return;
 
         IncreaseThreat(target, 15, true);
         behavior.events.OnDetectedEnemy?.Invoke(target);
@@ -482,6 +483,8 @@ public class ThreatManager : MonoBehaviour
             if(distance <= range && distance > furthest && threat.threatValue > highestThreat)
             {
                 target = threat.threatObject;
+
+                if (!lineOfSight.HasLineOfSight(target)) continue;
                 furthest = distance;
                 highestThreat = threat.threatValue;
             }
@@ -500,9 +503,9 @@ public class ThreatManager : MonoBehaviour
         foreach (var ally in allies)
         {
             if (ally == entityInfo) continue;
-            if (ally.isInCombat) continue;
             var threatManager = ally.GetComponentInChildren<ThreatManager>();
             if (threatManager == null) continue;
+            if (threatManager.Threat(target) != null) continue;
 
             threatManager.IncreaseThreat(target, 15f);
         }

@@ -64,6 +64,11 @@ public class EntityAnimationEvents : MonoBehaviour
         ability = null;
     }
 
+    public void Death()
+    {
+
+    }
+
     public void SetAbility(AbilityInfo ability)
     {
         this.ability = ability;

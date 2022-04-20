@@ -40,6 +40,8 @@ namespace Architome
         public int[] abilityIndexPriority;
         public List<SpecialAbility> specialAbilities;
 
+        bool isFixated;
+
         [Serializable]
         public struct HealSettings
         {
@@ -78,7 +80,6 @@ namespace Architome
                 if (entityInfo.Movement())
                 {
                     movement = entityInfo.Movement();
-                    movement.OnNewPathTarget += OnNewPathTarget;
                     movement.OnTryMove += OnTryMove;
                     movement.OnChangePath += OnChangePath;
                 }
@@ -115,7 +116,7 @@ namespace Architome
         {
             if (isAlive) { return; }
             target = null;
-            focusTarget = null;
+            SetFocus(null);
         }
 
         public void OnTryCast(AbilityInfo ability)
@@ -124,7 +125,7 @@ namespace Architome
             {
                 if (!abilityManager.attackAbility.isHealing)
                 {
-                    SetFocus(null);
+                    SetFocus(null, "Try Cast");
                 }
             }
         }
@@ -136,13 +137,13 @@ namespace Architome
 
             if (entityInfo.CanAttack(ability.target) && abilityManager.attackAbility.isHarming)
             {
-                SetFocus(ability.target);
+                SetFocus(ability.target, $"Casted at {ability.target}");
             }
 
 
             if (entityInfo.CanHelp(ability.target) && abilityManager.attackAbility.isHealing)
             {
-                SetFocus(ability.target);
+                SetFocus(ability.target, $"Casted at {ability.target}");
             }
 
 
@@ -156,18 +157,6 @@ namespace Architome
             
             //InitCombatActions();
         }
-
-        public void OnNewPathTarget(Movement movement, Transform before, Transform after)
-        {
-            if (entityInfo.states.Contains(EntityState.Taunted)) return;
-
-            if (focusTarget != after.gameObject)
-            {
-                focusTarget = null;
-            }
-
-        }
-
 
         public void OnCombatChange(bool isInCombat)
         {
@@ -209,9 +198,23 @@ namespace Architome
                 Destroy(child.gameObject);
             }
         }
-        public void SetFocus(GameObject target)
+        public void SetFocus(GameObject target, string reason = "", BuffFixateTarget buffFixate = null)
         {
             if (entityInfo.states.Contains(EntityState.Taunted)) return;
+
+            if (buffFixate != null)
+            {
+                isFixated = buffFixate.isFixating;
+            }
+            else
+            {
+                if (isFixated) return;
+            }
+
+            if (target == null)
+            {
+                Debugger.InConsole(8493, $"Focus = null because {reason}");
+            }
             focusTarget = target;
             if (target != null)
             {
@@ -246,7 +249,7 @@ namespace Architome
         {
             if (focusTarget && movement.Target() != focusTarget.transform)
             {
-                SetFocus(null);
+                SetFocus(null, "New Path Target");
             }
         }
         public void OnRemoveThreat(ThreatManager.ThreatInfo threatInfo)
@@ -318,8 +321,6 @@ namespace Architome
             if (!entityInfo.isAlive) { return; }
             if (tryMoveTimer > 0) { return; }
             HandleThreat();
-            //HandleNoControl();
-            //HandleHalfControl();
             HandleDeadTarget();
         }
         public void HandleThreat()
@@ -352,103 +353,6 @@ namespace Architome
             }
 
 
-
-        }
-        public void HandleNoControl()
-        {
-            if (behavior.behaviorType != AIBehaviorType.NoControl) { return; }
-            if (!entityInfo.isInCombat) { return; }
-            HandleNoControlDamage();
-
-            void HandleNoControlDamage()
-            {
-
-                abilityManager.target = focusTarget ? focusTarget : target;
-                for (int i = 0; i < specialAbilities.Count; i++)
-                {
-                    var specialAbility = specialAbilities[i];
-
-                    if (specialAbility.randomTargetWhiteList.Count > 0)
-                    {
-
-                    }
-                    else if (specialAbility.randomTargetBlackList.Count > 0)
-                    {
-                        if (abilityManager.Ability(specialAbility.abilityIndex) && abilityManager.Ability(specialAbility.abilityIndex).IsReady())
-                        {
-                            var target = threatManager.RandomTargetBlackList(specialAbility.randomTargetBlackList);
-                            if (target)
-                            {
-                                abilityManager.target = target;
-                                abilityManager.Cast(specialAbility.abilityIndex);
-                                return;
-                            }
-                        }
-                    }
-                }
-
-                for (int i = 0; i < abilityIndexPriority.Length; i++)
-                {
-                    try
-                    {
-                        if (abilityManager.Ability(abilityIndexPriority[i]).IsReady() && abilityManager.target)
-                        {
-                            abilityManager.Cast(abilityIndexPriority[i]);
-                            return;
-                        }
-                    }
-                    catch (Exception) { throw; }
-                }
-
-                if (abilityManager)
-                {
-                    if (abilityManager.target)
-                    {
-                        abilityManager.Attack();
-                    }
-                }
-            }
-        }
-
-        public void HandleNoControl2()
-        {
-            if (behavior.behaviorType != AIBehaviorType.NoControl) return;
-            if (!entityInfo.isInCombat) { return; }
-
-            var target = focusTarget ? focusTarget : this.target;
-            if (UseSpecialAbility())
-            {
-                return;
-            }
-            UseAttack();
-
-            bool UseSpecialAbility()
-            {
-                foreach (var special in specialAbilities)
-                {
-                    if (!abilityManager.Ability(special.abilityIndex).IsReady()) continue;
-
-                    // var blackListedTarget = threatManager.RandomTargetBlackList(special.randomTargetBlackList);
-                    //if (blackListedTarget == null) continue;
-
-                    abilityManager.target = target;
-
-                    abilityManager.Cast(special.abilityIndex);
-
-                    abilityManager.target = null;
-
-                    return true;
-                }
-
-                return false;
-            }
-
-            void UseAttack()
-            {
-                abilityManager.target = target;
-                abilityManager.Attack();
-                abilityManager.target = null;
-            }
 
         }
         //public void HandleHalfControl(bool ignoreIdleState = false)
@@ -602,7 +506,7 @@ namespace Architome
                 yield return new WaitForSeconds(5f);
                 if (target == null)
                 {
-                    focusTarget = null;
+                    //focusTarget = null;
                 }
             }
         }

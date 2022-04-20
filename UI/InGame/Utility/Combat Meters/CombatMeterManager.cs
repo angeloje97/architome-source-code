@@ -24,10 +24,11 @@ namespace Architome
         public Info info;
 
         public GameObject combatMeterPrefab;
+        public WidgetInfo widget;
 
         public List<CombatMeter> combatMeters;
 
-        public float highestValue;
+        float highestValue;
         public bool isUpdating;
 
         public List<string> meterMode;
@@ -35,65 +36,27 @@ namespace Architome
         public FieldInfo currentField;
         public MeterRecordingMode recordingMode;
 
+        public Action<float> OnMaxValue;
         public Action<FieldInfo> OnChangeField;
         public Action<MeterRecordingMode> OnChangeMode;
 
 
-
-        void Start()
+        void GetDependencies()
         {
             GameManager.active.OnNewPlayableEntity += OnNewPlayableEntity;
             GameManager.active.OnNewPlayableParty += OnNewPlayableParty;
             currentField = typeof(CombatInfo.CombatLogs.Values).GetFields()[0];
 
+            widget = GetComponentInParent<WidgetInfo>();
+
+            widget.OnActiveChange += OnActiveChange;
         }
 
-        // Update is called once per frame
-        void Update()
+        void Start()
         {
+            GetDependencies();
 
         }
-
-        public void ChangeField(TMP_Dropdown meterMode)
-        {
-            var value = meterMode.value;
-            if (typeof(CombatInfo.CombatLogs.Values).GetFields().Length <= value) return;
-            currentField = typeof(CombatInfo.CombatLogs.Values).GetFields()[value];
-
-            OnChangeField?.Invoke(currentField);
-
-            foreach (var meter in combatMeters)
-            {
-                meter.UpdateMeter();
-                ArchAction.Yield(() => { meter.UpdateProgressBarNonActive(); });
-            }
-
-            SortMeters();
-        }
-
-        public void ChangeMode(TMP_Dropdown recordingMode)
-        {
-            var index = recordingMode.value;
-
-            var enums = Enum.GetValues(typeof(MeterRecordingMode));
-
-            if (enums.Length <= index) return;
-
-            this.recordingMode = (MeterRecordingMode) enums.GetValue(index);
-
-            OnChangeMode?.Invoke(this.recordingMode);
-
-            foreach (var meter in combatMeters)
-            {
-                meter.UpdateMeter();
-                ArchAction.Yield(() => { meter.UpdateProgressBarNonActive(); });
-            }
-
-            SortMeters();
-        }
-
-
-
 
         private void OnValidate()
         {
@@ -125,6 +88,45 @@ namespace Architome
                 info.recordingModeDropDown.enabled = false;
                 info.recordingModeDropDown.enabled = true;
             }
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+
+        }
+
+        public void ChangeField(TMP_Dropdown meterMode)
+        {
+            var value = meterMode.value;
+            if (typeof(CombatInfo.CombatLogs.Values).GetFields().Length <= value) return;
+            currentField = typeof(CombatInfo.CombatLogs.Values).GetFields()[value];
+
+            OnChangeField?.Invoke(currentField);
+
+            SortMeters();
+        }
+
+        public void ChangeMode(TMP_Dropdown recordingMode)
+        {
+            var index = recordingMode.value;
+
+            var enums = Enum.GetValues(typeof(MeterRecordingMode));
+
+            if (enums.Length <= index) return;
+
+            this.recordingMode = (MeterRecordingMode) enums.GetValue(index);
+
+            OnChangeMode?.Invoke(this.recordingMode);
+
+
+            SortMeters();
+        }
+
+        void OnActiveChange(bool active)
+        {
+            ArchAction.Yield(() => SortMeters());
+            
         }
 
         public void OnNewPlayableEntity(EntityInfo entity, int index)
@@ -200,7 +202,9 @@ namespace Architome
         public void CalculateMax()
         {
             highestValue = combatMeters.Max(meter => meter.value);
+            OnMaxValue?.Invoke(highestValue);
         }
+
     }
 
 }

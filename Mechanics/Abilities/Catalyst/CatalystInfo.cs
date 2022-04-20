@@ -51,9 +51,11 @@ namespace Architome
         {
             public GameObject target;
 
-            public Vector3 direction, location, startingLocation;
+            public BodyPart startingBodyPart;
 
-            public float value, startingHeight, currentRange, liveTime, distanceFromTarget;
+            public Vector3 direction, location, startingLocation, startDirectionRange;
+
+            public float value, startingHeight, currentRange, liveTime, distanceFromTarget, inertia;
 
             public int ticks;
 
@@ -103,7 +105,7 @@ namespace Architome
         public Action<GameObject> OnHeal;
         public Action<GameObject> OnHit;
         public Action<GameObject> OnWrongTarget;
-        public Action<GameObject> OnDeadTarget;
+        public Action<GameObject> OnDeadTarget { get; set; }
         public Action<GameObject, GameObject> OnNewTarget;
         public Action<CatalystInfo> OnReturn;
         public Action<CatalystInfo> OnCantFindEntity;
@@ -111,6 +113,8 @@ namespace Architome
         public Action<CatalystInfo, GameObject> OnCloseToTarget;
         public Action<CatalystInfo, GameObject> OnWrongTargetHit;
         public Action<GameObject, bool> OnPhysicsInteraction;
+        public Action<CatalystStop> OnCatalystStop;
+        public Action<GameObject> OnIntercept;
 
         public Action<CatalystInfo, CatalystInfo> OnCatalingRelease;
         public Action<CatalystDeathCondition> OnCatalystDestroy;
@@ -156,7 +160,7 @@ namespace Architome
 
             void GetMetrics()
             {
-                direction = abilityInfo.directionLocked;
+                //direction = abilityInfo.directionLocked;
                 location = abilityInfo.locationLocked;
 
 
@@ -194,16 +198,12 @@ namespace Architome
                 if (isCataling) return;
                 if (abilityInfo.abilityType == AbilityType.SkillShot)
                 {
-                    gameObject.AddComponent<CatalystFreeFly>();
-                    gameObject.GetComponent<CatalystFreeFly>().abilityInfo = abilityInfo;
-                    gameObject.GetComponent<CatalystFreeFly>().catalystInfo = gameObject.GetComponent<CatalystInfo>();
+                    gameObject.AddComponent<CatalystFreeFly>().LookAtLocation(location);
                 }
 
                 if (abilityInfo.abilityType == AbilityType.LockOn)
                 {
                     gameObject.AddComponent<CatalystLockOn>();
-                    gameObject.GetComponent<CatalystLockOn>().abilityInfo = abilityInfo;
-                    gameObject.GetComponent<CatalystLockOn>().catalystInfo = gameObject.GetComponent<CatalystInfo>();
                 }
 
                 if (abilityInfo.abilityType == AbilityType.Use)
@@ -234,20 +234,11 @@ namespace Architome
                     gameObject.AddComponent<CatalystStop>();
                 }
 
-                if (abilityInfo.cataling)
-                {
-                    gameObject.AddComponent<CatalingActions>();
-                }
+                if (abilityInfo.buffProperties.selfBuffOnDestroy) gameObject.AddComponent<CatalystBuffOnDestroy>();
 
-                if (abilityInfo.buffProperties.selfBuffOnDestroy)
-                {
-                    gameObject.AddComponent<CatalystBuffOnDestroy>();
-                }
+                if (abilityInfo.summoning.enabled) gameObject.AddComponent<CatalystSummon>();
 
-                if (abilityInfo.summoning.enabled)
-                {
-                    gameObject.AddComponent<CatalystSummon>();
-                }
+                if (abilityInfo.cataling.enable && abilityInfo.cataling.catalyst) gameObject.AddComponent<CatalingHandler>();
 
                 requiresLockOnTarget = abilityInfo.requiresLockOnTarget;
                 ticks = abilityInfo.ticksOfDamage;
@@ -257,15 +248,19 @@ namespace Architome
             {
                 if (!isCataling) { return; }
 
-                if (abilityInfo.catalingAbilityType == AbilityType.LockOn)
+                var catalingType = abilityInfo.cataling.catalingType;
+
+                if (catalingType == AbilityType.LockOn)
                 {
                     gameObject.AddComponent<CatalystLockOn>();
+
                 }
-                else if (abilityInfo.catalingAbilityType == AbilityType.SkillShot)
+                else if (catalingType == AbilityType.SkillShot)
                 {
                     gameObject.AddComponent<CatalystFreeFly>();
                 }
-                value = abilityInfo.value * abilityInfo.valueContributionToCataling;
+
+                value = abilityInfo.value * abilityInfo.cataling.valueContribution;
 
                 ticks = 1;
             }
@@ -280,6 +275,23 @@ namespace Architome
         private void Start()
         {
             SpawnCatalystAudio();
+            SpawnBodyPart();
+        }
+
+        void SpawnBodyPart()
+        {
+            if (isCataling) return;
+            if (entityObject == target) return;
+            if (metrics.startingBodyPart == BodyPart.Root) return;
+
+            var bodyPart = entityInfo.GetComponentInChildren<CharacterBodyParts>();
+
+            if (bodyPart == null) return;
+
+            var trans = bodyPart.BodyPartTransform(metrics.startingBodyPart);
+
+            transform.position = trans.position;
+
         }
 
         public void OnTriggerEnter(Collider other)
@@ -396,6 +408,42 @@ namespace Architome
             }
 
             return enemies;
+        }
+
+        public List<GameObject> TargetableEntities(float radius, bool requiresLineOfSight = false)
+        {
+            var targetables = new List<GameObject>();
+            var structureLayer = GMHelper.LayerMasks().structureLayerMask;
+            var entityLayer = GMHelper.LayerMasks().entityLayerMask;
+
+            var catalystHit = GetComponent<CatalystHit>();
+
+            var collisions = Physics.OverlapSphere(transform.position, radius, entityLayer).OrderBy(entity => V3Helper.Distance(entity.transform.position, transform.position)).ToList();
+
+
+            foreach (var collision in collisions)
+            {
+                if (collision.GetComponent<EntityInfo>() == null) continue;
+                if (!catalystHit.CanHit(collision.GetComponent<EntityInfo>())) continue;
+
+                var distance = V3Helper.Distance(collision.transform.position, transform.position);
+                var direction = V3Helper.Direction(collision.transform.position, transform.position);
+
+                if (requiresLineOfSight)
+                {
+                    if (!Physics.Raycast(transform.position, direction, distance, structureLayer))
+                    {
+                        targetables.Add(collision.gameObject);
+                    }
+                }
+                else
+                {
+                    targetables.Add(collision.gameObject);
+                }
+            }
+            
+
+            return targetables;
         }
 
         public void ReduceTicks()

@@ -4,10 +4,13 @@ using UnityEngine;
 using Architome.Enums;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Architome;
 
 public class CharacterInfo : EntityProp
 {
+
+    
     [Serializable]
     public struct CharProperties
     {
@@ -35,6 +38,17 @@ public class CharacterInfo : EntityProp
     public Action<EquipmentSlot, Equipment, Equipment> OnChangeEquipment;
     public Action<bool> OnChangeSheath;
 
+    [Serializable]
+    public struct CharacterRotation
+    {
+        public bool isActive;
+        public float yRotation;
+        public float deltaRotation;
+        public Vector3 targetVector;
+
+    }
+
+    public CharacterRotation rotation;
 
     bool sheathCheck;
     public new void GetDependencies()
@@ -56,27 +70,11 @@ public class CharacterInfo : EntityProp
         {
 
         }
-
-        //if(movement == null)
-        //{
-        //    if(entityInfo == null)
-        //    {
-        //        if(GetComponentInParent<EntityInfo>())
-        //        {
-        //            entityInfo = GetComponentInParent<EntityInfo>();
-        //            entityObject = entityInfo.gameObject;
-
-        //            if(entityInfo.Movement())
-        //            {
-        //                movement = entityInfo.Movement();
-        //            }
-        //        }
-        //    }
-        //}
-
         abilityHandler.SetCharacter(this);
 
     }
+
+    
 
     public void GetProperties()
     {
@@ -90,6 +88,18 @@ public class CharacterInfo : EntityProp
             }
         }
         
+    }
+
+    public Transform PetSpot()
+    {
+        var petSpot = GetComponentInChildren<ArchitomePetSpot>();
+
+        if (petSpot)
+        {
+            return petSpot.transform;
+        }
+
+        return null;
     }
 
     void Start()
@@ -106,6 +116,34 @@ public class CharacterInfo : EntityProp
         HandleLookAt();
         UpdateMovementDirection();
         HandleEvents();
+        HandleMetrics();
+    }
+
+    async public void CopyRotation(Vector3 targetVector, float smoothening = 4f)
+    {
+        targetVector.x = 0;
+        targetVector.y = 0;
+
+        rotation.targetVector = targetVector;
+
+        if (rotation.isActive) return;
+
+        rotation.isActive = true;
+        while (transform.eulerAngles != rotation.targetVector)
+        {
+            await Task.Yield();
+            transform.eulerAngles = Vector3.Lerp(transform.eulerAngles, rotation.targetVector, 1/smoothening);
+            
+            if (movement.isMoving) break;
+        }
+
+        rotation.isActive = false;
+    }
+
+    void HandleMetrics()
+    {
+        rotation.deltaRotation = transform.eulerAngles.y - rotation.yRotation;
+        rotation.yRotation = transform.eulerAngles.y;
     }
 
     public void HandleEvents()

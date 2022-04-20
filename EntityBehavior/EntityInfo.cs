@@ -23,7 +23,7 @@ namespace Architome
 
         public EntityControlType entityControlType;
         [Header("Entity Properties")]
-        public NPCType npcType;
+        [SerializeField] public NPCType npcType;
         public EntityRarity rarity;
         public List<EntityState> stateImmunities;
         public bool isPlayer;
@@ -839,14 +839,7 @@ namespace Architome
         }
         public AIBehavior AIBehavior()
         {
-            foreach (Transform child in transform)
-            {
-                if (child.GetComponent<AIBehavior>())
-                {
-                    return child.GetComponent<AIBehavior>();
-                }
-            }
-            return null;
+            return GetComponentInChildren<AIBehavior>();
         }
         public ThreatManager ThreatManager()
         {
@@ -911,6 +904,7 @@ namespace Architome
         {
             return GetComponentsInChildren<AudioManager>().First(manager => manager.mixerGroup == GMHelper.Mixer().SoundEffect);
         }
+
 
         public AudioManager VoiceEffect()
         {

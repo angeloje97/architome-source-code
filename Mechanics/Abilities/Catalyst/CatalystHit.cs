@@ -233,8 +233,12 @@ public class CatalystHit : MonoBehaviour
             return true;
         }
 
-        if (abilityInfo && abilityInfo.canBeIntercepted && targetCol.gameObject.CompareTag("Entity"))
+        if (abilityInfo && abilityInfo.canBeIntercepted && targetCol.GetComponent<EntityInfo>())
         {
+            if (abilityInfo.entityInfo != targetCol.GetComponent<EntityInfo>())
+            {
+                catalystInfo.OnIntercept?.Invoke(targetCol.gameObject);
+            }
             return true;
         }
 
@@ -298,6 +302,11 @@ public class CatalystHit : MonoBehaviour
             return false;
         }
 
+        if (!targetInfo.isAlive && !abilityInfo.targetsDead)
+        {
+            return false;
+        }
+
         if(CanHeal(targetInfo) || CanHarm(targetInfo) || CanAssist(targetInfo))
         {
             return true;
@@ -307,8 +316,10 @@ public class CatalystHit : MonoBehaviour
     }
     public void AddEnemyHit(EntityInfo target)
     {
+        
         if(catalystInfo)
         {
+            if (abilityInfo.canHitSameTarget) return;
             if(!catalystInfo.enemiesHit.Contains(target))
             {
                 catalystInfo.enemiesHit.Add(target);
@@ -319,6 +330,7 @@ public class CatalystHit : MonoBehaviour
     {
         if (catalystInfo)
         {
+            if (abilityInfo.canHitSameTarget) return;
             if(!catalystInfo.alliesHealed.Contains(target))
             {
                 catalystInfo.alliesHealed.Add(target);
@@ -329,6 +341,7 @@ public class CatalystHit : MonoBehaviour
     {
         if (catalystInfo)
         {
+            if (abilityInfo.canAssistSameTarget) return;
             if (!catalystInfo.alliesAssisted.Contains(target))
             {
                 catalystInfo.alliesAssisted.Add(target);

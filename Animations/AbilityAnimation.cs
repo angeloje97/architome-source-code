@@ -99,7 +99,21 @@ public class AbilityAnimation
 
     public void OnAbilityEnd(AbilityInfo ability)
     {
+        ZeroOut();
         SetCast(false);
+    }
+
+    void ZeroOut()
+    {
+        animator.SetInteger("AbilityX", 0);
+        animator.SetInteger("AbilityY", 0);
+        animator.SetInteger("AbilityIndex", 0);
+
+        animator.SetInteger("AttackX", 0);
+        animator.SetInteger("AttackY", 0);
+        animator.SetInteger("AttackZ", 0);
+
+
     }
     public void OnCancelCast(AbilityInfo ability)
     {
@@ -120,6 +134,7 @@ public class AbilityAnimation
 
     }
 
+
     public void SetAbilityAnimation(CatalystInfo catalyst, int abilityIndex, bool val)
     {
         if(abilityIndex >=  catalyst.animationSequence.Count) { return; }
@@ -139,15 +154,16 @@ public class AbilityAnimation
         animator.SetFloat("AttackSpeed", entityInfo.stats.attackSpeed);
         if(weapon == null)
         {
-            animator.SetInteger("AttackStyleX", 0);
-            animator.SetInteger("AttackStyleY", 0);
-            animator.SetTrigger("Attack");
+            animator.SetInteger("AttackX", 1);
+            animator.SetInteger("AttackY", 0);
+            animator.SetInteger("AttackZ", 0);
             return;
         }
 
-        animator.SetInteger("AttackStyleX", (int)weapon.weaponAttackStyle.x);
-        animator.SetInteger("AttackStyleY", (int)weapon.weaponAttackStyle.y);
-        animator.SetTrigger("Attack");
+        animator.SetInteger("AttackX", (int)weapon.weaponAttackStyle.x);
+        animator.SetInteger("AttackY", (int)weapon.weaponAttackStyle.y);
+        animator.SetInteger("AttackZ", (int)weapon.weaponAttackStyle.z);
+
 
     }
 

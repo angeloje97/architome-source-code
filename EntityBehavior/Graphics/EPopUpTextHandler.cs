@@ -78,7 +78,7 @@ namespace Architome
 
             buff.OnBuffEnd += OnBuffEnd;
 
-            popUpManager.DamagePopUp(transform, $"Shielded {shieldValue}");
+            popUpManager.DamagePopUp(transform, $"Shielded {ArchString.FloatToSimple(shieldValue)}");
         }
 
         void OnBuffEnd(BuffInfo buff)
@@ -119,7 +119,7 @@ namespace Architome
                 damageType = eventData.buff.damageType;
             }
 
-            popUpManager.DamagePopUp(transform, $" {Mathg.Round(value, 1)}", damageType);
+            popUpManager.DamagePopUp(transform, $" {ArchString.FloatToSimple(value)}", damageType);
         }
 
         void OnStateNegated(List<EntityState> currentState, EntityState negatedState)

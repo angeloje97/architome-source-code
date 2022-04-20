@@ -6,7 +6,7 @@ public class ParticleManager : MonoBehaviour
 {
     // Start is called before the first frame update
 
-    public async void PlayOnce(GameObject particle, float time = 0f)
+    public async void PlayOnce(GameObject particle,  float time = 0f)
     {
         if (particle.GetComponent<ParticleSystem>() == null) return;
         var pSystem = Instantiate(particle, transform).GetComponent<ParticleSystem>();
@@ -47,7 +47,7 @@ public class ParticleManager : MonoBehaviour
         Destroy(pSystem.gameObject);
     }
 
-    public async void PlayOnceAt(GameObject particle, Transform target, float time = 0f)
+    public async void PlayOnceAt(GameObject particle, Transform target = null, float time = 0f)
     {
         if (particle.GetComponent<ParticleSystem>() == null) return;
         var currentTarget = target != null ? target : transform;
@@ -69,6 +69,20 @@ public class ParticleManager : MonoBehaviour
         await Task.Delay(1000);
 
         Destroy(pSystem.gameObject);
+
+    }
+
+    public ParticleSystem PlayParticle(GameObject particle)
+    {
+        if (particle.GetComponent<ParticleSystem>() == null) return null;
+
+        var particleObject = Instantiate(particle, transform);
+
+
+        var system = particleObject.GetComponent<ParticleSystem>();
+        system.Play(true);
+
+        return system;
 
     }
 

@@ -16,6 +16,7 @@ public class ArchitomeCharacter : MonoBehaviour
     public bool created = false;
     public bool basePartsSet = false;
     public bool isHighlighted = false;
+    public bool randomizeSex;
 
     [SerializeField]
     bool updateCharacter;
@@ -155,7 +156,25 @@ public class ArchitomeCharacter : MonoBehaviour
             basePartsSet = true;
         }
 
+        RandomizeSex();
         UpdateSex();
+    }
+
+    void RandomizeSex()
+    {
+        if (randomizeSex)
+        {
+            var role  = Random.Range(0, 100);
+
+            if (role > 50)
+            {
+                SetSex(Sex.Male);
+            }
+            else
+            {
+                SetSex(Sex.Female);
+            }
+        }
     }
     // Update is called once per frame
     void Update()
@@ -246,7 +265,7 @@ public class ArchitomeCharacter : MonoBehaviour
     {
         if (bodyParts.Count <= bodyPartNum) { return; }
         List<GameObject> bodyPartObject = bodyParts[bodyPartNum];
-
+        
         if(bodyPartObject[0].transform.childCount <= partNum) { partNum = 0; }
         if(partNum < 0) { partNum = bodyPartObject[0].transform.childCount - 1; }
         

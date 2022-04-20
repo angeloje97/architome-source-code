@@ -8,6 +8,7 @@ namespace Architome
     {
         // Start is called before the first frame update
         public GameObject originalFocusTarget;
+        public bool isFixating;
         new void GetDependencies()
         {
             base.GetDependencies();
@@ -31,7 +32,8 @@ namespace Architome
 
             originalFocusTarget = buffInfo.hostInfo.CombatBehavior().GetFocus();
 
-            buffInfo.hostInfo.CombatBehavior().SetFocus(buffInfo.targetObject);
+            isFixating = true;
+            buffInfo.hostInfo.CombatBehavior().SetFocus(buffInfo.targetObject, null, this);
 
             if (buffInfo.hostInfo.AbilityManager().attackAbility)
             {
@@ -51,7 +53,8 @@ namespace Architome
         {
             var eventData = new CombatEventData(buff, buff.sourceInfo, buff.properties.value);
             buffInfo.targetInfo.combatEvents.OnFixate?.Invoke(eventData, false);
-            buffInfo.hostInfo.CombatBehavior().SetFocus(originalFocusTarget);
+            isFixating = false;
+            buffInfo.hostInfo.CombatBehavior().SetFocus(originalFocusTarget, $"Setting original focus target", this);
         }
     }
 

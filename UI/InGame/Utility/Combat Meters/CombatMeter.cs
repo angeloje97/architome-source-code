@@ -5,7 +5,7 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using System.Threading.Tasks;
-using System.Threading;
+using System.Reflection;
 using Architome.Enums;
 
 namespace Architome
@@ -23,6 +23,7 @@ namespace Architome
         public CombatInfo.CombatLogs.Values inCombatValues;
 
         public float value;
+        public float percentage;
         public bool isActive;
         public bool isUpdating;
         public float secondsInCombat;
@@ -44,7 +45,38 @@ namespace Architome
         {
             meterManager = GetComponentInParent<CombatMeterManager>();
             widget = GetComponentInParent<WidgetInfo>();
+
+            widget.OnActiveChange += OnActiveChange;
+            meterManager.OnChangeMode += OnChangeMode;
+            meterManager.OnChangeField += OnChangeField;
+            meterManager.OnMaxValue += OnMaxValue;
         }
+
+        private void OnMaxValue(float maxValue)
+        {
+            percentage = maxValue > 0 ? value / maxValue : 0;
+            UpdateProgressBar();
+        }
+
+        private void OnChangeField(FieldInfo obj)
+        {
+            UpdateMeter();
+        }
+
+        private void OnChangeMode(MeterRecordingMode obj)
+        {
+            UpdateMeter();
+        }
+
+        private void OnActiveChange(bool obj)
+        {
+            UpdateMeter();
+            ArchAction.Yield(() => UpdateMeter());
+        }
+
+
+
+        
 
         // Update is called once per frame
 
@@ -105,7 +137,6 @@ namespace Architome
 
             isActive = true;
             secondsInCombat = 0;
-            UpdateProgressBar();
 
             startingValues = combatLogs.values;
 
@@ -146,38 +177,20 @@ namespace Architome
             meterManager.UpdateMeters();
         }
 
-        public void UpdateProgressBarNonActive()
-        {
-
-            if (meterManager.highestValue > 0)
-            {
-                info.progress.fillAmount = value / meterManager.highestValue;
-            }
-            else
-            {
-                info.progress.fillAmount = 0;
-            }
-
-        }
         async public void UpdateProgressBar()
         {
+            if (isUpdating) return;
+
+            isUpdating = true;
             await Task.Delay(500);
-            var progress = 1f;
-            while (isActive)
+            while (info.progress.fillAmount != percentage)
             {
                 await Task.Yield();
-                if (meterManager.highestValue == 0)
-                {
-                    info.progress.fillAmount = 0;
-                    continue;
-                }
-                if (meterManager.highestValue > 0)
-                {
-                    progress = value / meterManager.highestValue;
-                }
 
-                info.progress.fillAmount = Mathf.Lerp(info.progress.fillAmount, progress, .0625f);
+                info.progress.fillAmount = Mathf.Lerp(info.progress.fillAmount, percentage, .0625f);
             }
+
+            isUpdating = false;
         }
 
         public void HandleValueCombat()

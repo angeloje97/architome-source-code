@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System;
 using System.Linq;
 public class V3Helper
 {
@@ -77,6 +76,11 @@ public class V3Helper
         return Distance(orderedList[0].position, point);
     }
 
+    public static Quaternion LerpLookAt(Transform obj, Transform target, float smoothening)
+    {
+        var targetRotation = Quaternion.LookRotation(target.position - obj.position);
+        return Quaternion.Lerp(obj.rotation, targetRotation, smoothening);
+    }
     
     public static Vector3 Dimensions(List<Transform> transforms)
     {
@@ -89,6 +93,21 @@ public class V3Helper
 
         return new Vector3(maxX - minX, maxY - minY, maxZ - minZ);
 
+    }
+
+    public static Vector3 RandomVector3(Vector3 min, Vector3 max)
+    {
+        return new Vector3(Random.Range(min.x, max.x), Random.Range(min.y, max.y), Random.Range(min.z, max.z));
+    }
+
+    public static Vector2 ToTopDown(Vector3 position)
+    {
+        return new Vector2(position.x, position.z);
+    }
+
+    public static Vector3 ToVector3(Vector2 position)
+    {
+        return new Vector3(position.x, 0, position.y);
     }
 
     public static Vector3 InterceptionPoint(Vector3 source, Vector3 target, LayerMask interceptionLayerMask)
@@ -123,6 +142,7 @@ public class V3Helper
 
         return source;
     }
+
 
     public static float HeightFromGround(Vector3 source, LayerMask groundLayerMask)
     {

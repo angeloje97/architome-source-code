@@ -57,17 +57,17 @@ namespace Architome
             var newText = $"{Mathg.Round(value, 2)}";
 
 
-            if (value > 1000f)
+            if (value > 1000f) //Thousands
             {
                 newText = $"{Mathg.Round(value / 1000f, 2)}k";
             }
 
-            if (value > 1000000f)
+            if (value > 1000000f) //Millions
             {
                 newText = $"{Mathg.Round(value / 1000000f, 2)}m";
             }
 
-            if (value > 1000000000f)
+            if (value > 1000000000f) // Billions.
             {
                 newText = $"{Mathg.Round(value / 1000000000, 2)}b";
             }
