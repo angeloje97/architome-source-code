@@ -85,13 +85,15 @@ namespace Architome
         async void OnTargetedByEvent(CombatInfo combatInfo)
         {
             if(!Entity.IsPlayer(entityInfo.gameObject)) { return; }
+            if (!this.combatInfo.IsBeingAttacked()) return;
             if (entityInfo.role == Role.Tank) return;
             if (alertImage == null) { return; }
             if (isFlashing) return;
 
+            isFlashing = true;
+
             await Task.Delay(250);
 
-            isFlashing = true;
 
             FlashingRoutine();
 

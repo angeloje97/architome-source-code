@@ -11,7 +11,6 @@ namespace Architome
         // Start is called before the first frame update
         
         CharacterBodyParts bodyParts;
-        AbilityManager abilityManager;
         EntitySpeech speech;
         ParticleManager particleManager;
         AudioManager voiceFX;
@@ -40,7 +39,7 @@ namespace Architome
             if (entityInfo)
             {
                 if (entityInfo.entityFX == null) return;
-                abilityManager = entityInfo.AbilityManager();
+
                 bodyParts = entityInfo.GetComponentInChildren<CharacterBodyParts>();
                 speech = entityInfo.Speech;
 
@@ -51,11 +50,6 @@ namespace Architome
 
                 entityInfo.OnDamageTaken += OnDamageTaken;
 
-                abilityManager.OnCastStart += OnCastStart;
-                abilityManager.OnCastEnd += OnCastEnd;
-
-                abilityManager.OnAbilityStart += OnAbilityStart;
-                abilityManager.OnAbilityEnd += OnAbilityEnd;
 
                 if (entityInfo.AIBehavior())
                 {
@@ -144,14 +138,6 @@ namespace Architome
                 throw;
             }
         }
-        void OnAbilityStart(AbilityInfo ability)
-        {
-
-        }
-        private void OnAbilityEnd(AbilityInfo ability)
-        {
-
-        }
 
 
         void OnDamageTaken(CombatEventData eventData)
@@ -170,35 +156,6 @@ namespace Architome
                 throw;
             }
         }
-
-        void OnCastStart(AbilityInfo ability)
-        {
-            try
-            {
-                soundFX.PlayRandomSound(ability.catalystInfo.effects.startCastSounds);
-                soundFX.PlayRandomLoop(ability.catalystInfo.effects.castingSounds);
-            }
-            catch
-            {
-                throw;
-            }
-        }
-
-        void OnCastEnd(AbilityInfo ability)
-        {
-            try
-            {
-                foreach (var sound in ability.catalystInfo.effects.castingSounds)
-                {
-                    soundFX.AudioSourceFromClip(sound).Stop();
-                }
-            }
-            catch
-            {
-                throw;
-            }
-        }
-
 
     }
 

@@ -16,12 +16,13 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
     [Header("UI Properties")]
     public InventorySlot currentSlot;
     public InventorySlot currentSlotHover;
+    public ModuleInfo moduleHover;
     public Image itemIcon;
     public bool isInInventory;
     public TextMeshProUGUI amountText;
 
-    public Action<InventorySlot> OnNewSlot;
-    public Action<ItemInfo> OnUpdate;
+    public Action<InventorySlot> OnNewSlot { get; set; }
+    public Action<ItemInfo> OnUpdate { get; set; }
 
     //3d World Trigger
     private void OnTriggerEnter(Collider other)
@@ -38,13 +39,27 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         }
     }
 
-    public void OnPointerUp(PointerEventData eventData)
+    async public void OnPointerUp(PointerEventData eventData)
     {
-        //if(currentSlot && currentSlotHover == null)
-        //{
-        //    ReturnToSlot();
-        //}
-        ReturnToSlot();
+        ArchAction.Yield(() => ReturnToSlot());
+
+        if (moduleHover == null)
+        {
+
+            var choice = await PromptHandler.active.GeneralPrompt(new()
+            { 
+                question = $"{item.itemName}", 
+                option1 = "Destroy", 
+                option2 = "Cancel", 
+                icon = item.itemIcon
+            });
+
+            if (choice == 0)
+            {
+                Destroy(gameObject);
+            }
+        }
+        
     }
 
     public void ReturnToSlot()
@@ -52,10 +67,14 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         if (isInInventory == false) { return; }
 
         transform.position = currentSlot.transform.position;
+
         GetComponent<RectTransform>().sizeDelta = currentSlot.GetComponent<RectTransform>().sizeDelta;
+        transform.localScale = new(1, 1, 1);
+
         if (currentSlot.GetComponentInParent<ModuleInfo>() && currentSlot.GetComponentInParent<ModuleInfo>().itemBin)
         {
             transform.SetParent(currentSlot.transform);
+            
             //transform.SetParent(currentSlot.GetComponentInParent<ModuleInfo>().itemBin);
         }
     }
@@ -65,8 +84,10 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         var previousSlot = currentSlot;
         var changedSlot = false;
 
+        if (slot == currentSlot) return;
+
         HandleInventorySlot();
-        HandleGearSlot();
+        //HandleGearSlot();
         HandlePreviousSlot(changedSlot);
         ReturnToSlot();
 
@@ -88,8 +109,8 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
             if(equipment.equipmentSlotType != gearSlot.slotType  && equipment.secondarySlotType != gearSlot.slotType) { return; }
 
 
-            gearSlot.item = item;
-            gearSlot.equipmentSlot.equipment = equipment;
+            //gearSlot.item = item;
+            //gearSlot.equipmentSlot.equipment = equipment;
             gearSlot.currentItemInfo = this;
             currentSlot = gearSlot;
             changedSlot = true;
@@ -97,13 +118,21 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
         void HandleInventorySlot()
         {
-            if(slot.GetType() != typeof(InventorySlot)) {
-                return; }
+            if (slot.GetType() == typeof(GearSlot))
+            {
+                var gearSlot = (GearSlot)slot;
 
-            slot.item = item;
+                if (gearSlot.CanEquip(item))
+                {
+                    slot.currentItemInfo = this;
+                    currentSlot = slot;
+                    changedSlot = true;
+                }
+
+                return;
+            }
             slot.currentItemInfo = this;
             currentSlot = slot;
-            currentSlot.InventoryUI().UpdateInventory();
             changedSlot = true;
         }
 
@@ -112,21 +141,7 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
             if (!val) { return; }
             if(previousSlot == null) { return; }
 
-            if(previousSlot.GetType() == typeof(GearSlot))
-            {
-                var gearSlot = (GearSlot)previousSlot;
-
-                gearSlot.currentItemInfo = null;
-                gearSlot.item = null;
-                gearSlot.equipmentSlot.equipment = null;
-            }
-            
-            if(previousSlot.GetType() == typeof(InventorySlot))
-            {
-                previousSlot.item = null;
-                previousSlot.currentItemInfo = null;
-                previousSlot.InventoryUI().UpdateInventory();
-            }
+            previousSlot.currentItemInfo = null;
         }
     }
     public void HandleItem(ItemInfo item)
@@ -167,8 +182,8 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         {
             transform.SetParent(module.itemBin);
         }
-
-        currentSlotHover = null;
+        currentSlotHover = currentSlot;
+        moduleHover = module;
     }
 
     void OnValidate()
@@ -181,7 +196,8 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
     public void UpdateItemInfo()
     {
         if(item == null) { return; }
-        
+
+        currentStacks = Mathf.Clamp(currentStacks, 1, maxStacks);
 
         UpdateStackText();
         UpdateItemIcon();

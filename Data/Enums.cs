@@ -43,6 +43,35 @@ namespace Architome.Enums
         Use,
     }
 
+    public enum ReleaseCondition
+    {
+        OnAwake,
+        OnStop,
+        OnDestroy,
+        OnHit,
+        OnHarm,
+        OnAssist,
+        OnHeal,
+        OnInterval,
+        OnCatalingRelease,
+    }
+
+    public enum AbilityTrigger
+    {
+        OnCast,
+        OnChannel,
+        OnRelease,
+        OnAbility,
+    }
+
+    public enum CatalystParticleTarget
+    {
+        Self,
+        Ground,
+        BodyPart,
+        BetweenBodyParts
+    }
+
     public enum AbilityType2
     {
         Passive,
@@ -184,6 +213,7 @@ namespace Architome.Enums
         SkillShotPredict,
         SkillShotRandom,
         SkillShotNormal,
+        SkillShotTrack,
         Use,
     }
 

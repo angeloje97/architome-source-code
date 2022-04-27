@@ -83,10 +83,11 @@ namespace Architome
                 var buffRadius = buffInfo.properties.radius;
                 var scalePortions = buffInfo.effects.scalePortions;
                 var radiusParticles = buffInfo.effects.radiusParticle;
+                var multiplier = buffInfo.effects.scaleMultiplier != 0 ? buff.effects.scaleMultiplier : 1f;
 
-                scalePortions.x = scalePortions.x == 0 ? buffRadius * 2 : scalePortions.x;
-                scalePortions.y = scalePortions.y == 0 ? buffRadius * 2 : scalePortions.y;
-                scalePortions.z = scalePortions.z == 0 ? buffRadius * 2 : scalePortions.z;
+                scalePortions.x = scalePortions.x == 0 ? buffRadius * multiplier : scalePortions.x;
+                scalePortions.y = scalePortions.y == 0 ? buffRadius * multiplier: scalePortions.y;
+                scalePortions.z = scalePortions.z == 0 ? buffRadius * multiplier: scalePortions.z;
 
                 radiusParticles.transform.localScale = scalePortions;
             }

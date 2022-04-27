@@ -387,6 +387,17 @@ namespace Architome
             UpdateState();
         }
 
+        public void RemoveAllLingerers()
+        {
+            foreach (var entity in workers.lingering)
+            {
+                if (entity.Movement())
+                {
+                    entity.Movement().StopMoving(true);
+                }
+            }
+        }
+
         public void UpdateState()
         {
             if(workers.Total() == properties.maxWorkers)

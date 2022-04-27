@@ -94,15 +94,17 @@ namespace Architome
                 if (!ability.IsReady()) continue;
 
                 //Special Ability Targeting
-                if (TargetsCurrent(specialAbility)) return true;
-                if (TargetsRandom(specialAbility)) return true;
-                if (Use(specialAbility)) return true;
+                if (TargetsCurrent(specialAbility, ability)) return true;
+                if (TargetsRandom(specialAbility, ability)) return true;
+                if (Use(specialAbility, ability)) return true;
+                if (SkillShotTrack(specialAbility, ability)) return true;
             }
             return false;
 
-            bool TargetsRandom(SpecialAbility special)
+            bool TargetsRandom(SpecialAbility special, AbilityInfo ability)
             {
                 if (special.targeting != SpecialTargeting.TargetsRandom) return false;
+                if (ability.abilityType != AbilityType.LockOn) return false;
 
                 var randomTarget = threatManager.RandomTargetBlackList(special.randomTargetBlackList);
 
@@ -114,9 +116,10 @@ namespace Architome
                 return true;
             }
 
-            bool TargetsCurrent(SpecialAbility special)
+            bool TargetsCurrent(SpecialAbility special, AbilityInfo ability)
             {
                 if (special.targeting != SpecialTargeting.TargetsCurrent) return false;
+                if (ability.abilityType != AbilityType.LockOn) return false;
 
                 if (target == null) return false;
 
@@ -126,16 +129,29 @@ namespace Architome
                 return true;
             }
 
-            bool Use(SpecialAbility special)
+            bool Use(SpecialAbility special, AbilityInfo ability)
             {
-                var ability = abilityManager.Ability(special.abilityIndex);
-
                 if (ability.abilityType != AbilityType.Use) return false;
+                if (special.targeting != SpecialTargeting.Use) return false;
 
                 abilityManager.Cast(special.abilityIndex);
 
                 return true;
             }
+
+            bool SkillShotTrack(SpecialAbility special, AbilityInfo ability)
+            {
+                if (special.targeting != SpecialTargeting.SkillShotTrack) return false;
+                if (ability.abilityType != AbilityType.SkillShotPredict) return false;
+
+                abilityManager.target = this.target;
+                abilityManager.location = this.target.transform.position;
+                abilityManager.Cast(special.abilityIndex);
+
+                return true;
+            }
+
+            
         }
 
         bool AbilityAssist()

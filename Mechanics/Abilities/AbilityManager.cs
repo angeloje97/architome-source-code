@@ -7,6 +7,7 @@ using System.Linq;
 
 namespace Architome
 {
+    [RequireComponent(typeof(AbilityFXHandler))]
     public class AbilityManager : MonoBehaviour
     {
         // Start is called before the first frame update
@@ -29,7 +30,7 @@ namespace Architome
         public Action<AbilityInfo> OnAbilityEnd;
         public Action<AbilityInfo> OnTryCast;
         public Action<AbilityInfo> OnCastStart;
-        public Action<AbilityInfo> OnCastRelease;
+        public Action<AbilityInfo> OnCastRelease { get; set; }
         public Action<AbilityInfo> OnCastEnd;
         public Action<AbilityInfo> OnCastReleasePercent;
         public Action<AbilityInfo> OnGlobalCoolDown;
@@ -42,7 +43,7 @@ namespace Architome
         public Action<AbilityInfo> OnCancelCast;
         public Action<AbilityInfo> OnCancelChannel;
         public Action<AbilityInfo> OnNewAbility;
-        public Action<AbilityInfo, CatalystInfo> OnCatalystRelease;
+        public Action<AbilityInfo, CatalystInfo> OnCatalystRelease { get; set; }
         public Action<AbilityInfo> WhileCasting;
         public Action<AbilityInfo> WhileChanneling;
         public Action<AbilityInfo> OnDeadTarget;

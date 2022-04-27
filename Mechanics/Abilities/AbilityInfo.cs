@@ -33,10 +33,6 @@ public class AbilityInfo : MonoBehaviour
 
     public AbilityType abilityType;
     public AbilityType2 abilityType2;
-    //public List<AbilityFunction> abilityFunctions;
-    public LayerMask destructiveLayer;
-    public LayerMask targetLayer;
-    public LayerMask obstructionLayer;
 
     public GameObject target;
     public GameObject targetLocked;
@@ -61,7 +57,10 @@ public class AbilityInfo : MonoBehaviour
     public float speed = 35;
     public float range = 15;
     public float castTime = 1f;
+    
     public CatalystType catalystType;
+
+
 
 
     [Serializable]
@@ -79,14 +78,9 @@ public class AbilityInfo : MonoBehaviour
         public ReleaseCondition releaseCondition;
         public int releasePerInterval;
         public float interval, targetFinderRadius, valueContribution, rotationPerInterval, startDelay;
+
         public Kinematics kinematics;
-        public enum ReleaseCondition 
-        {
-            OnAwake,
-            OnStop,
-            OnDestroy,
-            OnHit,
-        }
+        
     }
 
     public Cataling cataling;
@@ -135,16 +129,11 @@ public class AbilityInfo : MonoBehaviour
         public bool showCastBar;
         public bool showChannelBar;
         public bool showTargetIconOnTarget;
+        public bool activateWeaponParticles;
     }
 
     public AbilityVisualEffects vfx;
 
-
-    [Header("Catalyst Stop Property")]
-    public bool catalystStops;
-    public float decelleration;
-    public bool splashesOnStop;
-    public float maxSplashAmount;
 
     [Serializable]
     public struct Resources
@@ -174,7 +163,6 @@ public class AbilityInfo : MonoBehaviour
 
 
     public CoolDownProperties coolDown;
-
 
 
 
@@ -226,16 +214,7 @@ public class AbilityInfo : MonoBehaviour
         public float deltaMovementSpeed;
     }
 
-    [Header("ChannelProperties")]
     public ChannelProperties channel;
-
-
-    public float channelTime = 3;
-    public float channelIntervals = 1f;
-    public int channelInvokes = 0;
-    public bool cancelChannelOnMove = false;
-    public bool cantMoveWhenChanneling;
-    public float channelMovementSpeedReduction;
 
     [Header("Recastable Propertiers")]
     public float canRecast;
@@ -344,7 +323,6 @@ public class AbilityInfo : MonoBehaviour
         }
     }
 
-
     public RecastProperties recastProperties;
 
     [Header("Ability Timers")]
@@ -360,8 +338,21 @@ public class AbilityInfo : MonoBehaviour
     public float progress;
     public float progressTimer;
 
+
+    [Serializable]
+    public struct Tracking
+    {
+        public bool tracksTarget;
+        public bool predictsTarget;
+
+        [Range(0, 1)]
+        public float trackingInterpolation;
+    }
+
+    public Tracking tracking;
+
     [Header("Lock On Behaviors")]
-    private bool wantsToCast;
+    [SerializeField] private bool wantsToCast;
     public bool isAutoAttacking;
     public void GetDependencies()
     {
@@ -410,9 +401,6 @@ public class AbilityInfo : MonoBehaviour
             if(entityInfo && entityInfo.LineOfSight())
             {
                 lineOfSight = entityInfo.LineOfSight();
-
-                obstructionLayer = lineOfSight.obstructionLayer;
-                targetLayer = lineOfSight.targetLayer;
             }
         }
 
@@ -599,52 +587,6 @@ public class AbilityInfo : MonoBehaviour
         return false;
     }
 
-    public async Task ChannelTimer()
-    {
-        if (!channel.enabled) return;
-        if (channel.active) return;
-
-        channel.active = true;
-
-        abilityManager.OnChannelStart?.Invoke(this);
-
-        float timer = channel.time;
-        int invokes = channel.invokeAmount;
-        float percentPerInvoke = (channel.time / channel.invokeAmount);
-
-        Debugger.InConsole(4104, $"Total invokes is {invokes}");
-
-        while (timer > 0)
-        {
-            await Task.Yield();
-            timer -= Time.deltaTime;
-            var percent = timer / channel.time;
-
-            castTimer = castTime * percent;
-            
-
-
-            if (invokes > (timer / channelIntervals) + 1 && invokes > 0)
-            {
-                invokes--;
-                abilityManager.OnChannelInterval?.Invoke(this);
-                Debugger.InConsole(4104, $"{invokes} invokes left");
-                
-            }
-
-            if (channel.cancel)
-            {
-                abilityManager.OnCancelChannel?.Invoke(this);
-                channel.cancel = false;
-                break;
-            }
-        }
-
-        channel.active = false;
-
-        abilityManager.OnChannelEnd?.Invoke(this);
-    }
-
     public void Recast()
     {
         if (!recastProperties.isActive) return;
@@ -701,6 +643,7 @@ public class AbilityInfo : MonoBehaviour
         if (!HasManaRequired()) return false;
         if (!HandleRequiresTargetLocked()) return false;
         if (!CorrectCombat()) return false;
+        if (!SpawnHasLineOfSight()) return false;
 
         return true;
 
@@ -732,8 +675,39 @@ public class AbilityInfo : MonoBehaviour
         }
     }
 
+    bool SpawnHasLineOfSight()
+    {
+        if (abilityType != AbilityType.Spawn) return true;
+        if (locationLocked == new Vector3()) return false;
+        if (!lineOfSight) return true;
+        if (!requiresLineOfSight) return true;
+
+        if (!V3Helper.IsAboveGround(locationLocked, GMHelper.LayerMasks().walkableLayer, 2f)) return false;
+
+
+        if (!lineOfSight.HasLineOfSight(locationLocked))
+        {
+            if (movement)
+            {
+                movement.MoveTo(locationLocked, 0f);
+            }
+
+            ActivateWantsToCast();
+
+            return false;
+        }
+
+
+        return true;
+    }
+
     bool HandleRequiresTargetLocked()
     {
+        if (location.x == 0 && location.z == 0)
+        {
+            location = Mouse.RelativePosition(entityObject.transform.position);
+        }
+
         locationLocked = location;
         //if (!requiresLockOnTarget)
         //{
@@ -880,6 +854,7 @@ public class AbilityInfo : MonoBehaviour
         }
         bool IsInRange()
         {
+            if (abilityType != AbilityType.LockOn) return true;
             if(!requiresLockOnTarget)
             {
                 return true;
@@ -900,6 +875,7 @@ public class AbilityInfo : MonoBehaviour
         }
         bool HasLineOfSight()
         {
+            if (abilityType != AbilityType.LockOn) return true;
             if (!requiresLockOnTarget) { return true; }
             if(range == -1) { return true; }
             if(!requiresLineOfSight || lineOfSight == null)
@@ -959,12 +935,6 @@ public class AbilityInfo : MonoBehaviour
             abilityManager.OnCancelChannel?.Invoke(this);
         }
 
-
-        if(movement && cantMoveWhenChanneling)
-        {
-            movement.canMove = true;
-        }
-
         timerPercentActivated = false;
 
         //EndChannel();
@@ -975,9 +945,31 @@ public class AbilityInfo : MonoBehaviour
         switch (abilityType)
         {
             case AbilityType.SkillShot: FreeCast(); break;
+            case AbilityType.Spawn: Spawn(); break;
             case AbilityType.LockOn: LockOn(); break;
             case AbilityType.Use: Use(); break;
             default: FreeCast(); break;
+        }
+
+        void Spawn()
+        {
+            if (!catalyst)
+            {
+                return;
+            }
+            directionLocked = V3Helper.Direction(location, entityObject.transform.position);
+
+            var heightFromGround = V3Helper.HeightFromGround(entityObject.transform.position, GMHelper.LayerMasks().walkableLayer);
+            locationLocked.y += heightFromGround;
+
+            catalyst.GetComponent<CatalystInfo>().abilityInfo = this;
+            var catalystClone = Instantiate(catalyst, locationLocked, transform.localRotation);
+
+
+
+            catalystClone.transform.rotation = V3Helper.LerpLookAt(catalystClone.transform, locationLocked, 1f);
+
+            abilityManager.OnCatalystRelease?.Invoke(this, catalystClone.GetComponent<CatalystInfo>());
         }
 
         void FreeCast()
@@ -990,6 +982,14 @@ public class AbilityInfo : MonoBehaviour
 
             catalyst.GetComponent<CatalystInfo>().abilityInfo = this;
             var catalystClone = Instantiate(catalyst, entityObject.transform.position, transform.localRotation);
+
+
+            var heightFromGround = V3Helper.HeightFromGround(entityObject.transform.position, GMHelper.LayerMasks().walkableLayer);
+            var groundPos = V3Helper.GroundPosition(locationLocked, GMHelper.LayerMasks().walkableLayer);
+            locationLocked.y = groundPos.y + heightFromGround;
+
+            catalystClone.transform.rotation = V3Helper.LerpLookAt(catalystClone.transform, locationLocked, 1f);
+
             abilityManager.OnCatalystRelease?.Invoke(this, catalystClone.GetComponent<CatalystInfo>());
         }
         void LockOn()
@@ -1001,7 +1001,7 @@ public class AbilityInfo : MonoBehaviour
 
             catalyst.GetComponent<CatalystInfo>().abilityInfo = this;
             var catalystClone = Instantiate(catalyst, entityObject.transform.position, transform.localRotation);
-
+            
 
             if (!channel.enabled && !isAttack)
             {
@@ -1101,7 +1101,7 @@ public class AbilityInfo : MonoBehaviour
             abilityManager.OnDeadTarget?.Invoke(this);
             DeactivateWantsToCast();
             return; }
-        if(target == null) {
+        if(target == null && abilityType == AbilityType.LockOn) {
             DeactivateWantsToCast();
             return; }
         if(CanCast2())
@@ -1210,7 +1210,6 @@ public class AbilityInfo : MonoBehaviour
 
         return true;
     }
-    
     public void HandleAutoAttack()
     {
         if(isAutoAttacking)
@@ -1220,6 +1219,9 @@ public class AbilityInfo : MonoBehaviour
     }
     public void HandleDeadTarget()
     {
+        if (abilityType != AbilityType.LockOn) return;
+        if (targetsDead) return;
+
         if(target)
         {
             if(target.GetComponent<EntityInfo>())
@@ -1355,6 +1357,7 @@ public class AbilityInfo : MonoBehaviour
 
             void WhileCasting1()
             {
+                
                 abilityManager.WhileCasting?.Invoke(this);
                 if (isAttack) return;
                 if (targetLocked != target)
@@ -1362,6 +1365,7 @@ public class AbilityInfo : MonoBehaviour
                     targetLocked = target;
                 }
                 HandleTimerPercent();
+                HandleTracking();
 
                 
 
@@ -1431,6 +1435,7 @@ public class AbilityInfo : MonoBehaviour
             void WhileChanneling()
             {
                 abilityManager.WhileCasting?.Invoke(this);
+                HandleTracking();
                 if (isAttack) return;
 
 
@@ -1473,24 +1478,15 @@ public class AbilityInfo : MonoBehaviour
             return false;
         }
 
-        if (requiresLockOnTarget)
-        {
-            if (target == null)
-            {
-                LogCancel("Null Target");
-                return false;
-            }
-        }
-
         if (abilityManager.currentlyCasting != this && isAttack)
         {
             LogCancel("Not equal to ability manager currently casting");
             return false;
         }
 
-        if (targetLocked)
+        if (targetLocked && abilityType == AbilityType.LockOn)
         {
-            if (!IsCorrectTarget(targetLocked))
+            if (!IsCorrectTarget(targetLocked) || target == null)
             {
                 LogCancel("Incorrect Target");
                 return false;
@@ -1556,6 +1552,21 @@ public class AbilityInfo : MonoBehaviour
     {
         target = null;
         targetLocked = null;
+    }
+
+    public void HandleTracking()
+    {
+        if (targetLocked == null) return;
+
+        if (tracking.tracksTarget)
+        {
+            locationLocked = Vector3.Lerp(locationLocked, targetLocked.transform.position, tracking.trackingInterpolation);
+        }
+
+        if (tracking.predictsTarget)
+        {
+
+        }
     }
 
 

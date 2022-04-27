@@ -116,6 +116,14 @@ namespace Architome
 
             return false;
         }
+
+        public void RemoveAllLingers()
+        {
+            foreach (var task in tasks)
+            {
+                task.RemoveAllLingerers();
+            }
+        }
     }
 
 }

@@ -43,15 +43,15 @@ namespace Architome
         {
             GetDependencies();
 
-            if (ability.cataling.releaseCondition == AbilityInfo.Cataling.ReleaseCondition.OnAwake)
+            if (ability.cataling.releaseCondition == ReleaseCondition.OnAwake)
             {
                 Activate();
             }
         }
 
-        void OnCatalystStop(CatalystStop stop)
+        void OnCatalystStop(CatalystKinematics kinematics)
         {
-            if (ability.cataling.releaseCondition == AbilityInfo.Cataling.ReleaseCondition.OnStop)
+            if (ability.cataling.releaseCondition == ReleaseCondition.OnStop)
             {
                 Activate();
             }
@@ -59,7 +59,7 @@ namespace Architome
 
         void OnCatalystDestroy(CatalystDeathCondition deathCondition)
         {
-            if (ability.cataling.releaseCondition == AbilityInfo.Cataling.ReleaseCondition.OnDestroy)
+            if (ability.cataling.releaseCondition == ReleaseCondition.OnDestroy)
             {
                 ActivateOnce();
             }
@@ -67,7 +67,7 @@ namespace Architome
 
         private void OnHit(GameObject target)
         {
-            if (ability.cataling.releaseCondition == AbilityInfo.Cataling.ReleaseCondition.OnHit)
+            if (ability.cataling.releaseCondition == ReleaseCondition.OnHit)
             {
                 ActivateOnce();
             }
@@ -127,7 +127,7 @@ namespace Architome
         {
             if (catalingType == AbilityType.LockOn)
             {
-                targets = catalyst.TargetableEntities(ability.cataling.targetFinderRadius);
+                targets = catalyst.TargetableEntities(ability.cataling.targetFinderRadius, true);
                 if (targets.Count == 0) return false;
 
                 var percent = position + 1 / catalingPool;
@@ -135,7 +135,7 @@ namespace Architome
                 
 
                 
-                if (targets.Count == 1)
+                if (position >= targets.Count)
                 {
                     ArchAction.Delay(() => ReleaseLockOn(targets[index]), position * .0625f);
                 }

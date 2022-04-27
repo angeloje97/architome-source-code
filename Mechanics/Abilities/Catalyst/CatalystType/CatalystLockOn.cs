@@ -106,7 +106,6 @@ public class CatalystLockOn : MonoBehaviour
             smoothening -= Time.deltaTime * (catalystInfo.metrics.inertia / 2);
         }
 
-        transform.Translate(speed * Time.deltaTime * Vector3.forward);
     }
 
     void TravelToTarget()
@@ -122,10 +121,6 @@ public class CatalystLockOn : MonoBehaviour
             {
                 GetComponent<CatalystHit>().HandleTargetHit(target.GetComponent<EntityInfo>());
             }
-        }
-        else
-        {
-            transform.Translate(speed * Time.deltaTime * Vector3.forward);
         }
     }
 

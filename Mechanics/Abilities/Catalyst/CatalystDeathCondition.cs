@@ -162,6 +162,7 @@ namespace Architome
         {
             if (catalystInfo.isDestroyed) return;
             catalystInfo.isDestroyed = true;
+            Disappear();
             try
             {
                 catalystInfo.OnCatalystDestroy?.Invoke(this);
@@ -180,7 +181,25 @@ namespace Architome
             {
 
             }
+        }
 
+        void Disappear()
+        {
+            if (GetComponent<Renderer>())
+            {
+                GetComponent<Renderer>().enabled = false;
+
+            }
+
+            foreach (var renderer in GetComponentsInChildren<Renderer>())
+            {
+                renderer.enabled = false;
+            }
+
+            foreach (var light in GetComponentsInChildren<Light>())
+            {
+                light.enabled = false;
+            }
         }
 
     }

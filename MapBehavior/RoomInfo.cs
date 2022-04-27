@@ -142,9 +142,9 @@ namespace Architome
         }
         public void ShowRoom(bool val, Vector3 point = new Vector3(), bool forceShow = false)
         {
-            if (forceShow)
+            if (!forceShow)
             {
-                if (Entity.PlayerIsInRoom(this) != val) return;
+                if (val != entities.PlayerInRoom.Count > 0) return;
             }
 
             ShowRoomAsyncPoint(val, point, percentReveal);

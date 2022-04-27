@@ -55,7 +55,7 @@ namespace Architome
 
         public void SelectRevive()
         {
-            var playerSpawnBeacon = GMHelper.WorldInfo().lastPlayerSpawnBeacon;
+            var playerSpawnBeacon = GMHelper.WorldInfo().currentSpawnBeacon;
 
             var spawnBeaconHandler = playerSpawnBeacon.GetComponentInChildren<PlayerSpawnBeaconHandler>();
 

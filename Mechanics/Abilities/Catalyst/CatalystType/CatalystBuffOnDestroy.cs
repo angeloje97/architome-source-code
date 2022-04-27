@@ -52,7 +52,7 @@ public class CatalystBuffOnDestroy : MonoBehaviour
             catalystHit.isAssisting = true;
             catalystHit.canSelfCast = true;
             catalystInfo.IncreaseTicks(false);
-            catalystHit.HandleTargetHit(sourceInfo);
+            catalystHit.HandleTargetHit(sourceInfo, true);
             catalystHit.canSelfCast = false;
             catalystHit.isAssisting = false;
         }

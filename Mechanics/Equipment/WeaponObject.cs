@@ -8,6 +8,7 @@ namespace Architome
     {
         // Start is called before the first frame update
         [SerializeField] EquipmentSlot slot;
+        [SerializeField] ParticleSystem particles;
 
         public bool savePosition;
         public bool toggleSheath;
@@ -19,6 +20,20 @@ namespace Architome
             {
                 collider.enabled = false;
             }
+
+            particles = GetComponentInChildren<ParticleSystem>();
+
+            if (particles)
+            {
+                var entity = slot.entityInfo;
+
+                
+                var abilityManager = entity.AbilityManager();
+
+                abilityManager.OnAbilityStart += OnAbilityStart;
+                abilityManager.OnAbilityEnd += OnAbilityEnd;
+                abilityManager.OnCatalystRelease += OnCatalystRelease;
+            }
         }
 
         // Update is called once per frame
@@ -29,6 +44,26 @@ namespace Architome
 
             HandleSave();
             HandleSheath();
+        }
+
+        void OnAbilityStart(AbilityInfo ability)
+        {
+            if (!ability.vfx.activateWeaponParticles) return;
+            ArchAction.Delay(() => particles.Play(true), .125f);
+
+
+        }
+
+        void OnCatalystRelease(AbilityInfo ability, CatalystInfo catalyst)
+        {
+            if (!ability.vfx.activateWeaponParticles) return;
+
+            particles.Stop(true);
+        }
+        void OnAbilityEnd(AbilityInfo ability)
+        {
+            if (!ability.vfx.activateWeaponParticles) return;
+            particles.Stop(true);
         }
 
         void HandleSheath()

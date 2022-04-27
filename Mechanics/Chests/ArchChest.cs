@@ -21,7 +21,7 @@ namespace Architome
             public Rarity rarity;
             [Range(0, 3)]
             public int stars;
-            public List<Item> items;
+            public List<ItemData> items;
             public int maxChestSlots;
 
             [Header("Interactions")]
@@ -82,6 +82,7 @@ namespace Architome
             }
 
             events.OnOpen?.Invoke(this);
+            WorldModuleCore.active.HandleChest(this);
             OnOpen?.Invoke();
             ChestRoutine();
 

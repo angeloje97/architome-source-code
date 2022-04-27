@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Architome;
 
+[RequireComponent(typeof(ItemSlotHandler))]
 public class GearSlotManager : MonoBehaviour
 {
     // Start is called before the first frame update
@@ -33,6 +34,8 @@ public class GearSlotManager : MonoBehaviour
         {
             module.OnSelectEntity += OnSelectEntity;
         }
+
+        GetComponent<ItemSlotHandler>().OnChangeItem += OnChangeItem;
     }
     void Start()
     {
@@ -68,9 +71,9 @@ public class GearSlotManager : MonoBehaviour
 
         foreach (GearSlot slot in gearSlots)
         {
+            slot.entityInfo = entityInfo;
             slot.equipmentSlot = entityInfo.CharacterInfo().EquipmentSlot(slot.slotType);
             slot.characterInfo = entityInfo.CharacterInfo();
-            slot.entityInfo = entityInfo;
             slot.events.OnSetSlot?.Invoke(slot);
         }
     }
@@ -81,6 +84,13 @@ public class GearSlotManager : MonoBehaviour
         {
             Destroy(itemInfo.gameObject);
         }
+    }
+
+    void OnChangeItem(ItemEventData eventData)
+    {
+        var gearSlot = (GearSlot)eventData.itemSlot;
+
+        gearSlot.equipmentSlot.equipment = (Equipment)gearSlot.item ? (Equipment)gearSlot.item : null;
     }
 
     

@@ -5,6 +5,7 @@ using UnityEngine.EventSystems;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Architome.Enums;
 
 
 namespace Architome
@@ -12,6 +13,7 @@ namespace Architome
     public class ContainerTargetables : MonoBehaviour
     {
         public static ContainerTargetables active;
+        public ArchInput input;
         // Start is called before the first frame update
         public List<GameObject> hoverTargets;
         public List<GameObject> selectedTargets;
@@ -41,6 +43,8 @@ namespace Architome
         {
             ArchInput.active.OnSelectMultiple += OnSelectMultiple;
             ArchInput.active.OnSelect += OnSelect;
+
+            input = ArchInput.active;
         }
 
         void Start()
@@ -61,6 +65,7 @@ namespace Architome
         }
         void Update()
         {
+            if (input.Mode == ArchInputMode.Inactive) return;
             HandleUserMouseOvers();
             HandleNullMouseOver();
             HandleEvents();

@@ -47,8 +47,6 @@ public class CatalystBounce : MonoBehaviour
 
         if(abilityInfo)
         {
-            targetLayerMask = abilityInfo.targetLayer;
-            obstructionLayer = abilityInfo.obstructionLayer;
             bounceRadius = abilityInfo.bounceRadius;
         }
 
@@ -133,7 +131,7 @@ public class CatalystBounce : MonoBehaviour
                     bool isNotSameTarget = entity != catalystInfo.target;
                     bool isAlive = targetInfo.isAlive;
                     bool isPriority = targetInfo.npcType == priority;
-                    bool hasLOS = !V3Helper.IsObstructed(entity.transform.position, transform.position, abilityInfo.obstructionLayer);
+                    bool hasLOS = !V3Helper.IsObstructed(entity.transform.position, transform.position, GMHelper.LayerMasks().structureLayerMask);
 
                     if (canTarget && isPriority && isAlive && hasLOS && isNotSameTarget)
                     {

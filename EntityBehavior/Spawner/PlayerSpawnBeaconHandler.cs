@@ -5,6 +5,7 @@ using Architome.Enums;
 using System.Linq;
 using System.Threading.Tasks;
 using System;
+using UnityEngine.Events;
 
 namespace Architome
 {
@@ -13,17 +14,14 @@ namespace Architome
         public SpawnerInfo spawnerInfo;
         public AudioManager soundEffects;
         public bool activated;
-        public List<GameObject> objectsToActivate;
-        public List<GameObject> disableOnStart;
 
         public bool startingSpawnBeacon;
 
         public WorldInfo worldInfo;
 
-        public 
+        public UnityEvent OnSetSpawnBeacon;
 
         WorkInfo workInfo;
-        public 
 
 
         void GetDependencies()
@@ -40,60 +38,29 @@ namespace Architome
             {
                 return;
             }
-            
 
 
 
-            if(GetComponentInParent<WorkInfo>())
-            {
-                workInfo = GetComponentInParent<WorkInfo>();
-            }
+
+            workInfo = GetComponentInParent<WorkInfo>();
 
             worldInfo = GMHelper.WorldInfo();
-
-            if(startingSpawnBeacon)
-            {
-                worldInfo.lastPlayerSpawnBeacon = spawnerInfo;
-                HandleActivateObjects();
-            }
-        }
-        void HandleDisableOnStart()
-        {
-            foreach(var i in disableOnStart)
-            {
-                i.SetActive(false);
-            }
-        }
-        void HandleActivateObjects()
-        {
-            foreach(var i in objectsToActivate)
-            {
-                i.SetActive(true);
-            }
         }
         public void Start()
         {
-            HandleDisableOnStart();
             GetDependencies();
-        }
-        public void OnSelectOption(Clickable clickable)
-        {
 
-        }
-        public void OnActivate(ActivatorData eventData)
-        {
-            var entity = eventData.gameObject;
-            if (!Entity.IsPlayer(entity)) { return; }
-            activated = true;
-
-            SetAsLastPlayerSpawnBeacon();
-            HandleActivateObjects();
+            if (startingSpawnBeacon)
+            {
+                OnSetSpawnBeacon?.Invoke();
+                worldInfo.SetSpawnBeacon(spawnerInfo);
+            }
         }
 
         async public void ReviveDeadPartyMembers()
         {
-            var lastSpawnBeacon = GMHelper.WorldInfo().lastPlayerSpawnBeacon;
-            GMHelper.WorldInfo().lastPlayerSpawnBeacon = spawnerInfo;
+            var lastSpawnBeacon = GMHelper.WorldInfo().currentSpawnBeacon;
+            GMHelper.WorldInfo().SetSpawnBeacon(spawnerInfo);
             var members = GameManager.active.playableEntities.Where(entity => !entity.isAlive).ToList();
 
             spawnerInfo.spawnEvents.OnStartRevivingParty?.Invoke(members.Count, GameManager.active.playableEntities.Count);
@@ -106,14 +73,15 @@ namespace Architome
                 await Task.Delay(500);
             }
 
-            GMHelper.WorldInfo().lastPlayerSpawnBeacon = lastSpawnBeacon;
+            GMHelper.WorldInfo().SetSpawnBeacon(lastSpawnBeacon);
 
         }
 
         public void SetAsLastPlayerSpawnBeacon()
         {
             spawnerInfo.spawnEvents.OnSetPlayerSpawnBeacon?.Invoke(spawnerInfo);
-            worldInfo.lastPlayerSpawnBeacon = spawnerInfo;
+            OnSetSpawnBeacon?.Invoke();
+            worldInfo.SetSpawnBeacon(spawnerInfo);
         }
 
     }

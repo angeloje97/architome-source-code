@@ -294,19 +294,6 @@ public class LineOfSight : MonoBehaviour
             }
         }
     }
-    public void AddParty(GameObject target)
-    {
-        if(partyInfo)
-        {
-            if(entityInfo.CanAttack(target))
-            {
-                if(!partyInfo.enemiesInLineOfSight.Contains(target))
-                {
-                    partyInfo.enemiesInLineOfSight.Add(target);
-                }
-            }
-        }
-    }
     public void MemberLosCheck(GameObject target)
     {
         if(partyInfo == null)
@@ -327,13 +314,6 @@ public class LineOfSight : MonoBehaviour
                 }
             }
         }
-
-        if(!canSeeTarget)
-        {
-            partyInfo.enemiesInLineOfSight.Remove(target);
-            return;
-        }
-        
         
     }
     public List<EntityInfo> DetectedEntities(NPCType npcType)
@@ -429,15 +409,23 @@ public class LineOfSight : MonoBehaviour
         {
             return false;
         }
-
-        if (partyInfo.enemiesInLineOfSight.Contains(target))
-        {
-            return true;
-        }
         else
         {
             return false;
         }
+    }
+
+    public bool HasLineOfSight(Vector3 location)
+    {
+        var direction = V3Helper.Direction(location, entityInfo.transform.position);
+        var distance = V3Helper.Distance(location, entityInfo.transform.position);
+
+        if (!Physics.Raycast(entityInfo.transform.position, direction, distance, GMHelper.LayerMasks().structureLayerMask))
+        {
+            return true;
+        }
+
+        return false;
     }
     public bool HasLineOfSight(GameObject target)
     {

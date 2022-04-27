@@ -38,9 +38,9 @@ public class BuffJumps : MonoBehaviour
 
     public GameObject NewTarget()
     {
-        Collider[] entitiesInRange = Physics.OverlapSphere(transform.position, buffInfo.properties.radius, buffInfo.sourceAbility.targetLayer);
+        Collider[] entitiesInRange = Physics.OverlapSphere(transform.position, buffInfo.properties.radius, GMHelper.LayerMasks().entityLayerMask);
         List<Transform> potentialTargets = new List<Transform>();
-        LayerMask obstructionLayer = buffInfo.sourceAbility.obstructionLayer;
+        LayerMask obstructionLayer = GMHelper.LayerMasks().structureLayerMask;
 
         for (int i = 0; i < entitiesInRange.Length; i++)
         {

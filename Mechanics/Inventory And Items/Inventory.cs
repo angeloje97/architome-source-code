@@ -9,10 +9,11 @@ namespace Architome
         // Start is called before the first frame update
         public EntityInventoryUI entityInventoryUI;
         public List<Item> items;
+        public List<ItemData> inventoryItems;
         public int maxSlots = 5;
 
-        public Action<Item> OnNewItem;
-        public Action<Item> OnRemoveItem;
+        //public Action<Item> OnNewItem;
+        //public Action<Item> OnRemoveItem;
 
         void Start()
         {
@@ -61,7 +62,12 @@ namespace Architome
                     items.Add(null);
                 }
 
-                if (items[i] != null) { return; }
+                if (i >= inventoryItems.Count)
+                {
+                    inventoryItems.Add(null);
+                }
+
+                if (items[i] != null) { continue; }
             }
         }
         // Update is called once per frame
@@ -80,7 +86,6 @@ namespace Architome
             }
 
             entityInventoryUI.CreateItem(clone, entityInventoryUI.FirstAvailableSlot());
-            OnNewItem?.Invoke(clone);
 
             return true;
         }
@@ -93,7 +98,6 @@ namespace Architome
             {
                 if (item == current)
                 {
-                    OnRemoveItem?.Invoke(current);
                     items.Remove(current);
 
                 }

@@ -494,14 +494,16 @@ public class ThreatManager : MonoBehaviour
     public async void AlertAllies(GameObject target)
     {
         if (!entityInfo.isAlive) return;
-        
+        await Task.Delay((int)(.25f * 1000));
+
+        Debugger.InConsole(4598, $"Delay is {(int)(.25f * 1000)}");
 
         var allies = lineOfSight.DetectedAllies();
 
-        await Task.Delay((int)(.25f) * 1000);
 
         foreach (var ally in allies)
         {
+            if (ally.npcType != entityInfo.npcType) continue;
             if (ally == entityInfo) continue;
             var threatManager = ally.GetComponentInChildren<ThreatManager>();
             if (threatManager == null) continue;

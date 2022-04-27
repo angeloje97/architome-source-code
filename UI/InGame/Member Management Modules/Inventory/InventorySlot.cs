@@ -10,10 +10,10 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
 {
     // Start is called before the first frame update
     [Header("Slot Properties")]
-    public EntityInfo entityInfo;
     public ItemInfo currentItemInfo;
-    public Item item;
+    public Item item { get { return currentItemInfo ? currentItemInfo.item : null; } }
     public ModuleInfo module;
+    public ItemSlotHandler itemSlotHandler;
     
     [Serializable]
     public struct Info
@@ -40,16 +40,13 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
 
     }
 
-    public InventoryManager InventoryManager()
-    {
-        return GetComponentInParent<InventoryManager>() ? GetComponentInParent<InventoryManager>() : null;
-    }
     public Item previousItem;
 
 
     public void GetDependenencies()
     {
         module = GetComponentInParent<ModuleInfo>();
+        itemSlotHandler = GetComponentInParent<ItemSlotHandler>();
     }
     void Start()
     {
@@ -68,6 +65,7 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
         if (previousItem != item)
         {
             events.OnItemChange?.Invoke(this, previousItem, item);
+            itemSlotHandler?.OnChangeItem(new() { itemSlot = this, newItem = currentItemInfo }); 
             previousItem = item;
         }
     }
@@ -81,11 +79,6 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
         var droppedItem = eventData.pointerDrag.GetComponent<ItemInfo>();
 
         droppedItem.HandleNewSlot(this);
-
-        //if(InsertToSlot(droppedItem))
-        //{
-        //    InventoryUI().UpdateInventory();
-        //}
     }
     public void OnPointerEnter(PointerEventData eventData)
     {

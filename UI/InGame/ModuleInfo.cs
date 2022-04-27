@@ -42,6 +42,8 @@ namespace Architome
             public GameObject ability;
             public GameObject entitySelector;
             public GameObject entityIcon;
+            public GameObject inventorySlot;
+
         }
         public Prefabs prefabs;
 
@@ -71,18 +73,28 @@ namespace Architome
 
         public void OnPointerEnter(PointerEventData eventData)
         {
+
             isHovering = true;
             if (!eventData.pointerDrag ||
                 !eventData.pointerDrag.GetComponent<ItemInfo>() ||
                 itemBin == null) { return; }
 
             eventData.pointerDrag.transform.SetParent(itemBin);
+            var item = eventData.pointerDrag.GetComponent<ItemInfo>();
+            item.moduleHover = this;
             transform.SetAsLastSibling();
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
             isHovering = false;
+
+            if (!eventData.pointerDrag || !eventData.pointerDrag.GetComponent<ItemInfo>()) return;
+            var item = eventData.pointerDrag.GetComponent<ItemInfo>();
+            if (item.moduleHover == this)
+            {
+                item.moduleHover = null;
+            }
         }
 
         public void OnPointerDown(PointerEventData eventData)

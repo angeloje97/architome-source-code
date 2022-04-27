@@ -31,7 +31,7 @@ namespace Architome
         }
         public static async void UpdateWhile(Action action, ArchCondition condition)
         {
-            while (condition.IsMet())
+            while (condition.isMet)
             {
                 action();
                 await Task.Yield();
@@ -39,7 +39,7 @@ namespace Architome
         }
         public static async void UpDateUntil(Action action, ArchCondition condition)
         {
-            while (!condition.IsMet())
+            while (!condition.isMet)
             {
                 action();
                 await Task.Yield();
@@ -208,6 +208,7 @@ namespace Architome
 
     public class ArchCondition
     {
+        public bool isMet;
         public bool condition;
 
         public float value;
@@ -217,7 +218,7 @@ namespace Architome
         public float minRange;
         public float maxRange;
 
-        public bool IsMet()
+        public bool OrIsMet()
         {
             if (condition == true)
             {

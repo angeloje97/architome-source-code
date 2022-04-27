@@ -142,7 +142,7 @@ public class AbilityAnimation
         var xStyle = (int)catalyst.catalystStyle.x;
         var yStyle = (int)catalyst.catalystStyle.y;
 
-        animator.SetTrigger("ActivateAbility");
+        //animator.SetTrigger("ActivateAbility");
         animator.SetInteger("AbilityX", xStyle);
         animator.SetInteger("AbilityY", yStyle);
         animator.SetInteger("AbilityIndex", catalyst.animationSequence[abilityIndex]);

@@ -2,89 +2,147 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Threading.Tasks;
-public class ParticleManager : MonoBehaviour
+
+namespace Architome
 {
-    // Start is called before the first frame update
-
-    public async void PlayOnce(GameObject particle,  float time = 0f)
+    public class ParticleManager : MonoBehaviour
     {
-        if (particle.GetComponent<ParticleSystem>() == null) return;
-        var pSystem = Instantiate(particle, transform).GetComponent<ParticleSystem>();
+        // Start is called before the first frame update
 
-        pSystem.Play(true);
-
-        var duration = time > 0 ? time : pSystem.main.duration;
-
-        await Task.Delay((int)(duration) * 1000);
-
-        pSystem.Stop();
-
-        await Task.Delay(1000);
-
-        Destroy(pSystem.gameObject);
-    }
-
-    public async void PlayFor(GameObject particle, int amount, float liveTime = 0, float interval = 0)
-    {
-        if (particle.GetComponent<ParticleSystem>() == null) return;
-
-        var pSystem = Instantiate(particle, transform).GetComponent<ParticleSystem>();
-
-        float duration = liveTime > 0 ? liveTime : pSystem.main.duration;
-        float timeBetween = interval > 0 ? interval : 1;
-
-        while (amount > 0)
+        public async void PlayOnce(GameObject particle, float time = 0f)
         {
-            pSystem.Play();
-            amount--;
-            await Task.Delay((int)(duration * 1000));
+            if (particle.GetComponent<ParticleSystem>() == null) return;
+            var pSystem = Instantiate(particle, transform).GetComponent<ParticleSystem>();
+
+            pSystem.Play(true);
+
+            var duration = time > 0 ? time : pSystem.main.duration;
+
+            await Task.Delay((int)(duration) * 1000);
 
             pSystem.Stop();
 
-            await Task.Delay((int) (timeBetween * 1000));
+            await Task.Delay(1000);
+
+            Destroy(pSystem.gameObject);
         }
 
-        Destroy(pSystem.gameObject);
-    }
-
-    public async void PlayOnceAt(GameObject particle, Transform target = null, float time = 0f)
-    {
-        if (particle.GetComponent<ParticleSystem>() == null) return;
-        var currentTarget = target != null ? target : transform;
-        var pSystem = Instantiate(particle, transform).GetComponent<ParticleSystem>();
 
 
-
-        var duration = time > 0 ? time : pSystem.main.duration;
-
-        while (duration > 0)
+        public async void PlayFor(GameObject particle, int amount, float liveTime = 0, float interval = 0)
         {
-            await Task.Yield();
-            duration -= Time.deltaTime;
-            pSystem.transform.position = currentTarget.position;
+            if (particle.GetComponent<ParticleSystem>() == null) return;
+
+            var pSystem = Instantiate(particle, transform).GetComponent<ParticleSystem>();
+
+            float duration = liveTime > 0 ? liveTime : pSystem.main.duration;
+            float timeBetween = interval > 0 ? interval : 1;
+
+            while (amount > 0)
+            {
+                pSystem.Play();
+                amount--;
+                await Task.Delay((int)(duration * 1000));
+
+                pSystem.Stop();
+
+                await Task.Delay((int)(timeBetween * 1000));
+            }
+
+            Destroy(pSystem.gameObject);
         }
 
-        pSystem.Stop();
+        public async void PlayOnceAt(GameObject particle, Transform target = null, float time = 0f)
+        {
+            if (particle.GetComponent<ParticleSystem>() == null) return;
+            var currentTarget = target != null ? target : transform;
+            var pSystem = Instantiate(particle, transform).GetComponent<ParticleSystem>();
 
-        await Task.Delay(1000);
 
-        Destroy(pSystem.gameObject);
+
+            var duration = time > 0 ? time : pSystem.main.duration;
+
+            while (duration > 0)
+            {
+                await Task.Yield();
+                duration -= Time.deltaTime;
+                pSystem.transform.position = currentTarget.position;
+            }
+
+            pSystem.Stop();
+
+            await Task.Delay(1000);
+
+            Destroy(pSystem.gameObject);
+
+        }
+
+        public async void PlayOnceAt(GameObject particleObj, Vector3 position, Vector3 rotation = new(), float time = 0f)
+        {
+            if (particleObj.GetComponent<ParticleSystem>() == null) return;
+
+            var particle = Instantiate(particleObj, position, Quaternion.Euler(rotation));
+
+            var pSystem = particle.GetComponent<ParticleSystem>();
+
+            var maxDuration = pSystem.main.duration;
+
+            pSystem.Play(true);
+
+            await Task.Delay((int)(maxDuration * 1000));
+
+            pSystem.Stop(true);
+
+            await Task.Delay(1000);
+
+            Destroy(particle);
+        }
+
+        public async void PlayOnceAt(GameObject particleObj, Vector3 position, Quaternion rotation = new(), float time = 0f)
+        {
+            if (particleObj.GetComponent<ParticleSystem>() == null) return;
+
+            var particle = Instantiate(particleObj, position, rotation);
+
+            var pSystem = particle.GetComponent<ParticleSystem>();
+
+            var maxDuration = pSystem.main.duration;
+
+            pSystem.Play(true);
+
+            await Task.Delay((int)(maxDuration * 1000));
+
+            pSystem.Stop(true);
+
+            await Task.Delay(1000);
+
+            Destroy(particle.gameObject);
+        }
+
+        //For managing your own particles.
+        public ParticleSystem Play(GameObject particle, bool autoStop = false)
+        {
+            if (particle.GetComponent<ParticleSystem>() == null) return null;
+
+            var particleObject = Instantiate(particle, transform);
+
+
+            var system = particleObject.GetComponent<ParticleSystem>();
+            system.Play(true);
+
+            if (autoStop)
+            {
+                ArchAction.Delay(() => { system.Stop(true); }, system.main.duration);
+
+                ArchAction.Delay(() => { Destroy(system.gameObject); }, system.main.duration + 2f);
+            }
+
+
+            return system;
+
+        }
+
 
     }
 
-    public ParticleSystem PlayParticle(GameObject particle)
-    {
-        if (particle.GetComponent<ParticleSystem>() == null) return null;
-
-        var particleObject = Instantiate(particle, transform);
-
-
-        var system = particleObject.GetComponent<ParticleSystem>();
-        system.Play(true);
-
-        return system;
-
-    }
-
-    
 }

@@ -15,6 +15,7 @@ public class PortraitBehavior : MonoBehaviour
     [Header("Entity Info")]
     public EntityInfo entity;
     public Image icon;
+    public Image iconBorder;
     public TextMeshProUGUI entityName;
 
     [Header("Buff Icon Manager")]
@@ -204,7 +205,7 @@ public class PortraitBehavior : MonoBehaviour
         entityName.text = $"{entity.entityName}";
         levelText.text = $"{entity.stats.Level}";
 
-        
+        UpdateIconColor();
 
         if(entity.entityPortrait == null)
         {
@@ -292,6 +293,17 @@ public class PortraitBehavior : MonoBehaviour
         if (!ability.vfx.showCastBar) return;
 
         SetCastBar(false, true);
+    }
+
+    public void UpdateIconColor()
+    {
+        if (iconBorder == null) return;
+
+        var archClass = entity.archClass;
+
+        if (archClass == null) return;
+
+        iconBorder.color = archClass.classColor;
     }
 
 

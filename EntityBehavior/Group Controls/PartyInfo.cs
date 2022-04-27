@@ -11,12 +11,9 @@ namespace Architome
     {
         // Start is called before the first frame update
         public List<GameObject> members;
-        public List<GameObject> enemiesInLineOfSight;
         public List<GameObject> liveMembers;
         public GameObject raidObject;
         public GameObject center;
-
-        public ActionBarsInfo actionBarsInfo;
 
         public KeyBindings keyBindings;
         public EntityControlType partyControl;
@@ -24,27 +21,7 @@ namespace Architome
         public ContainerTargetables targetManager;
 
         public List<int> partyAbilityIndexes;
-        public List<Color> membersColor;
         public LayerMask walkableLayer;
-
-        [Header("Party Controls")]
-        public string actionButton;
-        public string selectMultipleButton;
-
-        [Header("Individual Controls Action")]
-        public string alt1;
-        public string alt2;
-        public string alt3;
-        public string alt4;
-        public string alt5;
-
-        [Header("Individual Controls Abiilties")]
-        public string ability1;
-        public string ability2;
-        public string ability3;
-        public string ability4;
-        public string ability5;
-
 
         public Vector3 midPoint;
         public bool partyIsInCombat;

@@ -12,8 +12,11 @@ namespace Architome
         // Start is called before the first frame update
         public List<GameObject> properties;
         public List<GameObject> modules;
-
         public Action<ModuleInfo> OnModuleEnableChange;
+
+
+        PromptHandler promptHandler;
+        WorldModuleCore worldModuleCore;
         public void GetProperties()
         {
             properties = new List<GameObject>();
@@ -24,6 +27,9 @@ namespace Architome
             }
 
             ArchInput.active.OnEscape += OnEscape;
+
+            worldModuleCore = WorldModuleCore.active;
+            promptHandler = PromptHandler.active;
         }
         void Start()
         {
@@ -43,6 +49,16 @@ namespace Architome
 
         public void OnEscape()
         {
+            if (SetPrompts())
+            {
+                return;
+            }
+
+            if (SetWorldModules())
+            {
+                return;
+            }
+
             if (SetModules(false))
             {
                 return;
@@ -53,6 +69,33 @@ namespace Architome
                 return;
             }
 
+        }
+
+        bool SetWorldModules()
+        {
+            bool changed = false;
+
+            foreach (var module in worldModuleCore.GetComponentsInChildren<ModuleInfo>())
+            {
+                changed = true;
+                module.SetActive(false);
+            }
+
+            return changed;
+        }
+
+        bool SetPrompts()
+        {
+            bool changed = false;
+
+            foreach (var prompt in promptHandler.GetComponentsInChildren<PromptInfo>())
+            {
+                if (!prompt.isActive) continue;
+                changed = true;
+                prompt.EndOptions();
+            }
+
+            return changed;
         }
 
         public ActionBarsInfo ActionBarInfo()

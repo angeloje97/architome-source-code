@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Architome.Enums;
+using System;
 
 
 namespace Architome
@@ -44,8 +45,12 @@ namespace Architome
             if (value == typeof(Weapon)) { return true; }
             return false;
         }
+    }
 
-
-
+    [Serializable]
+    public class ItemData
+    {
+        public Item item;
+        public int amount;
     }
 }

@@ -53,7 +53,9 @@ public class CatalystUse : MonoBehaviour
             }
         }
 
-        deathCondition.DestroySelf("From Use Effect");
+        ArchAction.Delay(() => deathCondition.DestroySelf("From Use Effect"), .125f);
+
+        
     }
 
 }

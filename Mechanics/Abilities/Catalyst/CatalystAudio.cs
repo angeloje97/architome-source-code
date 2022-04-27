@@ -1,9 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
+using Architome.Enums;
 
 namespace Architome
 {
+    [RequireComponent(typeof(AudioManager))]
     public class CatalystAudio : MonoBehaviour
     {
         // Start is called before the first frame update
@@ -17,6 +20,10 @@ namespace Architome
 
         }
 
+        private void OnValidate()
+        {
+            audioManager = GetComponent<AudioManager>();
+        }
         // Update is called once per frame
 
         public void Activate(CatalystInfo catalystInfo)
@@ -26,79 +33,42 @@ namespace Architome
             name = $"{catalystInfo} Audio";
 
 
-            catalystInfo.OnCatalingRelease += OnCatalingRelease;
             catalystInfo.OnCatalystDestroy += OnCatalystDestroy;
-            catalystInfo.OnHeal += OnHeal;
-            catalystInfo.OnDamage += OnDamage;
-            catalystInfo.OnAssist += OnAssist;
-            catalystInfo.OnHit += OnHit;
 
-            audioManager = gameObject.AddComponent<AudioManager>();
-            audioManager.mixerGroup = GMHelper.Mixer().SoundEffect;
             audioManager.OnEmptyAudio += OnEmptyAudio;
 
-            PlayCatalystReleaseSound();
 
             transform.SetParent(catalystInfo.transform);
 
             isActive = true;
         }
 
-        public void PlayCatalystReleaseSound()
-        {
-            audioManager.PlayRandomSound(catalystInfo.effects.castReleaseSounds);
-        }
-
-
-        public void OnCatalingRelease(CatalystInfo sourceCatalyst, CatalystInfo cataling)
-        {
-            //audioManager.PlayRandomSound(cataling.effects.castReleaseSounds);
-        }
-
-        public void OnDamage(GameObject target)
-        {
-            audioManager.PlayRandomSound(catalystInfo.effects.harmSounds);
-        }
-
-        public void OnHeal(GameObject target)
-        {
-
-            audioManager.PlayRandomSound(catalystInfo.effects.healSounds);
-        }
-
-        public void OnAssist(GameObject target)
-        {
-
-            audioManager.PlayRandomSound(catalystInfo.effects.assistSounds);
-        }
-
-        public void OnHit(GameObject target)
-        {
-            audioManager.PlayRandomSound(catalystInfo.effects.hitSounds);
-        }
 
         public void OnCatalystDestroy(CatalystDeathCondition deathCondition)
         {
             destroyCatalyst = true;
             isActive = false;
 
-            transform.SetParent(catalystInfo.transform.parent);
-
-            PlayDestroySound();
+            StopLoops();
+            transform.SetParent(CatalystManager.active.transform);
 
             catalystInfo.OnCatalystDestroy -= OnCatalystDestroy;
-            catalystInfo.OnCatalingRelease -= OnCatalingRelease;
-            catalystInfo.OnHeal -= OnHeal;
-            catalystInfo.OnDamage -= OnDamage;
-            catalystInfo.OnAssist -= OnAssist;
-
             HandleDestroy();
+        }
 
-            void PlayDestroySound()
+        public void StopLoops()
+        {
+            var effects = catalystInfo.effects.catalystsEffects;
+
+            foreach (var effect in effects)
             {
-                if (catalystInfo.effects.destroySounds.Count == 0) return;
+                if (!effect.loops) continue;
+                if (!effect.audioClip) continue;
 
-                audioManager.PlayRandomSound(catalystInfo.effects.destroySounds);
+                var source = audioManager.AudioSourceFromClip(effect.audioClip);
+
+                if (source) source.Stop();
+
             }
         }
 

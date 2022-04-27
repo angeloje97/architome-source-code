@@ -5,8 +5,10 @@ using UnityEngine.Audio;
 using System;
 using System.Threading.Tasks;
 
+
 namespace Architome
 {
+    [RequireComponent(typeof(AudioSource))]
     public class AudioManager : MonoBehaviour
     {
 
@@ -19,6 +21,8 @@ namespace Architome
 
         [Header("Audio Source Settings")]
         public float spatialBlend = .5f;
+        
+        public float pitchRandomRange;
 
 
         void Start()
@@ -29,6 +33,10 @@ namespace Architome
         public void OnValidate()
         {
             spatialBlend = .5f;
+            if (presetAudio == null)
+            {
+                presetAudio = GetComponent<AudioSource>();
+            }
         }
 
         // Update is called once per frame
@@ -117,13 +125,18 @@ namespace Architome
                 }
             }
 
-            var newAudioSource = gameObject.AddComponent<AudioSource>();
+            //var newAudioSource = gameObject.AddComponent<AudioSource>();
+            var newAudioSource = ArchGeneric.CopyComponent(presetAudio, gameObject);
             if (mixerGroup)
             {
                 newAudioSource.outputAudioMixerGroup = mixerGroup;
             }
+
             newAudioSource.spatialBlend = .5f;
-            CopyPresetFor(newAudioSource);
+            var randomPitchOffset = UnityEngine.Random.Range(-pitchRandomRange, pitchRandomRange);
+
+            newAudioSource.pitch += randomPitchOffset;
+            
             audioSources.Add(newAudioSource);
             newAudioSource.PlayOneShot(clip);
 

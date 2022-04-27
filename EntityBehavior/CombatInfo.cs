@@ -30,6 +30,7 @@ public class CombatInfo : MonoBehaviour
 
         public Values values;
         public Values startCombatValues;
+        public Values combatValues;
 
         public float secondsInCombat;
         public float totalSecondsInCombat;
@@ -68,7 +69,20 @@ public class CombatInfo : MonoBehaviour
                 totalSecondsInCombat += .25f;
             }
 
+            SaveCombatValues();
+
             isRecording = false;
+        }
+
+        void SaveCombatValues()
+        {
+            foreach (var field in combatValues.GetType().GetFields())
+            {
+                var total = (float)field.GetValue(values);
+                var start = (float)field.GetValue(startCombatValues);
+                var current = (float)field.GetValue(combatValues);
+                field.SetValue(combatValues, current + total - start);
+            }
         }
 
         public void OnDamageDone(CombatEventData eventData)

@@ -23,18 +23,33 @@ namespace Architome
 
             return new Vector3(0, 0, 0);
         }
+
+        public static Vector3 RelativePosition(Vector3 position)
+        {
+            if (CameraManager.Main == null) return new Vector3();
+            Ray ray = CameraManager.Main.ScreenPointToRay(Input.mousePosition);
+            var direction = ray.direction;
+            var distance = V3Helper.Distance(position, CameraManager.Main.transform.position);
+
+            return CameraManager.Main.transform.position + (direction * distance);
+        }
         public static GameObject CurrentHover(LayerMask layer)
         {
             if (CameraManager.Main == null) return null;
             Ray ray = CameraManager.Main.ScreenPointToRay(Input.mousePosition);
 
+            
+
             if (Physics.Raycast(ray, out RaycastHit raycastHit, Mathf.Infinity, layer))
             {
                 return raycastHit.transform.gameObject;
+                
             }
 
             return null;
         }
+
+        
         public static GameObject CurrentTargetable(LayerMask layer)
         {
             if (CameraManager.Main == null) return null;
@@ -67,12 +82,32 @@ namespace Architome
             if (CameraManager.Main == null) return new Vector3();
             Ray ray = CameraManager.Main.ScreenPointToRay(Input.mousePosition);
 
-            if (Physics.Raycast(ray, out RaycastHit raycastHit, Mathf.Infinity, layer))
+
+            var position = new Vector3();
+            GameObject target = null;
+
+            while (target == null)
             {
-                return raycastHit.point;
+                if (Physics.Raycast(ray, out RaycastHit raycastHit, Mathf.Infinity, layer))
+                {
+                    position = raycastHit.point;
+                    if (raycastHit.transform.GetComponent<Renderer>().enabled == false)
+                    {
+                        ray.origin = raycastHit.point + (ray.direction * 1f);
+                    }
+                    else
+                    {
+                        target = raycastHit.transform.gameObject;
+                    }
+                }
+                else
+                {
+                    break;
+                }
+
             }
 
-            return new Vector3(0, 0, 0);
+            return position;
         }
 
         public static bool IsMouseOverUI()

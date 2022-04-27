@@ -25,7 +25,7 @@ public class V3Helper
 
     public static Vector3 MidPoint(Vector3 end, Vector3 start)
     {
-        var midPoint = new Vector3((end.x + start.x) / 2, (end.y + start.y) / 2, 0);
+        var midPoint = new Vector3((end.x + start.x) / 2, (end.y + start.y) / 2, (end.z + end.z)/2);
 
 
         return midPoint;
@@ -76,9 +76,28 @@ public class V3Helper
         return Distance(orderedList[0].position, point);
     }
 
+    public static GameObject HitScan(Transform source, float range, LayerMask layer)
+    {
+        var ray = new Ray(source.position, source.forward);
+
+        if (Physics.Raycast(ray, out RaycastHit hit, range, layer))
+        {
+            return hit.transform.gameObject;
+        }
+
+        return null;
+    }
+
     public static Quaternion LerpLookAt(Transform obj, Transform target, float smoothening)
     {
         var targetRotation = Quaternion.LookRotation(target.position - obj.position);
+        return Quaternion.Lerp(obj.rotation, targetRotation, smoothening);
+    }
+
+    public static Quaternion LerpLookAt(Transform obj, Vector3 target, float smoothening)
+    {
+        var targetRotation = Quaternion.LookRotation(target - obj.position);
+
         return Quaternion.Lerp(obj.rotation, targetRotation, smoothening);
     }
     
@@ -141,6 +160,24 @@ public class V3Helper
         }
 
         return source;
+    }
+
+    public static bool IsAboveGround(Vector3 location, LayerMask groundLayer, float heightOffSet = 0f)
+    {
+
+        var position = location;
+        position.y += heightOffSet;
+
+        var direction = Vector3.down;
+
+        var distance = 10f;
+
+        if (Physics.Raycast(position, direction, distance, groundLayer))
+        {
+            return true;
+        }
+
+        return false;
     }
 
 

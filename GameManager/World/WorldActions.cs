@@ -66,7 +66,7 @@ public class WorldActions : MonoBehaviour
     public void ReviveAtSpawnBeacon(GameObject entity)
     {
         var entityInfo = entity.GetComponent<EntityInfo>();
-        var lastSpawnBeacon = GMHelper.WorldInfo().lastPlayerSpawnBeacon;
+        var lastSpawnBeacon = GMHelper.WorldInfo().currentSpawnBeacon;
 
         if (entityInfo == null) { return; }
         if(lastSpawnBeacon == null) { return; }

@@ -14,7 +14,9 @@ namespace Architome
     [RequireComponent(typeof(CatalystFXHandler))]
     public class CatalystInfo : MonoBehaviour
     {
+        
         // Start is called before the first frame update
+        [Multiline] public string description;
         public GameObject entityObject;
         public Sprite catalystIcon;
 
@@ -49,19 +51,36 @@ namespace Architome
         [Serializable]
         public struct Metrics
         {
-            public GameObject target;
+            [Serializable]
+            public struct AccelerationBenchmark
+            {
+                [Range(0, 1)]
+                public float benchmark;
+                [Range(0, 1)]
+                public float smoothness;
+            }
 
-            public BodyPart startingBodyPart;
+            public GameObject target;
 
             public Vector3 direction, location, startingLocation, startDirectionRange;
 
-            public float value, startingHeight, currentRange, liveTime, distanceFromTarget, inertia;
+            public float value, startingHeight, currentRange, liveTime, distanceFromTarget, inertia, intervals;
 
             public int ticks;
 
+            [Header("Growing Properties")]
+
+            public Vector3 growthDirection;
+
+            public float maxGrowth, growthSpeed, startSpeed;
+
+            public bool stops;
+
+            public List<AccelerationBenchmark> accelBenchmarks;
         }
 
         public Metrics metrics;
+        [SerializeField] CatalystKinematics kinematics;
 
         [Header("Catalyst Set Values")]
         public DamageType damageType;
@@ -73,25 +92,79 @@ namespace Architome
         [Serializable]
         public class CatalystEffects
         {
-            
-            public List<GameObject> particleHarms;
-            public List<GameObject> particleHeals;
-            public List<AudioClip> harmSounds;
-            public List<AudioClip> assistSounds;
-            public List<AudioClip> healSounds;
-            public List<AudioClip> destroySounds;
-            public List<AudioClip> hitSounds;
+            [Serializable]
+            public struct Catalyst
+            {
+                public ReleaseCondition playTrigger;
+                public CatalystParticleTarget target;
+                public Vector3 offsetPosition, offsetScale, offsetRotation;
+                public GameObject particleObj;
+                public AudioClip audioClip;
+                public bool loops;
+                public bool looksAtTarget;
+            }
 
-            [Header("Ability Sound Effects")]
-            public List<AudioClip> startCastSounds;
-            public List<AudioClip> castingSounds;
-            public List<AudioClip> castReleaseSounds;
+            [Serializable]
+            public struct Ability
+            {
+                public AbilityTrigger trigger;
+                public GameObject particle;
+                public BodyPart bodyPart;
+                public BodyPart bodyPart2;
+                public CatalystParticleTarget target;
+                public bool looksAtTarget;
+                public Vector3 offsetPosition, offsetScale, offsetRotation;
+
+                [Header("Audio")]
+                public AudioClip audioClip;
+                public bool loops;
+            }
+
+            public List<Catalyst> catalystsEffects;
+            public List<Ability> abilityEffects;
+            
+
+            public BodyPart startingBodyPart;
 
             [Header("Transform Effects")]
             public bool collapseOnDeath;
+            public bool growsOnAwake;
+            public bool startFromGround;
 
             [Header("Particle Effects")]
+            
             public GameObject destroyParticle;
+            public GameObject groundParticle;
+            public ReleaseCondition groundRelease;
+
+            public float MaxCatalystDuration()
+            {
+                var max = 0f;
+
+                foreach (var effect in catalystsEffects)
+                {
+                    var particle = effect.particleObj;
+                    var audioClip = effect.audioClip;
+
+                    if (particle)
+                    {
+                        if (particle.GetComponent<ParticleSystem>().main.duration > max)
+                        {
+                            max = particle.GetComponent<ParticleSystem>().main.duration;
+                        }
+                    }
+
+                    if (audioClip)
+                    {
+                        if (audioClip.length > max)
+                        {
+                            max = audioClip.length;
+                        }
+                    }
+                }
+
+                return max;
+            }
         }
 
         public CatalystEffects effects;
@@ -113,11 +186,13 @@ namespace Architome
         public Action<CatalystInfo, GameObject> OnCloseToTarget;
         public Action<CatalystInfo, GameObject> OnWrongTargetHit;
         public Action<GameObject, bool> OnPhysicsInteraction;
-        public Action<CatalystStop> OnCatalystStop;
+        public Action<CatalystKinematics> OnCatalystStop;
+        public Action<CatalystKinematics> OnCatalystMaxSpeed;
         public Action<GameObject> OnIntercept;
+        public Action<CatalystInfo> OnInterval;
 
-        public Action<CatalystInfo, CatalystInfo> OnCatalingRelease;
-        public Action<CatalystDeathCondition> OnCatalystDestroy;
+        public Action<CatalystInfo, CatalystInfo> OnCatalingRelease { get; set; }
+        public Action<CatalystDeathCondition> OnCatalystDestroy { get; set; }
 
         private GameObject targetCheck;
 
@@ -196,10 +271,6 @@ namespace Architome
             void HandleCatalyst()
             {
                 if (isCataling) return;
-                if (abilityInfo.abilityType == AbilityType.SkillShot)
-                {
-                    gameObject.AddComponent<CatalystFreeFly>().LookAtLocation(location);
-                }
 
                 if (abilityInfo.abilityType == AbilityType.LockOn)
                 {
@@ -229,11 +300,6 @@ namespace Architome
 
                 }
 
-                if (abilityInfo.catalystStops)
-                {
-                    gameObject.AddComponent<CatalystStop>();
-                }
-
                 if (abilityInfo.buffProperties.selfBuffOnDestroy) gameObject.AddComponent<CatalystBuffOnDestroy>();
 
                 if (abilityInfo.summoning.enabled) gameObject.AddComponent<CatalystSummon>();
@@ -255,10 +321,6 @@ namespace Architome
                     gameObject.AddComponent<CatalystLockOn>();
 
                 }
-                else if (catalingType == AbilityType.SkillShot)
-                {
-                    gameObject.AddComponent<CatalystFreeFly>();
-                }
 
                 value = abilityInfo.value * abilityInfo.cataling.valueContribution;
 
@@ -276,19 +338,21 @@ namespace Architome
         {
             SpawnCatalystAudio();
             SpawnBodyPart();
+            kinematics.SetKinematics(this);
         }
-
+    
         void SpawnBodyPart()
         {
             if (isCataling) return;
             if (entityObject == target) return;
-            if (metrics.startingBodyPart == BodyPart.Root) return;
+            if (effects.startingBodyPart == BodyPart.Root) return;
+            if (abilityInfo.abilityType == AbilityType.Spawn) return;
 
             var bodyPart = entityInfo.GetComponentInChildren<CharacterBodyParts>();
 
             if (bodyPart == null) return;
 
-            var trans = bodyPart.BodyPartTransform(metrics.startingBodyPart);
+            var trans = bodyPart.BodyPartTransform(effects.startingBodyPart);
 
             transform.position = trans.position;
 
@@ -306,13 +370,20 @@ namespace Architome
 
         void SpawnCatalystAudio()
         {
-            new GameObject().AddComponent<CatalystAudio>().Activate(this);
+            var catalystPrefab = CatalystManager.active.CatalystAudioManager();
+
+            if (catalystPrefab)
+            {
+                catalystPrefab.GetComponent<CatalystAudio>().Activate(this);
+            }
         }
         void Update()
         {
             UpdateMetrics();
             HandleEvents();
         }
+
+
         public void UpdateMetrics()
         {
             currentRange = V3Helper.Distance(startPosition, transform.position);
@@ -409,7 +480,6 @@ namespace Architome
 
             return enemies;
         }
-
         public List<GameObject> TargetableEntities(float radius, bool requiresLineOfSight = false)
         {
             var targetables = new List<GameObject>();
@@ -445,7 +515,6 @@ namespace Architome
 
             return targetables;
         }
-
         public void ReduceTicks()
         {
             ticks--;
@@ -459,7 +528,6 @@ namespace Architome
                 OnTickChange?.Invoke(this, ticks);
             }
         }
-
         public int Ticks()
         {
             return ticks;

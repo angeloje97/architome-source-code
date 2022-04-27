@@ -82,6 +82,7 @@ public class BuffInfo : MonoBehaviour
         }
 
         public Vector3 scalePortions;
+        public float scaleMultiplier;
 
 
 

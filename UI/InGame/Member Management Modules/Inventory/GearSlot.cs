@@ -10,6 +10,7 @@ namespace Architome
     {
         // Start is called before the first frame update
         [Header("Gear Slot Properties")]
+        public EntityInfo entityInfo;
         public CharacterInfo characterInfo;
         public EquipmentSlot equipmentSlot;
         public EquipmentSlotType slotType;
@@ -20,6 +21,8 @@ namespace Architome
         {
             return GetComponentInParent<GearSlotManager>() ? GetComponentInParent<GearSlotManager>() : null;
         }
+
+
 
         public void Start()
         {
@@ -33,9 +36,12 @@ namespace Architome
 
         public bool CanEquip(Item item)
         {
-            if (entityInfo == null) return false;
             if (!Item.IsWeapon(item) && !Item.IsEquipment(item)) return false;
             if (entityInfo == null) return false;
+
+            var equipment = (Equipment)item;
+
+            if (slotType != equipment.equipmentSlotType && equipment.secondarySlotType != slotType) return false;
 
             var archClass = entityInfo.archClass;
 

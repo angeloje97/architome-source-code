@@ -109,10 +109,15 @@ public class CatalystHit : MonoBehaviour
         HandleTargetHit(target.GetComponent<EntityInfo>());
     }
 
-    public void HandleTargetHit(EntityInfo targetHit)
+    public void HandleTargetHit(EntityInfo targetHit, bool forceHit = false)
     {
-        if (!IsDeadTargetable(targetHit)) { return; }
-        if (catalystInfo.Ticks() == 0) return;
+        if (!forceHit)
+        {
+            if (!IsDeadTargetable(targetHit)) { return; }
+            if (catalystInfo.Ticks() == 0) return;
+            if (catalystInfo.isDestroyed) return;
+        }
+
         HandleMainTarget(targetHit.gameObject);
         HandleEvent();
         HandleHeal();

@@ -269,6 +269,20 @@ namespace Architome
             }
         }
 
+        public void MoveTo(Vector3 location, float endReachDistance = 0f)
+        {
+            if(!entityInfo.isAlive) return;
+            path.endReachedDistance = endReachDistance;
+
+            hasArrived = !hasArrived;
+
+            isMovingChange = true;
+            this.location.transform.position = location;
+            destinationSetter.target = this.location.transform;
+
+
+        }
+
         public void TriggerEvents()
         {
             hasArrivedCheck = !hasArrived;
@@ -317,9 +331,15 @@ namespace Architome
             }
             return null;
         }
-        public void StopMoving()
+        public void StopMoving(bool targetSelf = false)
         {
+            if (targetSelf)
+            {
+                MoveTo(entityObject.transform);
+            }
             path.endReachedDistance = float.PositiveInfinity;
+
+
         }
         public GameObject Location()
         {

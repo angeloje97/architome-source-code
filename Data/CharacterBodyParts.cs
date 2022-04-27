@@ -67,6 +67,7 @@ public class CharacterBodyParts : MonoBehaviour
                 return pair.target;
             }
         }
-        return null;
+
+        return transform;
     }
 }
