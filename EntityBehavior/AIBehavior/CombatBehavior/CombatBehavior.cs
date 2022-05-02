@@ -15,8 +15,14 @@ namespace Architome
         public int abilityIndex;
         //public bool targetsRandom;
         public SpecialTargeting targeting;
-        public List<Role> randomTargetWhiteList;
         public List<Role> randomTargetBlackList;
+    }
+    
+    [Serializable]
+    public class SpecialHealing : SpecialAbility
+    {
+        [Range(0, 1)]
+        public float minimumHealth;
     }
 
     [RequireComponent(typeof(CombatInfo))]
@@ -50,7 +56,7 @@ namespace Architome
             public float targetHealth;
             [Range(0, 1)]
             public float minMana;
-            public List<SpecialAbility> specialHealingAbilities;
+            public List<SpecialHealing> specialHealingAbilities;
         }
 
         public HealSettings healSettings;
@@ -142,11 +148,6 @@ namespace Architome
             }
 
 
-            if (entityInfo.CanHelp(ability.target) && abilityManager.attackAbility.isHealing)
-            {
-                SetFocus(ability.target, $"Casted at {ability.target}");
-            }
-
 
 
         }
@@ -166,7 +167,7 @@ namespace Architome
             CreateBehavior();
         }
 
-        void CreateBehavior()
+        public void CreateBehavior()
         {
             if (!entityInfo.isInCombat) { return; }
             CreateNoControl();
@@ -177,6 +178,7 @@ namespace Architome
                 if (behavior.behaviorType != AIBehaviorType.NoControl) return;
                 var noControl = new GameObject("Combat: No Control");
                 noControl.transform.SetParent(transform);
+                noControl.transform.localPosition = new();
                 noControl.AddComponent<CombatNoControl>();
 
             }
@@ -186,6 +188,7 @@ namespace Architome
                 if (behavior.behaviorType != AIBehaviorType.HalfPlayerControl) return;
                 var halfControl = new GameObject("Combat: Half Control");
                 halfControl.transform.SetParent(transform);
+                halfControl.transform.localPosition = new();
                 halfControl.AddComponent<CombatHalfControl>();
                 
             }
@@ -194,9 +197,9 @@ namespace Architome
         
         void ClearCombatBehaviors()
         {
-            foreach (Transform child in transform)
+            foreach (var combatType in GetComponentsInChildren<CombatType>())
             {
-                Destroy(child.gameObject);
+                Destroy(combatType.gameObject);
             }
         }
         public void SetFocus(GameObject target, string reason = "", BuffFixateTarget buffFixate = null)

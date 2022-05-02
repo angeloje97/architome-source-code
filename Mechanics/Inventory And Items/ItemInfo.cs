@@ -43,7 +43,7 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
     {
         ArchAction.Yield(() => ReturnToSlot());
 
-        if (moduleHover == null)
+        if (moduleHover == null && currentSlotHover == null)
         {
 
             var choice = await PromptHandler.active.GeneralPrompt(new()

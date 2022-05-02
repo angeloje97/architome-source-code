@@ -23,8 +23,8 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
 
     public struct Events
     {
-        public Action<InventorySlot, Item, Item> OnItemChange;
-        public Action<InventorySlot> OnSetSlot;
+        public Action<InventorySlot, Item, Item> OnItemChange { get; set; }
+        public Action<InventorySlot> OnSetSlot { get; set; }
     }
 
     public Events events;

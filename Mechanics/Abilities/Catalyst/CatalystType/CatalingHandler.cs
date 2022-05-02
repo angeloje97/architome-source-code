@@ -43,7 +43,7 @@ namespace Architome
         {
             GetDependencies();
 
-            if (ability.cataling.releaseCondition == ReleaseCondition.OnAwake)
+            if (ability.cataling.releaseCondition == CatalystEvent.OnAwake)
             {
                 Activate();
             }
@@ -51,7 +51,7 @@ namespace Architome
 
         void OnCatalystStop(CatalystKinematics kinematics)
         {
-            if (ability.cataling.releaseCondition == ReleaseCondition.OnStop)
+            if (ability.cataling.releaseCondition == CatalystEvent.OnStop)
             {
                 Activate();
             }
@@ -59,7 +59,7 @@ namespace Architome
 
         void OnCatalystDestroy(CatalystDeathCondition deathCondition)
         {
-            if (ability.cataling.releaseCondition == ReleaseCondition.OnDestroy)
+            if (ability.cataling.releaseCondition == CatalystEvent.OnDestroy)
             {
                 ActivateOnce();
             }
@@ -67,7 +67,7 @@ namespace Architome
 
         private void OnHit(GameObject target)
         {
-            if (ability.cataling.releaseCondition == ReleaseCondition.OnHit)
+            if (ability.cataling.releaseCondition == CatalystEvent.OnHit)
             {
                 ActivateOnce();
             }

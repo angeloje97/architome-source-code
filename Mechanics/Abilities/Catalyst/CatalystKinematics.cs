@@ -25,27 +25,34 @@ namespace Architome
         {
             this.catalyst = catalyst;
 
-            if (catalyst.abilityInfo.abilityType == AbilityType.Spawn) return;
-
             HandleStartKinematics();
             HandleCatalystKinematics();
         }
 
         void HandleStartKinematics()
         {
-            if (catalyst.metrics.stops)
+            try
             {
-                speed = catalyst.speed;
+                if (catalyst.abilityInfo.abilityType == AbilityType.Use) return;
+                if (catalyst.abilityInfo.abilityType == AbilityType.Spawn && !catalyst.isCataling) return;
+                if (catalyst.metrics.stops)
+                {
+                    speed = catalyst.speed;
 
-                acceleration = CalculateDecelleration();
+                    acceleration = CalculateDecelleration();
+                }
+                else if (catalyst.metrics.accelBenchmarks.Count > 0)
+                {
+                    speed = catalyst.metrics.startSpeed;
+                }
+                else
+                {
+                    speed = catalyst.speed;
+                }
             }
-            else if (catalyst.metrics.accelBenchmarks.Count > 0)
+            catch
             {
-                speed = catalyst.metrics.startSpeed;
-            }
-            else
-            {
-                speed = catalyst.speed;
+                catalyst.transform.SetParent(CatalystManager.active.defectiveCatalysts);
             }
         }
 
@@ -71,9 +78,11 @@ namespace Architome
         }
 
 
-        void HandleCatalystKinematics()
+        async void HandleCatalystKinematics()
         {
             var condition = new ArchCondition() { isMet = !catalyst.isDestroyed };
+
+            await Task.Delay(125);
 
             ArchAction.UpdateWhile(() => {
 

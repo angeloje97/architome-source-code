@@ -4,6 +4,8 @@ using UnityEngine;
 using System;
 public class TriggerActivator : Activator
 {
+    public Action<Collider, bool> OnTrigger;
+
     public void OnTriggerEnter(Collider other)
     {
 
@@ -14,8 +16,15 @@ public class TriggerActivator : Activator
 
         };
 
+        OnTrigger?.Invoke(other, true);
         OnActivate?.Invoke(data);
         OnActivateUnity?.Invoke(data);
+    }
+
+    public void OnTriggerExit(Collider other)
+    {
+
+        OnTrigger?.Invoke(other, false);
     }
 
 }

@@ -30,11 +30,13 @@ public class EntityInventoryUI : MonoBehaviour
         {
             inventoryManager = GetComponentInParent<InventoryManager>();
         }
+        module = GetComponentInParent<ModuleInfo>();
 
         if (GameManager.active)
         {
             GameManager.active.OnNewPlayableEntity += OnNewPlayableEntity;
         }
+
 
         GetComponent<ItemSlotHandler>().OnChangeItem += OnChangeItem;
     }
@@ -148,6 +150,8 @@ public class EntityInventoryUI : MonoBehaviour
     public GameObject CreateItem(Item item, InventorySlot slot)
     {
         var itemTemplate = inventoryManager.itemTemplate;
+
+        //var newItem = module.CreateItem(item, true);
 
         if(inventoryManager && inventoryManager.itemBin)
         {

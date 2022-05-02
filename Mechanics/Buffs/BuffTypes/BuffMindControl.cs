@@ -33,17 +33,19 @@ public class BuffMindControl : BuffStateChanger
         var host = buffInfo.hostInfo;
         var source = buffInfo.sourceInfo;
 
+        host.OnDamageDone += OnDamageDone;
+
         base.ApplyBuff();
 
         bool changedState = applied;
         applied = changedState;
 
-        if(changedState)
+        if (changedState)
         {
             CleanseTaunts();
             originalBehaviorType = host.AIBehavior().behaviorType;
             originalNPCType = host.npcType;
-            host.ChangeBehavior(source.npcType, Entity.IsPlayer(source.gameObject)? AIBehaviorType.HalfPlayerControl : AIBehaviorType.NoControl);
+            host.ChangeBehavior(source.npcType, Entity.IsPlayer(source.gameObject) ? AIBehaviorType.HalfPlayerControl : AIBehaviorType.NoControl);
             host.Movement().StopMoving();
 
             movement = host.Movement();
@@ -54,8 +56,13 @@ public class BuffMindControl : BuffStateChanger
                 originalFocus = combatBehavior.GetFocus();
             }
 
-            
+
         }
+    }
+
+    void OnDamageDone(CombatEventData eventData)
+    {
+        buffInfo.sourceInfo.OnDamageDone?.Invoke(eventData);
     }
 
     void CleanseTaunts()
@@ -128,6 +135,7 @@ public class BuffMindControl : BuffStateChanger
         if (!applied) return;
         HandleRemoveState(buffInfo);
         buffInfo.hostInfo.ChangeBehavior(originalNPCType, originalBehaviorType);
+        buffInfo.hostInfo.OnDamageDone -= OnDamageDone;
         combatBehavior.SetFocus(originalFocus);
 
         ArchAction.Delay(() => 

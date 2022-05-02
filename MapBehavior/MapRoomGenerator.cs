@@ -68,6 +68,7 @@ namespace Architome
         {
             if (mapInfo.generateRooms)
             {
+                await Task.Delay(1000);
                 StartCoroutine(ClearNullsRoutine());
                 await UpdateskeletonRooms();
                 await UpdateAvailableRooms();
@@ -129,13 +130,16 @@ namespace Architome
                 if (fixTimer > 0) { return; }
                 if (availableRooms.Count > 0 && AvailablePaths().Count > 0)
                 {
+                    var availablePaths = AvailablePaths();
                     //var randomPathIndex = Random.Range((int)0, (int)AvailablePaths().Count);
-                    var seedPathIndex = mapInfo.seedGenerator.factors[AvailablePaths().Count];
-                    var seedRoomIndex = mapInfo.seedGenerator.factors[availableRooms.Count];
+                    //var seedPathIndex = mapInfo.seedGenerator.factors[AvailablePaths().Count];
+                    //var seedRoomIndex = mapInfo.seedGenerator.factors[availableRooms.Count];
                     //var randomRoomIndex = Random.Range((int)0, (int)availableRooms.Count);
+                    var seedPathIndex = UnityEngine.Random.Range(0, availablePaths.Count);
+                    var seedRoomIndex = UnityEngine.Random.Range(0, availableRooms.Count);
 
 
-                    AvailablePaths()[seedPathIndex].SpawnRoom(availableRooms[seedRoomIndex], roomList);
+                    availablePaths[seedPathIndex].SpawnRoom(availableRooms[seedRoomIndex], roomList);
                     availableRooms.Remove(availableRooms[seedRoomIndex]);
                     return;
 
@@ -177,8 +181,8 @@ namespace Architome
                     }
                 }
 
-
-                var pathSeed = seedGenerator.Factor2(skeletonRooms.Count, availablePaths.Count);
+                var pathSeed = UnityEngine.Random.Range(0, availablePaths.Count);
+                //var pathSeed = seedGenerator.Factor2(skeletonRooms.Count, availablePaths.Count);
                 Debugger.InConsole(9532, $"{pathSeed}");
 
 
@@ -337,7 +341,9 @@ namespace Architome
 
                 if (availablePaths.Count == 0) { return false; }
 
-                int randomPathIndex = seedGenerator.factors[availablePaths.Count];
+                //int randomPathIndex = seedGenerator.factors[availablePaths.Count];
+                int randomPathIndex = UnityEngine.Random.Range(0, availablePaths.Count);
+
 
                 var roomInfo = availablePaths[randomPathIndex].SpawnRoom(room, roomList);
 

@@ -11,6 +11,7 @@ public class CatalystBounce : MonoBehaviour
     public AbilityInfo abilityInfo;
     public CatalystInfo catalystInfo;
     public CatalystHit catalystHit;
+    public AbilityInfo.Bounce bounce;
 
     public LayerMask targetLayerMask;
     public LayerMask obstructionLayer;
@@ -19,7 +20,6 @@ public class CatalystBounce : MonoBehaviour
     public List<NPCType> possibleNPCTypes;
     public int currentTicks;
 
-    public float bounceRadius;
 
     public bool cantFindEntity;
 
@@ -45,10 +45,7 @@ public class CatalystBounce : MonoBehaviour
             catalystHit = gameObject.GetComponent<CatalystHit>();
         }
 
-        if(abilityInfo)
-        {
-            bounceRadius = abilityInfo.bounceRadius;
-        }
+        bounce = abilityInfo.bounce;
 
         possibleNPCTypes = new List<NPCType>();
         possibleNPCTypes.Add(NPCType.Friendly);
@@ -96,7 +93,7 @@ public class CatalystBounce : MonoBehaviour
     {
         if (catalystInfo == null || abilityInfo == null || catalystHit == null) { return; }
 
-        var entityList = catalystInfo.EntitiesWithinRadius(bounceRadius);
+        var entityList = catalystInfo.EntitiesWithinRadius(bounce.radius);
 
         Debugger.InConsole(9414, $"Starting to find new target");
 

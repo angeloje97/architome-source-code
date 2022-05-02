@@ -68,7 +68,6 @@ namespace Architome
                 var source = audioManager.AudioSourceFromClip(effect.audioClip);
 
                 if (source) source.Stop();
-
             }
         }
 

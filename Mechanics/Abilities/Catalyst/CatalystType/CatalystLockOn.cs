@@ -103,7 +103,7 @@ public class CatalystLockOn : MonoBehaviour
 
         if (smoothening > 1)
         {
-            smoothening -= Time.deltaTime * (catalystInfo.metrics.inertia / 2);
+            smoothening -= Time.deltaTime * catalystInfo.metrics.inertiaFallOff;
         }
 
     }

@@ -127,13 +127,13 @@ namespace Architome
 
         void OnCastReleasePercent(AbilityInfo ability)
         {
-            animator.SetTrigger("AbilityRelease");
+            animator.SetTrigger("ReleaseAbility");
         }
 
         void OnChannelInterval(AbilityInfo ability)
         {
 
-            animator.SetTrigger("AbilityRelease");
+            animator.SetTrigger("ReleaseAbility");
         }
     }
 

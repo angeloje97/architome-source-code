@@ -208,6 +208,7 @@ public class CatalystHit : MonoBehaviour
     public void HandleMainTarget(GameObject target)
     {
         if(catalystInfo.target != target) { return; }
+        if (abilityInfo.abilityType != AbilityType.LockOn) return;
         if(abilityInfo.isHarming && abilityInfo.isHealing && abilityInfo.isAssisting) { return; }
 
         if(abilityInfo.isHarming && !abilityInfo.isAssisting && !abilityInfo.isHealing)

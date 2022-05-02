@@ -16,6 +16,7 @@ namespace Architome
         public AudioSource presetAudio;
         public AudioMixerGroup mixerGroup;
         public Action<AudioManager> OnEmptyAudio;
+        public List<Action> Actions;
 
         public bool audioRoutineIsActive;
 
@@ -28,7 +29,10 @@ namespace Architome
         void Start()
         {
             audioSources = new List<AudioSource>();
+            Actions = new();
         }
+
+        
 
         public void OnValidate()
         {
@@ -77,9 +81,31 @@ namespace Architome
 
         }
 
+        public void AddAction(Action action)
+        {
+            if (Actions == null)
+            {
+                Actions = new();
+            }
+
+            Actions.Add(action);
+        }
+
+        public void InitiateActions()
+        {
+            for (int i = 0; i < Actions.Count; i++)
+            {
+                Actions[i]();
+
+                Actions.RemoveAt(i);
+                i--;
+            }
+        }
+
         public AudioSource AudioSourceFromClip(AudioClip clip)
         {
             return audioSources.Find(source => source.clip == clip);
+            
         }
 
         public bool IsPlaying()
@@ -119,7 +145,10 @@ namespace Architome
                 {
                     if (!source.isPlaying)
                     {
-                        source.PlayOneShot(clip);
+                        source.clip = clip;
+                        source.loop = false;
+                        source.Play();
+                        //source.PlayOneShot(clip);
                         return source;
                     }
                 }
@@ -138,7 +167,10 @@ namespace Architome
             newAudioSource.pitch += randomPitchOffset;
             
             audioSources.Add(newAudioSource);
-            newAudioSource.PlayOneShot(clip);
+
+            newAudioSource.clip = clip;
+            newAudioSource.Play();
+            //newAudioSource.PlayOneShot(clip);
 
             if (!audioRoutineIsActive)
             {
@@ -163,7 +195,6 @@ namespace Architome
         {
             var audioSource = PlaySound(clip);
             audioSource.Stop();
-            audioSource.clip = clip;
             audioSource.loop = true;
             audioSource.Play();
 

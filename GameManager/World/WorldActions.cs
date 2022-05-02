@@ -78,4 +78,22 @@ public class WorldActions : MonoBehaviour
 
         lastSpawnBeacon.spawnEvents.OnSpawnEntity?.Invoke(entityInfo);
     }
+
+    public GameObject SpawnEntity(GameObject entity, Vector3 position)
+    {
+        var collider = entity.GetComponent<Collider>();
+        var character = entity.GetComponentInChildren<CharacterInfo>();
+        var deltaHeight = -collider.bounds.center.y;
+        var sizeOffset = collider.bounds.size.y;
+
+        var positionOffset = -character.transform.localPosition.y;
+
+        var node = AstarPath.active.GetNearest(position).node;
+
+        if (true)
+        {
+            var newPosition = ((Vector3) node.position)  + new Vector3(0, positionOffset, 0);
+            return Instantiate(entity, newPosition, new Quaternion());
+        }
+    }
 }

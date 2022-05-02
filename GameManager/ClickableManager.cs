@@ -10,11 +10,11 @@ namespace Architome
     {
         public static ClickableManager active;
 
-        public Action<Clickable> OnClickableObject;
+        public Action<Clickable> OnClickableObject { get; set; }
 
         public GameObject currentClickableHover;
 
-        public Action<GameObject, GameObject> OnNewClickableHover;
+        public Action<GameObject, GameObject> OnNewClickableHover { get; set; }
 
         GameObject clickableHoverCheck;
 

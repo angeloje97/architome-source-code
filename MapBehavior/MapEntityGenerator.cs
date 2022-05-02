@@ -9,6 +9,7 @@ public class MapEntityGenerator : MonoBehaviour
     public static MapEntityGenerator active;
     // Start is called before the first frame update
     public MapInfo mapInfo;
+    WorldActions world;
     public bool generatedEntities;
 
     public Transform entityList;
@@ -43,6 +44,8 @@ public class MapEntityGenerator : MonoBehaviour
                 mapInfo.RoomGenerator().OnRoomsGenerated += OnRoomsGenerated;
             }
         }
+
+        world = WorldActions.active;
     }
 
     void Awake()
@@ -144,32 +147,49 @@ public class MapEntityGenerator : MonoBehaviour
                         }
                     }
 
-                    if (roomInfo.GetType() == typeof(BossRoom))
+                    if (HandleBossRoom(roomInfo))
                     {
-                        var bossRoom = (BossRoom)roomInfo;
-                        var bossPosition = bossRoom.bossPosition;
-                        var boss = bossRoom.bossToSpawn;
-
+                        await Task.Yield();
                     }
+
+                    //if (roomInfo.GetType() == typeof(BossRoom))
+                    //{
+                    //    var bossRoom = (BossRoom)roomInfo;
+                    //    var bossPosition = bossRoom.bossPosition;
+                    //    var boss = bossRoom.bossToSpawn;
+
+                    //}
                
-                    if (roomInfo.bossPos &&
-                    bossEntities.Count > 0)
-                    {
-                        foreach (Transform trans in roomInfo.bossPos)
-                        {
-                            SpawnEntity(bossEntities[0], trans);
-                            await Task.Yield();
+                    //if (roomInfo.bossPos &&
+                    //bossEntities.Count > 0)
+                    //{
+                    //    foreach (Transform trans in roomInfo.bossPos)
+                    //    {
+                    //        SpawnEntity(bossEntities[0], trans);
+                    //        await Task.Yield();
 
                             
-                        }
-
-                        
-                    }
+                    //    }
+                    //}
 
                 }
             }
         }
         
+    }
+
+    bool HandleBossRoom(RoomInfo room)
+    {
+        if (room.GetType() != typeof(BossRoom)) return false;
+        var bossRoom = (BossRoom)room;
+        var bossPosition = bossRoom.bossPosition;
+        var boss = bossRoom.bossToSpawn;
+
+        if (boss == null) return false;
+
+        SpawnEntity(boss, bossPosition);
+
+        return true;
     }
 
 
@@ -181,10 +201,13 @@ public class MapEntityGenerator : MonoBehaviour
 
     GameObject SpawnEntity(GameObject entity, Transform spot)
     {
-        var normalRotation = new Quaternion();
+        //var normalRotation = new Quaternion();
         var roomInfo = spot.GetComponentInParent<RoomInfo>();
 
-        var newEntity = Instantiate(entity, spot.position, normalRotation, entityList);
+        var newEntity = world.SpawnEntity(entity, spot.position);
+        newEntity.transform.SetParent(entityList, true);
+            
+            //Instantiate(entity, spot.position, normalRotation, entityList);
 
         newEntity.GetComponent<EntityInfo>().CharacterInfo().gameObject.transform.rotation = spot.rotation;
 

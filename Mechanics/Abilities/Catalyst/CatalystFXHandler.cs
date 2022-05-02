@@ -4,6 +4,8 @@ using UnityEngine;
 using System.Threading.Tasks;
 using System.Linq;
 using Architome.Enums;
+using System;
+
 
 namespace Architome
 {
@@ -12,6 +14,7 @@ namespace Architome
         // Start is called before the first frame update
         public AudioManager audioManager;
         public ParticleManager particleManager;
+        public ArchLightManager lightManager;
 
         new void GetDependencies()
         {
@@ -31,21 +34,28 @@ namespace Architome
             }
 
             particleManager = CatalystManager.active.GetComponent<ParticleManager>();
+            lightManager = particleManager.GetComponent<ArchLightManager>();
         }
         void Start()
         {
             GetDependencies();
             AdjustDestroyDelay();
+            HandleLight();
             HandleGrow();
             HandleStartFromGround();
             ActivateAwakeEffects();
         }
 
+        void HandleLight()
+        {
+            if (!catalyst.effects.light.enable) return;
+            var lightEffect = catalyst.effects.light;
+            lightManager.Light(transform, lightEffect.color, lightEffect.intensity, 5f);
+        }
         void AdjustDestroyDelay()
         {
             deathCondition.destroyDelay = catalyst.effects.MaxCatalystDuration();
         }
-
         async void HandleStartFromGround()
         {
             if (!catalyst.effects.startFromGround) return;
@@ -57,14 +67,13 @@ namespace Architome
 
             transform.position = groundPos;
 
-            while (transform.position != originalPosition)
+            while (transform.position != originalPosition && !catalyst.isDestroyed)
             {
+                transform.position = Vector3.Lerp(transform.position, originalPosition, .0625f);
                 await Task.Yield();
 
-                transform.position = Vector3.Lerp(transform.position, originalPosition, .0625f);
             }
         }
-
         async void HandleGrow()
         {
             if (!catalyst.effects.growsOnAwake)
@@ -79,6 +88,8 @@ namespace Architome
             while (transform.localScale != originalScale)
             {
                 await Task.Yield();
+                if (catalyst.isDestroyed) return;
+
                 if (gameObject == null) break;
 
                 transform.localScale = Vector3.Lerp(transform.localScale, originalScale, .0625f);
@@ -102,51 +113,40 @@ namespace Architome
 
             }
         }
-
         void OnInterval(CatalystInfo catalyst)
         {
-            HandleEffects(ReleaseCondition.OnInterval);
+            HandleEffects(CatalystEvent.OnInterval);
         }
-
         void OnCatalingRelease(CatalystInfo catalyst, CatalystInfo cataling)
         {
-            HandleEffects(ReleaseCondition.OnCatalingRelease);
+            HandleEffects(CatalystEvent.OnCatalingRelease);
         }
-
         void ActivateAwakeEffects()
         {
-            HandleEffects(ReleaseCondition.OnAwake);
+            HandleEffects(CatalystEvent.OnAwake);
         }
-
         private void OnCatalystStop(CatalystKinematics kinematics)
         {
-            HandleEffects(ReleaseCondition.OnStop);
+            HandleEffects(CatalystEvent.OnStop);
         }
-
         private void OnCatalystDestroy(CatalystDeathCondition condition)
         {
-            HandleEffects(ReleaseCondition.OnDestroy);
+            HandleEffects(CatalystEvent.OnDestroy);
             HandleCollapse();
         }
-
         private void OnHit(GameObject target)
         {
-            HandleEffects(ReleaseCondition.OnHit);
+            HandleEffects(CatalystEvent.OnHit);
         }
-
-        
-
         public void OnDamage(GameObject target)
         {
-            HandleEffects(ReleaseCondition.OnHarm);
+            HandleEffects(CatalystEvent.OnHarm);
         }
-
         public void OnHeal(GameObject target)
         {
-            HandleEffects(ReleaseCondition.OnHeal);
+            HandleEffects(CatalystEvent.OnHeal);
         }
-
-        public void HandleEffects(ReleaseCondition action)
+        public void HandleEffects(CatalystEvent action)
         {
             var effects = catalyst.effects.catalystsEffects;
 
@@ -159,22 +159,25 @@ namespace Architome
             }
 
         }
-
         void HandleAudio(CatalystInfo.CatalystEffects.Catalyst effect)
         {
             if (effect.audioClip == null) return;
             if (audioManager == null) return;
+            if (effect.playTrigger == CatalystEvent.OnDestroy && effect.loops) return;
 
             if (effect.loops)
             {
-                audioManager.PlaySoundLoop(effect.audioClip);
+                var source = audioManager.PlaySoundLoop(effect.audioClip);
+
+                Action<CatalystDeathCondition> OnDestroy = new((CatalystDeathCondition condition) => { source.Stop(); });
+
+                catalyst.OnCatalystDestroy += OnDestroy;
             }
             else
             {
                 audioManager.PlaySound(effect.audioClip);
             }
         }
-
         void HandleParticle(CatalystInfo.CatalystEffects.Catalyst effect)
         {
             if (effect.particleObj == null) return;
@@ -195,7 +198,15 @@ namespace Architome
 
             if (effect.looksAtTarget)
             {
-                system.transform.rotation = V3Helper.LerpLookAt(system.transform, (catalyst.target ? catalyst.target.transform.position : catalyst.location), 1f);
+                if (ability.abilityType == AbilityType.LockOn)
+                {
+                    system.transform.rotation = V3Helper.LerpLookAt(system.transform, (catalyst.target ? catalyst.target.transform.position : catalyst.location), 1f);
+                }
+                else
+                {
+                    system.transform.rotation = V3Helper.LerpLookAt(system.transform, catalyst.location, 1f);
+                }
+                
             }
 
 

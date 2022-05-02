@@ -18,6 +18,11 @@ public class V3Helper
         return Abs(end - start);
     }
 
+    public static (Vector3, float) DirectionDistance(Vector3 end, Vector3 start)
+    {
+        return (Vector3.Normalize(end - start), Abs(end - start));
+    }
+
     public static float Abs(Vector3 v)
     {
         return Mathf.Sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
@@ -25,10 +30,9 @@ public class V3Helper
 
     public static Vector3 MidPoint(Vector3 end, Vector3 start)
     {
-        var midPoint = new Vector3((end.x + start.x) / 2, (end.y + start.y) / 2, (end.z + end.z)/2);
+        return (end + start) / 2;
 
 
-        return midPoint;
     }
 
     public static Vector3 Difference(Vector3 end, Vector3 start)
@@ -56,21 +60,25 @@ public class V3Helper
 
     public static Vector3 MidPoint(List<Transform> transforms)
     {
-        var maxX = transforms.Max(trans => trans.position.x);
-        var minX = transforms.Min(trans => trans.position.x);
-        var maxY = transforms.Max(trans => trans.position.y);
-        var minY = transforms.Min(trans => trans.position.y);
-        var maxZ = transforms.Max(trans => trans.position.z);
-        var minZ = transforms.Min(trans => trans.position.z);
+        Vector3 min = new();
+        Vector3 max = new();
 
-        return new Vector3((maxX + minX) /2, (maxY + minY) /2 , (maxZ + minZ) / 2);
+        foreach (var trans in transforms)
+        {
+            min.x = trans.position.x < min.x ? trans.position.x : min.x;
+            min.y = trans.position.y < min.y ? trans.position.y : min.y;
+            min.z = trans.position.z < min.z ? trans.position.z : min.z;
+
+            max.x = trans.position.x > max.x ? trans.position.x : max.x;
+            max.y = trans.position.y > max.y ? trans.position.y : max.y;
+            max.z = trans.position.z > max.z ? trans.position.z : max.z;
+        }
+
+        return (min + max) / 2;
     }
 
     public static float MaxDistance(Vector3 point, List<Transform> transforms)
     {
-
-
-
         var orderedList = transforms.OrderByDescending(trans => Distance(trans.position, point)).ToList();
 
         return Distance(orderedList[0].position, point);
@@ -103,15 +111,29 @@ public class V3Helper
     
     public static Vector3 Dimensions(List<Transform> transforms)
     {
-        var maxX = transforms.Max(trans => trans.position.x);
-        var minX = transforms.Min(trans => trans.position.x);
-        var maxY = transforms.Max(trans => trans.position.y);
-        var minY = transforms.Min(trans => trans.position.y);
-        var maxZ = transforms.Max(trans => trans.position.z);
-        var minZ = transforms.Min(trans => trans.position.z);
+        var (min, max) = MinMax(transforms);
 
-        return new Vector3(maxX - minX, maxY - minY, maxZ - minZ);
+        return max - min;
 
+    }
+
+    public static (Vector3, Vector3) MinMax(List<Transform> transforms)
+    {
+        Vector3 min = new();
+        Vector3 max = new();
+
+        foreach (var trans in transforms)
+        {
+            min.x = trans.position.x < min.x ? trans.position.x : min.x;
+            min.y = trans.position.y < min.y ? trans.position.y : min.y;
+            min.z = trans.position.z < min.z ? trans.position.z : min.z;
+
+            max.x = trans.position.x > max.x ? trans.position.x : max.x;
+            max.y = trans.position.y > max.y ? trans.position.y : max.y;
+            max.z = trans.position.z > max.z ? trans.position.z : max.z;
+        }
+
+        return (min, max);
     }
 
     public static Vector3 RandomVector3(Vector3 min, Vector3 max)
@@ -129,15 +151,22 @@ public class V3Helper
         return new Vector3(position.x, 0, position.y);
     }
 
-    public static Vector3 InterceptionPoint(Vector3 source, Vector3 target, LayerMask interceptionLayerMask)
+    public static Vector3 InterceptionPoint(Vector3 source, Vector3 target, LayerMask interceptionLayerMask, float near = 0f)
     {
-        var direction = Direction(target, source);
-        var distance = Distance(target, source);
+        var (direction, distance) = DirectionDistance(target, source);
         Ray ray = new Ray(source, direction);
 
         if(Physics.Raycast(ray, out RaycastHit hit, distance, interceptionLayerMask))
         {
-            return hit.point;
+            var location = hit.point;
+            
+            if (near > 0f)
+            {
+                direction = Direction(source, target);
+                location -= direction * near;
+            }
+
+            return location;
         }
         else
         {

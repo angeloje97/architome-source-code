@@ -22,8 +22,8 @@ namespace Architome
         public EntityFXPack entityFX;
 
         public EntityControlType entityControlType;
-        [Header("Entity Properties")]
         [SerializeField] public NPCType npcType;
+        [Header("Entity Properties")]
         public EntityRarity rarity;
         public List<EntityState> stateImmunities;
         public bool isPlayer;
@@ -93,7 +93,7 @@ namespace Architome
         }
 
         public event Action<CombatEventData> OnDamageTaken;
-        public event Action<CombatEventData> OnDamageDone;
+        public Action<CombatEventData> OnDamageDone;
         public event Action<CombatEventData> OnHealingTaken;
         public event Action<CombatEventData> OnHealingDone;
         public event Action<CombatEventData> OnReviveOther;
@@ -105,7 +105,7 @@ namespace Architome
         public Action<BuffInfo, EntityInfo> OnBuffApply;
         public Action<float> OnExperienceGain;
         public Action<int> OnLevelUp;
-        public Action<float, float, float> OnHealthChange;
+        public Action<float, float, float> OnHealthChange { get; set; }
         public Action<float, float> OnManaChange;
         public Action<bool> OnCombatChange;
         public Action<bool> OnLifeChange;
@@ -167,12 +167,12 @@ namespace Architome
                 presetStats = Instantiate(presetStats);
                 entityName = presetStats.name;
                 role = presetStats.Role;
-                entityStats = new Stats().Sum(entityStats,presetStats.Stats);
-                npcType = presetStats.npcType;
+                entityStats += presetStats.Stats;
+                //npcType = presetStats.npcType;
 
 
                 canLevel = presetStats.canLevel;
-                stats = stats.Sum(stats, entityStats);
+                stats += entityStats;
                 UpdateResources(true);
             }
             else
@@ -183,7 +183,7 @@ namespace Architome
                 entityStats.Dexterity = 10;
                 entityStats.Wisdom = 10;
                 role = Role.Damage;
-                stats = stats.Sum(stats, entityStats);
+                stats += entityStats;
                 UpdateResources(true);
 
             }
@@ -329,16 +329,17 @@ namespace Architome
             if (entityStats == null) { return; }
 
             var currentStats = entityStats;
+            var buffs = Buffs();
 
-            if (Buffs())
+            if (buffs)
             {
-                currentStats = currentStats.Sum(currentStats, Buffs().stats);
+                currentStats += buffs.stats;
             }
 
             if (CharacterInfo())
             {
                 CharacterInfo().UpdateEquipmentStats();
-                currentStats = currentStats.Sum(currentStats, CharacterInfo().totalEquipmentStats);
+                currentStats += CharacterInfo().totalEquipmentStats;
             }
 
             stats = currentStats;
@@ -505,6 +506,8 @@ namespace Architome
             }
         }
 
+        
+
         public bool AddState(EntityState state)
         {
             if (stateImmunities.Contains(state))
@@ -608,6 +611,7 @@ namespace Architome
         }
         public void GainResource(float value)
         {
+            
             if (mana + value > maxMana)
             {
                 mana = maxMana;
@@ -616,6 +620,8 @@ namespace Architome
             {
                 mana += value;
             }
+
+            mana = Math.Clamp(mana, 0, maxMana);
 
         }
         public void Die()
@@ -654,10 +660,15 @@ namespace Architome
             
             OnReviveThis?.Invoke(combatData);
         }
+
+        public void ChangeNPCType(NPCType type)
+        {
+            this.npcType = type;
+        }
         public void ChangeBehavior(NPCType npcType, AIBehaviorType behaviorType)
         {
 
-            this.npcType = npcType;
+            ChangeNPCType(npcType);
             AIBehavior().behaviorType = behaviorType;
             
         }

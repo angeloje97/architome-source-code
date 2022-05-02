@@ -64,7 +64,7 @@ namespace Architome
 
             public Vector3 direction, location, startingLocation, startDirectionRange;
 
-            public float value, startingHeight, currentRange, liveTime, distanceFromTarget, inertia, intervals;
+            public float value, startingHeight, currentRange, liveTime, distanceFromTarget, inertia, inertiaFallOff, intervals;
 
             public int ticks;
 
@@ -95,8 +95,9 @@ namespace Architome
             [Serializable]
             public struct Catalyst
             {
-                public ReleaseCondition playTrigger;
+                public CatalystEvent playTrigger;
                 public CatalystParticleTarget target;
+                public RadiusType manifestRadius;
                 public Vector3 offsetPosition, offsetScale, offsetRotation;
                 public GameObject particleObj;
                 public AudioClip audioClip;
@@ -107,11 +108,13 @@ namespace Architome
             [Serializable]
             public struct Ability
             {
-                public AbilityTrigger trigger;
+                public AbilityEvent trigger;
                 public GameObject particle;
                 public BodyPart bodyPart;
                 public BodyPart bodyPart2;
+                public RadiusType manifestRadius;
                 public CatalystParticleTarget target;
+                public CatalystParticleTarget secondTarget;
                 public bool looksAtTarget;
                 public Vector3 offsetPosition, offsetScale, offsetRotation;
 
@@ -120,8 +123,19 @@ namespace Architome
                 public bool loops;
             }
 
+            [Serializable]
+            public struct CatalystLight
+            {
+                public bool enable;
+                public Color color;
+                public float intensity;
+                public float range;
+            }
+
+
             public List<Catalyst> catalystsEffects;
             public List<Ability> abilityEffects;
+            public CatalystLight light;
             
 
             public BodyPart startingBodyPart;
@@ -131,11 +145,7 @@ namespace Architome
             public bool growsOnAwake;
             public bool startFromGround;
 
-            [Header("Particle Effects")]
-            
-            public GameObject destroyParticle;
-            public GameObject groundParticle;
-            public ReleaseCondition groundRelease;
+
 
             public float MaxCatalystDuration()
             {
@@ -184,7 +194,7 @@ namespace Architome
         public Action<CatalystInfo> OnCantFindEntity;
         public Action<CatalystInfo, int> OnTickChange;
         public Action<CatalystInfo, GameObject> OnCloseToTarget;
-        public Action<CatalystInfo, GameObject> OnWrongTargetHit;
+        public Action<CatalystInfo, GameObject> OnWrongTargetHit { get; set; }
         public Action<GameObject, bool> OnPhysicsInteraction;
         public Action<CatalystKinematics> OnCatalystStop;
         public Action<CatalystKinematics> OnCatalystMaxSpeed;
@@ -284,7 +294,7 @@ namespace Architome
                     catalystUse.catalystInfo = this;
                 }
 
-                if (abilityInfo.bounces)
+                if (abilityInfo.bounce.enable)
                 {
                     gameObject.AddComponent<CatalystBounce>();
                 }
@@ -354,8 +364,9 @@ namespace Architome
 
             var trans = bodyPart.BodyPartTransform(effects.startingBodyPart);
 
+            
             transform.position = trans.position;
-
+            transform.LookAt(location);
         }
 
         public void OnTriggerEnter(Collider other)
@@ -411,7 +422,7 @@ namespace Architome
 
             if (targetInfo.isAlive) { return; }
 
-            if (abilityInfo.bounces)
+            if (abilityInfo.bounce.enable)
             {
                 GetComponent<CatalystBounce>().LookForNewTarget();
             }
@@ -419,7 +430,6 @@ namespace Architome
         public List<GameObject> EntitiesWithinRadius(float radius = 0f)
         {
             if (radius == 0) radius = range;
-
 
             List<GameObject> entities = new List<GameObject>();
 

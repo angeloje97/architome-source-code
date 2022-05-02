@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
-public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, IEndDragHandler, IDragHandler, IDropHandler
+public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, IEndDragHandler, IDragHandler, IDropHandler, IPointerUpHandler
 {
     // Start is called before the first frame update
     public CanvasGroup canvasGroup;
@@ -22,13 +22,13 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        
         if (sameChildIndex) { return; }
         objectToDrag.SetAsLastSibling();
+        
+
     }
     public void OnPointerUp(PointerEventData eventData)
     {
-        //isDragging = false;
     }
 
     public void OnBeginDrag(PointerEventData eventData)
@@ -37,6 +37,7 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
         isDragging = true;
         canvasGroup.blocksRaycasts = false;
         canvasGroup.alpha = dragAlpha;
+
     }
 
     public void OnEndDrag(PointerEventData eventData)

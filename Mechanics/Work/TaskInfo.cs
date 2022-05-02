@@ -33,12 +33,16 @@ namespace Architome
             public bool autoRepeat;
             public bool allowLinger;
             public bool resetOnCancel;
+            public bool damageCnacelsTask;
+            public bool hideFromPlayers;
 
             [Header("Effects")]
             public int taskAnimationID;
             public int lingeringAnimationID;
             public AudioClip workingSound;
             public AudioClip completionSound;
+
+            
 
 
             //Private variables

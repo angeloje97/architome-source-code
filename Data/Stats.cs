@@ -112,10 +112,10 @@ namespace Architome
             //experience = 0;
             //experienceReq = 0;
         }
-        public Stats Sum(Stats s1, Stats s2)
+
+        public static Stats operator +(Stats s1, Stats s2)
         {
             Stats s3 = new Stats();
-
 
             foreach (var field in s3.GetType().GetFields())
             {
@@ -123,7 +123,7 @@ namespace Architome
                 {
                     var s1Value = (int)field.GetValue(s1);
                     var s2Value = (int)field.GetValue(s2);
-                    
+
 
                     field.SetValue(s3, s1Value + s2Value);
                 }
@@ -138,37 +138,9 @@ namespace Architome
             }
 
             return s3;
-
-
-            //s3.Level = s1.Level + s2.Level;
-            //s3.Vitality = s1.Vitality + s2.Vitality;
-            //s3.Strength = s1.Strength + s2.Strength;
-            //s3.Dexterity = s1.Dexterity + s2.Dexterity;
-            //s3.Wisdom = s1.Wisdom + s2.Wisdom;
-
-            //s3.attackSpeed = s1.attackSpeed + s2.attackSpeed;
-            //s3.attackDamage = s1.attackDamage + s2.attackDamage;
-            //s3.criticalStrikeChance = s1.criticalStrikeChance + s2.criticalStrikeChance;
-            //s3.criticalDamage = s1.criticalDamage + s2.criticalDamage;
-            //s3.damageReduction = s1.damageReduction + s2.damageReduction;
-            //s3.magicResist = s1.magicResist + s2.magicResist;
-            //s3.armor = s1.armor + s2.armor;
-            //s3.manaRegen = s1.manaRegen + s2.manaRegen;
-            //s3.healthRegen = s1.healthRegen + s2.manaRegen;
-            //s3.outOfCombatRegenMultiplier = s1.outOfCombatRegenMultiplier + s2.outOfCombatRegenMultiplier;
-            //s3.healingReceivedMultiplier = s1.healingReceivedMultiplier + s2.healingReceivedMultiplier;
-            //s3.damageMultiplier = s1.damageMultiplier + s2.damageMultiplier;
-            //s3.damageTakenMultiplier = s1.damageTakenMultiplier + s2.damageTakenMultiplier;
-            //s3.movementSpeed = s1.movementSpeed + s2.movementSpeed;
-            //s3.haste = s1.haste + s2.haste;
-
-            //s3.experience = s1.experience + s2.experience;
-            //s3.experienceReq = s1.experienceReq + s2.experienceReq;
-
-            //return s3;
         }
 
-        public Stats Difference(Stats s1, Stats s2)
+        public static Stats operator -(Stats s1, Stats s2)
         {
             var s3 = new Stats();
 
@@ -192,7 +164,6 @@ namespace Architome
             }
 
             return s3;
-
         }
 
         public List<Attribute> Attributes()

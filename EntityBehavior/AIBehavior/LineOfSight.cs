@@ -320,7 +320,7 @@ public class LineOfSight : MonoBehaviour
     {
         var entityList = new List<EntityInfo>();
 
-        foreach(GameObject entity in entitiesDetected)
+        foreach(GameObject entity in entitiesWithinLineOfSight)
         {
             if(entity.GetComponent<EntityInfo>() &&
                 entity.GetComponent<EntityInfo>().npcType == npcType)
@@ -334,7 +334,21 @@ public class LineOfSight : MonoBehaviour
 
     public List<EntityInfo> DetectedAllies()
     {
-        return entitiesWithinLineOfSight.Select(entity => entity.GetComponent<EntityInfo>()).Where(entity => entity.npcType == entityInfo.npcType).ToList();
+        var entityList = new List<EntityInfo>();
+        var listCheck = partyInfo ? partyInfo.members : entitiesWithinLineOfSight;
+
+        foreach (var entity in listCheck)
+        {
+            var info = entity.GetComponent<EntityInfo>();
+
+            if (info.npcType == entityInfo.npcType)
+            {
+                entityList.Add(info);
+            }
+        }
+
+
+        return entityList;
 
     }
 

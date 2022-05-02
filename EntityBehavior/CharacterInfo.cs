@@ -237,7 +237,7 @@ public class CharacterInfo : EntityProp
         {
             foreach (var equipment in EquippedItems())
             {
-                totalEquipmentStats = totalEquipmentStats.Sum(totalEquipmentStats, equipment.stats);
+                totalEquipmentStats += equipment.stats;
             }
         }
 
@@ -433,7 +433,12 @@ public struct CharacterAbilityHandler
 
     public void WhileCasting(AbilityInfo ability)
     {
-        var target = ability.targetLocked != null ? ability.targetLocked.transform.position : ability.locationLocked;
+        var target = ability.locationLocked;
+
+        if (ability.abilityType == AbilityType.LockOn && ability.target)
+        {
+            target = ability.target.transform.position;
+        }
 
         if (ability.abilityType == AbilityType.Use) return;
         character.LookAt(target);

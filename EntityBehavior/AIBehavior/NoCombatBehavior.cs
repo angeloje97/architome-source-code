@@ -89,6 +89,7 @@ namespace Architome
                 HandleSheathing(true);
                 return;
             }
+
             HandleWalking(val);
             HandleSheathing(val);
             StartCoroutine(DelayedCombatRoutine());
@@ -148,19 +149,14 @@ namespace Architome
         {
             if (movement == null) { return; }
 
-            if (val)
+            if (!walkSpeed)
             {
-                if (entityInfo.stats.movementSpeed != originalMovementSpeed)
-                {
-                    entityInfo.stats.movementSpeed = originalMovementSpeed;
-                }
-
-                return;
+                movement.SetWalk(false);
             }
-
-            if (!walkSpeed) { return; }
-            var walkSpeedPercent = GMHelper.WorldSettings().baseWalkSpeed / GMHelper.WorldSettings().baseMovementSpeed;
-            if (entityInfo.stats.movementSpeed != walkSpeedPercent) { entityInfo.stats.movementSpeed = walkSpeedPercent; }
+            else
+            {
+                movement.SetWalk(!val);
+            }
 
         }
     }

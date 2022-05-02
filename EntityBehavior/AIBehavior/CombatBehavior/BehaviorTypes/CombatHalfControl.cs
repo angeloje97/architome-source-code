@@ -46,13 +46,16 @@ namespace Architome
         {
             if (combat.tryMoveTimer > 0) { return; }
             if (behavior.behaviorState != BehaviorState.Idle) return;
+            if (entity.workerState != WorkerState.Idle) return;
             if (behavior.combatType == CombatBehaviorType.Passive && combat.GetFocus() == null) return;
 
             if (UsingAbility()) return;
+            if (UsingHealingAbility()) return;
+
 
             var target = combat.GetFocus() != null ? combat.GetFocus() : combat.target;
             HandleHarm(target);
-            HandleAssist();
+            HandleAutoHeal();
 
             abilityManager.target = null;
 
@@ -60,10 +63,7 @@ namespace Architome
 
         bool UsingAbility()
         {
-            
-            var currentAbility = abilityManager.currentlyCasting;
-
-            if (currentAbility != null && !currentAbility.isAttack) return false;
+            if (!IsOpen()) return false;
 
             foreach (var special in combat.specialAbilities)
             {
@@ -79,6 +79,7 @@ namespace Architome
                 if (special.targeting == SpecialTargeting.TargetsFocus)
                 {
                     if(combat.GetFocus() == null && (int) behavior.combatType < 2) { continue; }
+                    if (!ability.IsCorrectTarget(target)) continue;
 
                     abilityManager.target = target;
                     abilityManager.Cast(special.abilityIndex);
@@ -88,10 +89,7 @@ namespace Architome
                 }
                 else if (special.targeting == SpecialTargeting.Use)
                 {
-                    if (ability.requiresLockOnTarget)
-                    {
-                        abilityManager.target = entity.gameObject;
-                    }
+                    if (ability.abilityType != AbilityType.Use) continue;
 
                     abilityManager.Cast(special.abilityIndex);
                     abilityManager.target = null;
@@ -101,6 +99,61 @@ namespace Architome
             }
 
             return false;
+        }
+
+        bool UsingHealingAbility()
+        {
+            if (entity.role != Role.Healer) return false;
+
+            foreach (var specialAbility in combat.healSettings.specialHealingAbilities)
+            {
+                var ability = abilityManager.Ability(specialAbility.abilityIndex);
+
+                if (ability == null) continue;
+                if (ability.WantsToCast() || ability.isCasting) return true;
+                if (!ability.isHealing && !ability.isAssisting) continue;
+                if (!ability.IsReady()) continue;
+
+                if (HealLowest(specialAbility, ability)) return true;
+            }
+
+
+
+
+            return false;
+
+            bool HealLowest(SpecialHealing healing, AbilityInfo ability)
+            {
+                var allies = los.DetectedAllies().OrderBy(entity => entity.health / entity.maxHealth).ToList();
+
+
+                if (allies.Count == 0) return false;
+
+                foreach (var ally in allies)
+                {
+                    if ((ally.health / ally.maxHealth) <= healing.minimumHealth)
+                    {
+
+                        abilityManager.target = ally.gameObject;
+                        abilityManager.location = ally.gameObject.transform.position;
+                        abilityManager.Cast(healing.abilityIndex);
+                        abilityManager.target = null;
+
+                        return true;
+                    }
+                }
+
+
+                return false;
+            }
+        }
+
+        bool IsOpen()
+        {
+            var currentAbility = abilityManager.currentlyCasting;
+            if (currentAbility != null && !currentAbility.isAttack) return false;
+
+            return true;
         }
         void HandleHarm(GameObject target)
         {
@@ -162,14 +215,16 @@ namespace Architome
             abilityManager.target = target;
             abilityManager.Attack();
         }
-        void HandleAssist()
+        void HandleAutoHeal()
         {
             if ((int) behavior.combatType < 2) return;
             if (entity.role != Role.Healer) return;
-            if (combat.GetFocus() != null) return;
-            if (entity.mana / entity.maxMana < combat.healSettings.minMana) return;
+            if (combat.GetFocus() != null && abilityManager.attackAbility.isAutoAttacking) return;
+            if (entity.mana / entity.maxMana < combat.healSettings.minMana && combat.healSettings.minMana != 0f) return;
 
-            var allies = los.DetectedEntities(entity.npcType);
+            Debugger.InConsole(93254, $"{entity} checking assist");
+
+            var allies = los.DetectedAllies();
             allies.Add(entity);
 
             allies = allies.Where(ally => ally.health / ally.maxHealth <= combat.healSettings.targetHealth && ally.isAlive).ToList();

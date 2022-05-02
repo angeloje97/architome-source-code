@@ -8,6 +8,7 @@ namespace Architome
     public class CameraAnchor : MonoBehaviour
     {
         public static CameraAnchor active;
+        public CameraAnchor check;
 
         public GameObject target;
 
@@ -21,6 +22,8 @@ namespace Architome
         {
             ArchInput.active.OnMiddleMouse += OnMiddleMouse;
             CameraManager.active.cameraAnchor = this;
+
+            check = GetComponentInChildren<CameraAnchor>();
         }
 
         void Start()

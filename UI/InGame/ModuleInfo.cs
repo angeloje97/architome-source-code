@@ -89,13 +89,26 @@ namespace Architome
         {
             isHovering = false;
 
+
             if (!eventData.pointerDrag || !eventData.pointerDrag.GetComponent<ItemInfo>()) return;
+
             var item = eventData.pointerDrag.GetComponent<ItemInfo>();
-            if (item.moduleHover == this)
+
+            ArchAction.Delay(() =>
             {
-                item.moduleHover = null;
-            }
+                if (RectTransformUtility.RectangleContainsScreenPoint(GetComponent<RectTransform>(), Input.mousePosition)) return;
+                //if (GetComponent<RectTransform>().rect.Contains(Input.mousePosition)) return;
+
+                if (item.moduleHover == this)
+                {
+                    item.moduleHover = null;
+                }
+            }, .125f);
+
+            
         }
+
+
 
         public void OnPointerDown(PointerEventData eventData)
         {
@@ -169,18 +182,18 @@ namespace Architome
             if (item == null) return null;
             if (itemBin == null) return null;
 
-            var itemData = cloned ? Instantiate(item) : item;
+            //var itemData = cloned ? Instantiate(item) : item;
 
 
             var newItem = Instantiate(prefabs.item, itemBin).GetComponent<ItemInfo>();
 
-            newItem.item = itemData;
-
+            newItem.item = cloned ? Instantiate(item) : item;
             newItem.UpdateItemInfo();
-
             newItem.isInInventory = true;
 
             return newItem.gameObject;
+
+
             
 
 

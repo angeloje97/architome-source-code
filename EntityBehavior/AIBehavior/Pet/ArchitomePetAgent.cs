@@ -37,7 +37,7 @@ namespace Architome
 
                 if (petBase)
                 {
-                    entityInfo.npcType = petBase.entityInfo.npcType;
+                    entityInfo.ChangeNPCType(petBase.entityInfo.npcType);
                 }
             }
 

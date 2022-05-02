@@ -97,6 +97,11 @@ namespace Architome
             if (isHolding)
             {
                 var location = Mouse.CurrentPosition();
+
+                if (location == new Vector3())
+                {
+                    location = Mouse.RelativePosition(transform.position);
+                }
                 location.y = transform.position.y;
 
                 transform.LookAt(location);

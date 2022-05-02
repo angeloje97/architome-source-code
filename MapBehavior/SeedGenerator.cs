@@ -11,7 +11,7 @@ namespace Architome
         public int seed;
         public string seedString;
 
-        public List<int> factors;
+        //public List<int> factors;
         public int factorCount;
 
 
@@ -48,7 +48,7 @@ namespace Architome
                 {
                     if (i == 0)
                     {
-                        factors.Add(0);
+                        //factors.Add(0);
                     }
                     else
                     {
@@ -58,9 +58,11 @@ namespace Architome
                         {
                             current *= -1;
                         }
-                        factors.Add(current);
+                        //factors.Add(current);
                     }
                 }
+
+                Random.InitState(seed);
             }
         }
         void Awake()

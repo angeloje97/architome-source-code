@@ -70,6 +70,18 @@ namespace Architome
                     child.gameObject.SetActive(val);
                 }
             }
+
+            if (info.GetType() != typeof(BossRoom)) return;
+
+            var bossRoom = (BossRoom)info;
+
+            if (bossRoom.bossPatrolSpots)
+            {
+                foreach (Transform child in bossRoom.bossPatrolSpots)
+                {
+                    child.gameObject.SetActive(val);
+                }
+            }
         }
 
         void ShowPatrolGroupSpots(bool val)

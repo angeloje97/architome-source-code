@@ -34,6 +34,7 @@ namespace Architome
 
             entityInfo.taskEvents.OnNewTask += OnNewTask;
             entityInfo.taskEvents.OnTaskComplete += OnTaskComplete;
+            entityInfo.OnDamageTaken += OnDamageTaken;
             
         }
 
@@ -106,6 +107,15 @@ namespace Architome
             if(currentTask == null) { return; }
 
             if(!IsCurrentWorkStation(currentTarget))
+            {
+                StopTask();
+            }
+        }
+
+        public void OnDamageTaken(CombatEventData eventData)
+        {
+            if (currentTask == null) return;
+            if (currentTask.properties.damageCnacelsTask)
             {
                 StopTask();
             }

@@ -119,10 +119,12 @@ namespace Architome
 
         public void ClickMultiple(List<EntityInfo> entities)
         {
+            if (options.Count == 0) return;
             clickedEntities = entities;
-
             ClickableManager.active.HandleClickable(this);
         }
+
+        public bool Interactable { get { return options.Count > 0; } }
     }
 
 }

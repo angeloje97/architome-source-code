@@ -401,6 +401,14 @@ public class ThreatManager : MonoBehaviour
         
         
     }
+
+    public void Bump()
+    {
+        foreach (var threat in threats)
+        {
+            IncreaseThreat(threat.threatObject, 1);
+        }
+    }
     public GameObject RandomTargetBlackList(List<Role> blackListRole)
     {
 

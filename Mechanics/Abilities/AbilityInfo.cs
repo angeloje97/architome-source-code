@@ -29,7 +29,6 @@ public class AbilityInfo : MonoBehaviour
     public Movement movement;
     public CatalystInfo catalystInfo;
     public LineOfSight lineOfSight;
-    public AIBehavior behavior;
 
     public AbilityType abilityType;
     public AbilityType2 abilityType2;
@@ -44,10 +43,11 @@ public class AbilityInfo : MonoBehaviour
     public struct SummoningProperty
     {
         public bool enabled;
-        public List<GameObject> SummonableEntities;
+        public List<GameObject> summonableEntities;
 
         [Header("Summoning Settings")]
         public float radius;
+        public float liveTime;
         public float valueContributionToStats;
     }
 
@@ -75,24 +75,12 @@ public class AbilityInfo : MonoBehaviour
         public bool enable;
         public GameObject catalyst;
         public AbilityType catalingType;
-        public ReleaseCondition releaseCondition;
+        public CatalystEvent releaseCondition;
         public int releasePerInterval;
         public float interval, targetFinderRadius, valueContribution, rotationPerInterval, startDelay;
-
-        public Kinematics kinematics;
-        
     }
 
     public Cataling cataling;
-
-    [Serializable]
-    public struct Kinematics
-    {
-        public bool enable, sticky;
-        public float gravity, startingYSpeed;
-    }
-
-    public Kinematics kinematics; 
 
     public void OnValidate()
     {
@@ -225,10 +213,14 @@ public class AbilityInfo : MonoBehaviour
     public bool returnAppliesHeals;
     public bool returns;
 
-    [Header("Bounce Properties")]
-    public bool bounces;
-    public float bounceRadius;
-    public bool bounceRequiresLOS;
+    [Serializable]
+    public struct Bounce
+    {
+        public bool enable, requireLOS;
+        public float radius;
+    }
+
+    public Bounce bounce;
 
     [Header("Hold to Cast Properties")]
     public float holdToCastValue;
@@ -249,6 +241,7 @@ public class AbilityInfo : MonoBehaviour
         public bool isHealing;
         public bool isAssisting;
         public bool isHarming;
+        public bool destroysSummons;
         public bool targetsDead;
         public bool requiresLockOnTarget;
         public bool requiresLineOfSight;
@@ -261,6 +254,7 @@ public class AbilityInfo : MonoBehaviour
         public bool isAttack;
         public bool active;
     }
+
     public Restrictions restrictions;
 
 
@@ -273,6 +267,7 @@ public class AbilityInfo : MonoBehaviour
     public bool isHealing;
     public bool isAssisting;
     public bool isHarming;
+    public bool destroysSummons;
     public bool targetsDead;
     public bool requiresLockOnTarget;
     public bool requiresLineOfSight;
@@ -344,6 +339,7 @@ public class AbilityInfo : MonoBehaviour
     {
         public bool tracksTarget;
         public bool predictsTarget;
+        public bool predicting;
 
         [Range(0, 1)]
         public float trackingInterpolation;
@@ -402,12 +398,6 @@ public class AbilityInfo : MonoBehaviour
             {
                 lineOfSight = entityInfo.LineOfSight();
             }
-        }
-
-
-        if(behavior == null && entityInfo.AIBehavior())
-        {
-            behavior = entityInfo.AIBehavior();
         }
 
         if(coolDown.maxChargesOnStart)
@@ -471,7 +461,7 @@ public class AbilityInfo : MonoBehaviour
 
         if (wantsToCast)
         {
-            DeactivateWantsToCast();
+            DeactivateWantsToCast("Player Try Moving", true);
         }
 
         if (isCasting)
@@ -485,7 +475,7 @@ public class AbilityInfo : MonoBehaviour
     {
         if(WantsToCast())
         {
-            DeactivateWantsToCast();
+            DeactivateWantsToCast("From NPCType change", true);
             ClearTargets();
         }
     }
@@ -495,7 +485,7 @@ public class AbilityInfo : MonoBehaviour
         if(target && after == target.transform) { return; }
         if (wantsToCast)
         {
-            DeactivateWantsToCast();
+            DeactivateWantsToCast("From New Path Target", true);
         }
 
         if (isAutoAttacking)
@@ -665,7 +655,7 @@ public class AbilityInfo : MonoBehaviour
             if (abilityManager.currentlyCasting && abilityManager.currentlyCasting.isAttack)
             {
                 abilityManager.currentlyCasting.CancelCast("Canceled auto to allow ability to cast");
-                ActivateWantsToCast();
+                ActivateWantsToCast("Canceling Auto Attack");
                 abilityManager.currentlyCasting = null;
                 return true;
             }
@@ -678,21 +668,39 @@ public class AbilityInfo : MonoBehaviour
     bool SpawnHasLineOfSight()
     {
         if (abilityType != AbilityType.Spawn) return true;
+
+        
+
         if (locationLocked == new Vector3()) return false;
+
+        var distance = Vector3.Distance(locationLocked, transform.position);
+
+        if (distance > catalystInfo.range)
+        {
+            locationLocked = Vector3.Lerp(transform.position, locationLocked, catalystInfo.range / distance);
+        }
+
         if (!lineOfSight) return true;
         if (!requiresLineOfSight) return true;
+        //if (!V3Helper.IsAboveGround(locationLocked, GMHelper.LayerMasks().walkableLayer, 2f))
+        //{
+        //}
 
-        if (!V3Helper.IsAboveGround(locationLocked, GMHelper.LayerMasks().walkableLayer, 2f)) return false;
+        
 
 
         if (!lineOfSight.HasLineOfSight(locationLocked))
         {
+
+            locationLocked = V3Helper.InterceptionPoint(locationLocked, transform.position, LayerMasksData.active.wallLayer, 2f);
+            return true;
             if (movement)
             {
-                movement.MoveTo(locationLocked, 0f);
+                
+                //movement.MoveTo(locationLocked, 0f);
             }
 
-            ActivateWantsToCast();
+            ActivateWantsToCast("Spawner Does not have line of sight.");
 
             return false;
         }
@@ -738,45 +746,49 @@ public class AbilityInfo : MonoBehaviour
 
         return false;
 
-        bool IsInRange()
-        {
-            if (range == -1)
-            {
-                return true;
-            }
+        
 
-            if (V3Helper.Distance(target.transform.position, entityObject.transform.position) > range)
-            {
-                movement.MoveTo(target.transform, range);
-                ActivateWantsToCast();
-                return false;
-            }
+    }
+
+    bool IsInRange()
+    {
+        if (range == -1)
+        {
             return true;
         }
 
-        bool HasLineOfSight()
+        if (V3Helper.Distance(target.transform.position, entityObject.transform.position) > range)
         {
-            if (!lineOfSight)
-            {
-                return true;
-            }
+            movement.MoveTo(target.transform, range);
+            ActivateWantsToCast("Target is out of range");
+            return false;
+        }
+        return true;
+    }
 
-            if (!requiresLineOfSight)
-            {
-                return true;
-            }
-
-            if (!lineOfSight.HasLineOfSight(target))
-            {
-                if (movement)
-                {
-                    movement.MoveTo(target.transform);
-                    ActivateWantsToCast();
-                }
-                return false;
-            }
+    bool HasLineOfSight()
+    {
+        if (range == -1) return true;
+        if (!lineOfSight)
+        {
             return true;
         }
+
+        if (!requiresLineOfSight)
+        {
+            return true;
+        }
+
+        if (!lineOfSight.HasLineOfSight(target))
+        {
+            if (movement)
+            {
+                movement.MoveTo(target.transform);
+                ActivateWantsToCast("Target is out of line of sight.");
+            }
+            return false;
+        }
+        return true;
     }
     public bool CanCastAt(GameObject target)
     {
@@ -817,13 +829,14 @@ public class AbilityInfo : MonoBehaviour
 
         return false;
     }
-    public void EndCast()
+    public bool EndCast()
     {
-        if(!IsInRange() || !HasLineOfSight())
+        if (abilityType == AbilityType.LockOn)
         {
-            CancelCast("Broke LOS or out of range");
-
-            return;
+            if(!IsInRange() || !HasLineOfSight())
+            {
+                return false;
+            }
         }
 
         abilityManager.OnCastRelease?.Invoke(this);
@@ -834,6 +847,7 @@ public class AbilityInfo : MonoBehaviour
         HandleCastMovementSpeed();
         SetRecast();
 
+        return true;
 
         void HandleResources()
         {
@@ -852,44 +866,46 @@ public class AbilityInfo : MonoBehaviour
 
             
         }
-        bool IsInRange()
-        {
-            if (abilityType != AbilityType.LockOn) return true;
-            if(!requiresLockOnTarget)
-            {
-                return true;
-            }
+        //bool IsInRange()
+        //{
+        //    if (abilityType != AbilityType.LockOn) return true;
+        //    if(!requiresLockOnTarget)
+        //    {
+        //        return true;
+        //    }
 
-            if(targetLocked == null)
-            {
-                return false;
-            }
+        //    if(targetLocked == null)
+        //    {
+        //        return false;
+        //    }
 
-            if (range == -1) return true;
+        //    if (range == -1) return true;
 
-            if(V3Helper.Distance(entityObject.transform.position, targetLocked.transform.position) > range)
-            {
-                return false; 
-            }
-            return true;
-        }
-        bool HasLineOfSight()
-        {
-            if (abilityType != AbilityType.LockOn) return true;
-            if (!requiresLockOnTarget) { return true; }
-            if(range == -1) { return true; }
-            if(!requiresLineOfSight || lineOfSight == null)
-            {
-                return true;
-            }
+        //    if(V3Helper.Distance(entityObject.transform.position, targetLocked.transform.position) > range)
+        //    {
+        //        ActivateWantsToCast();
+        //        return false;
+        //    }
+        //    return true;
+        //}
+        //bool HasLineOfSight()
+        //{
+        //    if (abilityType != AbilityType.LockOn) return true;
+        //    if (!requiresLockOnTarget) { return true; }
+        //    if(range == -1) { return true; }
+        //    if(!requiresLineOfSight || lineOfSight == null)
+        //    {
+        //        return true;
+        //    }
 
-            if(lineOfSight.HasLineOfSight(targetLocked))
-            {
-                return true;
-            }
+        //    if(lineOfSight.HasLineOfSight(targetLocked))
+        //    {
+        //        return true;
+        //    }
 
-            return false;
-        }
+        //    ActivateWantsToCast();
+        //    return false;
+        //}
         //Handles auto healing if the target has full health
         void HandleFullHealth()
         {
@@ -960,7 +976,8 @@ public class AbilityInfo : MonoBehaviour
             directionLocked = V3Helper.Direction(location, entityObject.transform.position);
 
             var heightFromGround = V3Helper.HeightFromGround(entityObject.transform.position, GMHelper.LayerMasks().walkableLayer);
-            locationLocked.y += heightFromGround;
+            var groundPos = V3Helper.GroundPosition(locationLocked, GMHelper.LayerMasks().walkableLayer);
+            locationLocked.y = groundPos.y + heightFromGround;
 
             catalyst.GetComponent<CatalystInfo>().abilityInfo = this;
             var catalystClone = Instantiate(catalyst, locationLocked, transform.localRotation);
@@ -988,7 +1005,8 @@ public class AbilityInfo : MonoBehaviour
             var groundPos = V3Helper.GroundPosition(locationLocked, GMHelper.LayerMasks().walkableLayer);
             locationLocked.y = groundPos.y + heightFromGround;
 
-            catalystClone.transform.rotation = V3Helper.LerpLookAt(catalystClone.transform, locationLocked, 1f);
+
+
 
             abilityManager.OnCatalystRelease?.Invoke(this, catalystClone.GetComponent<CatalystInfo>());
         }
@@ -1069,26 +1087,33 @@ public class AbilityInfo : MonoBehaviour
             entityInfo.Use(manaRequired + entityInfo.maxMana*manaRequiredPercent);
         }
     }
-    public void ActivateWantsToCast()
+    public void ActivateWantsToCast(string reason)
     {
-        if(!wantsToCast)
-        {
-            wantsToCast = true;
-            abilityManager.wantsToCastAbility = wantsToCast;
-            abilityManager.OnWantsToCastChange?.Invoke(this, wantsToCast);
-        }
+        if (wantsToCast) return;
+        if (coolDown.charges <= 0) return;
+        Debugger.InConsole(896537, $"{reason}");
+        wantsToCast = true;
+        abilityManager.wantsToCastAbility = wantsToCast;
+        abilityManager.OnWantsToCastChange?.Invoke(this, wantsToCast);
     }
     public bool WantsToCast()
     {
         return wantsToCast;
     }
-    public void DeactivateWantsToCast()
+    public void DeactivateWantsToCast(string reason, bool clearTargets = false)
     {
         if (wantsToCast)
         {
+
+            Debugger.InConsole(4389645, $"{reason}");
             wantsToCast = false;
             abilityManager.wantsToCastAbility = wantsToCast;
             abilityManager.OnWantsToCastChange?.Invoke(this, wantsToCast);
+
+            if (clearTargets)
+            {
+                ClearTargets();
+            }
         }
     }
     public void HandleWantsToCast()
@@ -1096,18 +1121,24 @@ public class AbilityInfo : MonoBehaviour
         if(!wantsToCast)
         {
             return;
-        }    
+        }
+        
+        if (coolDown.charges <= 0)
+        {
+            DeactivateWantsToCast("No Charges");
+        }
+
         if(!entityInfo.isAlive && !targetsDead) {
             abilityManager.OnDeadTarget?.Invoke(this);
-            DeactivateWantsToCast();
+            DeactivateWantsToCast("Target Died", true);
             return; }
         if(target == null && abilityType == AbilityType.LockOn) {
-            DeactivateWantsToCast();
+            DeactivateWantsToCast("Target = null", true);
             return; }
         if(CanCast2())
         {
             Cast();
-            DeactivateWantsToCast();
+            
         }
     }
     public void UpdateAbility()
@@ -1264,7 +1295,7 @@ public class AbilityInfo : MonoBehaviour
     {
         if (activated) return false;
         if (!CanCast2()) return false;
-
+        DeactivateWantsToCast("From Start Cast");
         activated = true;
 
         abilityManager.OnAbilityStart?.Invoke(this);
@@ -1346,7 +1377,7 @@ public class AbilityInfo : MonoBehaviour
             {
                 if (success)
                 {
-                    EndCast();
+                    success = EndCast();
                 }
 
                 abilityManager.OnCastEnd?.Invoke(this);
@@ -1550,10 +1581,10 @@ public class AbilityInfo : MonoBehaviour
     }
     public void ClearTargets()
     {
+        if (wantsToCast) return;
         target = null;
         targetLocked = null;
     }
-
     public void HandleTracking()
     {
         if (targetLocked == null) return;
@@ -1565,18 +1596,52 @@ public class AbilityInfo : MonoBehaviour
 
         if (tracking.predictsTarget)
         {
+            PredictTarget(targetLocked);
+        }
+
+        async void PredictTarget(GameObject target)
+        {
+            if (tracking.predicting) return;
+
+            tracking.predicting = true;
+            var movement = target.GetComponentInChildren<Movement>();
+            while (isCasting)
+            {
+                var distance = V3Helper.Distance(target.transform.position, entityObject.transform.position);
+
+                var travelTime = distance / catalystInfo.speed;
+
+                locationLocked = target.transform.position + (travelTime * movement.velocity);
+
+                await Task.Yield();
+            }
+
+            tracking.predicting = false;
+
 
         }
+    }
+    public float Radius(RadiusType type)
+    {
+        return type switch
+        {
+            RadiusType.Catalyst => catalystInfo.range,
+            RadiusType.Bounce => bounce.radius,
+            RadiusType.Buff => buffProperties.radius,
+            RadiusType.Splash => splash.radius,
+            RadiusType.Cataling => cataling.targetFinderRadius,
+            RadiusType.Detection => lineOfSight != null ? lineOfSight.radius: 0f,
+            _ => 0f,
+        };
     }
 
 
 
-    
-    
 
-    
 
-    
+
+
+
 
 
 

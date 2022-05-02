@@ -9,6 +9,7 @@ namespace Architome
         // Start is called before the first frame update
         public static CatalystManager active { get; private set; }
         public CatalystAudio catalystAudio;
+        public Transform defectiveCatalysts;
         void Start()
         {
 

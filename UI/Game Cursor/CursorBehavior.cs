@@ -138,6 +138,7 @@ namespace Architome
             }
 
             var clickable = after.GetComponent<Clickable>();
+            if (!clickable.Interactable) return;
 
             HandlePortal();
             HandleWork();

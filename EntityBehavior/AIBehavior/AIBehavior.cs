@@ -28,7 +28,7 @@ public class AIBehavior : MonoBehaviour
 
     }
 
-        public Events events;
+    public Events events;
 
     public Action<AIBehaviorType, AIBehaviorType> OnBehaviorChange;
     public Action<BehaviorState, BehaviorState> OnBehaviorStateChange;
@@ -61,6 +61,11 @@ public class AIBehavior : MonoBehaviour
             if(entityInfo.npcType == NPCType.Hostile)
             {
                 combatType = CombatBehaviorType.Aggressive;
+            }
+
+            if (entityInfo.summon.isSummoned)
+            {
+                CreateBehavior<ArchSummonAgent>("Summon Behavior");
             }
         }
 
@@ -152,9 +157,9 @@ public class AIBehavior : MonoBehaviour
         return GetComponentInChildren<ThreatManager>();
     }
 
-    public T CreateBehavior<T>() where T: MonoBehaviour
+    public T CreateBehavior<T>(string name = "New Behavior") where T: MonoBehaviour
     {
-        var newBehaviorObject = new GameObject();
+        var newBehaviorObject = new GameObject(name);
 
         newBehaviorObject.transform.SetParent(transform);
         newBehaviorObject.transform.localPosition = new Vector3();

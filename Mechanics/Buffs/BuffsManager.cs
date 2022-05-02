@@ -47,7 +47,7 @@ namespace Architome
 
             foreach (var buffStat in GetComponentsInChildren<BuffStatChange>())
             {
-                stats = stats.Sum(stats, buffStat.stats);
+                stats += buffStat.stats;
             }
 
             entityInfo.UpdateCurrentStats();

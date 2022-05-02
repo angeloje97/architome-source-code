@@ -11,10 +11,12 @@ namespace Architome
     {
         // Start is called before the first frame update
         AbilityManager ability;
+        AbilityInfo currentAbility;
         CharacterInfo character;
         CharacterBodyParts bodyPart;
         AudioManager audioManager;
         ParticleManager particleManager;
+        LayerMasksData layers;
 
         [Serializable]
         public struct Info
@@ -65,51 +67,84 @@ namespace Architome
                 ability.OnAbilityEnd += OnAbilityEnd;
 
                 ability.OnCatalystRelease += OnCatalystRelease;
+
+                ability.OnCancelCast += OnCancelCast;
+                ability.OnCancelChannel += OnCancelChannel;
             }
+            layers = GMHelper.LayerMasks();
         }
 
         void OnCatalystRelease(AbilityInfo ability, CatalystInfo catalyst)
         {
-            HandleEffects(ability.catalystInfo, AbilityTrigger.OnRelease, true);
+            HandleEffects(ability.catalystInfo, AbilityEvent.OnRelease, true);
         }
 
         private void OnAbilityStart(AbilityInfo ability)
         {
 
-            HandleEffects(ability.catalystInfo, AbilityTrigger.OnAbility, true);
+            HandleEffects(ability.catalystInfo, AbilityEvent.OnAbility, true);
+            currentAbility = ability;
 
         }
 
         private void OnAbilityEnd(AbilityInfo ability)
         {
 
-            HandleEffects(ability.catalystInfo, AbilityTrigger.OnAbility, false);
+            HandleEffects(ability.catalystInfo, AbilityEvent.OnAbility, false);
         }
 
         private void OnCastEnd(AbilityInfo ability)
         {
 
-            HandleEffects(ability.catalystInfo, AbilityTrigger.OnCast, false);
+            HandleEffects(ability.catalystInfo, AbilityEvent.OnCast, false);
         }
 
         private void OnCastStart(AbilityInfo ability)
         {
-            HandleEffects(ability.catalystInfo, AbilityTrigger.OnCast, true);
+            HandleEffects(ability.catalystInfo, AbilityEvent.OnCast, true);
         }
 
         private void OnChannelStart(AbilityInfo ability)
         {
-            HandleEffects(ability.catalystInfo, AbilityTrigger.OnChannel, true);
+            HandleEffects(ability.catalystInfo, AbilityEvent.OnChannel, true);
         }
 
         private void OnChannelEnd(AbilityInfo ability)
         {
 
-            HandleEffects(ability.catalystInfo, AbilityTrigger.OnChannel, false);
+            HandleEffects(ability.catalystInfo, AbilityEvent.OnChannel, false);
             
         }
+        
+        void OnCancelCast(AbilityInfo ability)
+        {
 
-        void HandleEffects(CatalystInfo catalyst, AbilityTrigger trigger, bool status)
+            CancelAudios(ability.catalystInfo, AbilityEvent.OnCast);
+        }
+
+        void OnCancelChannel(AbilityInfo ability)
+        {
+            CancelAudios(ability.catalystInfo, AbilityEvent.OnChannel);
+        }
+
+        void CancelAudios(CatalystInfo catalyst, AbilityEvent trigger)
+        {
+            if (catalyst == null) return;
+            foreach (var effect in catalyst.effects.abilityEffects)
+            {
+                if (effect.audioClip == null) continue;
+
+                var source = audioManager.AudioSourceFromClip(effect.audioClip);
+
+                if (source)
+                {
+                    source.Stop();
+                }
+            }
+
+        }
+
+        void HandleEffects(CatalystInfo catalyst, AbilityEvent trigger, bool status)
         {
             if (catalyst == null) return;
             foreach (var effect in catalyst.effects.abilityEffects)
@@ -120,8 +155,6 @@ namespace Architome
                 HandleParticle(effect, status);
             }
         }
-
-        
 
         void HandleSound(CatalystInfo.CatalystEffects.Ability effect, bool status)
         {
@@ -142,6 +175,8 @@ namespace Architome
                 return;
             }
 
+            if (!effect.loops) return;
+
             var source = audioManager.AudioSourceFromClip(effect.audioClip);
 
             if (source) source.Stop();
@@ -157,13 +192,13 @@ namespace Architome
 
             switch (effect.trigger)
             {
-                case AbilityTrigger.OnCast:
+                case AbilityEvent.OnCast:
                     gameObjects = info.CastingParticles;
                     break;
-                case AbilityTrigger.OnChannel:
+                case AbilityEvent.OnChannel:
                     gameObjects = info.ChannelingParticles;
                     break;
-                case AbilityTrigger.OnRelease:
+                case AbilityEvent.OnRelease:
                     gameObjects = info.ReleaseParticles;
                     break;
             }
@@ -178,13 +213,13 @@ namespace Architome
 
 
                 HandleParticleTransform(effect, newParticle.GetComponent<ParticleSystem>());
-                newParticle.transform.localPosition = new();
+                
 
                 newParticle.transform.localScale += effect.offsetScale;
                 newParticle.transform.localPosition += effect.offsetPosition;
                 newParticle.transform.eulerAngles += effect.offsetRotation;
 
-                if (effect.trigger == AbilityTrigger.OnRelease)
+                if (effect.trigger == AbilityEvent.OnRelease)
                 {
                     ArchAction.Delay(() => {
                         DestroyParticles();
@@ -213,6 +248,18 @@ namespace Architome
             }
         }
 
+        public Vector3 NewScale(CatalystInfo.CatalystEffects.Ability effect)
+        {
+            if (effect.manifestRadius == RadiusType.None)
+            {
+                return effect.offsetScale;
+            }
+            else
+            {
+                var value = currentAbility.Radius(effect.manifestRadius);
+                return new Vector3(value, value, value);
+            }
+        }
         async void HandleParticleTransform(CatalystInfo.CatalystEffects.Ability effect, ParticleSystem particle)
         {
             if (effect.target == CatalystParticleTarget.Self)
@@ -222,8 +269,8 @@ namespace Architome
 
             if (effect.target == CatalystParticleTarget.Ground)
             {
-                particle.transform.position = V3Helper.GroundPosition(transform.position, GMHelper.LayerMasks().walkableLayer);
-                particle.transform.SetParent(CatalystManager.active.transform);
+                particle.transform.position = V3Helper.GroundPosition(transform.position, layers.walkableLayer);
+                particle.transform.SetParent(CatalystManager.active.transform, true);
             }
 
             if (effect.target == CatalystParticleTarget.BodyPart)
@@ -231,31 +278,45 @@ namespace Architome
                 particle.transform.SetParent(bodyPart.BodyPartTransform(effect.bodyPart));
             }
 
-            if (!effect.looksAtTarget && effect.target != CatalystParticleTarget.BetweenBodyParts) return;
+            if (!effect.looksAtTarget && effect.target != CatalystParticleTarget.BetweenBodyParts && effect.target != CatalystParticleTarget.Location) return;
 
             Transform bodyPart1 = bodyPart.BodyPartTransform(effect.bodyPart);
             Transform bodyPart2 = bodyPart.BodyPartTransform(effect.bodyPart2);
 
             while (particle.isPlaying)
             {
-                await Task.Yield();
 
                 if (effect.target == CatalystParticleTarget.BetweenBodyParts)
                 {
                     particle.transform.position = V3Helper.MidPoint(bodyPart2.position, bodyPart1.position);
                 }
 
-                if (!CanContinueEffect(effect)) break;
+                if (effect.target == CatalystParticleTarget.Location)
+                {
+                    if (ability.currentlyCasting)
+                    {
+                        particle.transform.position = ability.currentlyCasting.locationLocked;
+                    }
+
+                    if (effect.secondTarget == CatalystParticleTarget.Ground)
+                    {
+                        particle.transform.position = V3Helper.GroundPosition(particle.transform.position, layers.walkableLayer, 1, .0625f);
+                    }
+                }
+
 
                 if (effect.looksAtTarget)
                 {
                     particle.transform.LookAt(ability.currentlyCasting.target ? ability.currentlyCasting.targetLocked.transform.position : ability.currentlyCasting.locationLocked);
                 }
 
+                
+
+                await Task.Yield();
+                if (!CanContinueEffect(effect)) break;
 
             }
         }
-
         bool CanContinueEffect(CatalystInfo.CatalystEffects.Ability effect)
         {
             if (ability.currentlyCasting == null)
@@ -263,12 +324,12 @@ namespace Architome
                 return false;
             }
 
-            if (!ability.currentlyCasting.isCasting && effect.trigger == AbilityTrigger.OnCast)
+            if (!ability.currentlyCasting.isCasting && effect.trigger == AbilityEvent.OnCast)
             {
                 return false;
             }
 
-            if (!ability.currentlyCasting.channel.active && effect.trigger == AbilityTrigger.OnChannel)
+            if (!ability.currentlyCasting.channel.active && effect.trigger == AbilityEvent.OnChannel)
             {
                 return false;
             }

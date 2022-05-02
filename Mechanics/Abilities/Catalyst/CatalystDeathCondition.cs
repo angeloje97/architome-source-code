@@ -106,14 +106,22 @@ namespace Architome
 
         public void HandleDeadEntity()
         {
-            if (abilityInfo.targetsDead) { return; }
-            if (abilityInfo.abilityType != AbilityType.LockOn) return;
-            if (catalystInfo.target && !catalystInfo.target.GetComponent<EntityInfo>().isAlive)
+            try
             {
-                if (conditions.destroyOnDeadTarget)
+                if (abilityInfo.targetsDead) { return; }
+                if (abilityInfo.abilityType != AbilityType.LockOn) return;
+                if (catalystInfo.target && !catalystInfo.target.GetComponent<EntityInfo>().isAlive)
                 {
-                    DestroySelf("Dead Target");
+                    if (conditions.destroyOnDeadTarget)
+                    {
+                        DestroySelf("Dead Target");
+                    }
                 }
+
+            }
+            catch
+            {
+                transform.SetParent(CatalystManager.active.defectiveCatalysts);
             }
         }
 

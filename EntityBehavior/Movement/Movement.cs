@@ -24,8 +24,8 @@ namespace Architome
         public AbilityManager abilityManager;
         public AIBehavior behavior;
 
-        public float baseMovementSpeed;
-        public float entityMovementSpeed;
+        //public float baseMovementSpeed;
+        //public float entityMovementSpeed;
 
         [Header("Metrics")]
         public float speed;
@@ -36,6 +36,7 @@ namespace Architome
         public bool isMoving;
         public bool canMove = true;
         public bool hasArrived;
+        public bool walking;
 
         [Header("Entity Prop Handlers")]
         AbilityHandler abilityHandler;
@@ -54,6 +55,7 @@ namespace Architome
         private bool isMovingChange;
         private bool hasArrivedCheck;
         private Transform currentPathTarget;
+        Vector3 previousPosition;
         public void GetDependencies()
         {
             if (GetComponentInParent<EntityInfo>())
@@ -73,11 +75,6 @@ namespace Architome
                 {
                     path = entityInfo.Path();
 
-                    if (GMHelper.WorldSettings())
-                    {
-                        baseMovementSpeed = GMHelper.WorldSettings().baseMovementSpeed;
-                        path.maxSpeed = baseMovementSpeed;
-                    }
                 }
 
                 if (entityInfo.AbilityManager())
@@ -85,6 +82,7 @@ namespace Architome
                     abilityManager = entityInfo.AbilityManager();
                 }
 
+                entityInfo.OnChangeStats += OnChangeStats;
                 entityInfo.OnLifeChange += OnLifeCheck;
                 entityInfo.combatEvents.OnStatesChange += OnStatesChange;
             }
@@ -112,9 +110,13 @@ namespace Architome
 
 
         }
-        void Start()
+
+        private void Awake()
         {
             GetDependencies();
+        }
+        void Start()
+        {
             abilityHandler.Initiate(this);
 
         }
@@ -166,6 +168,7 @@ namespace Architome
         public async void SetValues(bool val, float timer = 0f)
         {
             await Task.Delay((int)(timer * 1000));
+            StopMoving();
             canMove = val;
             destinationSetter.enabled = val;
             path.enabled = val;
@@ -210,6 +213,26 @@ namespace Architome
                 currentPathTarget = destinationSetter.target;
             }
         }
+
+        void OnChangeStats(EntityInfo entity)
+        {
+            UpdateMovementSpeed();
+        }
+
+        void UpdateMovementSpeed()
+        {
+            var baseMovementSpeed = walking ? GMHelper.WorldSettings().baseWalkSpeed : GMHelper.WorldSettings().baseMovementSpeed;
+
+            path.maxSpeed = entityInfo.stats.movementSpeed * baseMovementSpeed;
+        }
+
+        public void SetWalk(bool val)
+        {
+            walking = val;
+            UpdateMovementSpeed();
+        }
+
+
         public void UpdateMetrics()
         {
             if (path == null) { return; }
@@ -224,11 +247,6 @@ namespace Architome
             var ySpeed = rigidBody.velocity.y;
             rigidBody.velocity = new Vector3(0, ySpeed, 0);
 
-            if (entityInfo.stats.movementSpeed != entityMovementSpeed)
-            {
-                entityMovementSpeed = entityInfo.stats.movementSpeed;
-                path.maxSpeed = entityMovementSpeed * baseMovementSpeed;
-            }
 
             if (destinationSetter.target)
             {
@@ -337,6 +355,7 @@ namespace Architome
             {
                 MoveTo(entityObject.transform);
             }
+
             path.endReachedDistance = float.PositiveInfinity;
 
 

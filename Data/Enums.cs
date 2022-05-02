@@ -43,7 +43,7 @@ namespace Architome.Enums
         Use,
     }
 
-    public enum ReleaseCondition
+    public enum CatalystEvent
     {
         OnAwake,
         OnStop,
@@ -56,7 +56,7 @@ namespace Architome.Enums
         OnCatalingRelease,
     }
 
-    public enum AbilityTrigger
+    public enum AbilityEvent
     {
         OnCast,
         OnChannel,
@@ -69,7 +69,8 @@ namespace Architome.Enums
         Self,
         Ground,
         BodyPart,
-        BetweenBodyParts
+        BetweenBodyParts,
+        Location
     }
 
     public enum AbilityType2
@@ -102,6 +103,17 @@ namespace Architome.Enums
         Melee,
         Sweep,
         Radiate
+    }
+
+    public enum RadiusType
+    {
+        None,
+        Catalyst,
+        Splash,
+        Bounce,
+        Cataling,
+        Buff,
+        Detection
     }
 
     public enum AttackTrigger
@@ -142,10 +154,6 @@ namespace Architome.Enums
         Immobalized = 3,
         Taunted = 4,
         MindControlled = 5,
-        Busy = 6,
-        Casting = 7,
-        Slowed = 8,
-        Immune = 9,
     }
 
     public enum MeterRecordingMode
@@ -210,11 +218,8 @@ namespace Architome.Enums
         TargetsCurrent,
         TargetsFocus,
         TargetsRandom,
-        SkillShotPredict,
-        SkillShotRandom,
-        SkillShotNormal,
-        SkillShotTrack,
         Use,
+        RandomLocation
     }
 
     public enum EntityControlType

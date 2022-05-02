@@ -45,6 +45,7 @@ namespace Architome
 
             foreach(var task in tasks)
             {
+                if (task.properties.hideFromPlayers) continue;
                 clickable.AddOption(task.properties.workString);
             }
         }
@@ -55,6 +56,8 @@ namespace Architome
 
             tasks.Add(task);
 
+
+            
             clickable.AddOption(task.properties.workString);
             
         }

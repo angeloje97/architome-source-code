@@ -22,7 +22,8 @@ namespace Architome
         }
         void Start()
         {
-
+            GetDependencies();
+            CheckBadSpawn();
         }
 
         // Update is called once per frame
