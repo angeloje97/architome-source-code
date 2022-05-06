@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Threading.Tasks;
 using System.Linq;
+using Architome.Enums;
 
 namespace Architome
 {
@@ -10,6 +11,18 @@ namespace Architome
     {
         // Start is called before the first frame update
         public BuffInfo buffInfo;
+        public AudioManager audioManager;
+        public ParticleManager particleManager;
+        public CharacterBodyParts bodyParts;
+
+        [System.Serializable]
+        public struct Info
+        {
+            public List<ParticleSystem> savedParticles;
+            public List<AudioSource> savedSources;
+        }
+
+        public Info info;
 
         void GetDependencies()
         {
@@ -17,80 +30,27 @@ namespace Architome
             buffInfo.OnBuffStart += OnBuffStart;
             buffInfo.OnBuffEnd += OnBuffEnd;
             buffInfo.OnBuffInterval += OnBuffInterval;
+            buffInfo.OnBuffCompletion += OnBuffCompletion;
+            buffInfo.OnBuffCleanse += OnBuffCleanse;
+
+            audioManager = buffInfo.hostInfo.SoundEffect();
+            particleManager = buffInfo.hostInfo.ParticleManager();
+            bodyParts = buffInfo.hostInfo.GetComponentInChildren<CharacterBodyParts>();
+
+            info.savedParticles = new();
+            info.savedSources = new();
+
         }
         void Start()
         {
             GetDependencies();
+            
+            
         }
         public void OnBuffStart(BuffInfo buff)
         {
             CalculateDelayTime(buff);
-            PlayStartingSound();
-            PlayParticlePairs();
-            PlayStartingParticles();
-            AdjustRadiusParticle();
-
-            
-            
-            void PlayStartingSound()
-            {
-                if (buffInfo.effects.startingSound == null) return;
-                
-
-                buffInfo.hostInfo.SoundEffect().PlaySound(buffInfo.effects.startingSound);
-            }
-
-            void PlayStartingParticles()
-            {
-                if (buff.effects.startingParticles.Count == 0) return;
-
-                buff.expireDelay = buff.effects.startingParticles.Max(particle => particle.main.duration);
-
-                foreach (var particle in buff.effects.startingParticles)
-                {
-                    particle.Play(true);
-                }
-                
-            }
-
-            async void PlayParticlePairs()
-            {
-                var bodyParts = buff.hostInfo.GetComponentInChildren<CharacterBodyParts>();
-                
-                foreach (var pair in buff.effects.startingParticlePair)
-                {
-                    pair.particle.Play();
-                    //pair.particle.transform.SetParent(bodyParts.BodyPartTransform(pair.target));
-                    pair.transform = bodyParts.BodyPartTransform(pair.target);
-                }
-
-                while (!buff.IsComplete)
-                {
-                    await Task.Yield();
-
-                    foreach (var pair in buff.effects.startingParticlePair)
-                    {
-                        pair.particle.transform.position = pair.transform.position;
-                    }
-                }
-
-
-            }
-
-            void AdjustRadiusParticle()
-            {
-                if (buffInfo.effects.radiusParticle == null) return;
-                var buffRadius = buffInfo.properties.radius;
-                var scalePortions = buffInfo.effects.scalePortions;
-                var radiusParticles = buffInfo.effects.radiusParticle;
-                var multiplier = buffInfo.effects.scaleMultiplier != 0 ? buff.effects.scaleMultiplier : 1f;
-
-                scalePortions.x = scalePortions.x == 0 ? buffRadius * multiplier : scalePortions.x;
-                scalePortions.y = scalePortions.y == 0 ? buffRadius * multiplier: scalePortions.y;
-                scalePortions.z = scalePortions.z == 0 ? buffRadius * multiplier: scalePortions.z;
-
-                radiusParticles.transform.localScale = scalePortions;
-            }
+            HandleEffect(buffInfo, BuffEvents.OnStart);
         }
         void CalculateDelayTime(BuffInfo buff)
         {
@@ -101,13 +61,13 @@ namespace Architome
         }
         public void OnBuffInterval(BuffInfo buff)
         {
-
+            HandleEffect(buff, BuffEvents.OnInterval);
         }
         public void OnBuffEnd(BuffInfo buff)
         {
+            HandleEffect(buff, BuffEvents.OnEnd);
+            StopAllSaved();
             var lights = GetComponentsInChildren<Light>();
-            StopStartingParticle();
-            StopPairs();
             ShrinkOnEnd();
             
             foreach (var light in lights)
@@ -115,26 +75,6 @@ namespace Architome
                 DimLight(light);
             }
 
-
-            void StopStartingParticle()
-            {
-                if (buffInfo.effects.startingParticles == null) return;
-
-                foreach (var particle in buffInfo.effects.startingParticles)
-                {
-                    particle.Stop(true);
-                }
-            }
-
-            void StopPairs()
-            {
-                foreach (var pair in buff.effects.startingParticlePair)
-                {
-                    if (pair.particle == null) continue;
-                    pair.particle.transform.SetParent(transform);
-                    pair.particle.Stop();
-                }
-            }
 
             async void ShrinkOnEnd()
             {
@@ -166,7 +106,132 @@ namespace Architome
                 light.range = Mathf.Lerp(light.range, 0, smoothening);
             }
         }
-        
+
+        public void OnBuffCompletion(BuffInfo buff)
+        {
+            HandleEffect(buff, BuffEvents.OnComplete);
+        }
+        public void OnBuffCleanse(BuffInfo buff)
+        {
+            HandleEffect(buff, BuffEvents.OnCleanse);
+        }
+        public void HandleEffect(BuffInfo buff, BuffEvents trigger)
+        {
+            if (buff == null) return;
+            foreach (var effect in buff.effects.effectsData)
+            {
+                if (effect.playTrigger != trigger) continue;
+                HandleAudio(effect);
+                HandleParticle(effect);
+            }
+
+        }
+
+        public void HandleAudio(BuffInfo.BuffFX.EffectData effect)
+        {
+            if (effect.audioClip == null) return;
+            if (audioManager == null) return;
+
+
+
+            if (effect.loops && effect.playTrigger == BuffEvents.OnStart)
+            {
+                info.savedSources.Add(audioManager.PlaySoundLoop(effect.audioClip));
+            }
+            else
+            {
+                audioManager.PlaySound(effect.audioClip);
+            }
+                
+            return;
+            
+
+
+        }
+
+        public void HandleParticle(BuffInfo.BuffFX.EffectData effect)
+        {
+            if (effect.particle == null) return;
+            if (particleManager == null) return;
+
+            if (!effect.playForDuration)
+            {
+                var newParticle = particleManager.Play(effect.particle, true);
+                HandleParticleTransform(effect, newParticle.gameObject);
+            }
+            else
+            {
+                var savedParticle = particleManager.Play(effect.particle);
+                HandleParticleTransform(effect, savedParticle.gameObject);
+                info.savedParticles.Add(savedParticle);
+            }
+        }
+
+        public void StopAllSaved()
+        {
+            foreach (var particle in info.savedParticles)
+            {
+                if (!particle) continue;
+                particle.Stop(true);
+
+                ArchAction.Delay(() => { if(particle) Destroy(particle.gameObject); }, 2f);
+            }
+
+            foreach (var source in info.savedSources)
+            {
+                source.Stop();
+            }
+        }
+
+        public void HandleParticleTransform(BuffInfo.BuffFX.EffectData effect, GameObject particleObject)
+        {
+            particleObject.transform.localScale = Scale(effect);
+            if (effect.target == CatalystParticleTarget.BodyPart)
+            {
+                particleObject.transform.SetParent(bodyParts.BodyPartTransform(effect.bodyPart));
+                
+            }
+
+            if (effect.target == CatalystParticleTarget.Self)
+            {
+                particleObject.transform.SetParent(transform);
+            }
+
+            HandleOffSets();
+
+            void HandleOffSets()
+            {
+                if (effect.target != CatalystParticleTarget.Ground)
+                {
+                    particleObject.transform.localPosition = new();
+                }
+                particleObject.transform.position += effect.offset;
+                particleObject.transform.eulerAngles += effect.offsetRotation;
+            }
+        }
+
+        public Vector3 Scale(BuffInfo.BuffFX.EffectData effect)
+        {
+            if (effect.radiusType == RadiusType.None)
+            {
+                return effect.particle.transform.localScale + effect.offsetScale;
+            }
+
+            var newScale = new Vector3();
+            var portion = effect.radiusPortion;
+            var radius = buffInfo.properties.radius;
+
+            newScale.x = portion.x == 0f ? radius : portion.x;
+            newScale.y = portion.y == 0f ? radius : portion.y;
+            newScale.z = portion.z == 0f ? radius : portion.z;
+
+            return newScale;
+
+        }
+
+
+
+
     }
 
 }

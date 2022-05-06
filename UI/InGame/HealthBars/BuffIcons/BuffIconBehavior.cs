@@ -55,7 +55,7 @@ namespace Architome
         {
             if(dependencies.mainSprite == null) { return; }
 
-            dependencies.mainSprite.fillAmount = buff.buffTimer / buff.properties.time;
+            dependencies.mainSprite.fillAmount = buff.progress;
         }
 
         public void SetBuff(BuffInfo buff)

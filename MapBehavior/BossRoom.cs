@@ -11,13 +11,22 @@ namespace Architome
         public Transform bossPosition;
         public Transform rewardChestPositions;
         public Transform bossPatrolSpots;
-        public GameObject bossToSpawn;
+        public List<GameObject> possibleBosses;
 
         private void OnValidate()
         {
-            if (bossToSpawn && bossToSpawn.GetComponent<EntityInfo>() == null)
+            
+
+
+            for (int i = 0; i < possibleBosses.Count; i++)
             {
-                bossToSpawn = null;
+                var bossToSpawn = possibleBosses[i];
+
+                if (!bossToSpawn.GetComponent<EntityInfo>())
+                {
+                    possibleBosses.RemoveAt(i);
+                    i--;
+                }
             }
         }
         void Start()

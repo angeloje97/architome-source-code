@@ -36,6 +36,8 @@ namespace Architome
         }
 
         public Action<GameObject, GameObject> OnNewHoverTarget;
+        public Action<GameObject> OnSelectTarget;
+        public Action OnClearSelected;
 
         GameObject hoverTargetCheck;
 
@@ -241,6 +243,7 @@ namespace Architome
         public void AddSelected(GameObject target)
         {
             target.GetComponent<EntityInfo>().targetableEvents.OnSelect?.Invoke(true);
+            OnSelectTarget?.Invoke(target);
             selectedTargets.Add(target);
             
         }
@@ -253,6 +256,8 @@ namespace Architome
                 selectedTargets.RemoveAt(i);
                 i--;
             }
+
+            OnClearSelected?.Invoke();
         }
         public void ClearHovers(bool clearCurrentHover = true)
         {

@@ -55,37 +55,39 @@ namespace Architome
 
         public void GetDependencies()
         {
-            if (GetComponentInParent<EntityInfo>())
+            entityInfo = GetComponentInParent<EntityInfo>();
+
+
+            if (entityInfo)
             {
-                entityInfo = GetComponentInParent<EntityInfo>();
                 entityObject = entityInfo.gameObject;
 
                 entityInfo.OnLifeChange += OnLifeChange;
                 entityInfo.combatEvents.OnStatesChange += OnStatesChange;
                 entityInfo.OnChangeStats += OnChangeStats;
+                var movement = entityInfo.Movement();
 
-                if(entityInfo.Movement())
+                if (movement)
                 {
-                    entityInfo.Movement().OnStartMove += OnStartMove;
+                    movement.OnStartMove += OnStartMove;
                 }
             }
 
-            if (abilities.Count == 0)
+            abilities.Clear();
+
+            foreach (Transform child in transform)
             {
-                foreach (Transform child in transform)
+                if (child.GetComponent<AbilityInfo>())
                 {
-                    if (child.GetComponent<AbilityInfo>())
+                    if (child.GetComponent<AbilityInfo>().isAttack)
                     {
-                        if (child.GetComponent<AbilityInfo>().isAttack)
-                        {
-                            attackAbility = child.GetComponent<AbilityInfo>();
-                        }
-                        else
-                        {
-                            abilities.Add(child.GetComponent<AbilityInfo>());
-                        }
-                        child.GetComponent<AbilityInfo>().active = true;
+                        attackAbility = child.GetComponent<AbilityInfo>();
                     }
+                    else
+                    {
+                        abilities.Add(child.GetComponent<AbilityInfo>());
+                    }
+                    child.GetComponent<AbilityInfo>().active = true;
                 }
             }
 
@@ -199,8 +201,8 @@ namespace Architome
                 if (entityInfo && entityInfo.PlayerController())
                 {
                     entityInfo.PlayerController().HandlePlayerTargetting();
-                    Cast(abilities.IndexOf(ability));
                 }
+                Cast(abilities.IndexOf(ability));
             }
         }
 

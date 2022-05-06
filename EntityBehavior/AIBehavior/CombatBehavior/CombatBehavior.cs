@@ -11,7 +11,7 @@ namespace Architome
     [Serializable]
     public class SpecialAbility
     {
-        AbilityInfo ability;
+        public AbilityInfo ability;
         public int abilityIndex;
         //public bool targetsRandom;
         public SpecialTargeting targeting;

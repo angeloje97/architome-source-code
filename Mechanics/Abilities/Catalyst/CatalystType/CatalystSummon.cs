@@ -40,7 +40,7 @@ namespace Architome
 
         public void OnCatalystDestroy(CatalystDeathCondition deathCondition)
         {
-
+            if (!catalyst.entityInfo.isAlive) return;
             SummonEntity();
 
         }
@@ -61,21 +61,28 @@ namespace Architome
 
             summoned.transform.SetParent(entityGenerator.summons, true);
             summoned.ChangeNPCType(this.entity.npcType);
+            summoned.summon.sourceAbility = ability;
             summoned.summon.isSummoned = true;
             summoned.summon.master = this.entity;
             summoned.summon.timeRemaining = summoning.liveTime;
 
-            UpdateStats(summoned.entityStats);
+
+            UpdateStats(summoned);
         }
 
-        void UpdateStats(Stats stats)
+        void UpdateStats(EntityInfo entity)
         {
+            var stats = entity.entityStats;
             var value = (int) (catalyst.value * summoning.valueContributionToStats);
-            stats.Level = entity.stats.Level;
+            stats.Level = catalyst.entityInfo.stats.Level;
             stats.Vitality = value;
             stats.Strength = value;
             stats.Wisdom = value;
             stats.Dexterity = value;
+
+            entity.entityStats += summoning.additiveStats;
+
+            entity.UpdateCurrentStats();
         }
 
     }

@@ -131,6 +131,7 @@ namespace Architome
 
                 foreach (var ally in allies)
                 {
+                    if (!ally.isAlive) continue;
                     if ((ally.health / ally.maxHealth) <= healing.minimumHealth)
                     {
 

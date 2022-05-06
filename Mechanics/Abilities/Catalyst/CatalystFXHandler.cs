@@ -185,11 +185,31 @@ namespace Architome
 
             var system = particleManager.Play(effect.particleObj, true);
 
+            HandleParticleTransform(effect, system.gameObject);
+            
+            system.transform.position += effect.offsetPosition;
+            system.transform.localScale += effect.offsetScale;
+            system.transform.eulerAngles += effect.offsetRotation;
+
+
+        }
+
+        public void HandleParticleTransform(CatalystInfo.CatalystEffects.Catalyst effect, GameObject system)
+        {
             if (effect.target == CatalystParticleTarget.Ground)
             {
 
                 system.transform.position = V3Helper.GroundPosition(transform.position, GMHelper.LayerMasks().walkableLayer);
-                
+
+            }
+
+            else if (effect.target == CatalystParticleTarget.BodyPart)
+            {
+                var entity = catalyst.lastTargetHit != null ? catalyst.lastTargetHit : catalyst.entityInfo;
+                var bodyPart = entity.GetComponentInChildren<CharacterBodyParts>().BodyPartTransform(effect.bodyPart);
+
+                system.transform.SetParent(bodyPart);
+                system.transform.localPosition = new();
             }
             else
             {
@@ -206,14 +226,9 @@ namespace Architome
                 {
                     system.transform.rotation = V3Helper.LerpLookAt(system.transform, catalyst.location, 1f);
                 }
-                
+
             }
 
-
-
-            system.transform.position += effect.offsetPosition;
-            system.transform.localScale += effect.offsetScale;
-            system.transform.eulerAngles += effect.offsetRotation;
         }
 
         // Update is called once per frame

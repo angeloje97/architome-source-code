@@ -109,6 +109,7 @@ public class ThreatManager : MonoBehaviour
 
     public event Action<ThreatInfo> OnNewThreat;
     public event Action<ThreatInfo, float> OnIncreaseThreat;
+    public event Action<ThreatInfo> OnFirstThreat;
     public event Action<ThreatInfo> OnRemoveThreat;
     public event Action<ThreatInfo, float> OnGenerateThreat;
     public event Action<ThreatManager> OnEmptyThreats;
@@ -231,11 +232,42 @@ public class ThreatManager : MonoBehaviour
         {
             if(GMHelper.Difficulty() != null)
             {
-                threatVal *= GMHelper.Difficulty().settings.tankThreatMultiplier;
+                threatVal *= ThreatMultiplier(eventData.source);
             }
         }
+
+        threatVal += ExtraThreat();
         
         IncreaseThreat(source.gameObject, threatVal, true);
+
+
+        float ExtraThreat()
+        {
+            if (eventData.ability == null) return 0f;
+
+            var threat = eventData.ability.threat;
+
+
+            return threat.additiveThreatMultiplier * eventData.value;
+        }
+
+    }
+
+    public float ThreatMultiplier(EntityInfo target)
+    {
+        if (target == null) return 1f;
+
+        if (target.role == Role.Tank)
+        {
+            return GMHelper.Difficulty().settings.tankHealthMultiplier;
+        }
+
+        if (target.role == Role.Healer)
+        {
+            return GMHelper.Difficulty().settings.healThreatMultiplier;
+        }
+
+        return 1f;
     }
 
     public void OnBuffApply(BuffInfo appliedBuff, EntityInfo source)
@@ -256,7 +288,7 @@ public class ThreatManager : MonoBehaviour
         var source = eventData.source;
         var val = eventData.value;
 
-        var threatMultiplier = GMHelper.Difficulty().settings.healThreatMultiplier;
+        var threatMultiplier = ThreatMultiplier(source);
 
         val *= threatMultiplier;
 
@@ -323,7 +355,7 @@ public class ThreatManager : MonoBehaviour
     {
         if (behavior.combatType != CombatBehaviorType.Aggressive) return;
         if (!entityInfo.CanAttack(target)) return;
-        if (entityInfo.isInCombat) return;
+        if (Threat(target) != null) return;
         if (!entityInfo.isAlive) return;
 
         IncreaseThreat(target, 15, true);
@@ -361,11 +393,13 @@ public class ThreatManager : MonoBehaviour
             }
         }
     }
-    public void IncreaseThreat(GameObject source, float value, bool alertAllies = false)
+    public void IncreaseThreat(GameObject source, float value, bool alertAllies = false, bool fromAlert = false)
     {
         if (!entityInfo.isAlive) return;
         if(entityInfo.gameObject == source) { return; }
         if (entityInfo.npcType == source.GetComponent<EntityInfo>().npcType) return;
+
+        bool firstThreat = threats.Count == 0;
 
 
         if (!source.GetComponent<EntityInfo>().isAlive) { return; }
@@ -392,6 +426,10 @@ public class ThreatManager : MonoBehaviour
 
         HandleMaxThreat();
 
+        if (firstThreat && !fromAlert)
+        {
+            OnFirstThreat?.Invoke(threatInfo);
+        }
         
 
         if(alertAllies)
@@ -499,12 +537,12 @@ public class ThreatManager : MonoBehaviour
         }
         return target;
     }
-    public async void AlertAllies(GameObject target)
+    public void AlertAllies(GameObject target)
     {
         if (!entityInfo.isAlive) return;
-        await Task.Delay((int)(.25f * 1000));
+        //await Task.Delay((int)(.25f * 1000));
 
-        Debugger.InConsole(4598, $"Delay is {(int)(.25f * 1000)}");
+        //Debugger.InConsole(4598, $"Delay is {(int)(.25f * 1000)}");
 
         var allies = lineOfSight.DetectedAllies();
 
@@ -517,7 +555,7 @@ public class ThreatManager : MonoBehaviour
             if (threatManager == null) continue;
             if (threatManager.Threat(target) != null) continue;
 
-            threatManager.IncreaseThreat(target, 15f);
+            threatManager.IncreaseThreat(target, 15f, false, true);
         }
     }
 
@@ -526,7 +564,6 @@ public class ThreatManager : MonoBehaviour
         try 
         {
             var enemies = combatInfo.EnemiesTargetedBy();
-
             foreach(var enemy in enemies)
             {
                 enemy.GetComponentInChildren<ThreatManager>().IncreaseThreat(source, value);

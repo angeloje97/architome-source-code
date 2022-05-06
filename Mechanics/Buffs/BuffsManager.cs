@@ -28,6 +28,7 @@ namespace Architome
 
                 entityInfo.OnLifeChange += OnLifeChange;
                 entityInfo.OnChangeNPCType += OnChangeNPCType;
+                entityInfo.OnCombatChange += OnCombatChange;
             }
         }
         void Start()
@@ -39,6 +40,23 @@ namespace Architome
         void Update()
         {
 
+        }
+
+
+        public void OnCombatChange(bool isInCombat)
+        {
+            if (isInCombat) return;
+
+            foreach (Transform child in transform)
+            {
+                var buff = child.GetComponent<BuffInfo>();
+                if (!buff) continue;
+
+                if (buff.properties.outOfCombatCleanse)
+                {
+                    buff.Cleanse();
+                }
+            }
         }
 
         public void UpdateStats()
@@ -144,10 +162,8 @@ namespace Architome
             void HandleNewBuff()
             {
                 if (hasBuff) { return; }
-                if (!hasBuff)
-                {
-                    ApplyBuffProperties();
-                }
+                ApplyBuffProperties();
+
             }
 
             void ApplyBuffProperties()
@@ -180,6 +196,7 @@ namespace Architome
                 //newBuff.reapplyResetsTimer = sourceAbility.reapplyResetsTimer;
 
                 var buffInfo = Instantiate(buffObject, transform).GetComponent<BuffInfo>();
+                
                 entityInfo.OnBuffApply?.Invoke(buffInfo, sourceInfo);
             }
         }

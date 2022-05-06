@@ -16,6 +16,8 @@ public class BuffProperties
     public float intervals;
     public float time;
     public float radius;
+
+
     [Header("Stacks")]
     public bool canStack;
     public bool loseStackAndResetTimer;
@@ -26,6 +28,7 @@ public class BuffProperties
     public bool selfBuffOnDestroy;
     public bool reapplyResetsTimer;
     public bool reapplyResetsBuff;
+    public bool outOfCombatCleanse;
 }
 
 [RequireComponent(typeof(BuffFXHandler))]
@@ -60,12 +63,9 @@ public class BuffInfo : MonoBehaviour
     public int stacks = 0;
     bool buffTimeComplete = false;
     public float buffTimer;
+    public float progress;
 
-    [Header("Buff FX")]
-    public Vector3 scalePortions;
-    public GameObject buffParticles;
-    public GameObject buffRadiusParticles;
-    public AudioClip buffSound;
+    public bool failed { get; set; }
 
     public bool IsComplete { get { return buffTimeComplete; } }
 
@@ -73,32 +73,26 @@ public class BuffInfo : MonoBehaviour
     public struct BuffFX
     {
         [Serializable]
-        public class ParticlePair
+        public class EffectData
         {
-            public BodyPart target;
-            public ParticleSystem particle;
-            public Transform transform;
-            public Vector3 offset;
+            [Header("Behavior")]
+            public BuffEvents playTrigger;
+
+            [Header("Particles")]
+            public GameObject particle;
+            public BodyPart bodyPart;
+            public CatalystParticleTarget target;
+            public RadiusType radiusType;
+            
+            public bool playForDuration;
+            public Vector3 offset, offsetScale, offsetRotation, radiusPortion;
+
+            [Header("Audio")]
+            public AudioClip audioClip;
+            public bool loops;
         }
 
-        public Vector3 scalePortions;
-        public float scaleMultiplier;
-
-
-
-        [Header("Particles")]
-        //public ParticleSystem startingParticles;
-        public List<ParticlePair> startingParticlePair;
-        public List<ParticlePair> intervalParticlePair;
-        public List<ParticleSystem> startingParticles;
-        public List<ParticleSystem> intervalParticle;
-        public GameObject radiusParticle;
-
-        [Header("Audio")]
-        public AudioClip startingSound;
-        public AudioClip intervalSound;
-        public AudioClip endingSound;
-        public AudioClip loopingSound;
+        public List<EffectData> effectsData;
 
         [Header("Transform Effects")]
         public bool shrinkOnEnd;
@@ -141,36 +135,12 @@ public class BuffInfo : MonoBehaviour
         }
         
     }
-    public void SpawnParticle()
-    {
-        var buffRadius = properties.radius;
-        if(buffParticles != null)
-        {
-            Instantiate(buffParticles, transform);
-        }
-
-        if(buffRadiusParticles)
-        {
-            if(scalePortions.x == 0)
-            {
-                scalePortions.x = buffRadius*2;
-            }
-            if(scalePortions.y == 0)
-            {
-                scalePortions.y = buffRadius*2;
-            }
-            if(scalePortions.z == 0)
-            {
-                scalePortions.z = buffRadius*2;
-            }
-            buffRadiusParticles.transform.localScale = scalePortions;
-        }
-    }
 
     private void Awake()
     {
         buffTimeComplete = false;
         buffTimer = properties.time;
+        progress = 1;
         GetVessel();
         //Invoke("SpawnParticle", .125f);
         StartCoroutine(BuffIntervalHandler());
@@ -178,7 +148,7 @@ public class BuffInfo : MonoBehaviour
 
     public void Start()
     {
-        ArchAction.Delay(() => { OnBuffStart?.Invoke(this); }, .0625f);
+        ArchAction.Delay(() => { if(!failed) OnBuffStart?.Invoke(this); }, .0625f);
     }
     private void Update()
     {
@@ -241,11 +211,13 @@ public class BuffInfo : MonoBehaviour
 
         void HandleBuffTimer()
         {
-            if(buffTimeComplete == true) { return; }
+            if (buffTimeComplete == true) { return; }
+            if (buffTimer == -1) return;
 
             if (buffTimer > 0)
             {
                 buffTimer -= Time.deltaTime;
+                progress = buffTimer / properties.time;
             }
             if (buffTimer <= 0)
             {
@@ -385,5 +357,4 @@ public class BuffInfo : MonoBehaviour
         }
     }
 
-    
 }

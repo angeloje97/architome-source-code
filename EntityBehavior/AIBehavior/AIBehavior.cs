@@ -101,6 +101,8 @@ public class AIBehavior : MonoBehaviour
             originalBehaviorType = behaviorType;
         }
     }
+
+
     public void OnStatesChange(List<EntityState> previous, List<EntityState> states)
     {
         var effectedBy = new List<EntityState>()
@@ -119,6 +121,10 @@ public class AIBehavior : MonoBehaviour
             behaviorType = originalBehaviorType;
         }
     }
+
+
+
+
     void Start()
     {
         GetDependencies();

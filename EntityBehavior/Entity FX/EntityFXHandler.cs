@@ -50,10 +50,11 @@ namespace Architome
 
                 entityInfo.OnDamageTaken += OnDamageTaken;
 
+                var threatManager = entityInfo.ThreatManager();
 
-                if (entityInfo.AIBehavior())
+                if (threatManager)
                 {
-                    entityInfo.AIBehavior().events.OnDetectedEnemy += OnDetectedEnemy;
+                    threatManager.OnFirstThreat += OnFirstThreat;
                 }
 
             }
@@ -64,7 +65,8 @@ namespace Architome
         {
             GetDependencies();
         }
-        private void OnDetectedEnemy(GameObject obj)
+
+        void OnFirstThreat(ThreatManager.ThreatInfo info)
         {
             if (entityInfo.entityFX == null) return;
             try
@@ -84,7 +86,6 @@ namespace Architome
             {
                 throw;
             }
-
         }
 
         void OnDeath(CombatEventData eventData)

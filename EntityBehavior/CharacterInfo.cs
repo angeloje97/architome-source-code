@@ -28,6 +28,7 @@ public class CharacterInfo : EntityProp
     public Stats totalEquipmentStats;
     public bool sheathed;
     public bool isCasting;
+        
     public List<EquipmentSlot> equipment;
 
     public Vector3 currentDirection;
@@ -59,6 +60,7 @@ public class CharacterInfo : EntityProp
         {
             movement = entityInfo.Movement();
             abilityManager = entityInfo.AbilityManager();
+            entityInfo.OnHiddenChange += OnHiddenChange;
         }
 
         if (movement)
@@ -139,6 +141,21 @@ public class CharacterInfo : EntityProp
 
         rotation.isActive = false;
     }
+
+
+    async void OnHiddenChange(bool isHidden)
+    {
+        foreach (var renderer in GetComponentsInChildren<Renderer>())
+        {
+            if (renderer.enabled != !isHidden)
+            {
+                if (renderer == null) return;
+                renderer.enabled = !isHidden;
+                await Task.Yield();
+            }
+        }
+    }
+
 
     void HandleMetrics()
     {

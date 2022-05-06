@@ -22,6 +22,8 @@ namespace Architome
         public struct Info
         {
             public List<GameObject> CastingParticles, ChannelingParticles, AbilityParticles, ReleaseParticles;
+
+
         }
 
         public Info info;

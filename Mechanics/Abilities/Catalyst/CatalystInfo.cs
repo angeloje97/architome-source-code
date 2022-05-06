@@ -41,11 +41,11 @@ namespace Architome
         public List<EntityInfo> enemiesHit;
         public List<EntityInfo> alliesHealed;
         public List<EntityInfo> alliesAssisted;
+        public EntityInfo lastTargetHit;
 
         public float value { get { return metrics.value; } set { metrics.value = value; } }
         public bool requiresLockOnTarget { get; set; }
         public GameObject target { get { return metrics.target; } set { metrics.target = value; } }
-        public Vector3 direction { get { return metrics.direction; } set { metrics.direction = value; } }
         public Vector3 location { get { return metrics.location; } set { metrics.location = value; } }
 
         [Serializable]
@@ -62,9 +62,11 @@ namespace Architome
 
             public GameObject target;
 
-            public Vector3 direction, location, startingLocation, startDirectionRange;
+            public bool lockOn;
 
-            public float value, startingHeight, currentRange, liveTime, distanceFromTarget, inertia, inertiaFallOff, intervals;
+            public Vector3 location, startingLocation, startDirectionRange, currentPosition;
+
+            public float value, startingHeight, currentRange, liveTime, inertia, inertiaFallOff, intervals;
 
             public int ticks;
 
@@ -74,9 +76,23 @@ namespace Architome
 
             public float maxGrowth, growthSpeed, startSpeed;
 
+            public float startDistance;
+
+
+            [Header("Change of Speed")]
+
             public bool stops;
 
             public List<AccelerationBenchmark> accelBenchmarks;
+
+
+            public Vector3 targetLocation
+            {
+                get
+                {
+                    return lockOn ? target.transform.position : location;
+                }
+            }
         }
 
         public Metrics metrics;
@@ -97,6 +113,7 @@ namespace Architome
             {
                 public CatalystEvent playTrigger;
                 public CatalystParticleTarget target;
+                public BodyPart bodyPart;
                 public RadiusType manifestRadius;
                 public Vector3 offsetPosition, offsetScale, offsetRotation;
                 public GameObject particleObj;
@@ -186,7 +203,7 @@ namespace Architome
         public Action<GameObject> OnDamage;
         public Action<GameObject> OnAssist;
         public Action<GameObject> OnHeal;
-        public Action<GameObject> OnHit;
+        public Action<GameObject> OnHit { get; set; }
         public Action<GameObject> OnWrongTarget;
         public Action<GameObject> OnDeadTarget { get; set; }
         public Action<GameObject, GameObject> OnNewTarget;
@@ -245,7 +262,6 @@ namespace Architome
 
             void GetMetrics()
             {
-                //direction = abilityInfo.directionLocked;
                 location = abilityInfo.locationLocked;
 
 
@@ -255,6 +271,9 @@ namespace Architome
                 }
 
                 metrics.startingHeight = V3Helper.HeightFromGround(transform.position, LayerMasksData.active.walkableLayer);
+
+                metrics.startingLocation = transform.position;
+                metrics.startDistance = Vector3.Distance(metrics.targetLocation, transform.position);
 
                 CalculateValue();
             }
@@ -285,6 +304,7 @@ namespace Architome
                 if (abilityInfo.abilityType == AbilityType.LockOn)
                 {
                     gameObject.AddComponent<CatalystLockOn>();
+                    metrics.lockOn = true;
                 }
 
                 if (abilityInfo.abilityType == AbilityType.Use)
@@ -349,8 +369,9 @@ namespace Architome
             SpawnCatalystAudio();
             SpawnBodyPart();
             kinematics.SetKinematics(this);
+
         }
-    
+
         void SpawnBodyPart()
         {
             if (isCataling) return;
@@ -397,7 +418,8 @@ namespace Architome
 
         public void UpdateMetrics()
         {
-            currentRange = V3Helper.Distance(startPosition, transform.position);
+            metrics.currentRange = V3Helper.Distance(metrics.startingLocation, transform.position);
+            
             liveTime += Time.deltaTime;
 
             if (target)

@@ -1,16 +1,51 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
+using System.IO;
 
 public class KeyBindings : MonoBehaviour
 {
 
     public static KeyBindings active;
+    public string testKey;
+    public List<NamedKeycode> keycodes;
 
     public void Awake()
     {
         active = this;
+        Dictionary<string, KeyCode> keys = new Dictionary<string, KeyCode>();
+        foreach (var key in keycodes)
+        {
+            keys.Add(key.name, key.keycode);
+        }
     }
+    [Serializable]
+    public struct NamedKeycode
+    {
+        public string name;
+        public KeyCode keycode;
+    }
+
+
+
+    private void OnValidate()
+    {
+        keycodes.Clear();
+
+        foreach (KeyValuePair<string, KeyCode> binding in keyBinds)
+        {
+            keycodes.Add(new() { name = binding.Key, keycode = binding.Value });
+        }
+
+        if (testKey.Length == 0) return;
+        
+        KeyCode parsedKeyCode = (KeyCode)Enum.Parse(typeof(KeyCode), testKey);
+
+
+        Debugger.InConsole(0452, $"{parsedKeyCode}");
+    }
+
 
     public Dictionary<string, KeyCode> keyBinds = new Dictionary<string, KeyCode>()
     {

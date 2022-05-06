@@ -140,6 +140,58 @@ namespace Architome
             return s3;
         }
 
+        public static Stats operator *(Stats s1, Stats s2)
+        {
+            Stats s3 = new Stats();
+
+            foreach (var field in s3.GetType().GetFields())
+            {
+                if (field.GetValue(s3).GetType() == typeof(int))
+                {
+                    var s1Value = (int)field.GetValue(s1);
+                    var s2Value = (int)field.GetValue(s2);
+
+
+                    field.SetValue(s3, s1Value * s2Value);
+                }
+
+                if (field.GetValue(s3).GetType() == typeof(float))
+                {
+                    var s1Value = (float)field.GetValue(s1);
+                    var s2Value = (float)field.GetValue(s2);
+
+                    field.SetValue(s3, s1Value * s2Value);
+                }
+            }
+
+            return s3;
+        }
+
+        public static Stats operator *(Stats s1, float value)
+        {
+            Stats s3 = new Stats();
+
+            foreach (var field in s3.GetType().GetFields())
+            {
+                if (field.GetValue(s3).GetType() == typeof(int))
+                {
+                    var s1Value = (int)field.GetValue(s1);
+
+
+                    field.SetValue(s3, s1Value * (int) value);
+                }
+
+                if (field.GetValue(s3).GetType() == typeof(float))
+                {
+                    var s1Value = (float)field.GetValue(s1);
+
+                    field.SetValue(s3, s1Value * value);
+                }
+            }
+
+            return s3;
+        }
+
         public static Stats operator -(Stats s1, Stats s2)
         {
             var s3 = new Stats();
@@ -164,6 +216,30 @@ namespace Architome
             }
 
             return s3;
+        }
+
+        public void Copy(Stats stats)
+        {
+            var s3 = new Stats();
+
+            foreach (var field in s3.GetType().GetFields())
+            {
+                if (field.GetValue(s3).GetType() == typeof(int))
+                {
+                    var s1Value = (int)field.GetValue(stats);
+
+                    field.SetValue(this, s1Value);
+
+                }
+
+                if (field.GetValue(s3).GetType() == typeof(float))
+                {
+                    var s1Value = (float)field.GetValue(stats);
+
+                    field.SetValue(this, s1Value);
+                }
+            }
+
         }
 
         public List<Attribute> Attributes()
@@ -204,18 +280,6 @@ namespace Architome
         public List<Attribute> Secondaries
         {
             get { return Attributes().Where(attribute => attribute.Type.Equals(typeof(float).ToString())).ToList(); }
-        }
-
-        public Stats Copy()
-        {
-            var newStats = new Stats();
-
-            foreach (var field in this.GetType().GetFields())
-            {
-                field.SetValue(newStats, field.GetValue(this));
-            }
-
-            return newStats;
         }
 
         public void UpdateCoreStats()

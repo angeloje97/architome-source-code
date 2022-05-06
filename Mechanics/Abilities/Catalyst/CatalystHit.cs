@@ -123,7 +123,10 @@ public class CatalystHit : MonoBehaviour
         HandleHeal();
         HandleDamage();
         HandleAssist();
+        HandleDestroySummons();
 
+
+        
 
         void HandleHeal()
         {
@@ -150,6 +153,9 @@ public class CatalystHit : MonoBehaviour
             }
 
         }
+
+        
+
         void HandleDamage()
         {
             if(!CanHarm(targetHit)) { return; }
@@ -198,11 +204,37 @@ public class CatalystHit : MonoBehaviour
             if (CanHit(targetHit))
             {
                 ArchAction.Yield(() => {
+                    catalystInfo.lastTargetHit = targetHit;
                     catalystInfo.OnHit?.Invoke(targetHit.gameObject);
                 });
                 
             }
         }
+
+        void HandleDestroySummons()
+        {
+            if (!abilityInfo.destroysSummons) return;
+            if (!IsSummon(targetHit.gameObject)) return;
+
+            var combatData = new CombatEventData(catalystInfo, catalystInfo.entityInfo, targetHit.maxHealth);
+            targetHit.Damage(combatData);
+            catalystInfo.OnDamage?.Invoke(targetHit.gameObject);
+            AddEnemyHit(targetHit);
+            catalystInfo.ReduceTicks();
+            targetHit.Die();
+        }
+    }
+
+    public bool IsSummon(GameObject target)
+    {
+        var info = target.GetComponent<EntityInfo>();
+
+        if (info == null) return false;
+        if (!info.summon.isSummoned) return false;
+        if (info.summon.master == null) return false;
+        if (info.summon.master != catalystInfo.entityInfo) return false;
+
+        return true;
     }
 
     public void HandleMainTarget(GameObject target)
@@ -238,6 +270,8 @@ public class CatalystHit : MonoBehaviour
         {
             return true;
         }
+
+        
 
         if (abilityInfo && abilityInfo.canBeIntercepted && targetCol.GetComponent<EntityInfo>())
         {

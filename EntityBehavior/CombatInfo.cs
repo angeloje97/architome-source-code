@@ -11,6 +11,7 @@ public class CombatInfo : MonoBehaviour
     public EntityInfo entityInfo;
     public AbilityManager abilityManager;
     public CombatBehavior combatBehavior;
+    public bool ignoreIndicator;
 
     //Combat Logs
     [Serializable]
@@ -212,6 +213,7 @@ public class CombatInfo : MonoBehaviour
 
         if(newTarget != null)
         {
+            if (ignoreIndicator) return;
             var newInfo = newTarget.GetComponent<EntityInfo>();
             var combatInfo = newInfo.GetComponentInChildren<CombatInfo>();
             combatInfo.AddTarget(entityInfo.gameObject);
@@ -303,6 +305,7 @@ public class CombatInfo : MonoBehaviour
     {
         if(ability.isAttack) { return; }
         if (ability.target == null) return;
+        if (ignoreIndicator) return;
 
         var combatInfo = ability.target.GetComponentInChildren<CombatInfo>();
         combatInfo.AddCaster(entityInfo.gameObject);

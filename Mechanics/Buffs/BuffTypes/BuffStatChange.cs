@@ -8,7 +8,10 @@ namespace Architome
     {
         // Start is called before the first frame update
         public Stats stats;
-
+        public bool buffValueMultiplies;
+        public float multiplier;
+        public bool stacks;
+        [SerializeField]Stats starting;
         new void GetDependencies()
         {
             base.GetDependencies();
@@ -16,26 +19,41 @@ namespace Architome
             if (buffInfo)
             {
                 buffInfo.OnBuffEnd += OnBuffEnd;
+
+                if (buffValueMultiplies)
+                {
+                    stats *= buffInfo.properties.value * multiplier;
+                }
+
+                if (stacks)
+                {
+
+                    buffInfo.OnStack += OnStack;
+                }
+
                 ApplyBuff();
             }
             else
             {
                 Destroy(gameObject);
             }
+
         }
         void Start()
         {
             GetDependencies();
         }
 
-        // Update is called once per frame
-        void Update()
+        void OnStack(BuffInfo info, int stacks, float value)
         {
-
+            stats = starting*stacks;
+            buffInfo.buffsManager.UpdateStats();
         }
 
         public void ApplyBuff()
         {
+            starting = new();
+            starting.Copy(stats);
             buffInfo.buffsManager.UpdateStats();
         }
 

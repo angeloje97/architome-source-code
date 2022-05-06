@@ -49,6 +49,11 @@ public class AbilityInfo : MonoBehaviour
         public float radius;
         public float liveTime;
         public float valueContributionToStats;
+        public Stats additiveStats;
+
+        [Header("Death Settings")]
+        public bool masterDeath;
+        public bool masterCombatFalse;
     }
 
     public SummoningProperty summoning;
@@ -110,6 +115,19 @@ public class AbilityInfo : MonoBehaviour
     public float liveTime = 3;
     public int ticksOfDamage = 1;
 
+    [Serializable]
+    public struct Threat
+    {
+
+        public float additiveThreatMultiplier;
+
+        public bool setsThreat;
+        public float threatSet;
+
+        public bool clearThreat;
+    }
+
+    public Threat threat;
 
     [Serializable]
     public struct AbilityVisualEffects
@@ -147,9 +165,6 @@ public class AbilityInfo : MonoBehaviour
         public int charges;
         public int maxCharges = 1;
     }
-
-
-
     public CoolDownProperties coolDown;
 
 
@@ -257,6 +272,8 @@ public class AbilityInfo : MonoBehaviour
 
     public Restrictions restrictions;
 
+    
+
 
     [Header("AbilityRestrictions")]
     public bool activated;
@@ -321,14 +338,9 @@ public class AbilityInfo : MonoBehaviour
     public RecastProperties recastProperties;
 
     [Header("Ability Timers")]
-    public float coolDownTimer;
     public float castTimer;
-    //public float currentCharges;
-    //public float globalCoolDownTimer;
-    //public bool globalCoolDownActive;
     public bool canceledCast;
     public bool isCasting;
-    public float timerPercent;
     public bool timerPercentActivated;
     public float progress;
     public float progressTimer;
@@ -352,7 +364,7 @@ public class AbilityInfo : MonoBehaviour
     public bool isAutoAttacking;
     public void GetDependencies()
     {
-
+        entityInfo = GetComponentInParent<EntityInfo>();
         if(abilityManager == null)
         {
             if(GetComponentInParent<AbilityManager>())
@@ -362,42 +374,29 @@ public class AbilityInfo : MonoBehaviour
                 abilityManager.OnGlobalCoolDown += OnGlobalCoolDown;
             }
         }
-        if(abilityManager)
-        {
-            if(entityObject == null && abilityManager.entityObject)
-            {
-                entityObject = abilityManager.entityObject;
-                entityInfo = abilityManager.entityInfo;
-                entityInfo.OnChangeNPCType += OnChangeNPCType;
-                
-            }
-        }
-
-        if(entityInfo && entityInfo.Movement())
+        if(entityInfo)
         {
             movement = entityInfo.Movement();
+            lineOfSight = entityInfo.LineOfSight();
+
+            entityObject = entityInfo.gameObject;
+
+            entityInfo.OnChangeNPCType += OnChangeNPCType;
+        }
+
+        if(movement)
+        {
             movement.OnStartMove += OnStartMove;
             movement.OnEndMove += OnEndMove;
             movement.OnTryMove += OnTryMove;
             movement.OnNewPathTarget += OnNewPathTarget;
         }
 
+        catalystInfo = catalyst.GetComponent<CatalystInfo>();
 
-        if(catalystInfo == null)
+        if (catalystInfo)
         {
-            if(catalyst)
-            {
-                catalystInfo = catalyst.GetComponent<CatalystInfo>();
-                if (catalystInfo.catalystIcon) { abilityIcon = catalystInfo.catalystIcon; }
-            }
-        }
-
-        if(lineOfSight == null)
-        {
-            if(entityInfo && entityInfo.LineOfSight())
-            {
-                lineOfSight = entityInfo.LineOfSight();
-            }
+            abilityIcon = catalystInfo.catalystIcon ? catalystInfo.catalystIcon : abilityIcon;
         }
 
         if(coolDown.maxChargesOnStart)
@@ -409,7 +408,7 @@ public class AbilityInfo : MonoBehaviour
     }
     void Start()
     {
-        Invoke("GetDependencies", .125f);
+        GetDependencies();
     }
     void Update()
     {
@@ -757,6 +756,9 @@ public class AbilityInfo : MonoBehaviour
             return true;
         }
 
+
+        if (abilityType == AbilityType.LockOn && target == null) return false;
+
         if (V3Helper.Distance(target.transform.position, entityObject.transform.position) > range)
         {
             movement.MoveTo(target.transform, range);
@@ -778,6 +780,8 @@ public class AbilityInfo : MonoBehaviour
         {
             return true;
         }
+
+        if (abilityType == AbilityType.LockOn && target == null) return false;
 
         if (!lineOfSight.HasLineOfSight(target))
         {
@@ -807,7 +811,9 @@ public class AbilityInfo : MonoBehaviour
 
     public bool AbilityIsInRange(GameObject target)
     {
+        if (catalystInfo == null) return false;
         var distance = catalystInfo.range;
+        if (target == null) return false;
 
         if (V3Helper.Distance(target.transform.position, entityObject.transform.position) <= distance)
         {
@@ -854,7 +860,6 @@ public class AbilityInfo : MonoBehaviour
             
             coolDown.charges--;
             timerPercentActivated = false;
-            timerPercent = 0f;
             UseMana();
             HandleResourceProduction();
 
@@ -1126,16 +1131,23 @@ public class AbilityInfo : MonoBehaviour
         if (coolDown.charges <= 0)
         {
             DeactivateWantsToCast("No Charges");
+            return;
         }
 
-        if(!entityInfo.isAlive && !targetsDead) {
+        if (target == null && abilityType == AbilityType.LockOn)
+        {
+            DeactivateWantsToCast("Target = null", true);
+            return;
+        }
+
+
+        if (!target.GetComponent<EntityInfo>().isAlive && !targetsDead) {
             abilityManager.OnDeadTarget?.Invoke(this);
             DeactivateWantsToCast("Target Died", true);
             return; }
-        if(target == null && abilityType == AbilityType.LockOn) {
-            DeactivateWantsToCast("Target = null", true);
-            return; }
-        if(CanCast2())
+        
+
+        if(IsInRange() && HasLineOfSight())
         {
             Cast();
             
@@ -1145,11 +1157,8 @@ public class AbilityInfo : MonoBehaviour
     {
         if (abilityManager)
         {
-            if (entityObject)
+            if (entityInfo)
             {
-                entityObject = abilityManager.entityObject;
-                entityInfo = abilityManager.entityInfo;
-
                 value = baseValue
                     + entityInfo.stats.Wisdom * wisdomContribution
                     + entityInfo.stats.Strength * strengthContribution
@@ -1229,7 +1238,6 @@ public class AbilityInfo : MonoBehaviour
         if(!active) { return false; }
         if (isCasting) return false;
         if (channel.active) return false;
-
         if (coolDown.globalCoolDownActive) return false;
 
         if(entityInfo.mana < (manaRequired + manaRequiredPercent*entityInfo.maxMana))
@@ -1435,6 +1443,7 @@ public class AbilityInfo : MonoBehaviour
                 await Task.Yield();
                 timer -= Time.deltaTime;
                 progress = (timer / startTime);
+                progressTimer = timer;
 
                 WhileChanneling();
 

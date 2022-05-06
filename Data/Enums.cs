@@ -27,6 +27,19 @@ namespace Architome.Enums
         Structure
     }
 
+    public enum MetricType
+    {
+        Value,
+        Percent,
+        PercentValue,
+    }
+
+    public enum CameraTarget
+    {
+        None,
+        PartyCenter,
+    }
+
     public enum ScannerType
     {
         LineOfSightScan,
@@ -54,6 +67,15 @@ namespace Architome.Enums
         OnHeal,
         OnInterval,
         OnCatalingRelease,
+    }
+
+    public enum BuffEvents
+    {
+        OnStart,
+        OnInterval,
+        OnCleanse,
+        OnComplete,
+        OnEnd
     }
 
     public enum AbilityEvent
@@ -219,7 +241,8 @@ namespace Architome.Enums
         TargetsFocus,
         TargetsRandom,
         Use,
-        RandomLocation
+        RandomLocation,
+        RandomBossLocation,
     }
 
     public enum EntityControlType

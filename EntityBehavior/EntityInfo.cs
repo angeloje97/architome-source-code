@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
 
+
 namespace Architome
 {
     public class EntityInfo : MonoBehaviour
@@ -29,6 +30,7 @@ namespace Architome
         public bool isPlayer;
         public bool isAlive;
         public bool isInCombat;
+        public bool isHidden = true;
         public bool created = false;
         public bool isRegening = false;
         public bool disappeared = false;
@@ -43,8 +45,8 @@ namespace Architome
         {
             public bool isSummoned;
             public EntityInfo master;
+            public AbilityInfo sourceAbility;
             public float timeRemaining;
-
 
 
 
@@ -109,6 +111,7 @@ namespace Architome
         public Action<float, float> OnManaChange;
         public Action<bool> OnCombatChange;
         public Action<bool> OnLifeChange;
+        public Action<bool> OnHiddenChange;
         public Action<SocialEventData> OnReceiveInteraction;
         public Action<SocialEventData> OnReactToInteraction;
         public Action<RoomInfo, RoomInfo> OnRoomChange;
@@ -348,6 +351,8 @@ namespace Architome
             OnChangeStats?.Invoke(this);
 
         }
+
+
         public void Damage(CombatEventData combatData)
         {
             combatData.target = this;
@@ -626,6 +631,7 @@ namespace Architome
         }
         public void Die()
         {
+            if (!isAlive) return;
             isAlive = false;
 
             health = 0;
@@ -862,11 +868,12 @@ namespace Architome
         }
         public LineOfSight LineOfSight()
         {
-            if (AIBehavior() && AIBehavior().LineOfSight())
-            {
-                return AIBehavior().LineOfSight();
-            }
-            return null;
+            var behavior = AIBehavior();
+
+            if (behavior == null) return null;
+
+            var lineOfSight = behavior.LineOfSight();
+            return lineOfSight;
         }
         public PartyInfo PartyInfo()
         {
@@ -914,6 +921,11 @@ namespace Architome
         public AudioManager SoundEffect()
         {
             return GetComponentsInChildren<AudioManager>().First(manager => manager.mixerGroup == GMHelper.Mixer().SoundEffect);
+        }
+
+        public ParticleManager ParticleManager()
+        {
+            return GetComponentInChildren<ParticleManager>();
         }
 
 
@@ -970,19 +982,14 @@ namespace Architome
         {
             return GetComponentInChildren<ETaskHandler>();
         }
-        public async void ShowEntity(bool val, bool hideGraphics = true, bool hideRenders = true, bool hideLights = true, bool destroys = false)
+        public async void ShowEntity(bool val, bool hideLights = true, bool destroys = false)
         {
             var tasks = new List<Task>();
 
-            if(hideGraphics)
-            {
-                tasks.Add(ShowGraphics(val));
-            }
+            isHidden = !val;
 
-            if(hideRenders)
-            {
-                tasks.Add(ShowRenders(val));
-            }
+            OnHiddenChange?.Invoke(isHidden);
+
 
             if(hideLights)
             {
@@ -990,35 +997,6 @@ namespace Architome
             }
 
             await Task.WhenAll(tasks);
-        }
-        async Task ShowRenders(bool val)
-        {
-            var renders = GetComponentsInChildren<Renderer>();
-            foreach (var render in renders)
-            {
-                if (render == null)
-                {
-                    return;
-                }
-                render.enabled = val;
-                await Task.Yield();
-            }
-
-        }
-        async Task ShowGraphics(bool val)
-        {
-            var canvases = GetComponentsInChildren<Canvas>();
-
-            foreach (var canvas in canvases)
-            {
-                if (canvas == null)
-                {
-                    return;
-                }
-                canvas.enabled = val;
-
-                await Task.Yield();
-            }
         }
         async Task ShowLights(bool val)
         {

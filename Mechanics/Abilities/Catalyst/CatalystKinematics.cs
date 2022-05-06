@@ -91,6 +91,7 @@ namespace Architome
 
                 if (condition.isMet == false) return;
 
+                catalyst.metrics.currentPosition = catalyst.transform.position;
                 HandleStop();
                 HandleAcceleration();
                 HandleMaxSpeed();
@@ -131,6 +132,7 @@ namespace Architome
                 speed = 0f;
             }
         }
+
 
         void HandleMaxSpeed()
         {

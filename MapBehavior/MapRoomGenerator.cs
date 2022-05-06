@@ -19,6 +19,7 @@ namespace Architome
         public bool generatedRooms;
 
         [Header("Rooms and Paths")]
+        public GameObject startingRoom;
         public List<GameObject> skeletonRooms;
         public List<GameObject> availableRooms;
         public List<GameObject> badSpawnRooms;
@@ -68,6 +69,7 @@ namespace Architome
         {
             if (mapInfo.generateRooms)
             {
+                await UpdateStartingRoom();
                 await Task.Delay(1000);
                 StartCoroutine(ClearNullsRoutine());
                 await UpdateskeletonRooms();
@@ -93,6 +95,8 @@ namespace Architome
 
         }
 
+
+
         private void Awake()
         {
             active = this;
@@ -107,6 +111,13 @@ namespace Architome
                 fixTimer = fixTimeFrame;
                 HandleBadSpawnRooms();
             }
+        }
+
+        async Task UpdateStartingRoom()
+        {
+            while (startingRoom == null) await Task.Yield();
+
+            Instantiate(startingRoom, roomList);
         }
         async Task UpdateAvailableRooms()
         {

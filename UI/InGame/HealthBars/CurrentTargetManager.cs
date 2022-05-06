@@ -2,20 +2,26 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome;
-
+using System.Threading.Tasks;
 public class CurrentTargetManager : MonoBehaviour
 {
     // Start is called before the first frame update
     public PortraitBehavior targetPortrait;
     public GameManager gameManager;
     public ContainerTargetables targetManager;
+    public KeyBindings binds;
     void GetDependencies()
     {
+        binds = GMHelper.KeyBindings();
         if(GMHelper.GameManager() && GMHelper.TargetManager())
         {
             gameManager = GMHelper.GameManager();
             targetManager = GMHelper.GameManager().targetManager;
         }
+
+        targetManager.OnSelectTarget += OnSelectTarget;
+        targetManager.OnClearSelected += OnClearSelected;
+
     }
     void Start()
     {
@@ -25,26 +31,31 @@ public class CurrentTargetManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(targetPortrait == null) { return; }
-        UpdateTargetPortrait();
     }
 
-    void UpdateTargetPortrait()
+    void OnSelectTarget(GameObject target)
     {
-        if(targetManager.selectedTargets != null && targetManager.selectedTargets.Count > 0)
-        {
+        SetCanvasGroup(targetPortrait.GetComponent<CanvasGroup>(), true);
+        targetPortrait.SetEntity(target.GetComponent<EntityInfo>());
+    }
 
-            targetPortrait.gameObject.SetActive(true);
-            if (targetPortrait.entity != targetManager.selectedTargets[0].GetComponent<EntityInfo>())
-            {
-                targetPortrait.SetEntity(targetManager.selectedTargets[0].GetComponent<EntityInfo>());
-            }
-        }
-        else
+    async public void OnClearSelected()
+    {
+        while (!Input.GetKeyUp(binds.keyBinds["Select"]))
         {
-            targetPortrait.ResetEntity();
-            targetPortrait.gameObject.SetActive(false);
+            await Task.Yield();
         }
+
+        if (targetManager.selectedTargets.Count != 0) return;
+
+        SetCanvasGroup(targetPortrait.GetComponent<CanvasGroup>(), false);
+    }
+
+    public void SetCanvasGroup(CanvasGroup group, bool active)
+    {
+        group.alpha = active ? 1 : 0f;
+        group.interactable = active;
+        group.blocksRaycasts = active;
     }
 
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Threading.Tasks;
 using System.Linq;
+using Architome.Enums;
 
 namespace Architome
 {
@@ -12,7 +13,10 @@ namespace Architome
         public ThreatManager threatManager;
         public AIBehavior behavior;
         public AbilityManager ability;
+        public AbilityInfo.SummoningProperty summoning;
         public CombatBehavior combat;
+        public CharacterInfo character;
+
         public float liveTime;
 
         new void GetDependencies()
@@ -20,20 +24,56 @@ namespace Architome
             base.GetDependencies();
 
             master = entityInfo.summon.master;
+            
             liveTime = entityInfo.summon.timeRemaining;
+            summoning = entityInfo.summon.sourceAbility.summoning;
             behavior = GetComponentInParent<AIBehavior>();
 
+            character = entityInfo.CharacterInfo();
             combat = behavior.GetComponentInChildren<CombatBehavior>();
             threatManager = behavior.GetComponentInChildren<ThreatManager>();
 
             entityInfo.OnDamageDone += OnDamageDone;
+            
+
         }
         void Start()
         {
             GetDependencies();
+            HandleEvents(true);
             DisableConflicts();
             AcquireThreats();
             DeathTimer();
+        }
+
+        void HandleEvents(bool enter)
+        {
+            if (enter)
+            {
+                if (summoning.masterDeath)
+                {
+                    master.OnLifeChange += OnMasterLifeChange;
+                    if (!master.isAlive) liveTime = 0f;
+                }
+
+                if (summoning.masterCombatFalse)
+                {
+                    master.OnCombatChange += OnMasterCombatChange;
+                    if (!master.isInCombat) liveTime = 0f;
+                }
+            }
+            else
+            {
+                if (summoning.masterDeath)
+                {
+                    master.OnLifeChange -= OnMasterLifeChange;
+                }
+
+                if (summoning.masterCombatFalse)
+                {
+                    master.OnCombatChange -= OnMasterCombatChange;
+                }
+            }
         }
 
         void DisableConflicts()
@@ -47,14 +87,29 @@ namespace Architome
             master.OnDamageDone?.Invoke(eventData);
         }
 
+        void OnMasterLifeChange(bool isAlive)
+        {
+            if (isAlive) return;
+            liveTime = 0f;
+        }
+
+        void OnMasterCombatChange(bool isInCombat)
+        {
+            if (isInCombat) return;
+            liveTime = 0f;
+        }
+
         void AcquireThreats()
         {
+            character.LookAt(master.transform);
             ArchAction.Delay(() => {
                 var masterThreat = master.GetComponentInChildren<ThreatManager>();
 
                 foreach (var threat in masterThreat.threats)
                 {
-                    threatManager.IncreaseThreat(threat.threatObject, 15f);
+                    var value = threatManager.ThreatMultiplier(threat.threatObject.GetComponent<EntityInfo>());
+                    
+                    threatManager.IncreaseThreat(threat.threatObject, value);
                 }
 
                 threatManager.Bump();
@@ -71,9 +126,10 @@ namespace Architome
             {
                 await Task.Yield();
                 liveTime -= Time.deltaTime;
-                if (!entityInfo.isAlive) return;
+                if (!entityInfo.isAlive) break;
             }
 
+            HandleEvents(false);
             entityInfo.Die();
         }
 

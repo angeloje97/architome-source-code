@@ -2,13 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Threading.Tasks;
+using Architome.Enums;
 
 namespace Architome
 {
     public class CameraAnchor : MonoBehaviour
     {
         public static CameraAnchor active;
-        public CameraAnchor check;
+        public CameraTarget targetType;
+        public CameraAnchor check { get; set; }
 
         public GameObject target;
 
@@ -23,12 +25,25 @@ namespace Architome
             ArchInput.active.OnMiddleMouse += OnMiddleMouse;
             CameraManager.active.cameraAnchor = this;
 
+
+            var gameManager = GMHelper.GameManager();
+
+            if (targetType == CameraTarget.PartyCenter)
+            {
+                gameManager.OnNewPlayableParty += OnNewPlayableParty;
+            }
+
             check = GetComponentInChildren<CameraAnchor>();
         }
 
         void Start()
         {
             GetDependencies();
+        }
+
+        public void OnNewPlayableParty(PartyInfo party, int index)
+        {
+            target = party.center;
         }
 
         public void OnValidate()
@@ -54,6 +69,7 @@ namespace Architome
 
         public void FollowTarget()
         {
+            if (target == null) return;
             var smoothedPosition = Vector3.Lerp(transform.position, target.transform.position, smoothSpeed);
             transform.position = smoothedPosition;
         }

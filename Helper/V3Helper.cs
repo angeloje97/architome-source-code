@@ -96,6 +96,20 @@ public class V3Helper
         return null;
     }
 
+    public static Quaternion LerpLookAtWithAxis(Transform obj, Vector3 axis, Vector3 target = new(), float smoothening = 1f)
+    {
+        if (target == new Vector3())
+        {
+            target = obj.transform.forward;
+        }
+
+        var direction = target - obj.position;
+
+        var toRotation = Quaternion.FromToRotation(axis, direction);
+
+        return Quaternion.Lerp(obj.rotation, toRotation, smoothening);
+    }
+
     public static Quaternion LerpLookAt(Transform obj, Transform target, float smoothening)
     {
         var targetRotation = Quaternion.LookRotation(target.position - obj.position);

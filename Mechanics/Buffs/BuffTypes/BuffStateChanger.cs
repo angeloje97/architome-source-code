@@ -26,7 +26,7 @@ public class BuffStateChanger : MonoBehaviour
                 OnSuccessfulStateChange?.Invoke(this, stateToChange);
                 return;
             }
-
+            buffInfo.failed = true;
             buffInfo.Cleanse();
         }
     }

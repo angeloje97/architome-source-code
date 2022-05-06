@@ -183,7 +183,7 @@ public class MapEntityGenerator : MonoBehaviour
         if (room.GetType() != typeof(BossRoom)) return false;
         var bossRoom = (BossRoom)room;
         var bossPosition = bossRoom.bossPosition;
-        var boss = bossRoom.bossToSpawn;
+        var boss = bossRoom.possibleBosses.Count > 0 ? bossRoom.possibleBosses[UnityEngine.Random.Range(0, bossRoom.possibleBosses.Count)] : null;
 
         if (boss == null) return false;
 

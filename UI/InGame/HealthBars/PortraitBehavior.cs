@@ -5,12 +5,120 @@ using UnityEngine.UI;
 using TMPro;
 using Architome;
 using System;
+using Architome.Enums;
 public class PortraitBehavior : MonoBehaviour
 {
     // Start is called before the first frame update
     public ContainerTargetables targetManager;
     
     public bool isActive;
+
+
+    [Serializable]
+    public class HealthBar
+    {
+        public EntityInfo entity;
+        public Image healthBar;
+        public Image secondaryHealth;
+        public TextMeshProUGUI healthText;
+
+        public MetricType textType;
+
+        public Action OnChangeEntity;
+
+
+        void Clear()
+        {
+            if (entity == null) return;
+            entity.OnHealthChange -= OnHealthChange;
+        }
+
+        public void SetEntity(EntityInfo entity)
+        {
+            if (healthBar == null) return;
+
+            Clear();
+
+            this.entity = entity;
+               
+            if (this.entity)
+            {
+                this.entity.OnHealthChange += OnHealthChange;
+
+
+                OnHealthChange(entity.health, entity.shield, entity.maxHealth);
+            }
+        }
+
+
+        void OnHealthChange(float health, float shield, float maxHealth)
+        {
+            try
+            {
+                healthBar.fillAmount = health / maxHealth;
+                var shieldText = shield > 0 ? $"+ {shield}" : "";
+                //if (health + shield > maxHealth && (health / maxHealth) > .95f)
+                //{
+                //    healthBar.fillAmount = .95f;
+                //}
+
+                secondaryHealth.fillAmount = shield / maxHealth;
+
+                if (health != 0)
+                {
+                    //healthText.text = $"{(int)health}{shieldText}/{(int)maxHealth}"; 
+                    healthText.text = $" ({Mathg.Round(health / maxHealth * 100, 2)})%";
+                }
+                else { healthText.text = $"Dead"; }
+
+            }
+            catch
+            {
+
+            }
+
+        }
+
+    }
+
+    [Serializable]
+    public class StateIcon
+    {
+        EntityInfo entity;
+        public Image stateIcon;
+        public Sprite combatSprite;
+        public void Clear()
+        {
+            if (entity == null) return;
+            entity.OnCombatChange -= OnCombatChange;
+        }
+        public void SetEntity(EntityInfo entity)
+        {
+            if (stateIcon == null) return;
+            Clear();
+            this.entity = entity;
+
+            if (this.entity)
+            {
+                this.entity.OnCombatChange += OnCombatChange;
+            }
+        }
+
+        void OnCombatChange(bool isInCombat)
+        {
+            if (combatSprite == null) return;
+
+            stateIcon.sprite = combatSprite;
+
+            stateIcon.GetComponent<CanvasGroup>().alpha = isInCombat ? 1 : 0;
+
+        }
+
+        
+    }
+
+    public HealthBar healthUI;
+    public StateIcon stateIcon;
 
     [Header("Entity Info")]
     public EntityInfo entity;
@@ -21,10 +129,6 @@ public class PortraitBehavior : MonoBehaviour
     [Header("Buff Icon Manager")]
     public BuffUIManager buffUI;
     
-    [Header("Health Bar")]
-    public Image healthBar;
-    public Image secondaryHealth;
-    public TextMeshProUGUI healthText;
 
     [Header("Resource Bar")]
     public Image resourceBar;
@@ -35,20 +139,12 @@ public class PortraitBehavior : MonoBehaviour
     public TextMeshProUGUI castBarName;
     public TextMeshProUGUI castBarTimer;
 
-    [Header("StatusBar")]
-    public Image statusBar;
-    public TextMeshProUGUI statusTextName;
-    public TextMeshProUGUI statusTextTimer;
 
     [Header("Experience Bar and Level")]
     public Image experienceBar;
     public TextMeshProUGUI levelText;
     public TextMeshProUGUI experienceBarText;
     
-    [Header("Portrait Properties")]
-    public float shield;
-    public float health;
-    public float maxHealth;
 
     public float mana;
     public float maxMana;
@@ -94,33 +190,7 @@ public class PortraitBehavior : MonoBehaviour
     }
     void UpdateBars()
     {
-        UpdateHealth();
         UpdateResourceBar();
-
-        void UpdateHealth()
-        {
-            if(!healthText || !healthBar || !secondaryHealth) { return; }
-            if (health == entity.health && shield == entity.shield) { return; }
-
-            health = entity.health;
-            maxHealth = entity.maxHealth;
-            shield = entity.shield;
-
-            var shieldText = shield > 0 ? $"+ {shield}" : "";
-
-            healthBar.fillAmount = (health) / (maxHealth);
-
-            if(health/maxHealth > .95f &&
-                health + shield > maxHealth)
-            {
-                healthBar.fillAmount = .95f;
-            }
-
-            secondaryHealth.fillAmount = (health + shield) / (maxHealth);
-            if (health != 0) { healthText.text = $"{(int)health}{shieldText}/{(int)maxHealth}"; }
-            else { healthText.text = $"Dead"; }
-
-        }
         void UpdateResourceBar()
         {
             if (!resourceBar || !resourceText) { return; }
@@ -172,12 +242,15 @@ public class PortraitBehavior : MonoBehaviour
     public void SetEntity(EntityInfo entity)
     {
         HandleEvents();
+        
 
         this.entity = entity;
+        healthUI.SetEntity(entity);
+        stateIcon.SetEntity(entity);
+        buffUI?.SetEntity(entity);
         UpdateEntity();
         isActive = true;
 
-        buffUI?.SetEntity(entity);
 
         void HandleEvents()
         {
@@ -223,9 +296,7 @@ public class PortraitBehavior : MonoBehaviour
 
         icon.sprite = entity.entityPortrait;
 
-        health = 1;
         mana = 1;
-        shield = 1;
 
         HandleEvents();
 
@@ -305,6 +376,8 @@ public class PortraitBehavior : MonoBehaviour
 
         iconBorder.color = archClass.classColor;
     }
+
+
 
 
 }

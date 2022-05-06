@@ -8,6 +8,8 @@ namespace Architome
     {
         public CatalystInfo catalyst { get; set; }
         public BuffInfo buff { get; set; }
+
+        public AbilityInfo ability { get; set; }
         public EntityInfo source { get; set; }
         public EntityInfo target { get; set; }
         public float value { get; set; }
@@ -17,6 +19,7 @@ namespace Architome
         public CombatEventData(CatalystInfo catalyst, EntityInfo source, float value)
         {
             this.catalyst = catalyst;
+            this.ability = catalyst.abilityInfo;
             this.source = source;
             this.value = value;
         }
@@ -25,6 +28,7 @@ namespace Architome
         {
             this.buff = buff;
             this.source = source;
+            this.ability = buff.sourceAbility;
             this.value = value;
         }
 

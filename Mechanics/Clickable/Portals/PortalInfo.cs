@@ -12,7 +12,7 @@ namespace Architome
         public static List<PortalInfo> portals;
 
         public List<PortalInfo> portalList;
-        public List<GameObject> entitiesInPortal;
+        public List<GameObject> entitiesInPortal = new();
         public Transform portalSpot;
         public Transform exitSpot;
         public Clickable clickable;
@@ -26,7 +26,7 @@ namespace Architome
             public int portalID;
             public AudioClip portalEnterSound;
             public AudioClip portalExitSound;
-
+            
             
         }
 
@@ -55,12 +55,14 @@ namespace Architome
         void Start()
         {
             GetDependencies();
-            if (portals == null) { portals = new List<PortalInfo>(); }
-            portals.Add(this);
             portalList = portals;
             portalNum = portals.IndexOf(this);
         }
-
+        private void Awake()
+        {
+            if (portals == null) portals = new();
+            portals.Add(this);
+        }
         private void OnValidate()
         {
             info.room = GetComponentInParent<RoomInfo>();
@@ -85,8 +87,25 @@ namespace Architome
                 }
             }
         }
+        public void SpawnEntity(GameObject entity)
+        {
+            if (entity.GetComponent<EntityInfo>() == null) return;
+        }
 
+        public void SpawnParty(GameObject party)
+        {
+            if (party.GetComponent<PartyInfo>() == null) return;
+
+            var spawnedParty = Instantiate(party, portalSpot.transform.position, new Quaternion());
+
+            foreach (var entity in spawnedParty.GetComponentsInChildren<EntityInfo>())
+            {
+                entity.transform.position = portalSpot.transform.position;
+            }
+        }
     }
+
+    
 
     public struct PortalEvents
     {

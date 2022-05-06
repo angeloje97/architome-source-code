@@ -143,7 +143,7 @@ namespace Architome
         {
             if (catalystInfo.range == -1) { return; }
             if (!conditions.destroyOnOutOfRange) return;
-            if (catalystInfo.currentRange > catalystInfo.range)
+            if (catalystInfo.metrics.currentRange > catalystInfo.range)
             {
                 DestroySelf("Out of Range");
             }
