@@ -136,15 +136,8 @@ namespace Architome
             {
                 SetValues(isAlive);
             }
-
-            if (isAlive)
-            {
-                MoveTo(entityObject.transform);
-            }
-            else
-            {
-                destinationSetter.target = entityObject.transform;
-            }
+            
+            StopMoving(true);
         }
         public void OnStatesChange(List<EntityState> previous, List<EntityState> states)
         {

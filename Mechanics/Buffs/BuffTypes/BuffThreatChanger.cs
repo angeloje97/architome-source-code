@@ -40,7 +40,11 @@ public class BuffThreatChanger : MonoBehaviour
 
         val = increasesThreat ? val : -val;
 
-        buffInfo.hostInfo.ThreatManager().IncreaseThreat(buffInfo.sourceObject, val, true);
+
+        var threatManager = buffInfo.hostInfo.ThreatManager();
+
+        threatManager.IncreaseThreat(buffInfo.sourceObject, val);
+        threatManager.AlertAllies(buffInfo.sourceObject);        
 
         return true;
 

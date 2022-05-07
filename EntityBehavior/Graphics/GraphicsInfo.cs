@@ -73,7 +73,7 @@ namespace Architome
         void OnHiddenChange(bool isHidden)
         {
             this.isHidden = isHidden;
-            if (entityInfo.isAlive && !isHidden) return;
+            if (!entityInfo.isAlive && !isHidden) return;
 
             ShowCanvases(!isHidden);
         }
@@ -126,17 +126,6 @@ namespace Architome
                 entityIcon.color = color;
             }
         }
-        public void CorrectGraphics()
-        {
-            if (entityObject)
-            {
-                currentDirection = entityObject.transform.rotation;
-            }
-
-            counterDirection = Quaternion.Euler(0, -currentDirection.y, 0);
-
-            transform.rotation = counterDirection;
-        }
         public GameObject TargetCollider()
         {
             foreach (GameObject property in properties)
@@ -156,11 +145,6 @@ namespace Architome
             }
 
             return null;
-        }
-
-        public ProgressBarsBehavior ProgressBars()
-        {
-            return GetComponentInChildren<ProgressBarsBehavior>();
         }
     }
 

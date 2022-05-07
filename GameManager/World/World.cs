@@ -37,8 +37,17 @@ namespace Architome
             public Color color;
             public float valueMultiplier;
         }
-
         public List<RarityProperties> rarities;
+
+
+        [Serializable]
+        public class NPCProperty
+        {
+            public NPCType npcType;
+            public Color color;
+        }
+
+        public List<NPCProperty> npcProperties; 
 
         void Start()
         {
@@ -128,6 +137,19 @@ namespace Architome
             }
 
             return new RarityProperties();
+        }
+
+        public NPCProperty NPCPRoperty(NPCType type)
+        {
+            foreach (var property in npcProperties)
+            {
+                if (property.npcType == type)
+                {
+                    return property;
+                }
+            }
+
+            return null;
         }
     }
 

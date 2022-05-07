@@ -142,7 +142,7 @@ public class BuffMindControl : BuffStateChanger
         {
             if (buffInfo.sourceInfo.isAlive)
             {
-                buffInfo.hostInfo.ThreatManager().IncreaseThreat(buffInfo.sourceInfo.gameObject, 15, true);
+                buffInfo.hostInfo.ThreatManager().IncreaseThreat(buffInfo.sourceInfo.gameObject, 15);
             }
         }, .125f);
 

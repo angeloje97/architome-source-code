@@ -69,7 +69,7 @@ namespace Architome
         {
             if (mapInfo.generateRooms)
             {
-                await UpdateStartingRoom();
+                UpdateStartingRoom();
                 await Task.Delay(1000);
                 StartCoroutine(ClearNullsRoutine());
                 await UpdateskeletonRooms();
@@ -113,10 +113,9 @@ namespace Architome
             }
         }
 
-        async Task UpdateStartingRoom()
+        void UpdateStartingRoom()
         {
-            while (startingRoom == null) await Task.Yield();
-
+            if (startingRoom == null) return;
             Instantiate(startingRoom, roomList);
         }
         async Task UpdateAvailableRooms()

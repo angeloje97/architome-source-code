@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Architome;
 using System;
+using System.Threading.Tasks;
 public class ProgressBarsBehavior : MonoBehaviour
 {
     // Start is called before the first frame update
@@ -30,6 +31,8 @@ public class ProgressBarsBehavior : MonoBehaviour
 
 
 
+
+
     //Original Properties
     public float originalHealthBarHeight;
     public float originalResourceBarHeight;
@@ -37,7 +40,14 @@ public class ProgressBarsBehavior : MonoBehaviour
     public float clusterAgentOffset;
     public Vector3 localPosition;
 
+    
+
     public TaskProgressBarHandler taskProgressHandler;
+
+
+    CanvasGroup canvasGroup;
+    float targetAlpha;
+    bool changingAlpha;
 
     void GetDependencies()
     {
@@ -49,6 +59,7 @@ public class ProgressBarsBehavior : MonoBehaviour
             entityInfo.OnManaChange += OnManaChange;
             entityInfo.OnLifeChange += OnLifeChange;
             entityInfo.OnChangeNPCType += OnChangeNPCType;
+            entityInfo.OnCombatChange += OnCombatChange;
 
             if(entityInfo.AbilityManager())
             {
@@ -95,6 +106,13 @@ public class ProgressBarsBehavior : MonoBehaviour
 
         clusterAgentOffset += castBarRect.rect.height;
 
+        canvasGroup = GetComponent<CanvasGroup>();
+
+        if (canvasGroup && entityInfo)
+        {
+            canvasGroup.alpha = entityInfo.isInCombat ? 1f : 0f;
+        }
+
     }
     public void OnValidate()
     {
@@ -106,7 +124,10 @@ public class ProgressBarsBehavior : MonoBehaviour
         HandleHideMana();
         UpdateCastBar();
         taskProgressHandler.Initialize(this);
+
     }
+
+
     void Update()
     {
         if (entityInfo == null) { return; }
@@ -120,6 +141,55 @@ public class ProgressBarsBehavior : MonoBehaviour
     {
         transform.localPosition = localPosition;
         
+    }
+
+    public void OnCombatChange(bool isInCombat)
+    {
+        targetAlpha = isInCombat ? 1f : 0f;
+
+
+        var delay = isInCombat ? 0f : 3f;
+
+        ArchAction.Delay(() => {
+            UpdateCanvas();
+        }, delay);
+    }
+
+    async void UpdateCanvas()
+    {
+        if (changingAlpha) return;
+
+        changingAlpha = true;
+
+        var active = targetAlpha == 1f;
+
+        if (active)
+        {
+            canvasGroup.interactable = true;
+            canvasGroup.blocksRaycasts = true;
+
+        }
+
+        while (canvasGroup.alpha != targetAlpha)
+        {
+            if (!entityInfo.isAlive)
+            {
+                canvasGroup.alpha = targetAlpha;
+                break;
+            }
+
+            canvasGroup.alpha = Mathf.Lerp(canvasGroup.alpha, targetAlpha, .125f);
+            await Task.Yield();
+        }
+
+        if (!active)
+        {
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
+
+        }
+
+        changingAlpha = false;
     }
     public void OnClusterChange(EntityCluster cluster, int index)
     {
@@ -141,21 +211,11 @@ public class ProgressBarsBehavior : MonoBehaviour
     void SetHealthBarColor()
     {
         if (healthBar == null) { return; }
-        switch (entityInfo.npcType)
-        {
-            case NPCType.Hostile:
-                healthBar.color = Color.red;
-                break;
-            case NPCType.Friendly:
-                healthBar.color = Color.green;
-                break;
-            case NPCType.Neutral:
-                healthBar.color = Color.yellow;
-                break;
-            case NPCType.Untargetable:
-                healthBar.color = Color.grey;
-                break;
-        }
+
+        var npcProperty = World.active.NPCPRoperty(entityInfo.npcType);
+
+        healthBar.color = npcProperty.color;
+
     }
     void HandleHideMana()
     {
@@ -240,61 +300,6 @@ public class ProgressBarsBehavior : MonoBehaviour
         if (!castBarActive) return;
         if (!ability.vfx.showCastBar) return;
         castBar.fillAmount = ability.progress;
-    }
-    public void OnCastStart(AbilityInfo ability)
-    {
-        castBarActive = ability.vfx.showCastBar;
-
-        if(castBarActive)
-        {
-            currentAbility = ability;
-            castBar.fillAmount = 0;
-        }
-
-        UpdateCastBar();
-    }
-    public void OnCastRelease(AbilityInfo ability)
-    {
-        if (!castBarActive) { return; }
-
-        castBarActive = false;
-        UpdateCastBar();
-    }
-    public void OnCancelCast(AbilityInfo ability)
-    {
-        if (!castBarActive) return;
-
-        castBarActive = false;
-
-        UpdateCastBar();
-    }
-    public void OnCastChannelStart(AbilityInfo ability)
-    {
-        castBarActive = ability.vfx.showChannelBar;
-
-        if(castBarActive)
-        {
-            currentAbility = ability;
-            castBar.fillAmount = 1;
-        }
-
-        UpdateCastBar();
-    }
-    public void OnCastChannelEnd(AbilityInfo ability)
-    {
-        if(!castBarActive) { return; }
-
-        castBarActive = false;
-
-        UpdateCastBar();
-
-    }
-    public void OnCancelChannel(AbilityInfo ability)
-    {
-        if (!castBarActive) { return; }
-
-        castBarActive = false;
-        UpdateCastBar();
     }
 
 }

@@ -56,6 +56,7 @@ namespace Architome
             public float targetHealth;
             [Range(0, 1)]
             public float minMana;
+            public bool clearFocusOnFullHealthTarget;
             public List<SpecialHealing> specialHealingAbilities;
         }
 
@@ -75,14 +76,19 @@ namespace Architome
 
         public float tryMoveTimer;
 
+        bool proactiveTank;
+
         public void GetDependencies()
         {
-            if (GetComponentInParent<EntityInfo>())
+            entityInfo = GetComponentInParent<EntityInfo>();
+            behavior = GetComponentInParent<AIBehavior>();
+
+            if (entityInfo)
             {
-                entityInfo = GetComponentInParent<EntityInfo>();
                 entityObject = entityInfo.gameObject;
                 entityInfo.OnLifeChange += OnLifeChange;
                 entityInfo.OnCombatChange += OnCombatChange;
+                entityInfo.OnHealingDone += OnHealingDone;
 
                 if (entityInfo.Movement())
                 {
@@ -99,10 +105,9 @@ namespace Architome
 
             }
 
-            if (GetComponentInParent<AIBehavior>())
+            if (behavior)
             {
-                behavior = GetComponentInParent<AIBehavior>();
-
+                behavior.OnCombatBehaviorTypeChange += OnCombatBehaviorTypeChange;
                 behavior.OnBehaviorStateChange += OnBehaviorStateChange;
 
                 if (behavior.ThreatManager())
@@ -111,8 +116,11 @@ namespace Architome
                     threatManager.OnIncreaseThreat += OnIncreaseThreat;
                     threatManager.OnRemoveThreat += OnRemoveThreat;
                     threatManager.OnEmptyThreats += OnEmptyThreats;
+
                 }
             }
+
+            UpdateAggressiveTank();
         }
         void Start()
         {
@@ -141,17 +149,32 @@ namespace Architome
         {
             if (behavior.behaviorType != AIBehaviorType.HalfPlayerControl) { return; }
             if (ability.isAttack) { return; }
+            if (ability.abilityType2 == AbilityType2.Passive) return;
 
             if (entityInfo.CanAttack(ability.target) && abilityManager.attackAbility.isHarming)
             {
                 SetFocus(ability.target, $"Casted at {ability.target}");
             }
+        }
 
+        public void OnHealingDone(CombatEventData eventData)
+        {
+            if (entityInfo.role != Role.Healer) return;
+            if (!healSettings.clearFocusOnFullHealthTarget) return;
+            var target = eventData.target;
 
+            Debugger.InConsole(3845, $"{target} health at {target.health / target.maxHealth}");
+            if (target == null) return;
+
+            var percentHealth = target.health / target.maxHealth;
+
+            if (percentHealth >= 1)
+            {
+                SetFocus(null, "Target at full health");
+            }
 
 
         }
-
         public void OnBehaviorStateChange(BehaviorState before, BehaviorState after)
         {
             ClearCombatBehaviors();
@@ -165,6 +188,34 @@ namespace Architome
             ClearCombatBehaviors();
 
             CreateBehavior();
+        }
+
+        public void OnCombatBehaviorTypeChange(CombatBehaviorType before, CombatBehaviorType after)
+        {
+            UpdateAggressiveTank();
+        }
+
+        void UpdateAggressiveTank()
+        {
+            if (entityInfo.role != Role.Tank)
+            {
+                proactiveTank = false; 
+                return;
+            }
+
+            if ((int)behavior.combatType < 2)
+            {
+                proactiveTank = false; 
+                return;
+            }
+
+            if (!Entity.IsPlayer(entityObject))
+            {
+                proactiveTank = false;
+                return;
+            }
+
+            proactiveTank = true;
         }
 
         public void CreateBehavior()
@@ -206,6 +257,8 @@ namespace Architome
         {
             if (entityInfo.states.Contains(EntityState.Taunted)) return;
 
+            if (!CanFocus(target)) return;            
+
             if (buffFixate != null)
             {
                 isFixated = buffFixate.isFixating;
@@ -230,25 +283,58 @@ namespace Architome
         {
             return focusTarget;
         }
-
-        public void OnIncreaseThreat(ThreatManager.ThreatInfo threatInfo, float value)
+        public bool CanFocus(GameObject target)
         {
-            target = threatManager.highestThreat;
+            if (target == null) return true;
 
-            if (behavior.behaviorType == AIBehaviorType.HalfPlayerControl && behavior.behaviorState != BehaviorState.Idle)
+            var attackAbility = abilityManager.attackAbility;
+            if (attackAbility == null) return false;
+            if (entityInfo.CanAttack(target))
             {
-                return;
+                if (attackAbility.isHarming)
+                {
+                    return true;
+                }
             }
 
-            InitCombatActions();
+            if (entityInfo.CanHelp(target))
+            {
+                if (attackAbility.isAssisting || attackAbility.isHealing)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        public void OnIncreaseThreat(ThreatManager.ThreatInfo threatInfo, float value)
+        {
+            ArchAction.Yield(() => {
+                target = CorrectTarget();
+
+                if (behavior.behaviorType == AIBehaviorType.HalfPlayerControl && behavior.behaviorState != BehaviorState.Idle)
+                {
+                    return;
+                }
+
+                InitCombatActions();
+            });
+            
 
         }
+        GameObject CorrectTarget()
+        {
+            if (proactiveTank && threatManager.highestNonTargettingThreat)
+            {
+                return threatManager.highestNonTargettingThreat;
+            }
 
+            return threatManager.highestThreat;
+        }
         public void OnTryMove(Movement movement)
         {
             tryMoveTimer = 1f;
         }
-
         public void OnChangePath(Movement movement)
         {
             if (focusTarget && movement.Target() != focusTarget.transform)
@@ -258,9 +344,11 @@ namespace Architome
         }
         public void OnRemoveThreat(ThreatManager.ThreatInfo threatInfo)
         {
-            if (target == threatInfo.threatObject || focusTarget == threatInfo.threatObject)
+            target = CorrectTarget();
+
+            if (focusTarget == threatInfo.threatObject)
             {
-                target = threatManager.highestThreat;
+                focusTarget = null;
             }
         }
         public void OnEmptyThreats(ThreatManager threatManager)
@@ -324,184 +412,6 @@ namespace Architome
         {
             if (!entityInfo.isAlive) { return; }
             if (tryMoveTimer > 0) { return; }
-            HandleThreat();
-            HandleDeadTarget();
-        }
-        public void HandleThreat()
-        {
-            if (behavior.behaviorType == AIBehaviorType.HalfPlayerControl || behavior.behaviorType == AIBehaviorType.NoControl)
-            {
-                if (threatManager.threats.Count == 0) { return; }
-                if (behavior.ThreatManager().highestThreat)
-                {
-                    target = behavior.ThreatManager().highestThreat;
-                }
-
-
-                if (focusTarget != null)
-                {
-                    //abilityManager.target = focusTarget;
-                    StartCoroutine(HandleNoCombatFocus());
-                }
-                //else
-                //{
-                //    abilityManager.target = target;
-                //}
-
-
-                //if (target && !target.GetComponent<EntityInfo>().isAlive)
-                //{
-                //    target = null;
-                //    abilityManager.target = null;
-                //}
-            }
-
-
-
-        }
-        //public void HandleHalfControl(bool ignoreIdleState = false)
-        //{
-        //    return;
-
-
-
-        //    if (HandleAbilities()) { return; }
-        //    if (HandleAutoHeal()) { return; }
-        //    HandleAutoAttack();
-
-        //    bool HandleAbilities()
-        //    {
-        //        if (focusTarget == null && (int)behavior.combatType < 2) { return false; }
-
-        //        var target = focusTarget ? focusTarget : this.target;
-
-        //        if (HandleHarmAbility()) { return true; }
-
-        //        return false;
-
-        //        bool HandleHarmAbility()
-        //        {
-
-        //            if (abilityIndexPriority.Length == 0) { return false; }
-        //            foreach (int index in abilityIndexPriority)
-        //            {
-        //                if (abilityManager.Ability(index).isHarming &&
-        //                    entityInfo.CanAttack(target) &&
-        //                    abilityManager.Ability(index).IsReady())
-        //                {
-        //                    abilityManager.target = target;
-        //                    abilityManager.Cast(index);
-        //                    abilityManager.target = null;
-        //                    return true;
-        //                }
-        //            }
-        //            return false;
-        //        }
-        //    }
-        //    void HandleAutoAttack()
-        //    {
-        //        if (!abilityManager.attackAbility.isHarming) { return; }
-
-
-        //        if (focusTarget && focusTarget.GetComponent<EntityInfo>() && focusTarget.GetComponent<EntityInfo>().npcType != entityInfo.npcType)
-        //        {
-        //            abilityManager.target = focusTarget;
-        //            abilityManager.Attack();
-        //            abilityManager.target = null;
-        //        }
-
-        //        else if (target)
-        //        {
-        //            Debugger.InConsole(7953, $"{target != null}");
-        //            if (behavior.combatType == CombatBehaviorType.Reactive)
-        //            {
-        //                if (behavior.LineOfSight().HasLineOfSight(target))
-        //                {
-        //                    if (V3Helper.Distance(target.transform.position, entityObject.transform.position) < abilityManager.attackAbility.range)
-        //                    {
-        //                        abilityManager.target = target;
-        //                        abilityManager.Attack();
-        //                        abilityManager.target = null;
-        //                    }
-        //                }
-        //                else
-        //                {
-        //                    if (threatManager.NearestHighestThreat(abilityManager.attackAbility.range))
-        //                    {
-        //                        if (!behavior.LineOfSight().HasLineOfSight(threatManager.NearestHighestThreat(abilityManager.attackAbility.range))) return;
-
-
-        //                        abilityManager.target = threatManager.NearestHighestThreat(abilityManager.attackAbility.range);
-        //                        abilityManager.Attack();
-        //                        abilityManager.target = null;
-
-        //                    }
-        //                }
-        //            }
-
-        //            if (behavior.combatType == CombatBehaviorType.Proactive || behavior.combatType == CombatBehaviorType.Aggressive)
-        //            {
-        //                abilityManager.target = target;
-        //                abilityManager.Attack();
-        //                abilityManager.target = null;
-        //            }
-        //        }
-        //    }
-
-        //    bool HandleAutoHeal()
-        //    {
-        //        if (abilityManager.attackAbility.isHealing)
-        //        {
-
-        //            if (focusTarget && focusTarget.GetComponent<EntityInfo>() && focusTarget.GetComponent<EntityInfo>().npcType == entityInfo.npcType)
-        //            {
-        //                var focusInfo = focusTarget.GetComponent<EntityInfo>();
-
-        //                abilityManager.target = focusTarget;
-        //                abilityManager.Attack();
-        //                return true;
-        //            }
-        //        }
-        //        return false;
-        //    }
-        //}
-        public void HandleDeadTarget()
-        {
-            if (focusTarget != null && focusTarget && focusTarget.GetComponent<EntityInfo>())
-            {
-                if (!focusTarget.GetComponent<EntityInfo>().isAlive)
-                {
-                    focusTarget = null;
-                }
-            }
-
-            if (target != null && target.GetComponent<EntityInfo>() && !target.GetComponent<EntityInfo>().isAlive)
-            {
-
-                if (abilityManager && abilityManager.attackAbility && abilityManager.attackAbility.target)
-                {
-                    if (!abilityManager.attackAbility.target.GetComponent<EntityInfo>().isAlive)
-                    {
-                        if (threatManager)
-                        {
-                            threatManager.HandleMaxThreat();
-
-                            if (threatManager && threatManager.highestThreat)
-                            {
-
-                                target = threatManager.highestThreat;
-                            }
-                            else
-                            {
-                                target = null;
-                            }
-                        }
-
-                    }
-                }
-            }
-
-
         }
         public IEnumerator HandleNoCombatFocus()
         {
@@ -514,6 +424,8 @@ namespace Architome
                 }
             }
         }
+
+        
 
         // Update is called once per frame
 

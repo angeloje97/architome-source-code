@@ -955,15 +955,6 @@ namespace Architome
             }
             return null;
         }
-        public ProgressBarsBehavior ProgressBar()
-        {
-            if (GraphicsInfo() && GraphicsInfo().ProgressBars())
-            {
-                return GraphicsInfo().ProgressBars();
-            }
-
-            return null;
-        }
         public RoomInfo CurrentRoom()
         {
             Ray ray = new Ray(transform.position, Vector3.down);
