@@ -55,10 +55,18 @@ public class EntityInventoryUI : MonoBehaviour
     public void SetEntity(EntityInfo entity)
     {
 
+        entityInfo = entity;
+        entityInventory = entityInfo.Inventory();
+        entityInventory.entityInventoryUI = this;
+        inventoryItems = entityInfo.Inventory().inventoryItems;
+
+        entityInventory.OnLoadInventory += OnLoadInventory;
+
+        HandleExistingItems();
     }
     void HandleUpdateTriggers()
     {
-        HandleNewEntity();
+        //HandleNewEntity();
 
 
 
@@ -70,25 +78,48 @@ public class EntityInventoryUI : MonoBehaviour
                 entityInfo.Inventory().entityInventoryUI = this;
                 //items = entityInfo.Inventory().items;
                 inventoryItems = entityInfo.Inventory().inventoryItems;
-                HandleExistingItems();
                 currentEntity = entityInfo;
             }
 
 
-            void HandleExistingItems()
-            {
-                for (int i = 0; i < inventoryItems.Count; i++)
-                {
-                    if(i >= inventorySlots.Count) { break; }
-                    if (inventoryItems[i].item == null) { continue; }
-                    if (inventorySlots[i].item != null) { continue; }
+            
+        }
+    }
+    void HandleExistingItems()
+    {
+        if (entityInfo == null) return;
+        for (int i = 0; i < inventoryItems.Count; i++)
+        {
+            if (i >= inventorySlots.Count) { break; }
+            if (inventoryItems[i].item == null) { continue; }
+            if (inventorySlots[i].item != null) { continue; }
 
-                    var clone = Instantiate(inventoryItems[i].item);
+            var clone = Instantiate(inventoryItems[i].item);
 
-                    CreateItem(clone, inventorySlots[i]);
-                   
-                }
-            }
+            CreateItem(clone, inventorySlots[i]);
+
+        }
+    }
+
+    void OnLoadInventory(Inventory inventory)
+    {
+        ClearItems();
+        ArchAction.Yield(() => HandleExistingItems());
+        
+        
+    }
+
+    void ClearItems()
+    {
+        var items = GetComponentsInChildren<ItemInfo>();
+
+        if (items.Length == 0) return;
+
+        for (int i = 0; i < items.Length; i++)
+        {
+            var item = items[i].gameObject;
+            Destroy(item);
+
         }
     }
 

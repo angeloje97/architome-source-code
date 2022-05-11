@@ -71,11 +71,24 @@ public class GearSlotManager : MonoBehaviour
 
         foreach (GearSlot slot in gearSlots)
         {
+            if (slot.equipmentSlot != null)
+            {
+                slot.equipmentSlot.OnLoadEquipment -= OnLoadEquipment;
+            }
+
             slot.entityInfo = entityInfo;
             slot.equipmentSlot = entityInfo.CharacterInfo().EquipmentSlot(slot.slotType);
             slot.characterInfo = entityInfo.CharacterInfo();
             slot.events.OnSetSlot?.Invoke(slot);
+
+            slot.equipmentSlot.OnLoadEquipment += OnLoadEquipment;
         }
+    }
+
+    void OnLoadEquipment(Equipment equip)
+    {
+        DestroyItems();
+        CreateItems();
     }
 
     void DestroyItems()

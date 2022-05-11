@@ -34,7 +34,26 @@ public class BuffProperties
 [RequireComponent(typeof(BuffFXHandler))]
 public class BuffInfo : MonoBehaviour
 {
-    // Start is called before the first frame update
+
+    [SerializeField] int id;
+    public int _id
+    {
+        get
+        {
+            return id != 0 ?  id : 9999999;
+        }
+        private set
+        {
+            id = value;
+        }
+    }
+    bool idSet;
+
+
+    public new string name;
+    [Multiline]
+    public string description;
+
     public BuffsManager buffsManager;
 
     [Header("Source")]
@@ -53,7 +72,8 @@ public class BuffInfo : MonoBehaviour
 
     public BuffTargetType buffTargetType;
     public Sprite buffIcon;
-    public int buffId;
+
+
     public float expireDelay = .125f;
 
     public BuffProperties properties;
@@ -114,9 +134,15 @@ public class BuffInfo : MonoBehaviour
     public Action<BuffInfo, float, float> OnChangeValue;
 
 
-    //static variables
-
     public static List<BuffInfo> buffs;
+
+    public void SetId(int id, bool forceChange = false)
+    {
+        if (idSet && !forceChange) return;
+        
+        _id = id;
+        idSet = true;
+    }
 
     public void GetVessel()
     {
@@ -132,6 +158,7 @@ public class BuffInfo : MonoBehaviour
             hostInfo = GetComponentInParent<EntityInfo>();
             hostObject = hostInfo.gameObject;
             hostInfo.OnNewBuff?.Invoke(this, sourceInfo);
+
         }
         
     }
@@ -157,7 +184,7 @@ public class BuffInfo : MonoBehaviour
 
     public void OnBuffStack(BuffInfo buff)
     {
-        if(buff.buffId != buffId) { return; }
+        if(buff.id != id) { return; }
         if(stacks == properties.maxStacks) { return; }
         if (!properties.canStack) { return; }
 

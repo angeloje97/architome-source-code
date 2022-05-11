@@ -59,6 +59,9 @@ public class LineOfSight : MonoBehaviour
             }
         }
 
+        var gameManager = GMHelper.GameManager();
+        if (gameManager == null) return;
+
         if (GMHelper.Difficulty())
         {
             if(isPlayer)
@@ -83,7 +86,8 @@ public class LineOfSight : MonoBehaviour
             isPlayer = true;
         }
     }
-    private void OnEnable()
+
+    private void Start()
     {
         GetDependencies();
         StartCoroutine(LineOfSightRoutine());

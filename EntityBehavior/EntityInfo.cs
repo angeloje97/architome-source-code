@@ -9,12 +9,32 @@ using System.Threading.Tasks;
 using System.Threading;
 
 
+
 namespace Architome
 {
+    [Serializable]
     public class EntityInfo : MonoBehaviour
     {
         // Start is called before the first frame update
-        public string entityName;
+        [SerializeField] int id;
+        public int entityId
+        {
+            get
+            {
+                return id != 0 ? id : 99999999;
+            }
+
+        }
+        bool idSet;
+
+        public void SetId(int id, bool forceSet = false)
+        {
+            if (idSet && !forceSet) return;
+            idSet = true;
+            this.id = id;
+        }
+
+        public string entityName; 
         [Multiline]
         public string entityDescription;
         public ArchClass archClass;
@@ -27,7 +47,6 @@ namespace Architome
         [Header("Entity Properties")]
         public EntityRarity rarity;
         public List<EntityState> stateImmunities;
-        public bool isPlayer;
         public bool isAlive;
         public bool isInCombat;
         public bool isHidden = true;
@@ -205,7 +224,7 @@ namespace Architome
             Invoke("SetEntityStats", .125f);
             Invoke("UpdateCurrentStats", .250f);
 
-            if(!isPlayer)
+            if(rarity != EntityRarity.Player)
             {
                 healthRegenPercent = .25f;
             }
@@ -283,9 +302,6 @@ namespace Architome
 
                 npcTypeCheck = npcType;
             }
-
-
-
         }
         public void OnDestroy()
         {
@@ -351,8 +367,6 @@ namespace Architome
             OnChangeStats?.Invoke(this);
 
         }
-
-
         public void Damage(CombatEventData combatData)
         {
             combatData.target = this;
@@ -458,7 +472,6 @@ namespace Architome
                 }
             }
         }
-
         public void Heal(CombatEventData combatData)
         {
             if (!isAlive) { return; }

@@ -12,6 +12,8 @@ namespace Architome
     {
 
         public static World active;
+
+        public ArchitomeID database;
         // Start is called before the first frame update
         public GameObject defaultCatalyst;
 

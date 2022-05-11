@@ -85,7 +85,7 @@ public class AbilityInfo : MonoBehaviour
         public float interval, targetFinderRadius, valueContribution, rotationPerInterval, startDelay;
     }
 
-    public Cataling cataling;
+    public Augment.Cataling cataling;
 
     public void OnValidate()
     {
@@ -118,7 +118,7 @@ public class AbilityInfo : MonoBehaviour
     [Serializable]
     public struct Threat
     {
-
+        public bool enabled;
         public float additiveThreatMultiplier;
 
         public bool setsThreat;
@@ -317,7 +317,7 @@ public class AbilityInfo : MonoBehaviour
     [Serializable]
     public struct RecastProperties
     {
-        public bool recastable;
+        public bool enabled;
         public bool isActive;
         public int maxRecast;
         public int currentRecast;
@@ -595,7 +595,7 @@ public class AbilityInfo : MonoBehaviour
 
     async void SetRecast()
     {
-        if (!recastProperties.recastable) return;
+        if (!recastProperties.enabled) return;
         if (recastProperties.isActive) return;
 
         recastProperties.isActive = true;

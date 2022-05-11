@@ -157,7 +157,7 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
         bool SameItem()
         {
-            if (item.item.itemID != this.item.itemID) return false;
+            if (item.item._id != this.item._id) return false;
             return true;
         }
     }

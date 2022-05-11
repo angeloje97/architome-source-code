@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
 using Architome;
+using System;
 public class EquipmentSlot : MonoBehaviour
 {
     // Start is called before the first frame update
@@ -35,6 +36,8 @@ public class EquipmentSlot : MonoBehaviour
 
     Equipment original;
     Weapon weapon;
+
+    public Action<Equipment> OnLoadEquipment { get; set; }
 
     public void GetDependencies()
     {

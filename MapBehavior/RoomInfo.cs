@@ -39,7 +39,6 @@ namespace Architome
         public Transform tier1EnemyPos;
         public Transform tier2EnemyPos;
         public Transform tier3EnemyPos;
-        public Transform bossPos;
         public Transform tier1SpawnerPos;
         public Transform tier2SpawnerPos;
         public Transform chestPos;

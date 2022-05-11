@@ -21,11 +21,12 @@ namespace Architome
 
             particleManager = GetComponentInChildren<ParticleManager>();
 
-            
+            var mixer = GMHelper.Mixer();
+
 
             foreach (var soundManager in GetComponentsInChildren<AudioManager>())
             {
-                if (soundManager.mixerGroup == GMHelper.Mixer().SoundEffect)
+                if (soundManager.mixerGroup == mixer.SoundEffect)
                 {
                     soundFX = soundManager;
                 }

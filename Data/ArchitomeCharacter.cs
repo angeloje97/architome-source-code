@@ -140,6 +140,8 @@ public class ArchitomeCharacter : MonoBehaviour
         }
 
         SetSex(originalSex);
+
+        SetMaterial(currentMaterial);
     }
     void Start()
     {
@@ -261,7 +263,7 @@ public class ArchitomeCharacter : MonoBehaviour
 
         UpdateSex();
     }
-    public void SetPart(int bodyPartNum, int partNum)
+    public void SetPart(int bodyPartNum, int partNum, int materialIndex = -1)
     {
         if (bodyParts.Count <= bodyPartNum) { return; }
         List<GameObject> bodyPartObject = bodyParts[bodyPartNum];
@@ -282,20 +284,30 @@ public class ArchitomeCharacter : MonoBehaviour
             }
             
         }
+
+        if (materialIndex > 0 && materialIndex < materials.Count)
+        {
+            SetMaterial(bodyPartNum, partNum, materialIndex);
+        }
     }
-    public void SetMaterial(int bodyPartNum, int partNum, Material material)
+    public void SetMaterial(int bodyPartNum, int partNum, int materialIndex)
     {
         if (bodyParts.Count <= bodyPartNum) return;
+        if (materialIndex >= materials.Count) return;
+        if (materialIndex < 0) return;
+
+        var material = materials[materialIndex];
+
         List<GameObject> bodyPartObject = bodyParts[bodyPartNum];
 
         if(bodyPartObject[0].transform.childCount <= partNum) { partNum = 0; }
         if(partNum < 0) {  partNum = bodyPartObject[0].transform.childCount - 1; }
 
         //Turns off all parts
-        foreach (var part in bodyPartObject)
-        {
-            if(ActivePart(part)) { ActivePart(part).SetActive(false); }
-        }
+        //foreach (var part in bodyPartObject)
+        //{
+        //    if(ActivePart(part)) { ActivePart(part).SetActive(false); }
+        //}
 
         foreach (GameObject part in bodyPartObject)
         {

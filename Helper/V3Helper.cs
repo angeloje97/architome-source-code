@@ -287,12 +287,14 @@ public class V3Helper
 
     public static Vector3 Sum(List<Transform> transformList)
     {
-        return new Vector3
-            (
-                transformList.Sum(x => x.position.x),
-                transformList.Sum(y => y.position.y),
-                transformList.Sum(z => z.position.z)
-            );
+        var newVector = new Vector3();
+
+        foreach (var trans in transformList)
+        {
+            newVector += trans.position;
+        }
+
+        return newVector;
     }
 
     

@@ -16,10 +16,13 @@ public class GMHelper : MonoBehaviour
         
     }
 
+
+
     public static GameManager GameManager()
     {
-        if(GameObject.Find("GameManager") == null) { return null; }
-        if(GameObject.Find("GameManager").GetComponent<GameManager>())
+
+        if (GameObject.Find("GameManager") == null) { return null; }
+        if (GameObject.Find("GameManager").GetComponent<GameManager>())
         {
             return GameObject.Find("GameManager").GetComponent<GameManager>();
         }

@@ -12,8 +12,6 @@ public class GearModuleManager : MonoBehaviour
 
     public GearStatsUI stats;
     public GearSlotManager gearSlotManager;
-
-
     public Action<EntityInfo> OnSetEntity;
 
     

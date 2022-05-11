@@ -155,44 +155,6 @@ public class ThreatManager : MonoBehaviour
             
             combatInfo = behavior.GetComponentInChildren<CombatInfo>();
         }
-
-        //if(GetComponentInParent<AIBehavior>())
-        //{ 
-        //    behavior = GetComponentInParent<AIBehavior>();
-        //    if(behavior.LineOfSight())
-        //    {
-                
-        //    }
-
-        //    combatInfo = transform.parent.GetComponentInChildren<CombatInfo>();
-            
-        //}
-
-        //if(lineOfSight == null)
-        //{
-        //    if (transform.parent.GetComponent<AIBehavior>())
-        //    {
-        //        behavior = transform.parent.GetComponent<AIBehavior>();
-
-        //        if (behavior.entityObject)
-        //        {
-        //            entityObject = behavior.entityObject;
-        //            entityInfo = entityObject.GetComponent<EntityInfo>();
-
-        //            if (entityInfo.AbilityManager())
-        //            {
-        //                abilityManager = entityInfo.AbilityManager();
-        //            }
-        //        }
-
-                
-        //    }
-
-        //    if(behavior && behavior.LineOfSight())
-        //    {
-        //        lineOfSight = behavior.LineOfSight();
-        //    }
-        //}
        
     }
     void Start()
@@ -247,9 +209,10 @@ public class ThreatManager : MonoBehaviour
         float ExtraThreat()
         {
             if (eventData.ability == null) return 0f;
+            
 
             var threat = eventData.ability.threat;
-
+            if (!threat.enabled) return 0f;
 
             return threat.additiveThreatMultiplier * eventData.value;
         }
@@ -313,6 +276,12 @@ public class ThreatManager : MonoBehaviour
 
     public void ClearThreatQueue()
     {
+        if (!entityInfo.isAlive)
+        {
+            threatQueue.Clear();
+            return;
+        }
+
         for (int i = 0; i < threatQueue.Count; i++)
         {
             var target = threatQueue[i];
@@ -363,7 +332,6 @@ public class ThreatManager : MonoBehaviour
             OnEmptyThreats?.Invoke(this);
         }
     }
-
     void UpdateCombatActive()
     {
         foreach (var threat in threats)
@@ -457,7 +425,6 @@ public class ThreatManager : MonoBehaviour
 
         
     }
-
     async void SortThreats()
     {
         if (sortingThreats) return;

@@ -129,7 +129,7 @@ namespace Architome
                 Debugger.InConsole(9152, $"{hasBuff}");
                 if (hasBuff)
                 {
-                    BuffInfo currentBuff = Buff(buffInfo.buffId);
+                    BuffInfo currentBuff = Buff(buffInfo._id);
 
                     if (canStack)
                     {
@@ -186,6 +186,7 @@ namespace Architome
                 newBuff.properties = buffProperties;
 
                 //newBuff.buffRadius = sourceAbility.buffRadius;
+                //newBuff.buffRadius = sourceAbility.buffRadius;
                 //newBuff.value = sourceAbility.buffValue;
                 //newBuff.aoeValue = sourceAbility.buffAOEValue;
                 //newBuff.intervals = sourceAbility.buffIntervals;
@@ -204,11 +205,11 @@ namespace Architome
         {
             if (!buffObject.GetComponent<BuffInfo>()) { return false; }
             BuffInfo buffInfo = buffObject.GetComponent<BuffInfo>();
-            int buffId = buffInfo.buffId;
+            int buffId = buffInfo._id;
 
             foreach (Transform child in transform)
             {
-                if (child.GetComponent<BuffInfo>().buffId == buffId)
+                if (child.GetComponent<BuffInfo>()._id == buffId)
                 {
                     return true;
                 }
@@ -222,7 +223,7 @@ namespace Architome
             {
                 if (child.GetComponent<BuffInfo>())
                 {
-                    if (child.GetComponent<BuffInfo>().buffId == id)
+                    if (child.GetComponent<BuffInfo>()._id == id)
                     {
                         return child.GetComponent<BuffInfo>();
                     }

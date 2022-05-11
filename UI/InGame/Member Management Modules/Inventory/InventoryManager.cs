@@ -50,28 +50,42 @@ public class InventoryManager : MonoBehaviour
 
     public void OnNewPlayableEntity(EntityInfo entity, int index)
     {
-        /* 
-        Instantiate a new Inventory Prefab and set the container where I'm going to store all the inventory grid
-        Then set that inventoryui to the entity.
-         */
+        UpdateInventories();
+        UpdatePortrait();
 
+        void UpdateInventories()
+        {
+            if (entityInventories.Count < index) return;
 
+            entityIcons[index].sprite = playableEntities[index].entityPortrait;
+        }
+
+        void UpdatePortrait()
+        {
+            if (entityIcons.Count < index) return;
+
+            entityInventories[index].SetEntity(entity);
+        }
     }
+
+
+
+    
 
     void HandleUpdateTriggers()
     {
-        HandleEntityCountTrigger();
+        //HandleEntityCountTrigger();
         
 
-        void HandleEntityCountTrigger()
-        {
-            if(entityCount != playableEntities.Count)
-            {
-                entityCount = playableEntities.Count;
-                UpdatePortraits();
-                UpdateInventories();
-            }
-        }
+        //void HandleEntityCountTrigger()
+        //{
+        //    if(entityCount != playableEntities.Count)
+        //    {
+        //        entityCount = playableEntities.Count;
+        //        UpdatePortraits();
+        //        UpdateInventories();
+        //    }
+        //}
     }
     void UpdatePortraits()
     {

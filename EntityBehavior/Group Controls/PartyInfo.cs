@@ -44,17 +44,18 @@ namespace Architome
         {
             partyControl = EntityControlType.PartyControl;
 
+            partyFormation = GetComponentInChildren<PartyFormation>();
+
+            var entities = GetComponentsInChildren<EntityInfo>();
+
+            for (int i = 0; i < entities.Length; i++)
+            {
+                if (i >= 5) break;
+                members.Add(entities[i].gameObject);
+
+            }
             foreach (Transform child in transform)
             {
-                if (child.tag == "Entity")
-                {
-                    members.Add(child.gameObject);
-                }
-
-                if (child.GetComponent<PartyFormation>())
-                {
-                    partyFormation = child.GetComponent<PartyFormation>();
-                }
 
                 if (child.name.Equals("Center"))
                 {
@@ -62,17 +63,16 @@ namespace Architome
                 }
             }
 
-            if (transform.parent)
-            {
-                if (transform.parent.tag == "Raid")
-                {
-                    raidObject = transform.parent.gameObject;
-                    partyControl = raidObject.GetComponent<RaidInfo>().raidControl;
+            var raidInfo = GetComponentInParent<RaidInfo>();
 
-                    foreach (GameObject member in members)
-                    {
-                        member.GetComponent<EntityInfo>().entityControlType = EntityControlType.RaidControl;
-                    }
+            if (raidInfo)
+            {
+                raidObject = raidInfo.gameObject;
+                partyControl = raidObject.GetComponent<RaidInfo>().raidControl;
+
+                foreach (GameObject member in members)
+                {
+                    member.GetComponent<EntityInfo>().entityControlType = EntityControlType.RaidControl;
                 }
             }
 

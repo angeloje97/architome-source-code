@@ -8,12 +8,13 @@ namespace Architome
     {
         // Start is called before the first frame update
         public EntityInventoryUI entityInventoryUI;
-        public List<Item> items;
         public List<ItemData> inventoryItems;
         public int maxSlots = 5;
 
         //public Action<Item> OnNewItem;
         //public Action<Item> OnRemoveItem;
+
+        public Action<Inventory> OnLoadInventory;
 
         void Start()
         {
@@ -27,24 +28,36 @@ namespace Architome
 
         void HandleMaxSlots()
         {
-            if (maxSlots != items.Count)
+            if (maxSlots != inventoryItems.Count)
             {
-                for (int i = 0; i < items.Count; i++)
+                inventoryItems.Clear();
+                for (int i = 0; i < inventoryItems.Count; i++)
                 {
-                    if (i >= items.Count)
+                    if (i >= inventoryItems.Count)
                     {
-                        items.Add(null);
+                        inventoryItems.Add(null);
                     }
                 }
             }
         }
 
+        public void ClearInventory()
+        {
+            foreach (var itemData in inventoryItems)
+            {
+                itemData.item = null;
+                itemData.amount = 0;
+            }
+
+
+        }
+
         public int ItemCount()
         {
             int count = 0;
-            foreach (Item item in items)
+            foreach (var itemData in inventoryItems)
             {
-                if (item != null)
+                if (itemData.item != null)
                 {
                     count++;
                 }
@@ -57,9 +70,9 @@ namespace Architome
         {
             for (int i = 0; i < maxSlots; i++)
             {
-                if (i >= items.Count)
+                if (i >= inventoryItems.Count)
                 {
-                    items.Add(null);
+                    inventoryItems.Add(null);
                 }
 
                 if (i >= inventoryItems.Count)
@@ -67,7 +80,7 @@ namespace Architome
                     inventoryItems.Add(null);
                 }
 
-                if (items[i] != null) { continue; }
+                if (inventoryItems[i] != null) { continue; }
             }
         }
         // Update is called once per frame
@@ -77,11 +90,11 @@ namespace Architome
             if (ItemCount() == maxSlots) { return false; }
 
             var clone = Instantiate(item);
-            for (int i = 0; i < items.Count; i++)
+            for (int i = 0; i < inventoryItems.Count; i++)
             {
-                if (items[i] == null)
+                if (inventoryItems[i] == null)
                 {
-                    items[i] = item;
+                    inventoryItems[i].item = item;
                 }
             }
 
@@ -91,18 +104,6 @@ namespace Architome
         }
 
 
-
-        public void RemoveItem(Item item)
-        {
-            foreach (Item current in items)
-            {
-                if (item == current)
-                {
-                    items.Remove(current);
-
-                }
-            }
-        }
     }
 
 }
