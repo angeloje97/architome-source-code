@@ -83,6 +83,28 @@ namespace Architome
             }
         }
 
+        public void CleanseImmunity()
+        {
+            for (int i = 0; i < buffObjects.Count; i++)
+            {
+                var buffObject = buffObjects[i];
+
+                if (buffObject == null)
+                {
+                    buffObjects.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+                var buff = buffObject.GetComponent<BuffInfo>();
+                var stateChanger = buff.GetComponent<BuffStateChanger>();
+
+                if (stateChanger == null) continue;
+                if (!entityInfo.stateImmunities.Contains(stateChanger.stateToChange)) continue;
+
+                buff.Cleanse();
+            }
+        }
+
         public void OnChangeNPCType(NPCType before, NPCType after)
         {
             foreach (var buff in Buffs())
@@ -122,7 +144,6 @@ namespace Architome
 
             HandleExistingBuff();
             HandleNewBuff();
-            UpdateBuffs();
 
             void HandleExistingBuff()
             {
@@ -197,10 +218,14 @@ namespace Architome
                 //newBuff.reapplyResetsTimer = sourceAbility.reapplyResetsTimer;
 
                 var buffInfo = Instantiate(buffObject, transform).GetComponent<BuffInfo>();
-                
+
+                buffObjects.Add(buffInfo.gameObject);
+                buffInfo.OnBuffEnd += OnBuffEnd;
+
                 entityInfo.OnBuffApply?.Invoke(buffInfo, sourceInfo);
             }
         }
+                
         public bool HasBuff(GameObject buffObject)
         {
             if (!buffObject.GetComponent<BuffInfo>()) { return false; }
@@ -236,16 +261,12 @@ namespace Architome
             return GetComponentsInChildren<BuffInfo>().ToList();
         }
 
-
-        public void UpdateBuffs()
+        public void OnBuffEnd(BuffInfo buff)
         {
-            foreach (Transform child in transform)
-            {
-                if (!buffObjects.Contains(child.gameObject) && child.GetComponent<BuffInfo>())
-                {
-                    buffObjects.Add(child.gameObject);
-                }
-            }
+            if (!buffObjects.Contains(buff.gameObject)) return;
+            buffObjects.Remove(buff.gameObject);
+            buff.OnBuffEnd -= OnBuffEnd;
+
         }
 
 

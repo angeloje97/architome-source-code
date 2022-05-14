@@ -158,14 +158,7 @@ public class EntityInventoryUI : MonoBehaviour
             //items[i] = inventorySlots[i].item;
         }
     }
-    //void UpdateSlots()
-    //{
-    //    foreach(InventorySlot i in inventorySlots)
-    //    {
-    //        i.entityInfo = entityInfo;
-    //        i.inventory = entityInfo.Inventory();
-    //    }
-    //}
+
     public InventorySlot FirstAvailableSlot()
     {
         foreach(InventorySlot i in inventorySlots)
@@ -180,7 +173,7 @@ public class EntityInventoryUI : MonoBehaviour
     }
     public GameObject CreateItem(Item item, InventorySlot slot)
     {
-        var itemTemplate = inventoryManager.itemTemplate;
+        var itemTemplate = module.prefabs.item;
 
         //var newItem = module.CreateItem(item, true);
 

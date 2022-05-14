@@ -13,6 +13,14 @@ namespace Architome
         public Action<ArchButton> OnClick;
 
         public UnityEvent OnUnityClick;
+
+        public struct Info
+        {
+
+        }
+
+        public Info info;
+
         void Start()
         {
 

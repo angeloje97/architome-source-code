@@ -35,6 +35,20 @@ public class V3Helper
 
     }
 
+    public static float Height(Transform trans)
+    {
+        var height = 0f;
+        foreach (Transform child in trans)
+        {
+            var rectTransform = child.GetComponent<RectTransform>();
+
+
+            height += rectTransform.rect.height;
+        }
+
+        return height;
+    }
+
     public static Vector3 Difference(Vector3 end, Vector3 start)
     {
         return end - start;

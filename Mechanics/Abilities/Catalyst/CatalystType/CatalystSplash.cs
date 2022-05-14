@@ -9,7 +9,7 @@ namespace Architome
     public class CatalystSplash : CatalystProp
     {
         // Start is called before the first frame update
-        public AbilityInfo.SplashProperties splash;
+        public Augment.SplashProperties splash;
 
         new void GetDependencies()
         {

@@ -60,17 +60,13 @@ public class ProgressBarsBehavior : MonoBehaviour
             entityInfo.OnLifeChange += OnLifeChange;
             entityInfo.OnChangeNPCType += OnChangeNPCType;
             entityInfo.OnCombatChange += OnCombatChange;
+            OnCombatChange(entityInfo.isInCombat);
+
 
             if(entityInfo.AbilityManager())
             {
                 abilityManager = entityInfo.AbilityManager();
 
-                //abilityManager.OnCastStart += OnCastStart;
-                //abilityManager.OnCastRelease += OnCastRelease;
-                //abilityManager.OnCancelCast += OnCancelCast;
-                //abilityManager.OnChannelStart += OnCastChannelStart;
-                //abilityManager.OnChannelEnd += OnCastChannelEnd;
-                //abilityManager.OnCancelChannel += OnCancelChannel;
 
                 abilityManager.OnAbilityStart += OnAbilityStart;
                 abilityManager.OnAbilityEnd += OnAbilityEnd;
@@ -145,30 +141,26 @@ public class ProgressBarsBehavior : MonoBehaviour
 
     public void OnCombatChange(bool isInCombat)
     {
-        targetAlpha = isInCombat ? 1f : 0f;
+        
 
 
         var delay = isInCombat ? 0f : 3f;
 
         ArchAction.Delay(() => {
-            UpdateCanvas();
+            UpdateCanvas(entityInfo.isInCombat);
         }, delay);
     }
 
-    async void UpdateCanvas()
+    async public void UpdateCanvas(bool val)
     {
+        targetAlpha = val ? 1f : 0f;
+        canvasGroup.interactable = targetAlpha == 1f;
+        canvasGroup.blocksRaycasts = targetAlpha == 1f;
+
         if (changingAlpha) return;
 
         changingAlpha = true;
 
-        var active = targetAlpha == 1f;
-
-        if (active)
-        {
-            canvasGroup.interactable = true;
-            canvasGroup.blocksRaycasts = true;
-
-        }
 
         while (canvasGroup.alpha != targetAlpha)
         {
@@ -180,13 +172,6 @@ public class ProgressBarsBehavior : MonoBehaviour
 
             canvasGroup.alpha = Mathf.Lerp(canvasGroup.alpha, targetAlpha, .125f);
             await Task.Yield();
-        }
-
-        if (!active)
-        {
-            canvasGroup.interactable = false;
-            canvasGroup.blocksRaycasts = false;
-
         }
 
         changingAlpha = false;
@@ -277,6 +262,12 @@ public class ProgressBarsBehavior : MonoBehaviour
 
     public void OnAbilityStart(AbilityInfo ability)
     {
+        if (!ability.isAttack)
+        {
+            targetAlpha = 1f;
+            UpdateCanvas(true);
+        }
+
         if(!ability.vfx.showCastBar) { return; }
 
         currentAbility = ability;
@@ -288,6 +279,20 @@ public class ProgressBarsBehavior : MonoBehaviour
 
     public void OnAbilityEnd(AbilityInfo ability)
     {
+        if (!entityInfo.isInCombat && !ability.isAttack)
+        {
+            ArchAction.Delay(() => {
+                if (!ability.abilityManager.IsCasting())
+                {
+                    if (!entityInfo.isInCombat)
+                    {
+                        UpdateCanvas(false);
+                    }
+                }
+            }, 3f);
+        }
+
+
         if (!ability.vfx.showCastBar) return;
 
         castBarActive = false;
@@ -309,12 +314,13 @@ public struct TaskProgressBarHandler
 {
     private EntityInfo entityInfo;
     private Image progressBar;
+    public ProgressBarsBehavior behavior;
 
     public void Initialize(ProgressBarsBehavior behavior)
     {
         entityInfo = behavior.entityInfo;
         progressBar = behavior.castBar;
-
+        this.behavior = behavior; 
 
         entityInfo.taskEvents.OnStartTask += OnStartTask;
         entityInfo.taskEvents.WhileWorkingOnTask += WhileWorkingOnTask;
@@ -323,6 +329,10 @@ public struct TaskProgressBarHandler
 
     void OnStartTask(TaskEventData eventData)
     {
+        if (!entityInfo.isInCombat)
+        {
+            behavior.UpdateCanvas(true);
+        }
         var prop = eventData.task.properties;
 
         progressBar.fillAmount = prop.workDone / prop.workAmount;
@@ -339,6 +349,10 @@ public struct TaskProgressBarHandler
     }
     void OnEndTask(TaskEventData eventData)
     {
+        if (!entityInfo.isInCombat)
+        {
+            behavior.UpdateCanvas(false);
+        }
         progressBar.transform.parent.gameObject.SetActive(false);
     }
 

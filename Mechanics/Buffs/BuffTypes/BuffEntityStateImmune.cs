@@ -28,14 +28,21 @@ namespace Architome
                 buffInfo.hostInfo.stateImmunities.Add(state);
             }
 
-            var buffsToCleanse = buffInfo.buffsManager.Buffs()
-                                .Where(buffInfo => buffInfo.GetComponent<BuffStateChanger>() != null &&
-                                statesImmuneTo.Contains(buffInfo.GetComponent<BuffStateChanger>().stateToChange)).ToList();
+            buffInfo.buffsManager.CleanseImmunity();
 
-            foreach (var buff in buffsToCleanse)
-            {
-                buff.Cleanse();
-            }
+            //foreach (var buff in buffInfo.buffsManager.Buffs())
+            //{
+            //    if (!buff.GetComponent<BuffStateChanger>()) continue;
+            //}
+
+            //var buffsToCleanse = buffInfo.buffsManager.Buffs()
+            //                    .Where(buffInfo => buffInfo.GetComponent<BuffStateChanger>() != null &&
+            //                    statesImmuneTo.Contains(buffInfo.GetComponent<BuffStateChanger>().stateToChange)).ToList();
+
+            //foreach (var buff in buffsToCleanse)
+            //{
+            //    buff.Cleanse();
+            //}
 
             
         }

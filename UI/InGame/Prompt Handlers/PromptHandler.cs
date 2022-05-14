@@ -44,9 +44,13 @@ namespace Architome
         }
         public void GetDependencies()
         {
+            var entityDeathHandler = GMHelper.EntityDeathHandler();
+
+            if (entityDeathHandler == null) return;
+
             try
             {
-                GMHelper.EntityDeathHandler().OnAllPlayableEntityDeath += OnAllPlayableEntityDeath;
+                entityDeathHandler.OnAllPlayableEntityDeath += OnAllPlayableEntityDeath;
             }
             catch
             {
@@ -70,6 +74,12 @@ namespace Architome
 
         async public Task<int> GeneralPrompt(PromptInfoData promptData)
         {
+            Debugger.InConsole(3498, $"Opening general prompt");
+            if (prefabs.generalPrompt == null)
+            {
+                return -1;
+            }
+
             var prompt = ActivatePrompt(prefabs.generalPrompt, new(0, 270, 0));
 
             prompt.SetPrompt(promptData);

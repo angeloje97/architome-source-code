@@ -258,6 +258,7 @@ namespace Architome
 
             void AssignRooms()
             {
+                roomsInUse = roomsInUse.Distinct().ToList();
                 mapInfo.rooms = roomsInUse;
             }
 

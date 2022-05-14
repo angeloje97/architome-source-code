@@ -100,7 +100,7 @@ namespace Architome
         public class CharacterData
         {
 
-            public List<Float2> originalParts;
+            public List<Vector2> originalParts;
             public int materialIndex;
             public Sex originalSex;
 
@@ -109,17 +109,12 @@ namespace Architome
                 if (character == null) return;
                 var architomeCharacter = character.GetComponentInChildren<ArchitomeCharacter>();
                 if (architomeCharacter == null) return;
-                originalParts = new();
 
                 originalSex = architomeCharacter.originalSex;
                 materialIndex = architomeCharacter.currentMaterial;
+                originalParts = architomeCharacter.originalParts;
 
 
-
-                foreach (var part in architomeCharacter.originalParts)
-                {
-                    originalParts.Add(new(part));
-                }
             }
 
         }

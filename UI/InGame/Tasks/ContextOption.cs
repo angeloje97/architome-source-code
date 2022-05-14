@@ -11,10 +11,13 @@ namespace Architome
     {
         // Start is called before the first frame update
         public TextMeshProUGUI optionLable;
-        private TaskModuleInfo taskModuleInfo;
 
         public RectTransform rectTransform;
         public RectTransform optionTransform;
+
+        public ContextMenu contextMenu;
+
+        int index;
 
         void GetDependencies()
         {
@@ -41,16 +44,16 @@ namespace Architome
             rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, optionTransform.rect.height);
         }
 
-        public void SetOption(string optionLable)
+        public void SetOption(string optionLable, int index)
         {
-            
+            contextMenu = GetComponentInParent<ContextMenu>();
+            this.index = index;
             this.optionLable.text = optionLable;
-            taskModuleInfo = GetComponentInParent<TaskModuleInfo>();
         }
 
         public void SelectOption()
         {
-            taskModuleInfo.SelectOption(optionLable.text);
+            contextMenu.PickOption(index);
         }
 
         public void OnPointerDown(PointerEventData eventData)

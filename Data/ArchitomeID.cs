@@ -15,8 +15,8 @@ namespace Architome
         public bool updateData;
         public bool sortData;
         public bool resetData;
-
         public bool forceID;
+        public bool checkDuplicates;
 
 
 
@@ -230,7 +230,7 @@ namespace Architome
                 if (!updateId) return;
                 updateId = false;
 
-                var entities = idDatabase.Entities.OrderBy(entity => entity.entityId).ToList();
+                var entities = idDatabase.Entities.OrderBy(entity => entity._id).ToList();
                 
 
                 for (int i = 0; i < entities.Count; i++)
@@ -285,12 +285,69 @@ namespace Architome
             ResetData();
             UpdateData();
             SortData();
+            CheckDuplicates();
 
 
             itemSearch.Update();
             entitySearch.Update();
             buffSearch.Update();
             classSearch.Update();
+        }
+
+        void CheckDuplicates()
+        {
+            if (!checkDuplicates) return;
+            checkDuplicates = false;
+
+            List<int> keys = new();
+
+            foreach (var entity in Entities)
+            {
+                if (keys.Contains(entity._id))
+                {
+                    throw new Exception($"Duplicated id of {entity._id} in entities");
+                }
+
+                keys.Add(entity._id);
+            }
+
+            keys = new();
+
+            foreach (var buff in Buffs)
+            {
+                if (keys.Contains(buff._id))
+                {
+                    throw new Exception($"Duplicated id of {buff._id}");
+                }
+
+                keys.Add(buff._id);
+            }
+
+            keys = new();
+
+            foreach (var item in Items)
+            {
+                if (keys.Contains(item._id))
+                {
+                    throw new Exception($"Duplicated id of {item._id} of {item}");
+                }
+            }
+
+            keys = new();
+
+            foreach (var archClass in Classes)
+            {
+                if (keys.Contains(archClass._id))
+                {
+                    throw new Exception($"Duplicated id of {archClass._id} of {archClass}");
+                }
+
+                keys.Add(archClass._id);
+            }
+
+
+
+            Debugger.InConsole(4914, $"All ids are clear");
         }
 
         void ResetData()
@@ -348,7 +405,7 @@ namespace Architome
             sortData = false;
 
             Buffs = Buffs.OrderBy(buff => buff._id).ToList();
-            Entities = Entities.OrderBy(entity => entity.entityId).ToList();
+            Entities = Entities.OrderBy(entity => entity._id).ToList();
             Items = Items.OrderBy(item => item._id).ToList();
         }
 

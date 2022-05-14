@@ -60,6 +60,17 @@ namespace Architome
             if (value == typeof(Weapon)) { return true; }
             return false;
         }
+
+        public static bool Equipable(Item item)
+        {
+            if (item == null) return false;
+
+            if (item.GetType() == typeof(Weapon)) return true;
+
+            if (item.GetType() == typeof(Equipment)) return true;
+
+            return false;
+        }
     }
 
     [Serializable]

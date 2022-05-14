@@ -26,8 +26,12 @@ namespace Architome
         }
 
         public string build;
-        public string time;
+        public string timeString;
+        public DateTime time;
+        public string saveName;
+        public Trilogy trilogy;
 
+        public GameSettingsData savedGameSettings;
         public List<EntityData> savedEntities;
 
         
@@ -78,19 +82,24 @@ namespace Architome
 
         public void Save(string saveName)
         {
-            build = $"v{Application.version}";
-            DateTime localDate = DateTime.Now;
-
-            time = localDate.ToString("MM/dd/yyyy h:mm tt");
+            build = $"{Application.version}";
+            time = DateTime.Now;
+            timeString = time.ToString("MM/dd/yyyy h:mm tt");
             
 
             Debugger.InConsole(52064, $"Build {build} Time:{time}");
-            SerializationManager.Save(saveName, this);
+
+            if (this.saveName == null || this.saveName.Length == 0)
+            {
+                this.saveName = saveName;
+            }
+
+            SerializationManager.SaveGame(saveName, this);
         }
 
         public SaveGame LoadSave(string saveName)
         {
-            var obj = SerializationManager.Load(saveName);
+            var obj = SerializationManager.LoadGame(saveName);
 
             var otherSave = (SaveGame)obj;
 
@@ -107,9 +116,6 @@ namespace Architome
                 field.SetValue(this, field.GetValue(otherSave));
             }
         }
-
-
-        
     }
 
     

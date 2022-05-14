@@ -118,18 +118,29 @@ namespace Architome
             {
                 if (results[i].gameObject.GetComponent<IgnoreRayCast>())
                 {
-                    results.RemoveAt(i);
-                    i--;
+                    continue;
                 }
+
+                //if (results[i].gameObject.GetComponent<IgnoreRayCast>())
+                //{
+                //    results.RemoveAt(i);
+                //    i--;
+                //}
+
                 if (results[i].gameObject.GetComponentInParent<ProgressBarsBehavior>())
                 {
-                    results.RemoveAt(i);
-                    i--;
+                    continue;
                 }
+                //if (results[i].gameObject.GetComponentInParent<ProgressBarsBehavior>())
+                //{
+                //    results.RemoveAt(i);
+                //    i--;
+                //}
+
+                return true;
             }
 
-
-            return results.Count > 0;
+            return false;
         }
 
         public static List<GameObject> CurrentMouseOvers()

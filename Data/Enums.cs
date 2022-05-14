@@ -20,6 +20,13 @@ namespace Architome.Enums
         Colony,
     }
 
+    public enum Trilogy
+    {
+        Dungeons,
+        Story,
+
+    }
+
     public enum ObjectType
     {
         Entity,

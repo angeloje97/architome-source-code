@@ -103,6 +103,8 @@ namespace Architome
         public float range;
         public float castTime;
         public float speed;
+        public bool requiresWeapon;
+        public WeaponType weaponType;
         public CatalystType catalystType;
 
         [Serializable]
@@ -371,7 +373,6 @@ namespace Architome
             kinematics.SetKinematics(this);
 
         }
-
         void SpawnBodyPart()
         {
             if (isCataling) return;
@@ -389,17 +390,14 @@ namespace Architome
             transform.position = trans.position;
             transform.LookAt(location);
         }
-
         public void OnTriggerEnter(Collider other)
         {
             OnPhysicsInteraction?.Invoke(other.gameObject, true);
         }
-
         public void OnTriggerExit(Collider other)
         {
             OnPhysicsInteraction?.Invoke(other.gameObject, false);
         }
-
         void SpawnCatalystAudio()
         {
             var catalystPrefab = CatalystManager.active.CatalystAudioManager();
@@ -414,8 +412,6 @@ namespace Architome
             UpdateMetrics();
             HandleEvents();
         }
-
-
         public void UpdateMetrics()
         {
             metrics.currentRange = V3Helper.Distance(metrics.startingLocation, transform.position);

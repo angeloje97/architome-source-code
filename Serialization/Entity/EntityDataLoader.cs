@@ -8,23 +8,30 @@ namespace Architome
 {
     public class EntityDataLoader
     {
-        static ArchitomeID database;
-        static ArchitomeID _database
+
+        static DataMap.Maps maps;
+        static DataMap.Maps _maps
         {
             get
             {
-                if (database == null)
+                if (maps == null)
                 {
-                    database = World.active.database;
+                    maps = DataMap.active._maps;
                 }
 
-                return database;
+                if (maps != DataMap.active._maps)
+                {
+                    maps = DataMap.active._maps;
+                }
+
+                return maps;
             }
         }
 
         public static void LoadEntity(EntityData data, EntityInfo entity)
         {
             var characterInfo = entity.GetComponentInChildren<CharacterInfo>();
+            
             
             LoadInfo();
             LoadCharacter();
@@ -47,14 +54,13 @@ namespace Architome
 
                 }
 
-                var archClass = Search.Class(_database.Classes, info.classId);
+                var archClass = _maps.archClasses[info.classId];
 
                 if (archClass != null)
                 {
                     entity.archClass = Object.Instantiate(archClass);
                 }
             }
-
             void LoadCharacter()
             {
                 var character = characterInfo.GetComponentInChildren<ArchitomeCharacter>();
@@ -63,10 +69,7 @@ namespace Architome
 
                 character.originalParts.Clear();
 
-                foreach (var part in data.characterData.originalParts)
-                {
-                    character.originalParts.Add(part.ToVector2());
-                }
+                character.originalParts = data.characterData.originalParts;
 
                 character.originalSex = data.characterData.originalSex;
 
@@ -74,7 +77,6 @@ namespace Architome
 
                 character.LoadValues();
             }
-
             void LoadEquipment()
             {
                 var equipmentSlots = characterInfo.GetComponentsInChildren<EquipmentSlot>();
@@ -84,41 +86,30 @@ namespace Architome
                     return;
                 }
 
+                var lastSlot = equipmentSlots[0];
+
                 foreach (var slot in equipmentSlots)
                 {
                     slot.equipment = null;
-                }
 
-                var items = _database.Items;
-
-
-                var slotMap = new Dictionary<EquipmentSlotType, Equipment>();
-
-                foreach (var item in items)
-                {
-                    if (!Item.IsEquipment(item) && !Item.IsWeapon(item)) continue;
-
-                    foreach (var slot in data.equipment.slots)
+                    foreach (var equipmentData in data.equipment.slots)
                     {
-                        if (slotMap.ContainsKey(slot.slotType)) continue;
-                        if (slot.itemId != item._id) continue;
-                        slotMap.Add(slot.slotType, (Equipment)item);
+                        if (equipmentData.slotType != slot.equipmentSlotType) continue;
+                        var item = _maps.items[equipmentData.itemId];
+
+                        if (!Item.Equipable(item)) break;
+                        slot.equipment = (Equipment) item;
+
+                        lastSlot = slot;
                         break;
+
                     }
                 }
 
-                foreach (KeyValuePair<EquipmentSlotType, Equipment> slot in slotMap)
-                {
-                    var equipmentSlot = characterInfo.EquipmentSlot(slot.Key);
 
-                    if (equipmentSlot == null) continue;
-                    var clone = Object.Instantiate(slot.Value);
-                    equipmentSlot.equipment = clone;
-                    equipmentSlot.OnLoadEquipment?.Invoke(clone);
-                }
+                lastSlot.OnLoadEquipment?.Invoke(lastSlot.equipment);
 
             }
-
             void LoadInventory()
             {
                 var inventory = entity.GetComponentInChildren<Inventory>();
@@ -131,7 +122,7 @@ namespace Architome
 
                 foreach (var itemData in data.inventory.items)
                 {
-                    var item = Search.Item(database.Items, itemData.itemId);
+                    var item = _maps.items[itemData.itemId];
 
                     if (item == null) continue;
 

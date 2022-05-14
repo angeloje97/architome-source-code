@@ -13,7 +13,6 @@ public class InventoryManager : MonoBehaviour
     public List<Image> entityIcons;
     public Transform itemBin;
 
-    public GameObject itemTemplate;
 
     public CanvasGroup canvasGroup;
 

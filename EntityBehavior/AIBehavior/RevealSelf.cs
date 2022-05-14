@@ -68,7 +68,6 @@ public class RevealSelf : MonoBehaviour
     void Start()
     {
         GetDependencies();
-        //HandleVisibility();
     }
 
     // Update is called once per frame
@@ -123,39 +122,6 @@ public class RevealSelf : MonoBehaviour
         {
             if (!Entity.IsPlayer(entityInfo.gameObject)) { return; }
             if(previous == null) { return; }
-            HandleShowRoom();
-            
-
-            void HandleShowRoom()
-            {
-                if (MapInfo.active &&
-                    !MapInfo.active.RoomGenerator().hideRooms) 
-                { 
-                    return; 
-                }
-
-                bool roomHasPlayer = false;
-
-                foreach (EntityInfo info in Entity.PlayableEntities())
-                {
-                    if (info.currentRoom == previous)
-                    {
-                        roomHasPlayer = true;
-                    }
-                }
-
-                if (!roomHasPlayer)
-                {
-
-                    previous.ShowRoom(false, entityInfo.transform.position);
-                }
-
-
-                if (!current.isRevealed)
-                {
-                    current.ShowRoom(true, entityInfo.transform.position);
-                }
-            }
         }
 
     }

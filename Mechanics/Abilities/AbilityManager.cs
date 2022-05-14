@@ -16,6 +16,7 @@ namespace Architome
 
         public List<AbilityInfo> abilities;
         public List<AbilityInfo> usableItems;
+        public CharacterInfo character;
 
         public AbilityInfo attackAbility;
         public AbilityInfo currentlyCasting;
@@ -52,6 +53,7 @@ namespace Architome
 
         //Event Handlers
         bool isCasting;
+        EquipmentSlot[] equipmentSlots;
 
         public void GetDependencies()
         {
@@ -65,12 +67,20 @@ namespace Architome
                 entityInfo.OnLifeChange += OnLifeChange;
                 entityInfo.combatEvents.OnStatesChange += OnStatesChange;
                 entityInfo.OnChangeStats += OnChangeStats;
+                character = entityInfo.GetComponentInChildren<CharacterInfo>();
                 var movement = entityInfo.Movement();
 
                 if (movement)
                 {
                     movement.OnStartMove += OnStartMove;
                 }
+            }
+
+            equipmentSlots = new EquipmentSlot[0];
+            if (character)
+            {
+                equipmentSlots = character.GetComponentsInChildren<EquipmentSlot>();
+                character.OnChangeEquipment += OnChangeEquipment;
             }
 
             abilities.Clear();
@@ -160,6 +170,53 @@ namespace Architome
             }
         }
 
+        public void OnChangeEquipment(EquipmentSlot slot, Equipment before, Equipment after)
+        {
+            if (!attackAbility.usesWeaponCatalyst) return;
+
+            attackAbility.catalyst = null;
+
+            if (after == null) return;
+            if (!Item.IsWeapon(after)) return;
+            if (slot.equipmentSlotType != EquipmentSlotType.MainHand) return;
+
+            var weapon = (Weapon)slot.equipment;
+
+            attackAbility.catalyst = weapon.weaponCatalyst;
+
+
+        }
+
+        public bool HasWeaponType(WeaponType weaponType)
+        {
+            if (equipmentSlots.Length == 0) return true;
+
+            foreach (var slot in equipmentSlots)
+            {
+                var equipment = slot.equipment;
+
+                if (equipment == null) continue;
+
+                if (!Item.IsWeapon(equipment)) continue;
+
+                var weapon = (Weapon)equipment;
+
+                if (weapon.weaponType != weaponType) continue;
+
+                return true;
+            }
+
+            return false;
+
+        }
+
+        public bool IsCasting()
+        {
+            if (currentlyCasting == null) return false;
+            if (currentlyCasting.isAttack) return false;
+
+            return true;
+        }
         public void OnChangeStats(EntityInfo entity)
         {
             foreach (var ability in GetComponentsInChildren<AbilityInfo>())
@@ -174,15 +231,6 @@ namespace Architome
             {
                 currentlyCasting.CancelCast("Moved on non movable ability");
             }
-        }
-
-        public bool IsCasting()
-        {
-            if(currentlyCasting == null) { return false; }
-            if(currentlyCasting.isAttack) { return false; }
-
-
-            return true;
         }
 
         public AbilityInfo Ability(int num)

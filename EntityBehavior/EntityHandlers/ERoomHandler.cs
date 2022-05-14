@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Threading.Tasks;
 
 
 namespace Architome
@@ -11,7 +12,7 @@ namespace Architome
 
         public RoomInfo previousRoom;
 
-        public void GetDependenices()
+        new public void GetDependencies()
         {
             base.GetDependencies();
             entityInfo.OnPhysicsEvent += OnPhysicsEvent;
@@ -53,15 +54,25 @@ namespace Architome
                 entityInfo.currentRoom.events.OnShowRoom -= OnShowRoom;
             }
         }
-        void Start()
+        private void Awake()
         {
-            GetDependenices();
+            GetDependencies();
+            AcquireRoom();
         }
-
         // Update is called once per frame
         void Update()
         {
             HandleEvents();
+        }
+
+        async void AcquireRoom()
+        {
+            while (entityInfo.currentRoom == null)
+            {
+                await Task.Delay(1000);
+                entityInfo.currentRoom = entityInfo.CurrentRoom();
+            }
+
         }
 
         void HandleEvents()

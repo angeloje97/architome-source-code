@@ -12,7 +12,7 @@ namespace Architome
         public AbilityInfo abilityInfo;
         public CatalystInfo catalystInfo;
 
-        public AbilityInfo.DestroyConditions conditions;
+        public Augment.DestroyConditions conditions;
 
         public string destroyReason;
         public float destroyDelay = 0f;

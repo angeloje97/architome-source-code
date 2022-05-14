@@ -19,6 +19,7 @@ namespace Architome
             public TextMeshProUGUI title;
             public TextMeshProUGUI[] options;
             public Image promptIcon;
+            public GameObject screenBlocker;
 
         }
 
@@ -64,7 +65,20 @@ namespace Architome
             info.options[0].text = promptData.option1;
             info.options[1].text = promptData.option2;
 
-            info.promptIcon.sprite = promptData.icon;
+            if (promptData.blocksScreen)
+            {
+                info.screenBlocker.SetActive(true);
+            }
+
+            if (promptData.forcePick)
+            {
+                forceActive = true;
+            }
+
+            if (promptData.icon)
+            {
+                info.promptIcon.sprite = promptData.icon;
+            }
             
 
         }
@@ -82,6 +96,9 @@ namespace Architome
         public string question;
         public string option1;
         public string option2;
+        public bool blocksScreen;
+        public bool forcePick;
         public Sprite icon;
+
     }
 }

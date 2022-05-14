@@ -2,75 +2,87 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Architome;
 using System;
-public class GameManager : MonoBehaviour
+namespace Architome
 {
-    //Static variables
-    public static GameManager active;
-
-    // Start is called before the first frame update
-    public List<EntityInfo> playableEntities;
-    public List<PartyInfo> playableParties;
-    public RaidInfo playableRaid;
-
-    public GameObject pauseMenu;
-    public IGGUIInfo InGameUI;
-
-    [Header("Managers")]
-    public ContainerTargetables targetManager;
-    
-    [Header("Meta Data")]
-    public KeyBindings keyBinds;
-    public DifficultyModifications difficultyModifications;
-    public World worldSettings;
-    public LayerMasksData layerMasks;
-
-
-    public bool isPaused;
-    public bool reloadCurrentScene;
-
-    public Action<EntityInfo, int> OnNewPlayableEntity;
-    public Action<PartyInfo, int> OnNewPlayableParty;
-
-    void Awake()
+    public class GameManager : MonoBehaviour
     {
-        active = this;
-        playableEntities = new List<EntityInfo>();
-        isPaused = false;
-    }
+        //Static variables
+        public static GameManager active;
 
-    // Update is called once per frame
-    void Update()
-    {
-        ReloadScene();
-    }
+        public DataMap data;
 
 
-    public void AddPlayableCharacter(EntityInfo playableChar)
-    {
-        if(playableEntities == null) { playableEntities = new List<EntityInfo>(); }
+        // Start is called before the first frame update
+        public List<EntityInfo> playableEntities;
+        public List<PartyInfo> playableParties;
+        public RaidInfo playableRaid;
 
-        playableEntities.Add(playableChar);
-        OnNewPlayableEntity?.Invoke(playableChar, playableEntities.IndexOf(playableChar));
-    }
+        public GameObject pauseMenu;
+        public IGGUIInfo InGameUI;
 
-    public void AddPlayableParty(PartyInfo playableParty)
-    {
-        if(playableParties == null) { playableParties = new List<PartyInfo>(); }
+        [Header("Managers")]
+        public ContainerTargetables targetManager;
 
-        playableParties.Add(playableParty);
-        OnNewPlayableParty?.Invoke(playableParty, playableParties.IndexOf(playableParty));
-    }
+        [Header("Meta Data")]
+        public KeyBindings keyBinds;
+        public DifficultyModifications difficultyModifications;
+        public World worldSettings;
+        public LayerMasksData layerMasks;
 
-    public void ReloadScene()
-    {
-        if(reloadCurrentScene)
+
+        public bool isPaused;
+        public bool reloadCurrentScene;
+
+        public Action<EntityInfo, int> OnNewPlayableEntity;
+        public Action<PartyInfo, int> OnNewPlayableParty;
+
+        void Awake()
         {
-            reloadCurrentScene = false;
+            data.SetData();
+            active = this;
+            playableEntities = new List<EntityInfo>();
+            isPaused = false;
 
-            Scene scene = SceneManager.GetActiveScene();
-            SceneManager.LoadScene(scene.name);
+            if (Core.currentSave == null || Core.currentSave.Length == 0) return;
+
+
+            SaveGame.current.LoadSave(Core.currentSave);
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+            ReloadScene();
+        }
+
+
+        public void AddPlayableCharacter(EntityInfo playableChar)
+        {
+            if (playableEntities == null) { playableEntities = new List<EntityInfo>(); }
+
+            playableEntities.Add(playableChar);
+            OnNewPlayableEntity?.Invoke(playableChar, playableEntities.IndexOf(playableChar));
+        }
+
+        public void AddPlayableParty(PartyInfo playableParty)
+        {
+            if (playableParties == null) { playableParties = new List<PartyInfo>(); }
+
+            playableParties.Add(playableParty);
+            OnNewPlayableParty?.Invoke(playableParty, playableParties.IndexOf(playableParty));
+        }
+
+        public void ReloadScene()
+        {
+            if (reloadCurrentScene)
+            {
+                reloadCurrentScene = false;
+
+                Scene scene = SceneManager.GetActiveScene();
+                SceneManager.LoadScene(scene.name);
+            }
         }
     }
+
 }

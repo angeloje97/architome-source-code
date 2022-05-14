@@ -23,6 +23,7 @@ namespace Architome
         public bool isActive;
         public bool isHovering;
         public bool blocksInput;
+        public bool forceActive;
         public TextMeshProUGUI title;
 
         public Transform itemBin;
@@ -43,9 +44,10 @@ namespace Architome
             public GameObject entitySelector;
             public GameObject entityIcon;
             public GameObject inventorySlot;
-
         }
         public Prefabs prefabs;
+
+        
 
         public void GetDependencies()
         {

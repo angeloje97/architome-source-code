@@ -15,8 +15,10 @@ namespace Architome
         public Action<ModuleInfo> OnModuleEnableChange;
 
 
+
         PromptHandler promptHandler;
         WorldModuleCore worldModuleCore;
+        public List<Transform> extraModules;
         public void GetProperties()
         {
             properties = new List<GameObject>();
@@ -49,15 +51,20 @@ namespace Architome
 
         public void OnEscape()
         {
-            if (SetPrompts())
+            if (SetExtra())
             {
                 return;
             }
 
-            if (SetWorldModules())
-            {
-                return;
-            }
+            //if (SetPrompts())
+            //{
+            //    return;
+            //}
+
+            //if (SetWorldModules())
+            //{
+            //    return;
+            //}
 
             if (SetModules(false))
             {
@@ -96,6 +103,30 @@ namespace Architome
             }
 
             return changed;
+        }
+
+        bool SetExtra()
+        {
+            foreach (var extra in extraModules)
+            {
+                bool changed = false;
+                foreach (var module in extra.GetComponentsInChildren<ModuleInfo>())
+                {
+                    if (module.forceActive) return true;
+                    if (module.isActive)
+                    {
+                        changed = true;
+                        module.SetActive(false);
+                    }
+
+                    if (changed)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         public ActionBarsInfo ActionBarInfo()

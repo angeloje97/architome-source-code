@@ -11,7 +11,7 @@ public class CatalystBounce : MonoBehaviour
     public AbilityInfo abilityInfo;
     public CatalystInfo catalystInfo;
     public CatalystHit catalystHit;
-    public AbilityInfo.Bounce bounce;
+    public Augment.Bounce bounce;
 
     public LayerMask targetLayerMask;
     public LayerMask obstructionLayer;

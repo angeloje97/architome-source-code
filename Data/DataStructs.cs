@@ -44,4 +44,16 @@ namespace Architome
             return new Vector2(x, y);
         }
     }
+
+    [Serializable]
+    public struct String2
+    {
+        public string x, y;
+
+        public String2(string x, string y)
+        {
+            this.x = x;
+            this.y = y;
+        }
+    }
 }

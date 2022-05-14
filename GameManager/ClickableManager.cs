@@ -20,7 +20,8 @@ namespace Architome
 
         void Start()
         {
-
+            ArchInput.active.OnActionMultiple += OnActionMultiple;
+            ArchInput.active.OnAction += OnAction;
         }
 
         private void Awake()
@@ -30,7 +31,6 @@ namespace Architome
         // Update is called once per frame
         void Update()
         {
-            HandleUserInput();
             HandleEvents();
         }
 
@@ -43,64 +43,47 @@ namespace Architome
             }
         }
 
-        public void HandleUserInput()
+
+        public void OnActionMultiple()
         {
-            if(Input.GetKeyDown(KeyBindings.active.keyBinds["Action"]))
-            {
-                if (Mouse.IsMouseOverUI()) return;
-                var clickableObject = Mouse.CurrentHoverObject();
+            if (currentClickableHover == null) return;
+            if (GameManager.active.playableParties.Count != 1) return;
+            var partyEntites = GameManager.active.playableParties[0].members;
 
-                if(clickableObject == null || clickableObject.GetComponent<Clickable>() == null) { return; }
-
-                var clickable = clickableObject.GetComponent<Clickable>();
-
-                if (HandlePartyClicked(clickable)) { return; }
-
-                HandleSelectedClicked(clickable);
-            }
-        }
-
-        public bool HandlePartyClicked(Clickable clickable)
-        {
-            if (!Input.GetKey(KeyBindings.active.keyBinds["SelectMultiple"])) { return false; }
-
-            if (GMHelper.GameManager().playableParties.Count != 1) return false;
-
-            var partyEntities = GMHelper.GameManager().playableParties[0].members;
-
-            if(partyEntities.Count == 0) { return false; }
+            if (partyEntites.Count == 0) return;
 
             var entityInfos = new List<EntityInfo>();
 
-            foreach(var entity in partyEntities)
+            foreach (var member in partyEntites)
             {
-                entityInfos.Add(entity.GetComponent<EntityInfo>());
+                entityInfos.Add(member.GetComponent<EntityInfo>());
             }
 
-            clickable.ClickMultiple(entityInfos);
+            var clickable = currentClickableHover.GetComponent<Clickable>();
 
-            return true;
+            clickable.ClickMultiple(entityInfos);
         }
 
-        public void HandleSelectedClicked(Clickable clickable)
+        public void OnAction()
         {
-            var selectedEntities = ContainerTargetables.active.selectedTargets.Where(entity => Entity.IsPlayer(entity)).ToList();
-
-
-            if (selectedEntities.Count == 0) { return; }
+            if (currentClickableHover == null) return;
 
             var entityInfos = new List<EntityInfo>();
 
-            foreach (var selected in selectedEntities)
+            foreach (var selected in ContainerTargetables.active.selectedTargets)
             {
-                if (selected.GetComponent<EntityInfo>())
-                {
-                    entityInfos.Add(selected.GetComponent<EntityInfo>());
-                }
+                if (!Entity.IsPlayer(selected)) continue;
+                entityInfos.Add(selected.GetComponent<EntityInfo>());
             }
+
+            if (entityInfos.Count == 0) return;
+
+            var clickable = currentClickableHover.GetComponent<Clickable>();
+
 
             clickable.ClickMultiple(entityInfos);
         }
+
 
 
         public void HandleClickable(Clickable clicked)

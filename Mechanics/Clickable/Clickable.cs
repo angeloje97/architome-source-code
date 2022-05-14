@@ -93,10 +93,24 @@ namespace Architome
             selectedString = null;
             clickedEntities.Clear();
         }
-
-        public void SetOptions(List<string> options)
+        async void HandleOptions()
         {
-            this.options = options.Select(option => new Option() { text = option }).ToList();
+            List<string> options = this.options.Select(option => option.text).ToList();
+            int choice = await ContextMenu.current.UserChoice(new()
+            {
+                title = clickedEntities.Count > 1 ? $"{clickedEntities[0].entityName} + {clickedEntities.Count - 1}" : $"{clickedEntities[0].entityName}",
+                options = options
+            });
+
+            if (choice == -1) return;
+
+            selectedIndex = choice;
+            selectedString = this.options[choice].text;
+            OnSelectOption?.Invoke(this);
+
+            selectedIndex = -1;
+            selectedString = null;
+            clickedEntities.Clear();
         }
 
         public void AddOption(string option)
@@ -114,15 +128,19 @@ namespace Architome
             if (options.Count == 0) return;
             clickedEntities.Clear();
             clickedEntities.Add(entity);
-            ClickableManager.active.HandleClickable(this);
+            HandleOptions();
+            //ClickableManager.active.HandleClickable(this);
         }
 
         public void ClickMultiple(List<EntityInfo> entities)
         {
             if (options.Count == 0) return;
             clickedEntities = entities;
-            ClickableManager.active.HandleClickable(this);
+            //ClickableManager.active.HandleClickable(this);
+            HandleOptions();
         }
+
+        
 
         public bool Interactable { get { return options.Count > 0; } }
     }

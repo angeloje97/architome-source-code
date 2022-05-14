@@ -7,7 +7,7 @@ namespace Architome
     public class CatalystSummon : CatalystProp
     {
         // Start is called before the first frame update
-        public AbilityInfo.SummoningProperty summoning;
+        public Augment.SummoningProperty summoning;
         WorldActions world;
         MapEntityGenerator entityGenerator;
 

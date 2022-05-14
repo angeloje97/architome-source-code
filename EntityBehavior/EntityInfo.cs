@@ -17,7 +17,7 @@ namespace Architome
     {
         // Start is called before the first frame update
         [SerializeField] int id;
-        public int entityId
+        public int _id
         {
             get
             {
@@ -25,7 +25,9 @@ namespace Architome
             }
 
         }
-        bool idSet;
+        [SerializeField] bool idSet;
+
+        public bool unlocked;
 
         public void SetId(int id, bool forceSet = false)
         {
@@ -258,7 +260,6 @@ namespace Architome
             }
 
             StartCoroutine(HandleRegeneration());
-            currentRoom = CurrentRoom();
         }
         void Update()
         {

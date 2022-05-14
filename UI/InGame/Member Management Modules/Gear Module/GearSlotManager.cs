@@ -13,7 +13,6 @@ public class GearSlotManager : MonoBehaviour
 
     [Header("Gear Slot Manager Properties")]
     public Transform equipmentBin;
-    public GameObject itemTemplate;
     public List<GearSlot> gearSlots;
 
 
@@ -122,7 +121,7 @@ public class GearSlotManager : MonoBehaviour
 
     public GameObject CreateEquipment(Equipment equipment, GearSlot slot)
     {
-        var itemTemplate = this.itemTemplate;
+        var itemTemplate = module.prefabs.item;
 
         if(equipmentBin != null)
         {

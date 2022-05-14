@@ -82,45 +82,36 @@ namespace Architome
         }
         public void HandleUserMouseOvers()
         {
-            if (IsOverHealthBar()) { }
-            else if (IsOverTarget()) { }
-            else if (IsOverPortrait()) { }
+            if(IsOverTarget()) { }
+            else if(IsOverPortraitOrHealthBar()) { }
             else
             {
                 if(hoverTargets.Count > 0)
                 {
                     ClearHovers();
                 }
-                //if (hoverTargets.Count > 0) { hoverTargets.Clear(); }
-                //currentHover = null;
             }
 
             bool IsOverTarget()
             {
                 if (Mouse.IsMouseOverUI()) { return false; }
-                if (Mouse.CurrentHover(targetLayer))
+                if (ClickableManager.active.currentClickableHover) return false;
+
+                var entity = Mouse.CurrentHover(targetLayer);
+
+                if (entity)
                 {
-                    var result = Mouse.CurrentHover(targetLayer);
 
-                    var hoverObject = Mouse.CurrentHoverObject();
+                    Hover(entity.gameObject);
 
-                    if (hoverObject.GetComponent<Clickable>())
-                    {
-                        return false;
-                    }
+                    return true;
+                    //if (result)
+                    //{
+                    //    if (!Player.HasLineOfSight(result.gameObject)) { return false; }
+                    //    Hover(result.gameObject);
 
-                    if (result.GetComponent<EntityInfo>())
-                    {
-                        if (!Player.HasLineOfSight(result)) { return false; }
-                        if (!hoverTargets.Contains(result))
-                        {
-                            Hover(result);
-                            //hoverTargets.Add(result);
-                            //currentHover = result;
-                        }
-
-                        return true;
-                    }
+                    //    return true;
+                    //}
                 }
 
 
@@ -129,62 +120,49 @@ namespace Architome
 
 
         }
-        bool IsOverPortrait()
+
+        bool IsOverPortraitOrHealthBar()
         {
-            var rayCastObjects = Mouse.RayCastResultObjects();
+            var results = Mouse.RayCastResults();
 
-            foreach (GameObject castObject in rayCastObjects)
-            {
-                if (castObject.transform.parent)
-                {
-
-                    if (castObject.GetComponentInParent<PortraitBehavior>())
-                    {
-                        if (castObject.GetComponentInParent<PortraitBehavior>() && castObject.GetComponentInParent<PortraitBehavior>().entity)
-                        {
-                            if (!hoverTargets.Contains(castObject.transform.parent.GetComponentInParent<PortraitBehavior>().entity.gameObject))
-                            {
-                                //currentHover = castObject.transform.parent.GetComponentInParent<PortraitBehavior>().entity.gameObject;
-                                //hoverTargets.Add(castObject.transform.parent.GetComponentInParent<PortraitBehavior>().entity.gameObject);
-
-                                Hover(castObject.GetComponentInParent<PortraitBehavior>().entity.gameObject);
-                            }
-
-                            return true;
-                        }
-                    }
-
-
-                }
-            }
-
-            return false;
-        }
-        bool IsOverHealthBar()
-        {
-            var results = Mouse.RayCastResultObjects();
-
-            if (results.Count == 0) { return false; }
-            if (Mouse.IsMouseOverUI()) { return false; }
             foreach (var result in results)
             {
-                if (result.GetComponentInParent<ProgressBarsBehavior>() && result.GetComponentInParent<EntityInfo>())
-                {
-                    if (!hoverTargets.Contains(result.GetComponentInParent<EntityInfo>().gameObject))
-                    {
-                        //hoverTargets.Add(result.GetComponentInParent<EntityInfo>().gameObject);
-                        //currentHover = result.GetComponentInParent<EntityInfo>().gameObject;
-
-                        Hover(result.GetComponentInParent<EntityInfo>().gameObject);
-                    }
-                    return true;
-                }
+                var castObject = result.gameObject;
+                if (IsOverPortrait(castObject)) return true;
+                if (IsOverHealthBar(castObject)) return true;
             }
+
+
             return false;
+
+            bool IsOverPortrait(GameObject target)
+            {
+                return false;
+                var portraitBehavior = target.GetComponentInParent<PortraitBehavior>();
+
+                if (portraitBehavior == null) return false;
+                if (portraitBehavior.entity == null) return false;
+
+                Hover(portraitBehavior.entity.gameObject);
+
+                return true;
+            }
+
+            bool IsOverHealthBar(GameObject target)
+            {
+                var progressBar = target.GetComponentInParent<ProgressBarsBehavior>();
+
+                if (progressBar == null) return false;
+                if (progressBar.entityInfo == null) return false;
+
+                Hover(progressBar.entityInfo.gameObject);
+
+                return true;
+            }
         }
         void OnSelect()
         {
-            if (Mouse.IsMouseOverUI() && !IsOverPortrait() && !IsOverHealthBar())
+            if (Mouse.IsMouseOverUI() && !IsOverPortraitOrHealthBar())
             {
                 return;
             }
@@ -286,6 +264,7 @@ namespace Architome
         }
         public void Hover(GameObject target)
         {
+            if (hoverTargets.Contains(target)) return;
             hoverTargets.Add(target);
             currentHover = target;
 

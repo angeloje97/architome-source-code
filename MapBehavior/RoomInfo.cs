@@ -4,6 +4,7 @@ using UnityEngine;
 using System.Linq;
 using System;
 using System.Threading.Tasks;
+using Architome.Enums;
 
 namespace Architome
 {
@@ -93,15 +94,18 @@ namespace Architome
                 inRoom.Add(entity);
                 OnEntityEnter?.Invoke(entity);
 
-                if (Entity.IsPlayer(entity.gameObject))
+                if (entity.rarity == EntityRarity.Player)
                 {
                     playerInRoom.Add(entity);
                     OnPlayerEnter?.Invoke(entity);
+
                     if (!playerDiscovered)
                     {
                         OnPlayerDiscover?.Invoke(entity);
                         playerDiscovered = true;
                     }
+
+                    room.ShowRoom(true, entity.transform.position);
                 }
             }
 
@@ -110,10 +114,15 @@ namespace Architome
                 inRoom.Remove(entity);
                 OnEntityExit?.Invoke(entity);
 
-                if (Entity.IsPlayer(entity.gameObject))
+                if (entity.rarity == EntityRarity.Player)
                 {
                     playerInRoom.Remove(entity);
                     OnPlayerExit?.Invoke(entity);
+
+                    if (playerInRoom.Count == 0)
+                    {
+                        room.ShowRoom(false, entity.transform.position);
+                    }
                 }
             }
 
@@ -123,13 +132,15 @@ namespace Architome
         //Private properties
         private float percentReveal;
 
-        protected void GetDependencies()
+        protected virtual void GetDependencies()
         {
             if (MapHelper.MapInfo())
             {
                 mapInfo = MapHelper.MapInfo();
                 mapInfo.RoomGenerator().roomsInUse.Add(gameObject);
             }
+
+            entities.room = this;
 
 
             GetAllObjects();
@@ -246,14 +257,17 @@ namespace Architome
             return true;
         }
 
-        void Start()
+        private void Awake()
         {
             GetDependencies();
+        }
+        void Start()
+        {
             CheckBadSpawn();
             entities.room = this;
         }
 
-        protected void CheckBadSpawn()
+        protected virtual void CheckBadSpawn()
         {
             if (ignoreCheckRoomCollison)
             {

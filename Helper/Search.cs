@@ -43,12 +43,12 @@ namespace Architome
             {
                 int mid = (min + max) / 2;
 
-                if (entities[mid].entityId == id)
+                if (entities[mid]._id == id)
                 {
                     return entities[mid];
                 }
 
-                else if(entities[mid].entityId < id)
+                else if(entities[mid]._id < id)
                 {
                     max = mid - 1;
                 }

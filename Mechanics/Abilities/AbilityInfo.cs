@@ -10,17 +10,31 @@ using System.Threading.Tasks;
 public class AbilityInfo : MonoBehaviour
 {
     // Start is called before the first frame update
+    [SerializeField] int id;
+    public int _id
+    {
+        get
+        {
+            return idSet ? id : 99999;
+        }
+    }
+    bool idSet;
+    public void SetId(int id, bool forceId = false)
+    {
+        if (idSet && !forceId) return;
+        idSet = true;
+        this.id = id;
+    }
 
-    [Header("Ability Information")]
     public string abilityName;
     [Multiline]
     public string abilityDescription;
-
 
     public GameObject entityObject;
     public GameObject catalyst;
     public Sprite abilityIcon;
 
+    public List<Augment> augments;
     public List<GameObject> buffs;
     public BuffProperties buffProperties;
 
@@ -39,33 +53,24 @@ public class AbilityInfo : MonoBehaviour
     public Vector3 locationLocked;
     public Vector3 directionLocked;
 
-    [Serializable]
-    public struct SummoningProperty
-    {
-        public bool enabled;
-        public List<GameObject> summonableEntities;
-
-        [Header("Summoning Settings")]
-        public float radius;
-        public float liveTime;
-        public float valueContributionToStats;
-        public Stats additiveStats;
-
-        [Header("Death Settings")]
-        public bool masterDeath;
-        public bool masterCombatFalse;
-    }
-
-    public SummoningProperty summoning;
-
     [Header("Catalyst Info")]
     public float speed = 35;
     public float range = 15;
     public float castTime = 1f;
-    
-    public CatalystType catalystType;
 
 
+    public Augment.SummoningProperty summoning;
+    public Augment.Cataling cataling;
+    public Augment.SplashProperties splash;
+    public Augment.ChannelProperties channel;
+    public Augment.Restrictions originalRestrictions;
+    public Augment.Restrictions restrictions;
+    public Augment.DestroyConditions originalConditions;
+    public Augment.DestroyConditions destroyConditions;
+    public Augment.RecastProperties recastProperties;
+    public Augment.Tracking tracking;
+    public Augment.Bounce bounce;
+    public Augment.Threat threat;
 
 
     [Serializable]
@@ -73,19 +78,6 @@ public class AbilityInfo : MonoBehaviour
     {
         public float strength, wisdom, dexterity = 1f;
     }
-
-    [Serializable]
-    public struct Cataling
-    {
-        public bool enable;
-        public GameObject catalyst;
-        public AbilityType catalingType;
-        public CatalystEvent releaseCondition;
-        public int releasePerInterval;
-        public float interval, targetFinderRadius, valueContribution, rotationPerInterval, startDelay;
-    }
-
-    public Augment.Cataling cataling;
 
     public void OnValidate()
     {
@@ -114,20 +106,6 @@ public class AbilityInfo : MonoBehaviour
     public float selfCastMultiplier = 1f;
     public float liveTime = 3;
     public int ticksOfDamage = 1;
-
-    [Serializable]
-    public struct Threat
-    {
-        public bool enabled;
-        public float additiveThreatMultiplier;
-
-        public bool setsThreat;
-        public float threatSet;
-
-        public bool clearThreat;
-    }
-
-    public Threat threat;
 
     [Serializable]
     public struct AbilityVisualEffects
@@ -168,32 +146,6 @@ public class AbilityInfo : MonoBehaviour
     public CoolDownProperties coolDown;
 
 
-
-    [Serializable]
-    public struct SplashProperties
-    {
-        public bool enable;
-        public GameObject splashParticleEffects;
-        public bool requiresLOS;
-        public bool appliesBuffs;
-        public float valueContribution;
-        public float radius;
-        public float delay;
-    }
-
-
-    public SplashProperties splash;
-
-    //[Header("Spalsh Properties")]
-    //public bool splashes;
-    //public GameObject splashParticleEffects;
-    //public bool splashRequiresLOS;
-    //public bool splashAppliesBuffs;
-    //public int maxSplashTargets;
-    //public float valueContributionToSplash;
-    //public float splashRadius;
-    //public float splashDelay;
-
     [Header("Scanner Properties")]
     public bool scannerRadialAoe;
 
@@ -201,23 +153,6 @@ public class AbilityInfo : MonoBehaviour
     public bool grows;
     public bool growsForward;
     public bool growsWidth;
-
-    [Serializable]
-    public struct ChannelProperties
-    {
-        public bool enabled;
-        public bool active;
-        public float time;
-        public int invokeAmount;
-        public bool cancel;
-
-        [Header("Restrictions")]
-        public bool canMove;
-        public bool cancelChannelOnMove;
-        public float deltaMovementSpeed;
-    }
-
-    public ChannelProperties channel;
 
     [Header("Recastable Propertiers")]
     public float canRecast;
@@ -228,14 +163,6 @@ public class AbilityInfo : MonoBehaviour
     public bool returnAppliesHeals;
     public bool returns;
 
-    [Serializable]
-    public struct Bounce
-    {
-        public bool enable, requireLOS;
-        public float radius;
-    }
-
-    public Bounce bounce;
 
     [Header("Hold to Cast Properties")]
     public float holdToCastValue;
@@ -244,36 +171,6 @@ public class AbilityInfo : MonoBehaviour
     public float castingMovementSpeedReduction;
     public bool cancelCastIfMoved;
     public bool cantMoveWhenCasting;
-
-    [Serializable]
-    public struct Restrictions
-    {
-        public bool activated;
-        public bool playerAiming;
-        public bool canCastSelf;
-        public bool onlyCastSelf;
-        public bool onlyCastOutOfCombat;
-        public bool isHealing;
-        public bool isAssisting;
-        public bool isHarming;
-        public bool destroysSummons;
-        public bool targetsDead;
-        public bool requiresLockOnTarget;
-        public bool requiresLineOfSight;
-        public bool canHitSameTarget;
-        public bool canAssistSameTarget;
-        public bool explosive;
-        public bool canBeIntercepted;
-        public bool nullifyDamage;
-        public bool interruptable;
-        public bool isAttack;
-        public bool active;
-    }
-
-    public Restrictions restrictions;
-
-    
-
 
     [Header("AbilityRestrictions")]
     public bool activated;
@@ -295,47 +192,8 @@ public class AbilityInfo : MonoBehaviour
     public bool nullifyDamage;
     public bool interruptable;
     public bool isAttack;
+    public bool usesWeaponCatalyst;
     public bool active;
-
-
-
-    [Serializable]
-    public struct DestroyConditions
-    {
-        public bool destroyOnCollisions;
-        public bool destroyOnStructure;
-        public bool destroyOnNoTickDamage;
-        public bool destroyOnReturn;
-        public bool destroyOnOutOfRange;
-        public bool destroyOnLiveTime;
-        public bool destroyOnDeadTarget;
-        public bool destroyOnCantFindTarget;
-    }
-
-    public DestroyConditions destroyConditions;
-
-    [Serializable]
-    public struct RecastProperties
-    {
-        public bool enabled;
-        public bool isActive;
-        public int maxRecast;
-        public int currentRecast;
-        public float recastTimeFrame;
-        public Action<AbilityInfo> OnRecast;
-
-        public bool CanRecast()
-        {
-            if(currentRecast > 0 && isActive)
-            {
-                return true;
-            }
-
-            return false;
-        }
-    }
-
-    public RecastProperties recastProperties;
 
     [Header("Ability Timers")]
     public float castTimer;
@@ -345,19 +203,6 @@ public class AbilityInfo : MonoBehaviour
     public float progress;
     public float progressTimer;
 
-
-    [Serializable]
-    public struct Tracking
-    {
-        public bool tracksTarget;
-        public bool predictsTarget;
-        public bool predicting;
-
-        [Range(0, 1)]
-        public float trackingInterpolation;
-    }
-
-    public Tracking tracking;
 
     [Header("Lock On Behaviors")]
     [SerializeField] private bool wantsToCast;
@@ -516,6 +361,19 @@ public class AbilityInfo : MonoBehaviour
     public void HandleTimers()
     {
         SetCoolDownTimer();
+    }
+
+    public void UpdateAugments()
+    {
+        destroyConditions = originalConditions;
+        restrictions = originalRestrictions;
+
+
+
+        foreach (var augment in augments)
+        {
+            augment.ApplyAugment(this);
+        }
     }
 
 
@@ -716,10 +574,6 @@ public class AbilityInfo : MonoBehaviour
         }
 
         locationLocked = location;
-        //if (!requiresLockOnTarget)
-        //{
-        //    return true;
-        //}
 
         if (abilityType != AbilityType.LockOn) return true;
 
@@ -744,9 +598,6 @@ public class AbilityInfo : MonoBehaviour
         if (IsInRange() && HasLineOfSight()) { return true; }
 
         return false;
-
-        
-
     }
 
     bool IsInRange()
@@ -1177,8 +1028,6 @@ public class AbilityInfo : MonoBehaviour
             abilityIcon = catalystInfo.catalystIcon;
             range = catalystInfo.range;
             speed = catalystInfo.speed;
-            
-            catalystType = catalystInfo.catalystType;
 
             if(isAttack && entityInfo)
             {
@@ -1194,9 +1043,6 @@ public class AbilityInfo : MonoBehaviour
                     castTime = attackInterval *.25f;
                     coolDown.timePerCharge = attackInterval *.75f;
                 }
-
-                
-                
             }
             else
             {
@@ -1206,27 +1052,12 @@ public class AbilityInfo : MonoBehaviour
 
             if (abilityType == AbilityType.SkillShot)
             {
-                //bool isMelee = catalystInfo.catalystType == CatalystType.Melee;
-                //bool isSweep = catalystInfo.catalystType == CatalystType.Sweep;
-                //bool isRadiate = catalystInfo.catalystType == CatalystType.Radiate;
-                //if (isMelee || isSweep || isRadiate)
-                //{
-                //    abilityType = AbilityType.SkillShotScan;
-                //}
                 requiresLineOfSight = false;
                 requiresLockOnTarget = false;
             }
 
             if (abilityType == AbilityType.LockOn)
             {
-                //bool isMelee = catalystInfo.catalystType == CatalystType.Melee;
-                //bool isSweep = catalystInfo.catalystType == CatalystType.Sweep;
-                //bool isRadiate = catalystInfo.catalystType == CatalystType.Radiate;
-                //if (isMelee || isSweep || isRadiate)
-                //{
-                //    abilityType = AbilityType.LockOnScan;
-                    
-                //}
                 requiresLineOfSight = true;
                 requiresLockOnTarget = true;
             }
@@ -1239,6 +1070,7 @@ public class AbilityInfo : MonoBehaviour
         if (isCasting) return false;
         if (channel.active) return false;
         if (coolDown.globalCoolDownActive) return false;
+        if (!HasCorrectWeapon()) return false;
 
         if(entityInfo.mana < (manaRequired + manaRequiredPercent*entityInfo.maxMana))
         {
@@ -1248,6 +1080,13 @@ public class AbilityInfo : MonoBehaviour
         if(coolDown.charges <= 0) { return false; }
 
         return true;
+
+        bool HasCorrectWeapon()
+        {
+            if (!catalystInfo.requiresWeapon) return true;
+
+            return abilityManager.HasWeaponType(catalystInfo.weaponType);
+        }
     }
     public void HandleAutoAttack()
     {
@@ -1643,15 +1482,4 @@ public class AbilityInfo : MonoBehaviour
             _ => 0f,
         };
     }
-
-
-
-
-
-
-
-
-
-
-
 }
