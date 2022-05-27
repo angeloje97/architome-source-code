@@ -26,6 +26,7 @@ namespace Architome
         public List<CatalystInfo> Catalysts;
         public List<Item> Items;
         public List<ArchClass> Classes;
+        public List<RoomInfo> Rooms;
 
         public List<GameObject> prefabs;
 
@@ -272,6 +273,35 @@ namespace Architome
 
         }
 
+        [Serializable]
+        public class RoomSearch
+        {
+            public ArchitomeID idDatabase;
+            public bool search;
+            public bool updateId;
+
+            public void Update()
+            {
+                if (idDatabase == null) return;
+                if (!search) return;
+
+                UpdateID();
+            }
+
+            void UpdateID()
+            {
+                if (!updateId) return;
+                updateId = false;
+
+                var rooms = idDatabase.Rooms.OrderBy(item => item._id).ToList();
+
+                for (int i = 0; i < rooms.Count; i++)
+                {
+                    rooms[i].SetId(i + 1, idDatabase.forceID);
+                }
+            }
+        }
+
         [Header("Database Search Interface")]
         public ItemIDSearch itemSearch;
         public AbilitySearch abilitySearch;
@@ -279,6 +309,7 @@ namespace Architome
         public BuffSearch buffSearch;
         public EntitySearch entitySearch;
         public ArchClassSearch classSearch;
+        public RoomSearch roomSearch;
 
         private void OnValidate()
         {
@@ -292,6 +323,7 @@ namespace Architome
             entitySearch.Update();
             buffSearch.Update();
             classSearch.Update();
+            roomSearch.Update();
         }
 
         void CheckDuplicates()
@@ -375,6 +407,7 @@ namespace Architome
             foreach (var path in prefabs)
             {
                 var success = false;
+
                 if (UpdateBuffs(path))
                 {
                     success = true;
@@ -388,6 +421,10 @@ namespace Architome
                     success = true;
                 }
                 else if (UpdateCatalysts(path))
+                {
+                    success = true;
+                }
+                else if (UpdateRooms(path))
                 {
                     success = true;
                 }
@@ -464,6 +501,21 @@ namespace Architome
             Catalysts.Add(catalyst);
 
             return true;
+
+        }
+
+        bool UpdateRooms(GameObject prefab)
+        {
+            var room = prefab.GetComponent<RoomInfo>();
+
+            if (room == null) return false;
+
+            if (Rooms.Contains(room)) return true;
+
+            Rooms.Add(room);
+
+            return true;
+
 
         }
     }

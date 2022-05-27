@@ -5,8 +5,13 @@ using UnityEngine.Audio;
 
 public class AudioMixerGroups : MonoBehaviour
 {
-    // Start is called before the first frame update
-    
+    public static AudioMixerGroups active;
+
+    private void Awake()
+    {
+        active = this;
+    }
+
     public AudioMixerGroup SoundEffect;
     public AudioMixerGroup Ambience;
     public AudioMixerGroup Music;

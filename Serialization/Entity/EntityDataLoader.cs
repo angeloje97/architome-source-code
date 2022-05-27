@@ -30,9 +30,9 @@ namespace Architome
 
         public static void LoadEntity(EntityData data, EntityInfo entity)
         {
+            if (data == null || entity == null) return;
             var characterInfo = entity.GetComponentInChildren<CharacterInfo>();
-            
-            
+
             LoadInfo();
             LoadCharacter();
             LoadEquipment();
@@ -86,24 +86,39 @@ namespace Architome
                     return;
                 }
 
+                var slotMap = data.equipment.slots.ToDictionary(x => x.slotType, x => x);
+
+
                 var lastSlot = equipmentSlots[0];
 
                 foreach (var slot in equipmentSlots)
                 {
                     slot.equipment = null;
 
-                    foreach (var equipmentData in data.equipment.slots)
-                    {
-                        if (equipmentData.slotType != slot.equipmentSlotType) continue;
-                        var item = _maps.items[equipmentData.itemId];
+                    if (!slotMap.ContainsKey(slot.equipmentSlotType)) continue;
 
-                        if (!Item.Equipable(item)) break;
-                        slot.equipment = (Equipment) item;
+                    var equipmentData = slotMap[slot.equipmentSlotType];
 
-                        lastSlot = slot;
-                        break;
+                    var item = _maps.items[equipmentData.itemId];
 
-                    }
+                    if (!Item.Equipable(item)) continue;
+
+                    slot.equipment = (Equipment)item;
+
+                    lastSlot = slot;
+
+                    //foreach (var equipmentData in data.equipment.slots)
+                    //{
+                    //    if (equipmentData.slotType != slot.equipmentSlotType) continue;
+                    //    var item = _maps.items[equipmentData.itemId];
+
+                    //    if (!Item.Equipable(item)) break;
+                    //    slot.equipment = (Equipment) item;
+
+                    //    lastSlot = slot;
+                    //    break;
+
+                    //}
                 }
 
 
@@ -118,25 +133,43 @@ namespace Architome
 
                 inventory.ClearInventory();
 
-                var items = new Dictionary<EntityData.InventoryData.ItemData, Item>();
-
                 foreach (var itemData in data.inventory.items)
                 {
-                    var item = _maps.items[itemData.itemId];
+                    if (itemData.slotNumber >= inventory.inventoryItems.Count) continue;
+                    if (!_maps.items.ContainsKey(itemData.id)) continue;
 
-                    if (item == null) continue;
+                    var item = Object.Instantiate(_maps.items[itemData.id]);
 
-                    Debugger.InConsole(45389, $"Loaded item is {item}");
-                    items.Add(itemData, item);
+                    if (Item.Equipable(item))
+                    {
+                        var equipment = (Equipment)item;
+                        equipment.stats = itemData.stats;
+                    }
+
+                    inventory.inventoryItems[itemData.slotNumber] = new() { amount = itemData.amount, item = item };
+                    
                 }
 
-                foreach (KeyValuePair<EntityData.InventoryData.ItemData, Item> itemData in items)
-                {
-                    var data = itemData.Key;
-                    if (data.slotNumber >=  inventory.inventoryItems.Count) continue;
 
-                    inventory.inventoryItems[data.slotNumber] = new() { item = itemData.Value, amount = data.amount };
-                }
+                //var items = new Dictionary<EntityData.InventoryData.ItemData, Item>();
+
+                //foreach (var itemData in data.inventory.items)
+                //{
+                //    var item = _maps.items[itemData.itemId];
+
+                //    if (item == null) continue;
+
+                //    Debugger.InConsole(45389, $"Loaded item is {item}");
+                //    items.Add(itemData, item);
+                //}
+
+                //foreach (KeyValuePair<EntityData.InventoryData.ItemData, Item> itemData in items)
+                //{
+                //    var data = itemData.Key;
+                //    if (data.slotNumber >=  inventory.inventoryItems.Count) continue;
+
+                //    inventory.inventoryItems[data.slotNumber] = new() { item = itemData.Value, amount = data.amount };
+                //}
 
                 inventory.OnLoadInventory?.Invoke(inventory);
             }

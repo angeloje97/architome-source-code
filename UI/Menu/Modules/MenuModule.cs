@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 namespace Architome
 {
@@ -22,6 +23,8 @@ namespace Architome
         public CanvasGroup canvasGroup;
         public Transform cameraPosition;
 
+        public List<GameObject> sections;
+
 
         public bool isActive;
 
@@ -29,8 +32,6 @@ namespace Architome
         {
             menuUI = GetComponentInParent<MainMenuUI>();
             canvasGroup = GetComponent<CanvasGroup>();
-
-
         }
 
         private void OnValidate()
@@ -39,7 +40,20 @@ namespace Architome
             Show(isActive);
         }
 
+        private void Start()
+        {
+            SetSection(0);
+        }
 
+        public void SetSection(int index)
+        {
+            if (index >= sections.Count) return;
+
+            for (int i = 0; i < sections.Count; i++)
+            {
+                sections[i].gameObject.SetActive(i == index);
+            }
+        }
 
         public void Show(bool val)
         {

@@ -14,11 +14,13 @@ namespace Architome
 
         [Serializable] public class Info
         {
+            public EntityInfo.Properties properties;
             public string entityName;
             public string entityDescription;
             public Role role;
             public Stats entityStats;
             public float health, mana, maxHealth, maxMana;
+            
 
             public int classId; //Not Supported by iterator
             public Info(EntityInfo entity)
@@ -48,9 +50,11 @@ namespace Architome
             [Serializable]
             public class ItemData
             {
-                public int itemId;
+                public int id;
                 public int amount;
                 public int slotNumber;
+                public Stats stats;
+
             }
 
             public List<ItemData> items;
@@ -59,6 +63,7 @@ namespace Architome
             {
                 if (inventory == null) return;
                 maxSlots = inventory.maxSlots;
+
                 items = new();
 
                 for (int i = 0; i < inventory.inventoryItems.Count; i++)
@@ -67,8 +72,16 @@ namespace Architome
 
                     if (item.item == null) continue;
 
+                    var newItemData = new ItemData() { id = item.item._id, amount = item.amount, slotNumber = i };
 
-                    items.Add(new() { itemId = item.item._id, amount = item.amount, slotNumber = i });
+                    if (Item.Equipable(item.item))
+                    {
+                        var equipment = (Equipment)item.item;
+                        newItemData.stats = equipment.stats;
+                    }
+
+
+                    items.Add(newItemData);
                 }
             }
         }
@@ -138,7 +151,7 @@ namespace Architome
             equipment = new(character);
 
             characterData = new(character);
-
         }
+
     }
 }

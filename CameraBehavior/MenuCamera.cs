@@ -53,11 +53,11 @@ namespace Architome
 
 
 
-            while (transform.position != target.transform.position &&
-                transform.rotation != target.transform.rotation)
+            while (transform.position != this.target.transform.position &&
+                transform.rotation != this.target.transform.rotation)
             {
-                transform.SetPositionAndRotation(Vector3.Lerp(transform.position, target.transform.position, 1 / smoothening), 
-                                                Quaternion.Lerp(transform.rotation, target.transform.rotation, 1 / smoothening));
+                transform.SetPositionAndRotation(Vector3.Lerp(transform.position, this.target.transform.position, 1 / smoothening), 
+                                                Quaternion.Lerp(transform.rotation, this.target.transform.rotation, 1 / smoothening));
 
                 await Task.Yield();
             }

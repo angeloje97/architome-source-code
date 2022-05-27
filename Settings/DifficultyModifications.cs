@@ -3,54 +3,71 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using Architome.Enums;
-public class DifficultyModifications : MonoBehaviour
+
+namespace Architome
 {
-    // Start is called before the first frame update
-    public Difficulty gameDifficulty;
-    [SerializeField]
-    private bool startUpdate;
-    public List<DifficultySet> difficultySets;
-    public DifficultySet settings;
-
-
-    public void DetermineSettings()
+    public class DifficultyModifications : MonoBehaviour
     {
-        settings = difficultySets[((int) gameDifficulty) - 1];
-    }
+        // Start is called before the first frame update
+        public static DifficultyModifications active;
+        public Difficulty gameDifficulty;
+        [SerializeField]
+        private bool startUpdate;
+        public List<DifficultySet> difficultySets;
+        public DifficultySet settings;
 
-    void Start()
-    {
-        DetermineSettings();
-    }
 
-    public void OnValidate()
-    {
-        if(startUpdate)
+        public void DetermineSettings()
         {
-            startUpdate = false;
+            settings = difficultySets[((int)gameDifficulty) - 1];
+        }
+
+        void Start()
+        {
             DetermineSettings();
         }
-     
+
+        private void Awake()
+        {
+            active = this;
+
+            if (Core.currentSave != null)
+            {
+                gameDifficulty = Core.currentSave.gameSettings.difficulty;
+            }
+
+        }
+
+        public void OnValidate()
+        {
+            if (startUpdate)
+            {
+                startUpdate = false;
+                DetermineSettings();
+            }
+
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+
+        }
+
+
+
+
     }
 
-    // Update is called once per frame
-    void Update()
+    [Serializable]
+    public class DifficultySet
     {
-        
+        public float tankThreatMultiplier = 9f;
+        public float healThreatMultiplier = .0625f;
+        public float tankHealthMultiplier = 2.5f;
+        public float npcDetectionRange = 10f;
+        public float playerDetectionRange = 45f;
+        public float experienceMultiplier = 300f;
     }
 
-
-
-
-}
-
-[Serializable]
-public class DifficultySet
-{
-    public float tankThreatMultiplier = 9f;
-    public float healThreatMultiplier = .0625f;
-    public float tankHealthMultiplier=2.5f;
-    public float npcDetectionRange = 10f;
-    public float playerDetectionRange = 45f;
-    public float experienceMultiplier = 300f;
 }

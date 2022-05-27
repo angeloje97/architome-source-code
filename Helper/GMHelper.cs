@@ -31,12 +31,7 @@ public class GMHelper : MonoBehaviour
     }
     public static ContainerTargetables TargetManager()
     {
-        if (GameManager() == null) { return null; }
-        if (GameManager().targetManager)
-        {
-            return GameManager().targetManager;
-        }
-        return null;
+        return ContainerTargetables.active;
     }
     
     //IGUI Properties
@@ -55,41 +50,24 @@ public class GMHelper : MonoBehaviour
     }
     public static KeyBindings KeyBindings()
     {
-        if (GameManager() == null) { return null; }
-        if (GameManager().keyBinds)
-        {
-            return GameManager().keyBinds;
-        }
-        return null;
+        return Architome.KeyBindings.active;
     }
     public static DifficultyModifications Difficulty()
     {
-        if (GameManager() == null) { return null; }
-        if (GameManager() && GameManager().difficultyModifications)
-        {
-            return GameManager().difficultyModifications;
-        }
-
-        return null;
+        return DifficultyModifications.active;
     }
     public static World WorldSettings()
     {
-        if(GameManager() && GameManager().worldSettings)
-        {
-            return GameManager().worldSettings;
-        }
-        return null;
+        return World.active;
     }
     public static LayerMasksData LayerMasks()
     {
-        if (GameManager() && GameManager().layerMasks)
-        {
-            return GameManager().layerMasks;
-        }
-        return null;
+        return LayerMasksData.active;
     }
     public static AudioMixerGroups Mixer()
     {
+        return AudioMixerGroups.active;
+
         if(GameManager())
         {
             foreach(Transform child in GameManager().transform)

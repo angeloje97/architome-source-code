@@ -17,18 +17,18 @@ public class MapEntityGenerator : MonoBehaviour
     public Transform pets;
     public Transform summons;
 
-    [Serializable] public class PatrolGroup
-    {
-        public List<GameObject> entityMembers;
-    }
+    //[Serializable] public class PatrolGroup
+    //{
+    //    public List<GameObject> entityMembers;
+    //}
     
-    [Header("Entity Properties")]
-    public List<GameObject> tier1Entities;
-    public List<GameObject> tier2Entities;
-    public List<GameObject> tier3Entities;
-    public List<GameObject> neutralEntities;
-    public List<GameObject> bossEntities;
-    public List<PatrolGroup> patrolGroups;
+    //[Header("Entity Properties")]
+    //public List<GameObject> tier1Entities;
+    //public List<GameObject> tier2Entities;
+    //public List<GameObject> tier3Entities;
+    //public List<GameObject> neutralEntities;
+    //public List<GameObject> bossEntities;
+    //public List<PatrolGroup> patrolGroups;
 
     //Events
     public Action<MapEntityGenerator> OnEntitiesGenerated;
@@ -68,7 +68,6 @@ public class MapEntityGenerator : MonoBehaviour
 
                 HandleEntities();
             }, 1f);
-            
         }
         else
         {
@@ -78,16 +77,17 @@ public class MapEntityGenerator : MonoBehaviour
 
     async void HandleEntities()
     {
-        
+
+
         await SpawnEnemies();
         generatedEntities = true;
         OnEntitiesGenerated?.Invoke(this);
 
         async Task SpawnEnemies()
         {
-            if (tier1Entities.Count == 0 &&
-                tier2Entities.Count == 0)
-            { return; }
+            //if (tier1Entities.Count == 0 &&
+            //    tier2Entities.Count == 0)
+            //{ return; }
             var enemySpots = new List<Transform>();
 
             await HandleEntitiesAsync();
@@ -98,6 +98,15 @@ public class MapEntityGenerator : MonoBehaviour
                 {
                     var roomInfo = room.GetComponent<RoomInfo>() ? room.GetComponent<RoomInfo>() : null;
                     if (roomInfo == null) { continue; }
+
+                    var pool = roomInfo.pool;
+
+                    if (pool == null) continue;
+
+                    var tier1Entities = pool.tier1Entities;
+                    var tier2Entities = pool.tier2Entities;
+                    var patrolGroups = pool.patrolGroups;
+
 
                     if (roomInfo.tier1EnemyPos && tier1Entities.Count > 0)
                     {

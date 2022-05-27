@@ -13,12 +13,20 @@ namespace Architome
 
             for (int i = 0; i < text.Length; i++)
             {
+
                 if (i == 0)
                 {
                     newText += $"{text[i]}".ToUpper();
                 }
                 else if($"{text[i]}" == $"{text[i]}".ToUpper())
                 {
+                    if (i > 0 && char.IsNumber(text[i]) && char.IsNumber(text[i - 1]))
+                    {
+                        newText += $"{text[i]}";
+                        continue;
+                    }
+
+
                     newText += $" {text[i]}";
                 }
                 else

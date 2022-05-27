@@ -137,7 +137,6 @@ namespace Architome
 
             bool IsOverPortrait(GameObject target)
             {
-                return false;
                 var portraitBehavior = target.GetComponentInParent<PortraitBehavior>();
 
                 if (portraitBehavior == null) return false;

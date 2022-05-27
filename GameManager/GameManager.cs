@@ -21,21 +21,20 @@ namespace Architome
         public GameObject pauseMenu;
         public IGGUIInfo InGameUI;
 
-        [Header("Managers")]
-        public ContainerTargetables targetManager;
+        //[Header("Managers")]
+        //public ContainerTargetables targetManager;
 
-        [Header("Meta Data")]
-        public KeyBindings keyBinds;
-        public DifficultyModifications difficultyModifications;
-        public World worldSettings;
-        public LayerMasksData layerMasks;
-
+        //[Header("Meta Data")]
+        //public KeyBindings keyBinds;
+        //public DifficultyModifications difficultyModifications;
+        //public World worldSettings;
 
         public bool isPaused;
         public bool reloadCurrentScene;
 
         public Action<EntityInfo, int> OnNewPlayableEntity;
         public Action<PartyInfo, int> OnNewPlayableParty;
+
 
         void Awake()
         {
@@ -44,10 +43,8 @@ namespace Architome
             playableEntities = new List<EntityInfo>();
             isPaused = false;
 
-            if (Core.currentSave == null || Core.currentSave.Length == 0) return;
+            Core.Reset();
 
-
-            SaveGame.current.LoadSave(Core.currentSave);
         }
 
         // Update is called once per frame
@@ -82,6 +79,11 @@ namespace Architome
                 Scene scene = SceneManager.GetActiveScene();
                 SceneManager.LoadScene(scene.name);
             }
+        }
+
+
+        private void OnValidate()
+        {
         }
     }
 

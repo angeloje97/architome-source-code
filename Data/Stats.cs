@@ -44,34 +44,80 @@ namespace Architome
 
         //SecondaryStats.
         [Header("Core Stats")]
-        public int Level;
-        public int Vitality;
-        public int Strength;
-        public int Dexterity;
-        public int Wisdom;
+        public int Level = 1;
+        public int Vitality = 10;
+        public int Strength = 10;
+        public int Dexterity = 10;
+        public int Wisdom = 10;
 
         //Secondary Stats
         [Header("Secondary Stats")]
-        public float attackSpeed;
-        public float attackDamage;
-        public float haste;
-        public float criticalStrikeChance;
-        public float criticalDamage;
-        public float damageReduction;
-        public float magicResist;
+        public float attackSpeed = 1;               //%
+        public float attackDamage;                   
+        public float haste;                         //%
+        public float criticalChance;                //%
+        public float criticalDamage = 1.50f;        //%
+        public float damageReduction;               //%
+        public float magicResist;     
         public float armor;
         public float manaRegen;
         public float healthRegen;
-        public float outOfCombatRegenMultiplier;
-        public float healingReceivedMultiplier;
-        public float damageMultiplier;
-        public float damageTakenMultiplier;
-        public float movementSpeed;
+        public float outOfCombatRegenMultiplier;    //%
+        public float healingReceivedMultiplier;     //%
+        public float damageMultiplier = 1;          //%
+        public float damageTakenMultiplier = 1;     //%
+        public float movementSpeed = 1;             //%
 
         //Experience Stats
         public float experience;
         public float experienceReq;
 
+        public static HashSet<string> HiddenFields
+        {
+            get
+            {
+                return new HashSet<string>()
+                {
+                    "experience",
+                    "experienceReq",
+                    "outOfCombatRegenMultiplier",
+                    "damageMultiplier",
+                    "damageTakenMultiplier",
+                    "healingReceivedMultiplier",
+                };
+            }
+        }
+
+        public static HashSet<string> PercentageFields
+        {
+            get
+            {
+                return new HashSet<string>()
+                {
+                    "attackSpeed",
+                    "haste",
+                    "criticalChance",
+                    "criticalDamage",
+                    "damageReduction",
+                    "outOfCombatRegenMultiplier",
+                    "healingReceivedMultiplier",
+                    "damageMultiplier",
+                    "damageTakenMultiplier",
+                    "movementSpeed"
+                };
+            }
+        }
+
+        public static HashSet<string> PerSecondFields 
+        {
+            get
+            {
+                return new HashSet<string>()
+                {
+
+                };
+            }
+        }
         public void ZeroOut()
         {
             foreach (var field in this.GetType().GetFields())
@@ -116,6 +162,7 @@ namespace Architome
         public static Stats operator +(Stats s1, Stats s2)
         {
             Stats s3 = new Stats();
+
 
             foreach (var field in s3.GetType().GetFields())
             {
@@ -170,6 +217,8 @@ namespace Architome
         public static Stats operator *(Stats s1, float value)
         {
             Stats s3 = new Stats();
+
+
 
             foreach (var field in s3.GetType().GetFields())
             {

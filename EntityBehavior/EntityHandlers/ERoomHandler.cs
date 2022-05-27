@@ -17,6 +17,7 @@ namespace Architome
             base.GetDependencies();
             entityInfo.OnPhysicsEvent += OnPhysicsEvent;
             entityInfo.OnRoomChange += OnRoomChange;
+
         }
 
 
@@ -47,7 +48,7 @@ namespace Architome
             entityInfo.OnCurrentShowRoom?.Invoke(room, isShown);
         }
 
-        public void OnDestroy()
+        public void OnEntityDestroy()
         {
             if(entityInfo.currentRoom)
             {
@@ -67,6 +68,7 @@ namespace Architome
 
         async void AcquireRoom()
         {
+            if (MapRoomGenerator.active == null) return;
             while (entityInfo.currentRoom == null)
             {
                 await Task.Delay(1000);

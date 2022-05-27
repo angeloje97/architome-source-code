@@ -11,9 +11,29 @@ namespace Architome
     [RequireComponent(typeof(RoomInfoTool))]
     public class RoomInfo : MonoBehaviour
     {
-        // Start is called before the first frame update
-        
+        [SerializeField] int id;
+        bool idSet;
+        public int _id
+        {
+            get
+            {
+                return idSet ? 999999 : id;
+            }
+            private set
+            {
+                id = value;
+            }
+        }
 
+        public void SetId(int value, bool forceId = false)
+        {
+            if (idSet && !forceId) return;
+            idSet = true;
+            _id = value;
+
+        }
+
+        public RoomPool pool;
         [Header("Room Properties")]
         public bool isEntranceRoom;
         public bool badSpawn;
@@ -33,6 +53,8 @@ namespace Architome
             public PathInfo roomPath;
             public List<PathInfo> otherPaths = new();
         }
+
+
 
         public List<IncompatablePath> incompatables;
 

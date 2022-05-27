@@ -63,13 +63,7 @@ namespace Architome
 
         public static bool Equipable(Item item)
         {
-            if (item == null) return false;
-
-            if (item.GetType() == typeof(Weapon)) return true;
-
-            if (item.GetType() == typeof(Equipment)) return true;
-
-            return false;
+            return typeof(Equipment).IsAssignableFrom(item.GetType());
         }
     }
 

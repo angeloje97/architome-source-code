@@ -42,6 +42,8 @@ namespace Architome
         public List<EntityInfo> alliesHealed;
         public List<EntityInfo> alliesAssisted;
         public EntityInfo lastTargetHit;
+        public LayerMask entityLayer;
+        public LayerMask structureLayer;
 
         public float value { get { return metrics.value; } set { metrics.value = value; } }
         public bool requiresLockOnTarget { get; set; }
@@ -229,7 +231,6 @@ namespace Architome
         {
             if (abilityInfo)
             {
-
                 if (abilityInfo.entityObject)
                 {
                     entityObject = abilityInfo.entityObject;
@@ -248,6 +249,9 @@ namespace Architome
                         damageType = DamageType.Physical;
                     }
                 }
+
+                entityLayer = GMHelper.LayerMasks().entityLayerMask;
+                structureLayer = GMHelper.LayerMasks().structureLayerMask;
 
                 GetMetrics();
             }
@@ -451,34 +455,26 @@ namespace Architome
 
             List<GameObject> entities = new List<GameObject>();
 
-            var structureLayer = GMHelper.LayerMasks().structureLayerMask;
-            var entityLayer = GMHelper.LayerMasks().entityLayerMask;
+            var entitiesCasted = Physics.OverlapSphere(transform.position, radius, entityLayer)
+                                            .OrderBy(entity => V3Helper.Distance(entity.transform.position, transform.position));
 
-            Collider[] collisions = Physics.OverlapSphere(transform.position, radius, entityLayer)
-                                            .OrderBy(entity => V3Helper.Distance(entity.transform.position, transform.position))
-                                            .ToArray();
-
-            foreach (var i in collisions)
+            foreach (var entity in entitiesCasted)
             {
-                var direction = V3Helper.Direction(i.transform.position, transform.position);
-                var distance = V3Helper.Distance(i.transform.position, transform.position);
-
+                var info = entity.GetComponent<EntityInfo>();
+                if (info == null) continue;
 
                 if (abilityInfo.requiresLineOfSight)
                 {
-                    if (!Physics.Raycast(transform.position, direction, distance, structureLayer))
-                    {
-                        entities.Add(i.gameObject);
-                    }
+                    var direction = V3Helper.Direction(entity.transform.position, transform.position);
+                    var distance = V3Helper.Distance(entity.transform.position, transform.position);
+                    if (Physics.Raycast(transform.position, direction, distance, structureLayer)) continue;
                 }
-                else
-                {
-                    entities.Add(i.gameObject);
-                }
+
+                entities.Add(entity.gameObject);
 
             }
 
-            return entities.Where(entity => entity.GetComponent<EntityInfo>() != null).ToList();
+            return entities;
         }
         public List<GameObject> AlliesWithinRange()
         {

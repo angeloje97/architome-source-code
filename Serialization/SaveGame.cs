@@ -11,77 +11,87 @@ namespace Architome
     [Serializable]
     public class SaveGame
     {
-        static SaveGame _current;
-        public static SaveGame current
-        {
-            get
-            {
-                if (_current == null)
-                {
-                    _current = new();
-                }
+        //static SaveGame _current;
+        //public static SaveGame current
+        //{
+        //    get
+        //    {
+        //        if (_current == null)
+        //        {
+        //            _current = new();
+        //        }
 
-                return _current;
-            }
-        }
+        //        return _current;
+        //    }
 
+        //    private set
+        //    {
+        //        _current = value;
+        //    }
+        //}
+
+        public int saveId;
         public string build;
         public string timeString;
         public DateTime time;
         public string saveName;
         public Trilogy trilogy;
 
-        public GameSettingsData savedGameSettings;
+        public GameSettingsData gameSettings;
         public List<EntityData> savedEntities;
 
         
 
-        public void SaveEntities(List<EntityInfo> entities)
-        {
-            savedEntities = new();
-
-            foreach (var entity in entities)
-            {
-                savedEntities.Add(new(entity));
-            }
-        }
 
         public void SaveEntity(EntityInfo entity)
         {
-            if (savedEntities == null) savedEntities = new();
-
             var (data, index) = EntityData(entity);
 
-            if (data == null)
-            {
-                data = new(entity);
-                savedEntities.Add(data);
-                
-            }
-            else
-            {
-                savedEntities[index] = new(entity);
-            }
 
-
+            savedEntities[index] = new(entity);
+            //if (data == null)
+            //{
+            //    data = new(entity);
+            //    savedEntities.Add(data);
+            //}
+            //else
+            //{
+            //    savedEntities[index] = new(entity);
+            //}
         }
 
         public (EntityData, int) EntityData(EntityInfo entity)
         {
+            if (savedEntities == null) savedEntities = new();
+
             for(int i = 0; i < savedEntities.Count; i++)
             {
                 var data = savedEntities[i];
-                if (data.info.entityName == entity.entityName)
+                if (data.info.entityName == entity.entityName) //Identifies which data that the entity belongs to.
                 {
                     return (data, i);
                 }
             }
 
-            return (null, 0);
+            var newData = new EntityData(entity);
+
+            savedEntities.Add(newData);
+
+            return (newData, savedEntities.IndexOf(newData));
         }
 
-        public void Save(string saveName)
+        public void Save(string saveName = "")
         {
+            var saves = Core.AllSaves();
+
+            if (saveId == 0)
+            {
+                saveId = saves.Count + 1;
+            }
+
+            saveName = $"Save{saveId}";
+
+
             build = $"{Application.version}";
             time = DateTime.Now;
             timeString = time.ToString("MM/dd/yyyy h:mm tt");
@@ -106,7 +116,16 @@ namespace Architome
             Copy(otherSave);
 
             return otherSave;
+        }
 
+        public string LastSave()
+        {
+            return time.ToString("MM/dd/yyyy h:mm tt");
+        }
+
+        public void SetCurrentSave(SaveGame saveGame)
+        {
+            Copy(saveGame);
         }
 
         void Copy(SaveGame otherSave)

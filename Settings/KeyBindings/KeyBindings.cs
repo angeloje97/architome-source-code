@@ -58,6 +58,8 @@ namespace Architome
         public bool save;
         public bool load;
 
+        public Action<KeyBindings> OnLoadBindings { get; set; }
+
 
         public static Dictionary<string, KeyCode> keyBindsDefault = new Dictionary<string, KeyCode>()
         {
@@ -93,6 +95,13 @@ namespace Architome
             ["Escape"] = KeyCode.Escape
         };
 
+        public static HashSet<string> nonEditable = new()
+        {
+            "SelectObject",
+            "Select",
+            "Escape",
+        };
+
         public Dictionary<KeyCode, int> keyCodeIndexes = new();
 
         public void Awake()
@@ -103,6 +112,9 @@ namespace Architome
             {
                 keyCodeIndexes.Add(keyCodeSprite.keyCode, keyCodeSprite.spriteIndex);
             }
+
+            LoadKeyBindings();
+
         }
         
 
@@ -110,23 +122,6 @@ namespace Architome
         private void Start()
         {
 
-            combatBindings = new();
-
-            var save = KeyBindingsSave._current.LoadBindings();
-
-
-            if (save == null)
-            {
-                UpdateCombatBindings();
-
-                KeyBindingsSave._current.combatBindings = combatBindings;
-
-                KeyBindingsSave._current.Save();
-
-                save = KeyBindingsSave._current;
-            }
-
-            combatBindings = save.combatBindings;
         }
 
         public void HandleSave()
@@ -187,11 +182,14 @@ namespace Architome
 
         public void SaveKeyBindings()
         {
-            combatBindings = new();
+            var combatBindings = new List<String2>();
+
             foreach (var bindingPair in keyBinds)
             {
                 combatBindings.Add(new(bindingPair.Key, bindingPair.Value.ToString()));
             }
+
+            this.combatBindings = combatBindings;
 
             KeyBindingsSave._current.combatBindings = combatBindings;
 
@@ -224,17 +222,41 @@ namespace Architome
         {
             var bindingsSave = KeyBindingsSave._current.LoadBindings();
             
-            if (bindingsSave == null) return;
+            if (bindingsSave == null)
+            {
+                SaveKeyBindings();
+
+                bindingsSave = KeyBindingsSave._current.LoadBindings();
+
+                if (bindingsSave == null)
+                {
+                    throw new Exception("Cannot load bindings");
+                }
+            }
+
             combatBindings = new();
 
             foreach (var binding in bindingsSave.combatBindings)
             {
                 if (!keyBinds.ContainsKey(binding.x)) continue;
+                if (nonEditable.Contains(binding.x)) continue;
 
                 combatBindings.Add(new(binding.x, binding.y));
                 KeyCode keyCode = (KeyCode)Enum.Parse(typeof(KeyCode), binding.y);
 
                 keyBinds[binding.x] = keyCode;
+            }
+
+            OnLoadBindings?.Invoke(this);
+        }
+
+        public void MapBindings()
+        {
+
+            foreach (var binding in combatBindings)
+            {
+                if (!keyBinds.ContainsKey(binding.x)) continue;
+                keyBinds[binding.x] = (KeyCode)Enum.Parse(typeof(KeyCode), binding.y);
             }
         }
         

@@ -21,7 +21,10 @@ namespace Architome
             var module = menuModule.GetComponent<MenuModule>();
             if (module == null) return;
 
+            CloseAllMenuModules();
+
             module.Show(true);
+            module.transform.SetAsLastSibling();
         }
 
         public void Awake()
@@ -39,7 +42,7 @@ namespace Architome
 
         public void CloseAllMenuModules()
         {
-            foreach (var menuModule in GetComponentsInChildren<MenuModule>())
+            foreach (var menuModule in menuItems.GetComponentsInChildren<MenuModule>())
             {
                 menuModule.Show(false);
             }

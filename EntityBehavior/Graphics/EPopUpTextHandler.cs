@@ -35,10 +35,13 @@ namespace Architome
                 else
                 {
                     entityInfo.OnDamageTaken += OnDamageTaken;
+                    entityInfo.combatEvents.OnImmuneDamage += OnImmuneDamage;
+
                 }
-                
+
                 entityInfo.combatEvents.OnStateNegated += OnStateNegated;
                 entityInfo.combatEvents.OnStatesChange += OnStatesChange;
+
             }
         }
         void Start()
@@ -109,17 +112,25 @@ namespace Architome
 
             var damageType = DamageType.True;
 
-            if (eventData.catalyst)
+            if (eventData.value > eventData.target.shield)
             {
-                damageType = eventData.catalyst.damageType;
-            }
+                if (eventData.catalyst)
+                {
+                    damageType = eventData.catalyst.damageType;
+                }
 
-            if (eventData.buff)
-            {
-                damageType = eventData.buff.damageType;
+                if (eventData.buff)
+                {
+                    damageType = eventData.buff.damageType;
+                }
             }
 
             popUpManager.DamagePopUp(transform, $" {ArchString.FloatToSimple(value)}", damageType);
+        }
+
+        void OnImmuneDamage()
+        {
+            popUpManager.DamagePopUp(transform, $"Immune", DamageType.True);
         }
 
         void OnStateNegated(List<EntityState> currentState, EntityState negatedState)

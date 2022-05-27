@@ -96,7 +96,7 @@ public class ThreatManager : MonoBehaviour
         {
             try
             {
-                threatManager.RemoveThreat(this);
+                threatManager.RemoveThreat(threatObject);
                 Debugger.InConsole(3974, $"{threatObject} removes from {sourceObject}");
                 sourceObject.GetComponent<EntityInfo>().OnDeath -= OnSourceDeath;
                 threatObject.GetComponent<EntityInfo>().OnDeath -= OnThreatDeath;
@@ -112,6 +112,7 @@ public class ThreatManager : MonoBehaviour
     }
 
     public List<ThreatInfo> threats;
+    public Dictionary<GameObject, ThreatInfo> threatDict { get; set; }
     public List<GameObject> threatQueue;
 
     public event Action<ThreatInfo> OnNewThreat;
@@ -144,6 +145,7 @@ public class ThreatManager : MonoBehaviour
             entityInfo.OnChangeNPCType += OnChangeNpcType;
             entityInfo.OnBuffApply += OnBuffApply;
             entityInfo.OnCombatChange += OnCombatChange;
+            entityInfo.combatEvents.OnPingThreat += OnPingThreat;
         }
 
         behavior = GetComponentInParent<AIBehavior>();
@@ -274,6 +276,11 @@ public class ThreatManager : MonoBehaviour
 
     }
 
+    public void OnPingThreat(EntityInfo source, float value)
+    {
+        IncreaseThreat(source.gameObject, value);
+    }
+
     public void ClearThreatQueue()
     {
         if (!entityInfo.isAlive)
@@ -311,11 +318,15 @@ public class ThreatManager : MonoBehaviour
 
         threatQueue = threatQueue.OrderBy(threat => Vector3.Distance(threat.transform.position, entityObject.transform.position)).ToList();
     }
-    public void RemoveThreat(ThreatInfo threat)
+    public void RemoveThreat(GameObject threatObject)
     {
+        var threat = Threat(threatObject);
         if(threat == null) { return; }
+
         if(!threats.Contains(threat)) { return; }
         threats.Remove(threat);
+        threatDict.Remove(threatObject);
+        
         HandleMaxThreat();
         OnRemoveThreat?.Invoke(threat);
         UpdateCombatActive();
@@ -325,6 +336,7 @@ public class ThreatManager : MonoBehaviour
         if(!ThreatContainsEnemies())
         {
             ClearThreats();
+            threatDict = new();
         }
 
         if(threats.Count == 0)
@@ -405,6 +417,7 @@ public class ThreatManager : MonoBehaviour
             threatInfo = new ThreatInfo(this, entityObject, source, value);
             threats.Add(threatInfo);
             OnNewThreat?.Invoke(threatInfo);
+            threatDict.Add(source, threatInfo);
         }
         else
         {
@@ -644,17 +657,26 @@ public class ThreatManager : MonoBehaviour
         {
             threats = new List<ThreatInfo>();
             return null;
-
         }
-        foreach(var current in threats)
+
+        if (threatDict == null)
         {
-            if(current.threatObject == source)
-            {
-                return current;
-            }
+            threatDict = new();
+            return null;
         }
 
-        return null;
+        if (!threatDict.ContainsKey(source)) return null;
+
+        return threatDict[source];
+        //foreach(var current in threats)
+        //{
+        //    if(current.threatObject == source)
+        //    {
+        //        return current;
+        //    }
+        //}
+
+        //return null;
     }
     public bool ThreatContainsEnemies()
     {

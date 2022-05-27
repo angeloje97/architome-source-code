@@ -13,11 +13,14 @@ public class CatalystBounce : MonoBehaviour
     public CatalystHit catalystHit;
     public Augment.Bounce bounce;
 
-    public LayerMask targetLayerMask;
-    public LayerMask obstructionLayer;
 
     public NPCType priorityNPCType;
-    public List<NPCType> possibleNPCTypes;
+    public List<NPCType> possibleNPCTypes = new List<NPCType>()
+    {
+        NPCType.Friendly,
+        NPCType.Hostile,
+        NPCType.Neutral
+    };
     public int currentTicks;
 
 
@@ -47,10 +50,6 @@ public class CatalystBounce : MonoBehaviour
 
         bounce = abilityInfo.bounce;
 
-        possibleNPCTypes = new List<NPCType>();
-        possibleNPCTypes.Add(NPCType.Friendly);
-        possibleNPCTypes.Add(NPCType.Hostile);
-        possibleNPCTypes.Add(NPCType.Neutral);
 
     }
     void Start()

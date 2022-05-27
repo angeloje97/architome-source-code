@@ -27,7 +27,13 @@ namespace Architome
         }
         [SerializeField] bool idSet;
 
-        public bool unlocked;
+        [Serializable]
+        public class Properties
+        {
+            public bool unlocked, custom, created;
+        }
+
+        public Properties properties;
 
         public void SetId(int id, bool forceSet = false)
         {
@@ -36,12 +42,13 @@ namespace Architome
             this.id = id;
         }
 
+
+
         public string entityName; 
         [Multiline]
         public string entityDescription;
         public ArchClass archClass;
         public Sprite entityPortrait;
-
         public EntityFXPack entityFX;
 
         public EntityControlType entityControlType;
@@ -52,7 +59,6 @@ namespace Architome
         public bool isAlive;
         public bool isInCombat;
         public bool isHidden = true;
-        public bool created = false;
         public bool isRegening = false;
         public bool disappeared = false;
         public bool isHover = false;
@@ -107,6 +113,9 @@ namespace Architome
             public Action<CombatEventData, bool> OnFixate;
             public Action<List<EntityState>, List<EntityState>> OnStatesChange;
             public Action<List<EntityState>, EntityState> OnStateNegated;
+            public Action<EntityInfo, float> OnPingThreat { get; set; }
+            public Action OnImmuneDamage;
+
         }
 
         public struct PartyEvents
@@ -128,6 +137,7 @@ namespace Architome
         public Action<BuffInfo, EntityInfo> OnBuffApply;
         public Action<float> OnExperienceGain;
         public Action<int> OnLevelUp;
+        public Action OnEntityDestroy;
         public Action<float, float, float> OnHealthChange { get; set; }
         public Action<float, float> OnManaChange;
         public Action<bool> OnCombatChange;
@@ -162,6 +172,7 @@ namespace Architome
         private bool combatCheck;
         private bool isAliveCheck;
         private NPCType npcTypeCheck;
+
 
         //Private Variables
         //Methods
@@ -253,7 +264,7 @@ namespace Architome
         }
         void Start()
         {
-            if (!created)
+            if (!properties.created)
             {
                 GetDependencies();
                 StartUp();
@@ -389,15 +400,20 @@ namespace Architome
 
             void HandleValue()
             {
-                
+                if (states.Contains(EntityState.Immune))
+                {
+                    combatData.value = 0;
+                    combatEvents.OnImmuneDamage?.Invoke();
+                    return;
+                }
 
                 float criticalRole = UnityEngine.Random.Range(0, 100);
                 
 
                 if (source)
                 {
-                    Debugger.InConsole(47438, $"Critical Role is {criticalRole} entity crit chance is {source.stats.criticalStrikeChance * 100}");
-                    if (source.stats.criticalStrikeChance * 100 > criticalRole)
+                    Debugger.InConsole(47438, $"Critical Role is {criticalRole} entity crit chance is {source.stats.criticalChance * 100}");
+                    if (source.stats.criticalChance * 100 > criticalRole)
                     {
                         combatData.critical = true;
                         combatData.value *= source.stats.criticalDamage;
@@ -488,7 +504,7 @@ namespace Architome
 
                 float criticalRole = UnityEngine.Random.Range(0, 100);
 
-                if (source.stats.criticalStrikeChance * 100 > criticalRole)
+                if (source.stats.criticalChance * 100 > criticalRole)
                 {
                     combatData.critical = true;
                     combatData.value *= source.stats.criticalDamage;
@@ -529,7 +545,7 @@ namespace Architome
 
         public bool AddState(EntityState state)
         {
-            if (stateImmunities.Contains(state))
+            if (stateImmunities.Contains(state) || states.Contains(EntityState.Immune))
             {
                 combatEvents.OnStateNegated?.Invoke(states, state);
                 return false;
@@ -548,6 +564,7 @@ namespace Architome
             {
                 return false;
             }
+
 
             var previousStates = states.ToList();
 
@@ -656,8 +673,18 @@ namespace Architome
             }
             else
             {
-                StartCoroutine(Decay());
+                Decay();
             }
+        }
+        async void Decay()
+        {
+            await Task.Delay(5000);
+            disappeared = true;
+            OnEntityDestroy?.Invoke();
+            await Task.Yield();
+
+            Destroy(gameObject);
+
         }
         public void RestoreFull()
         {
@@ -691,13 +718,6 @@ namespace Architome
             ChangeNPCType(npcType);
             AIBehavior().behaviorType = behaviorType;
             
-        }
-        public IEnumerator Decay()
-        {
-            yield return new WaitForSeconds(5);
-            disappeared = true;
-            Destroy(gameObject);
-
         }
         public bool CanAttack(GameObject target)
         {

@@ -22,6 +22,7 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
 
     public void OnPointerDown(PointerEventData eventData)
     {
+        if (!Input.GetKeyDown(KeyCode.Mouse0)) return;
         if (sameChildIndex) { return; }
         objectToDrag.SetAsLastSibling();
         
@@ -42,6 +43,7 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
 
     public void OnEndDrag(PointerEventData eventData)
     {
+        if (!isDragging) return;
         isDragging = false;
         startPositionSet = false;
         canvasGroup.blocksRaycasts = true;
@@ -55,6 +57,7 @@ public class DragAndDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler
 
     public void OnDrag(PointerEventData eventData)
     {
+        if (!Input.GetKey(KeyCode.Mouse0)) return;
         HandlePivotDrag();
         HandleDrag();
     }

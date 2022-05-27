@@ -43,10 +43,10 @@ namespace Architome
 
         public void ClearInventory()
         {
-            foreach (var itemData in inventoryItems)
+            inventoryItems.Clear();
+            for (int i = 0; i < maxSlots; i++)
             {
-                itemData.item = null;
-                itemData.amount = 0;
+                inventoryItems.Add(new());
             }
 
 

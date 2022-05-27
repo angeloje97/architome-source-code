@@ -17,6 +17,7 @@ namespace Architome
         {
             public GameObject allDeathPrompt;
             public GameObject generalPrompt;
+            public GameObject inputPrompt;
         }
 
         public Prefabs prefabs;
@@ -94,6 +95,26 @@ namespace Architome
             }
 
             return prompt.choicePicked;
+        }
+
+        async public Task<(int, string)> InputPrompt(PromptInfoData promptData)
+        {
+            if (prefabs.inputPrompt == null) return (-1, "");
+
+            var prompt = ActivatePrompt(prefabs.generalPrompt, new Vector3(0, 270, 0));
+
+            prompt.SetPrompt(promptData);
+
+
+            while (prompt.choicePicked == -1)
+            {
+                await Task.Yield();
+
+                if (!prompt.isActive) break;
+            }
+
+
+            return (prompt.choicePicked, prompt.userInput);
         }
 
     }

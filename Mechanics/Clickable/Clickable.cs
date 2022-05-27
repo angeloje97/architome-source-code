@@ -96,6 +96,7 @@ namespace Architome
         async void HandleOptions()
         {
             List<string> options = this.options.Select(option => option.text).ToList();
+
             int choice = await ContextMenu.current.UserChoice(new()
             {
                 title = clickedEntities.Count > 1 ? $"{clickedEntities[0].entityName} + {clickedEntities.Count - 1}" : $"{clickedEntities[0].entityName}",
@@ -106,6 +107,7 @@ namespace Architome
 
             selectedIndex = choice;
             selectedString = this.options[choice].text;
+            this.options[selectedIndex].OnSelect?.Invoke();
             OnSelectOption?.Invoke(this);
 
             selectedIndex = -1;
@@ -129,14 +131,12 @@ namespace Architome
             clickedEntities.Clear();
             clickedEntities.Add(entity);
             HandleOptions();
-            //ClickableManager.active.HandleClickable(this);
         }
 
         public void ClickMultiple(List<EntityInfo> entities)
         {
             if (options.Count == 0) return;
             clickedEntities = entities;
-            //ClickableManager.active.HandleClickable(this);
             HandleOptions();
         }
 

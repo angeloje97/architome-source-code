@@ -35,12 +35,17 @@ public class ActionBarBehavior : MonoBehaviour
     int chargeCheck;
     public void GetDependencies()
     {
-        if (GMHelper.GameManager() && GMHelper.GameManager().keyBinds)
-        {
-            keyBindings = GMHelper.GameManager().keyBinds;
-        }
+        keyBindings = KeyBindings.active;
+        
 
         ArchInput.active.OnAbilityKey += OnAbilityKey;
+
+        if (keyBindings)
+        {
+            keyBindings.OnLoadBindings += OnLoadBindings;
+        }
+
+        
     }
     void Start()
     {
@@ -138,7 +143,6 @@ public class ActionBarBehavior : MonoBehaviour
             OnChargeChange?.Invoke(abilityInfo, chargeCheck);
         }
     }
-
     public void SetImage(bool val)
     {
         if(iconMain)
@@ -174,9 +178,19 @@ public class ActionBarBehavior : MonoBehaviour
         //}
         
     }
+
+    public void OnLoadBindings(KeyBindings bindings)
+    {
+        SetKeyBindText();
+    }
+    public void SetKeyBindText()
+    {
+        keyBindText.text = keyBindings.keyBinds[$"Ability{actionBarNum}"].ToString().ToUpper();
+    }
     public void SetActionBar(AbilityInfo abilityInfo)
     {
         Debugger.InConsole(8463, $"{abilityInfo}");
+
         //if (abilityInfo.catalyst == null) return;
         //var icon = abilityInfo.catalyst.GetComponent<CatalystInfo>().catalystIcon;
 

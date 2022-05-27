@@ -47,6 +47,8 @@ public class ProgressBarsBehavior : MonoBehaviour
 
     CanvasGroup canvasGroup;
     float targetAlpha;
+    float canvasTimer;
+    bool activeTimer;
     bool changingAlpha;
 
     void GetDependencies()
@@ -60,6 +62,8 @@ public class ProgressBarsBehavior : MonoBehaviour
             entityInfo.OnLifeChange += OnLifeChange;
             entityInfo.OnChangeNPCType += OnChangeNPCType;
             entityInfo.OnCombatChange += OnCombatChange;
+            entityInfo.OnHealingTaken += OnHealingTaken;
+            entityInfo.OnNewBuff += OnNewBuff;
             OnCombatChange(entityInfo.isInCombat);
 
 
@@ -176,6 +180,8 @@ public class ProgressBarsBehavior : MonoBehaviour
 
         changingAlpha = false;
     }
+
+
     public void OnClusterChange(EntityCluster cluster, int index)
     {
         transform.localPosition = localPosition + new Vector3(0, index * 1, 0);
@@ -260,13 +266,53 @@ public class ProgressBarsBehavior : MonoBehaviour
         castBar.transform.parent.gameObject.SetActive(castBarActive);
     }
 
+    async void UpdateOutOfCombatCanvas(float timer)
+    {
+        if (timer > canvasTimer)
+        {
+            canvasTimer = timer;
+        }
+
+        if (activeTimer) return;
+        if (entityInfo.isInCombat) return;
+
+        activeTimer = true;
+
+        targetAlpha = 1f;
+        UpdateCanvas(true);
+
+        while (canvasTimer > 0)
+        {
+            canvasTimer -= Time.deltaTime;
+
+            await Task.Yield();
+        }
+
+        activeTimer = false;
+
+
+
+        if (entityInfo.isInCombat) return;
+        targetAlpha = 0f;
+        UpdateCanvas(false);
+    }
+
+    public void OnHealingTaken(CombatEventData eventData)
+    {
+        UpdateOutOfCombatCanvas(2.5f);
+    }
+
+    public void OnNewBuff(BuffInfo newBuff, EntityInfo source)
+    {
+
+        UpdateOutOfCombatCanvas(3f);
+        
+
+    }
+
     public void OnAbilityStart(AbilityInfo ability)
     {
-        if (!ability.isAttack)
-        {
-            targetAlpha = 1f;
-            UpdateCanvas(true);
-        }
+        UpdateOutOfCombatCanvas(ability.castTime + 2f);
 
         if(!ability.vfx.showCastBar) { return; }
 
@@ -279,19 +325,7 @@ public class ProgressBarsBehavior : MonoBehaviour
 
     public void OnAbilityEnd(AbilityInfo ability)
     {
-        if (!entityInfo.isInCombat && !ability.isAttack)
-        {
-            ArchAction.Delay(() => {
-                if (!ability.abilityManager.IsCasting())
-                {
-                    if (!entityInfo.isInCombat)
-                    {
-                        UpdateCanvas(false);
-                    }
-                }
-            }, 3f);
-        }
-
+        canvasTimer = 2f;
 
         if (!ability.vfx.showCastBar) return;
 
@@ -299,6 +333,7 @@ public class ProgressBarsBehavior : MonoBehaviour
         UpdateCastBar();
         
     }
+
 
     public void WhileCasting(AbilityInfo ability)
     {

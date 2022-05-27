@@ -46,6 +46,7 @@ public class AbilityInfo : MonoBehaviour
 
     public AbilityType abilityType;
     public AbilityType2 abilityType2;
+    public Role appropriateRole;
 
     public GameObject target;
     public GameObject targetLocked;

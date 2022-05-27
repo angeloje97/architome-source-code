@@ -7,24 +7,13 @@ namespace Architome
     public class GameLoadManager : MonoBehaviour
     {
         public List<SaveGame> savedGames;
+        public SaveGame selectedSave;
+        public SaveGame hoverSave;
 
-        public void GetAllSaves()
-        {
-            var objects = SerializationManager.LoadSaves();
-            savedGames = new();
-
-            foreach (var obj in objects)
-            {
-                if (obj.GetType() != typeof(SaveGame)) continue;
-                var save = (SaveGame)obj;
-
-                savedGames.Add(save);
-            }
-        }
 
         private void Start()
         {
-            GetAllSaves();
+            savedGames = Core.AllSaves();
         }
 
     }

@@ -24,7 +24,13 @@ namespace Architome.Enums
     {
         Dungeons,
         Story,
+    }
 
+    public enum GameState
+    {
+        Menu,
+        Lobby,
+        Play,
     }
 
     public enum ObjectType
@@ -52,6 +58,12 @@ namespace Architome.Enums
         LineOfSightScan,
         RadiusScan,
         ProjectileScanner
+    }
+
+    public enum EntitySlotType
+    {
+        Roster,
+        Party,
     }
 
     public enum AbilityType
@@ -173,8 +185,6 @@ namespace Architome.Enums
 
     }
 
-    
-
     public enum EntityState
     {
         Active = 0,
@@ -183,6 +193,7 @@ namespace Architome.Enums
         Immobalized = 3,
         Taunted = 4,
         MindControlled = 5,
+        Immune,
     }
 
     public enum MeterRecordingMode

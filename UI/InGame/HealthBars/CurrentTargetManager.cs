@@ -16,7 +16,7 @@ public class CurrentTargetManager : MonoBehaviour
         if(GMHelper.GameManager() && GMHelper.TargetManager())
         {
             gameManager = GMHelper.GameManager();
-            targetManager = GMHelper.GameManager().targetManager;
+            targetManager = GMHelper.TargetManager();
         }
 
         targetManager.OnSelectTarget += OnSelectTarget;

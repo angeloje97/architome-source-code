@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using Architome;
+using System;
+using System.Reflection;
 
 public class GearStatsUI : MonoBehaviour
 {
@@ -12,26 +14,50 @@ public class GearStatsUI : MonoBehaviour
 
     public TextMeshProUGUI entityName;
 
+    [Serializable]
+    public struct Info
+    {
+        public Transform coreGroup;
+        public Transform secondaryGroup;
+    }
+
+    [Serializable]
+    public struct Prefabs
+    {
+        public GameObject singleCore;
+        public GameObject singleSecondary;
+        
+    }
+
+    public Prefabs prefabs;
+    public Info info;
+    
+
+    public List<GearStatSingle> singlesCore;
+    public List<GearStatSingle> singlesSecondary;
+
+    public Dictionary<string, GearStatSingle> statMaps;
+
     [Header("Health and Mana")]
     public TextMeshProUGUI healthManaValue;
 
-    [Header("Core Stats")]
-    public TextMeshProUGUI vitalityValue;
-    public TextMeshProUGUI strengthValue;
-    public TextMeshProUGUI dexterityValue;
-    public TextMeshProUGUI wisdomValue;
+    //[Header("Core Stats")]
+    //public TextMeshProUGUI vitalityValue;
+    //public TextMeshProUGUI strengthValue;
+    //public TextMeshProUGUI dexterityValue;
+    //public TextMeshProUGUI wisdomValue;
 
-    [Header("Secondary Stats")]
-    public TextMeshProUGUI attackSpeedValue;
-    public TextMeshProUGUI attackDamageValue;
-    public TextMeshProUGUI hasteValue;
-    public TextMeshProUGUI criticalChanceValue;
-    public TextMeshProUGUI criticalMultiplierValue;
-    public TextMeshProUGUI armorValue;
-    public TextMeshProUGUI magicResistValue;
-    public TextMeshProUGUI manaRegenValue;
-    public TextMeshProUGUI healthRegenValue;
-    public TextMeshProUGUI movementSpeedValue;
+    //[Header("Secondary Stats")]
+    //public TextMeshProUGUI attackSpeedValue;
+    //public TextMeshProUGUI attackDamageValue;
+    //public TextMeshProUGUI hasteValue;
+    //public TextMeshProUGUI criticalChanceValue;
+    //public TextMeshProUGUI criticalMultiplierValue;
+    //public TextMeshProUGUI armorValue;
+    //public TextMeshProUGUI magicResistValue;
+    //public TextMeshProUGUI manaRegenValue;
+    //public TextMeshProUGUI healthRegenValue;
+    //public TextMeshProUGUI movementSpeedValue;
 
 
     void GetDependenices()
@@ -45,6 +71,8 @@ public class GearStatsUI : MonoBehaviour
         {
             module.OnSelectEntity += OnSelectEntity;
         }
+
+        CreateSingleStats();
     }
 
     private void Start()
@@ -60,6 +88,7 @@ public class GearStatsUI : MonoBehaviour
         entityName.text = entity.entityName;
         HandleNewEntity();
         UpdateStats();
+        UpdateNewStats();
 
         void HandleOldEntity()
         {
@@ -76,39 +105,123 @@ public class GearStatsUI : MonoBehaviour
 
     void OnChangeStats(EntityInfo entityInfo)
     {
+        UpdateNewStats();
         UpdateStats();
     }
 
-    
+    void CreateSingleStats()
+    {
+        if (prefabs.singleCore == null || prefabs.singleSecondary == null) return;
+        if (info.secondaryGroup == null) return;
+        if (info.coreGroup == null) return;
+
+        singlesCore = new();
+        singlesSecondary = new();
+        statMaps = new();
+
+        Stats templateStats = new();
+
+        foreach (var field in typeof(Stats).GetFields())
+        {
+            if (Stats.HiddenFields.Contains(field.Name)) continue;
+
+            bool isInt = field.GetValue(templateStats).GetType() == typeof(int);
+
+            var prefab = isInt ? prefabs.singleCore : prefabs.singleSecondary;
+
+            var newSingle = Instantiate(prefab, transform).GetComponent<GearStatSingle>();
+
+            newSingle.SetSingle(ArchString.CamelToTitle(field.Name));
+
+            if (isInt)
+            {
+                newSingle.transform.SetParent(info.coreGroup);
+                singlesCore.Add(newSingle);
+            }
+            else
+            {
+                newSingle.transform.SetParent(info.secondaryGroup);
+                singlesSecondary.Add(newSingle);
+            }
+
+            statMaps.Add(field.Name, newSingle);
+        }
+    }
+        
+    void UpdateNewStats()
+    {
+        if (statMaps == null) return;
+        if (entityInfo == null) return;
+
+
+        foreach (var field in typeof(Stats).GetFields())
+        {
+            if (!statMaps.ContainsKey(field.Name)) continue;
+
+            var single = statMaps[field.Name];
+            var value = field.FieldType == typeof(int) ? (int)field.GetValue(entityInfo.stats) : (float)field.GetValue(entityInfo.stats);
+
+            var significant = value > 0;
+
+
+
+            if (single.gameObject.activeSelf != significant)
+            {
+                single.gameObject.SetActive(significant);
+            }
+
+            if (!significant)
+            {
+                continue;
+            }
+
+
+            var multiplier = 1;
+            var extraString = "";
+
+            if (Stats.PercentageFields.Contains(field.Name))
+            {
+                multiplier = 100;
+                extraString = "%";
+            }
+
+            var newValue = $"{ArchString.FloatToSimple(value*multiplier)}{extraString}";
+
+            single.UpdateSingle(newValue);
+
+        }
+
+
+    }
 
     void UpdateStats()
     {
-        UpdateCoreStats();
-        UpdateSecondaryStats();
+        //UpdateCoreStats();
+        //UpdateSecondaryStats();
 
-        void UpdateCoreStats()
-        {
-            vitalityValue.text = $"{entityInfo.stats.Vitality}";
-            strengthValue.text = $"{entityInfo.stats.Strength}";
-            dexterityValue.text = $"{entityInfo.stats.Dexterity}";
-            wisdomValue.text = $"{entityInfo.stats.Wisdom}";
+        //void UpdateCoreStats()
+        //{
+        //    vitalityValue.text = $"{entityInfo.stats.Vitality}";
+        //    strengthValue.text = $"{entityInfo.stats.Strength}";
+        //    dexterityValue.text = $"{entityInfo.stats.Dexterity}";
+        //    wisdomValue.text = $"{entityInfo.stats.Wisdom}";
 
-            healthManaValue.text = $"Health: {entityInfo.maxHealth} Mana: {entityInfo.maxMana}";
-        }
+        //    healthManaValue.text = $"Health: {entityInfo.maxHealth} Mana: {entityInfo.maxMana}";
+        //}
 
-        void UpdateSecondaryStats()
-        {
-            attackSpeedValue.text = $"{entityInfo.stats.attackSpeed}/s";
-            attackDamageValue.text = $"{entityInfo.stats.attackDamage}";
-            hasteValue.text = $"{entityInfo.stats.haste * 100}%";
-            criticalChanceValue.text = $"{entityInfo.stats.criticalStrikeChance * 100}%";
-            criticalMultiplierValue.text = $"{entityInfo.stats.criticalDamage * 100}%";
-            armorValue.text = $"{entityInfo.stats.armor}";
-            magicResistValue.text = $"{entityInfo.stats.magicResist}";
-            manaRegenValue.text = $"{entityInfo.stats.manaRegen}/s";
-            healthRegenValue.text = $"{entityInfo.stats.healthRegen}/s";
-            movementSpeedValue.text = $"{entityInfo.stats.movementSpeed * 100}%";
+        //void UpdateSecondaryStats()
+        //{
+        //    attackSpeedValue.text = $"{entityInfo.stats.attackSpeed}/s";
+        //    attackDamageValue.text = $"{entityInfo.stats.attackDamage}";
+        //    hasteValue.text = $"{entityInfo.stats.haste * 100}%";
+        //    criticalChanceValue.text = $"{entityInfo.stats.criticalChance * 100}%";
+        //    criticalMultiplierValue.text = $"{entityInfo.stats.criticalDamage * 100}%";
+        //    armorValue.text = $"{entityInfo.stats.armor}";
+        //    magicResistValue.text = $"{entityInfo.stats.magicResist}";
+        //    manaRegenValue.text = $"{entityInfo.stats.manaRegen}/s";
+        //    healthRegenValue.text = $"{entityInfo.stats.healthRegen}/s";
+        //    movementSpeedValue.text = $"{entityInfo.stats.movementSpeed * 100}%";
 
-        }
+        //}
     }
 }
