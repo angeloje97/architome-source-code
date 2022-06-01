@@ -21,7 +21,7 @@ namespace Architome
 
             popUpManager = WorldPopupTextManager.active;
 
-
+            if (popUpManager == null) return;
 
             if (entityInfo)
             {

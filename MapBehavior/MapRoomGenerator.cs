@@ -11,6 +11,9 @@ namespace Architome
     {
         // Start is called before the first frame update
         public static MapRoomGenerator active { get; private set; }
+
+        public bool useCoreInfo;
+
         public MapInfo mapInfo;
         public SeedGenerator seedGenerator;
         public MapEntityGenerator entityGenerator;

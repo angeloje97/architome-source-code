@@ -14,7 +14,6 @@ namespace Architome
         {
             public Transform parent;
             public GameObject[] poolPrefabs;
-            public EntitySlot[] slots;
 
             public List<EntityInfo> pool;
         }
@@ -32,15 +31,6 @@ namespace Architome
             public GameObject entityIcon;
         }
 
-        public List<EntityInfo> selectedEntities
-        {
-            get
-            {
-                if (entities.slots == null) return null;
-
-                return entities.slots.Select(slot => slot.entity).ToList();
-            }
-        }
 
 
 
@@ -49,14 +39,19 @@ namespace Architome
 
         public SaveSystem saveSystem;
 
-        public Mission currentMission;
+        public SaveGame currentSave;
+
+
+        //Fields that will determine the dungeon.
+        public List<EntityInfo> selectedEntities;
+        public Dungeon currentDungeon;
 
         public string sceneToLoad;
 
         public Action<List<bool>> OnCheckCondition;
         public Action<List<bool>> BeforeCheckCondition;
-
         public Action<EntityInfo> OnNewEntity;
+        public Action<SaveGame> OnNewSave;
 
         void GetDependencies()
         {
@@ -66,33 +61,40 @@ namespace Architome
             {
                 saveSystem.BeforeSave += BeforeSave;
             }
+
+            currentSave = Core.currentSave;
         }
 
         void SpawnEntities()
         {
             if (entities.parent == null) return;
             entities.pool = new();
+            var currentSave = Core.currentSave;
             foreach (var entity in entities.poolPrefabs)
             {
                 var newEntity = Instantiate(entity, entities.parent).GetComponent<EntityInfo>();
 
                 entities.pool.Add(newEntity);
 
-                var currentSave = Core.currentSave;
+                ArchAction.Delay(() => {
 
-                if (currentSave != null)
-                {
-                    var (entityData, index) = currentSave.EntityData(newEntity);
+                    if (currentSave != null)
+                    {
+                        var (entityData, index) = currentSave.EntityData(newEntity);
 
-                    EntityDataLoader.LoadEntity(entityData, newEntity);
+                        EntityDataLoader.LoadEntity(entityData, newEntity);
+                    }
 
-                }
+                    OnNewEntity?.Invoke(newEntity);
+                    GMHelper.GameManager().AddPlayableCharacter(newEntity);
+                }, 1);
 
+            }
 
-                newEntity.gameObject.SetActive(false);
-
-                OnNewEntity?.Invoke(newEntity);
-
+            if (currentSave != null && currentSave.newBorn)
+            {
+                OnNewSave?.Invoke(currentSave);
+                currentSave.newBorn = false;
             }
         }
 
@@ -101,12 +103,35 @@ namespace Architome
             var newCondition = new List<bool>();
             BeforeCheckCondition?.Invoke(newCondition);
             OnCheckCondition?.Invoke(newCondition);
+
+            UpdateStartDungeonButton();
+
+            void UpdateStartDungeonButton()
+            {
+                if (info.startDungeonButton == null) return;
+
+                bool ready = true;
+
+                foreach (var condition in newCondition)
+                {
+                    if (!condition)
+                    {
+                        ready = false;
+                        break;
+                    }
+                }
+
+                info.startDungeonButton.SetButton(ready);
+            }
         }
+
+        
 
         private void Start()
         {
             GetDependencies();
             SpawnEntities();
+            CheckCondition();
         }
 
         public void BeforeSave(SaveGame currentSave)
@@ -117,10 +142,15 @@ namespace Architome
             }
         }
 
-
-        public void PlayGame()
+        public void SetSelectedEntities(List<EntityInfo> entities)
         {
-            if (currentMission == null) return;
+            selectedEntities = entities;
+        }
+
+
+        public void StartDungeon()
+        {
+            if (currentDungeon == null) return;
             if (selectedEntities == null || selectedEntities.Count == 0) return;
 
             SceneManager.LoadScene(sceneToLoad);

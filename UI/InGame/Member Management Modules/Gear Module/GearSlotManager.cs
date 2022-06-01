@@ -10,6 +10,7 @@ public class GearSlotManager : MonoBehaviour
     public EntityInfo entityInfo;
     public GearModuleManager moduleManager;
     public ModuleInfo module;
+    public PartyManager partyManager;
 
     [Header("Gear Slot Manager Properties")]
     public Transform equipmentBin;
@@ -23,6 +24,7 @@ public class GearSlotManager : MonoBehaviour
     void GetDependencies()
     {
         module = GetComponentInParent<ModuleInfo>();
+        partyManager = GetComponentInParent<PartyManager>();
         if (GetComponentInParent<GearModuleManager>())
         {
             moduleManager = GetComponentInParent<GearModuleManager>();
@@ -33,6 +35,12 @@ public class GearSlotManager : MonoBehaviour
         {
             module.OnSelectEntity += OnSelectEntity;
         }
+
+        if (partyManager)
+        {
+            partyManager.OnSelectEntity += OnSelectEntity;
+        }
+
 
         GetComponent<ItemSlotHandler>().OnChangeItem += OnChangeItem;
     }

@@ -39,6 +39,7 @@ namespace Architome
             if (movement)
             {
                 movement.OnEndMove += OnEndMove;
+                movement.OnArrival += OnArrival;
             }
 
             if (entity)
@@ -66,6 +67,7 @@ namespace Architome
             Subscribe();
             OnCombatChange(false);
             OnEndMove(movement);
+            OnArrival(movement, movement.Target());
         }
 
         private void OnValidate()
@@ -77,11 +79,11 @@ namespace Architome
 
         }
 
-        void OnEndMove(Movement movement)
+        void OnArrival(Movement movement, Transform target)
         {
             if (entity.isInCombat) return;
             if (!patroling) return;
-            if(patrolSpots == null) return;
+            if (patrolSpots == null) return;
             if (patrolSpots.Count == 0) return;
             ArchAction.Delay(() => {
 
@@ -89,7 +91,7 @@ namespace Architome
                 if (movement.isMoving) return;
 
                 var currentSpot = currentPatrolSpot;
-                
+
 
                 currentPatrolSpot = patrolSpots[Random.Range(0, patrolSpots.Count)];
 
@@ -97,6 +99,28 @@ namespace Architome
 
 
             }, 4f);
+        }
+
+        void OnEndMove(Movement movement)
+        {
+            //if (entity.isInCombat) return;
+            //if (!patroling) return;
+            //if(patrolSpots == null) return;
+            //if (patrolSpots.Count == 0) return;
+            //ArchAction.Delay(() => {
+
+            //    if (entity.isInCombat) return;
+            //    if (movement.isMoving) return;
+
+            //    var currentSpot = currentPatrolSpot;
+                
+
+            //    currentPatrolSpot = patrolSpots[Random.Range(0, patrolSpots.Count)];
+
+            //    movement.MoveTo(currentPatrolSpot);
+
+
+            //}, 4f);
         }
 
         void OnCombatChange(bool val)

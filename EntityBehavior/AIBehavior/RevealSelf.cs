@@ -93,6 +93,8 @@ public class RevealSelf : MonoBehaviour
 
     public void OnCurrentShowRoom(RoomInfo info, bool val)
     {
+        if (entityInfo == null) return;
+        if (entityInfo.gameObject == null) return;
         if (Entity.IsPlayer(entityInfo.gameObject)) { return; }
 
         entityInfo.ShowEntity(val);

@@ -121,6 +121,7 @@ namespace Architome
                 trilogy = trilogy,
                 time = DateTime.Now,
                 build = Application.version,
+                newBorn = true
             };
 
             this.newSave = newSave;

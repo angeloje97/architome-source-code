@@ -17,12 +17,23 @@ namespace Architome
         private void Start()
         {
             toggles = GetComponentsInChildren<Toggle>().ToList();
+
+            OnValueChange();
         }
 
+        private void OnValidate()
+        {
+            toggles = GetComponentsInChildren<Toggle>().ToList();
+
+            OnValueChange();
+        }
 
         public void OnValueChange()
         {
-            var lerpValue = 1 / smoothening;
+            if (items == null) return;
+            if (toggles == null) return;
+
+            var lerpValue = smoothening != 0 ? 1 / smoothening : 1;
             for (int i = 0; i < items.Count; i++)
             {
                 if (toggles.Count <= i) continue;

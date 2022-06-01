@@ -34,6 +34,7 @@ namespace Architome
         }
 
         public RoomPool pool;
+        public RoomType type;
         [Header("Room Properties")]
         public bool isEntranceRoom;
         public bool badSpawn;

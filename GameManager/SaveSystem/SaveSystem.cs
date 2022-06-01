@@ -17,9 +17,9 @@ namespace Architome
             active = this;
         }
 
-        public bool Save()
+        public void Save()
         {
-            if (Core.currentSave == null) return false;
+            if (Core.currentSave == null) return;
 
             BeforeSave?.Invoke(Core.currentSave);
 
@@ -27,7 +27,7 @@ namespace Architome
 
             OnSave?.Invoke(Core.currentSave);
 
-            return true;
+            return;
         }
     }
 }

@@ -23,6 +23,7 @@ public class EntityClusterAgent : MonoBehaviour
     }
     public void OnTriggerEnter(Collider other)
     {
+        if (EntityClusterManager.active == null) return;
         if(!entityInfo.isAlive) { return; }
         if(other.GetComponent<ClusterContainer>())
         {

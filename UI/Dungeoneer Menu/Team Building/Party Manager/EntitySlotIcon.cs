@@ -19,7 +19,6 @@ namespace Architome
 
         public Action<EntitySlotIcon> OnRightClick;
         public Action<EntitySlotIcon> OnLeftClick;
-        public Action<EntitySlotIcon, EntitySlot> OnNewIcon;
 
         [SerializeField] bool isAvailable = true;
         protected bool canDestroy;
@@ -87,9 +86,6 @@ namespace Architome
             if (!Input.GetKeyDown(KeyCode.Mouse0)) return;
 
             OnLeftClick?.Invoke(this);
-            //if (currentSlot.slotType == EntitySlotType.Party) return;
-            //transform.SetParent(info.dragAndDropScope);
-            //transform.SetAsLastSibling();
         }
 
         public void HandleRightClick()

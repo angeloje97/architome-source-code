@@ -227,7 +227,6 @@ namespace Architome
                 entityControlType = EntityControlType.NoControl;
             }
 
-
             health = maxHealth;
             mana = maxMana;
             shield = 0;
@@ -244,7 +243,7 @@ namespace Architome
         }
         void UpdateResources(bool val)
         {
-            if (role == Role.Tank)
+            if (role == Role.Tank && rarity == EntityRarity.Player)
             {
                 maxHealth = stats.Vitality * 10 * GMHelper.Difficulty().settings.tankHealthMultiplier;
                 entityStats.damageReduction = .25f;
@@ -304,7 +303,11 @@ namespace Architome
             {
                 isAliveCheck = isAlive;
 
-                EntityDeathHandler.active.HandleLifeChange(gameObject);
+                if (EntityDeathHandler.active)
+                {
+                    EntityDeathHandler.active.HandleLifeChange(gameObject);
+                }
+
                 OnLifeChange?.Invoke(isAliveCheck);
             }
 

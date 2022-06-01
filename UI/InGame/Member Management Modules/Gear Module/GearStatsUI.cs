@@ -11,7 +11,7 @@ public class GearStatsUI : MonoBehaviour
     public GearModuleManager moduleManager;
     public ModuleInfo module;
     public EntityInfo entityInfo;
-
+    public PartyManager partyManager;
     public TextMeshProUGUI entityName;
 
     [Serializable]
@@ -64,7 +64,14 @@ public class GearStatsUI : MonoBehaviour
     {
         moduleManager = GetComponentInParent<GearModuleManager>();
         module = GetComponentInParent<ModuleInfo>();
-        
+
+        partyManager = GetComponentInParent<PartyManager>();
+
+
+        if (partyManager)
+        {
+            partyManager.OnSelectEntity += OnSelectEntity;
+        }
 
 
         if (module)
@@ -87,7 +94,6 @@ public class GearStatsUI : MonoBehaviour
         entityInfo = entity;
         entityName.text = entity.entityName;
         HandleNewEntity();
-        UpdateStats();
         UpdateNewStats();
 
         void HandleOldEntity()
@@ -106,7 +112,6 @@ public class GearStatsUI : MonoBehaviour
     void OnChangeStats(EntityInfo entityInfo)
     {
         UpdateNewStats();
-        UpdateStats();
     }
 
     void CreateSingleStats()
@@ -153,6 +158,10 @@ public class GearStatsUI : MonoBehaviour
         if (statMaps == null) return;
         if (entityInfo == null) return;
 
+        if (healthManaValue)
+        {
+            healthManaValue.text = $"Health: {entityInfo.maxHealth} Mana: {entityInfo.maxMana}";
+        }
 
         foreach (var field in typeof(Stats).GetFields())
         {
@@ -163,8 +172,6 @@ public class GearStatsUI : MonoBehaviour
 
             var significant = value > 0;
 
-
-
             if (single.gameObject.activeSelf != significant)
             {
                 single.gameObject.SetActive(significant);
@@ -174,7 +181,6 @@ public class GearStatsUI : MonoBehaviour
             {
                 continue;
             }
-
 
             var multiplier = 1;
             var extraString = "";
@@ -192,36 +198,5 @@ public class GearStatsUI : MonoBehaviour
         }
 
 
-    }
-
-    void UpdateStats()
-    {
-        //UpdateCoreStats();
-        //UpdateSecondaryStats();
-
-        //void UpdateCoreStats()
-        //{
-        //    vitalityValue.text = $"{entityInfo.stats.Vitality}";
-        //    strengthValue.text = $"{entityInfo.stats.Strength}";
-        //    dexterityValue.text = $"{entityInfo.stats.Dexterity}";
-        //    wisdomValue.text = $"{entityInfo.stats.Wisdom}";
-
-        //    healthManaValue.text = $"Health: {entityInfo.maxHealth} Mana: {entityInfo.maxMana}";
-        //}
-
-        //void UpdateSecondaryStats()
-        //{
-        //    attackSpeedValue.text = $"{entityInfo.stats.attackSpeed}/s";
-        //    attackDamageValue.text = $"{entityInfo.stats.attackDamage}";
-        //    hasteValue.text = $"{entityInfo.stats.haste * 100}%";
-        //    criticalChanceValue.text = $"{entityInfo.stats.criticalChance * 100}%";
-        //    criticalMultiplierValue.text = $"{entityInfo.stats.criticalDamage * 100}%";
-        //    armorValue.text = $"{entityInfo.stats.armor}";
-        //    magicResistValue.text = $"{entityInfo.stats.magicResist}";
-        //    manaRegenValue.text = $"{entityInfo.stats.manaRegen}/s";
-        //    healthRegenValue.text = $"{entityInfo.stats.healthRegen}/s";
-        //    movementSpeedValue.text = $"{entityInfo.stats.movementSpeed * 100}%";
-
-        //}
     }
 }

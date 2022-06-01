@@ -5,6 +5,7 @@ using System.Reflection;
 using System;
 using UnityEngine.UI;
 using Architome.Enums;
+using UnityEngine.SceneManagement;
 
 namespace Architome
 {
@@ -30,12 +31,17 @@ namespace Architome
         //    }
         //}
 
+
+
         public int saveId;
+        public string saveName;
         public string build;
         public string timeString;
+        public string currentSceneName;
+        public bool newBorn;
         public DateTime time;
-        public string saveName;
         public Trilogy trilogy;
+
 
         public GameSettingsData gameSettings;
         public List<EntityData> savedEntities;
@@ -48,16 +54,15 @@ namespace Architome
             var (data, index) = EntityData(entity);
 
 
-            savedEntities[index] = new(entity);
-            //if (data == null)
-            //{
-            //    data = new(entity);
-            //    savedEntities.Add(data);
-            //}
-            //else
-            //{
-            //    savedEntities[index] = new(entity);
-            //}
+            if (data == null)
+            {
+                data = new(entity);
+                savedEntities.Add(data);
+            }
+            else
+            {
+                savedEntities[index] = new(entity);
+            }
         }
 
         public (EntityData, int) EntityData(EntityInfo entity)
@@ -73,11 +78,7 @@ namespace Architome
                 }
             }
 
-            var newData = new EntityData(entity);
-
-            savedEntities.Add(newData);
-
-            return (newData, savedEntities.IndexOf(newData));
+            return (null, -1);
         }
 
         public void Save(string saveName = "")
@@ -91,7 +92,7 @@ namespace Architome
 
             saveName = $"Save{saveId}";
 
-
+            currentSceneName = SceneManager.GetActiveScene().name;
             build = $"{Application.version}";
             time = DateTime.Now;
             timeString = time.ToString("MM/dd/yyyy h:mm tt");

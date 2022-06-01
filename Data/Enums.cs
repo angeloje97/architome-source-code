@@ -26,6 +26,8 @@ namespace Architome.Enums
         Story,
     }
 
+    public enum Size { Small, Medium, Large }
+
     public enum GameState
     {
         Menu,
@@ -45,6 +47,13 @@ namespace Architome.Enums
         Value,
         Percent,
         PercentValue,
+    }
+
+    public enum RoomType
+    {
+        Any,
+        Skeleton,
+        Random
     }
 
     public enum CameraTarget
@@ -88,6 +97,15 @@ namespace Architome.Enums
         OnCatalingRelease,
     }
 
+    public enum EntityEvent
+    {
+        OnDeath,
+        OnRevive,
+        OnLevelUp,
+        OnDamageTaken,
+        OnDetectPlayer,
+    }
+
     public enum BuffEvents
     {
         OnStart,
@@ -103,6 +121,13 @@ namespace Architome.Enums
         OnChannel,
         OnRelease,
         OnAbility,
+    }
+
+    public enum SpeechType
+    {
+        Whisper,
+        Speak,
+        Yell,
     }
 
     public enum CatalystParticleTarget

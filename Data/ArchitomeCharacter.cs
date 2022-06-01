@@ -152,6 +152,7 @@ public class ArchitomeCharacter : MonoBehaviour
             SetDefault();
             SetDefaultMaterial();
         }
+
         if(!basePartsSet)
         {
             SetOriginalParts();

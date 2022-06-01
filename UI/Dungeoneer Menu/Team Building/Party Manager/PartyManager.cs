@@ -6,14 +6,15 @@ using System;
 
 namespace Architome
 {
-    public class EntitySlotManager : MonoBehaviour
+    public class PartyManager : MonoBehaviour
     {
         public DungeoneerManager manager;
 
         public List<EntitySlot> partySlots;
         public List<EntitySlot> rosterSlots;
 
-
+        public EntityInfo selectedEntity;
+        
 
         [Serializable]
         public struct Info
@@ -21,7 +22,6 @@ namespace Architome
             public Transform rosterSlotParent;
             public Transform partySlotParent;
         }
-        public Info info;
 
         [Serializable]
         public struct Prefabs
@@ -30,25 +30,31 @@ namespace Architome
             public GameObject partySlotTemplate;
         }
 
+        public Info info;
         public Prefabs prefabs;
 
         public Dictionary<EntityInfo, EntitySlot> slotMap;
+
+        public Action<EntityInfo> OnSelectEntity;
 
         private void Awake()
         {
             manager = GetComponentInParent<DungeoneerManager>();
 
             manager.OnNewEntity += OnNewEntity;
-        }
-        void Start()
-        {
-            
+            manager.BeforeCheckCondition += BeforeCheckCondition;
         }
 
-        // Update is called once per frame
-        void Update()
+        public void BeforeCheckCondition(List<bool> conditions)
         {
-        
+            if (slotMap == null)
+            {
+                conditions.Add(false);
+                return;
+            }
+
+            conditions.Add(slotMap.Count == 5f);
+
         }
 
         public void OnRightClickIcon(EntitySlotIcon slotIcon)
@@ -66,7 +72,7 @@ namespace Architome
 
             }
 
-            void HandleRosterSlot()
+            void HandleRosterSlot()     //Create a new icon from the roster icon.
             {
                 if (slot.slotType != EntitySlotType.Roster) return;
 
@@ -81,27 +87,26 @@ namespace Architome
                 newIcon.SetIcon(slotIcon.entity, newSlot);
 
                 newIcon.OnRightClick += OnRightClickIcon;
+                newIcon.OnLeftClick += OnLeftClickIcon;
             }
 
             ArchAction.Yield(() => {
                 UpdateDictionary();
                 UpdateRoster();
+                UpdateManager();
             });
-            
         }
 
-        public void OnNewIcon(EntitySlotIcon slotIcon, EntitySlot slot)
+        public void OnLeftClickIcon(EntitySlotIcon slotIcon)
         {
-            if (slot.slotType != EntitySlotType.Party) return;
+            if (slotIcon.entity == null) return;
 
-            slotIcon.OnRightClick += OnRightClickIcon;
+            selectedEntity = slotIcon.entity;
 
-
-            
-
-            UpdateDictionary();
-            UpdateRoster();
+            OnSelectEntity?.Invoke(selectedEntity);
         }
+
+
 
         void UpdateDictionary()
         {
@@ -130,6 +135,24 @@ namespace Architome
             }
         }
 
+        void UpdateManager()
+        {
+            if (manager == null) return;
+
+            var newList = new List<EntityInfo>();
+
+            foreach (var keyValuePair in slotMap)
+            {
+                var entity = keyValuePair.Key;
+
+                newList.Add(entity);
+            }
+
+            manager.SetSelectedEntities(newList);
+            manager.CheckCondition();
+
+        }
+
         
 
         public void OnNewEntity(EntityInfo entity)
@@ -145,8 +168,8 @@ namespace Architome
             var icon = Instantiate(iconTemplate, itemSlot.transform).GetComponent<EntitySlotIcon>();
 
 
-            icon.OnNewIcon += OnNewIcon;
             icon.OnRightClick += OnRightClickIcon;
+            icon.OnLeftClick += OnLeftClickIcon;
             icon.info.dragAndDropScope = transform;
             icon.SetIcon(entity, itemSlot);
 

@@ -11,41 +11,29 @@ namespace Architome
         public static SaveGame currentSave { get; private set; }
         public static GameState currentState { get; private set; }
 
-        public struct SaveEvents
-        {
-            public Action<SaveGame> OnLoadSave;
-            public Action<SaveGame> OnSaveGame;
-            public Action<SaveGame> OnSaveNew;
-            public Action<SaveGame> OnSetSave;
-        }
-
-        public static SaveEvents saveEvents { get; set; }
+        public static Dungeon.Rooms dungeonRooms;
 
         public static Action<GameState> OnSetState;
 
         public static void Reset()
         {
-            saveEvents = new();
             OnSetState = null;
         }
 
         public static void SetSave(SaveGame save)
         {
             currentSave = save;
-            saveEvents.OnSetSave?.Invoke(save);
         }
 
         public static void SaveCurrent()
         {
             currentSave.Save();
-            saveEvents.OnSaveGame?.Invoke(currentSave);
         }
 
         public static void SaveNew(SaveGame newSave)
         {
             currentSave = newSave;
             newSave.Save();
-            saveEvents.OnSaveNew?.Invoke(newSave);
         }
 
         public static void SetState(GameState newState)
