@@ -11,7 +11,11 @@ namespace Architome
         public static SaveGame currentSave { get; private set; }
         public static GameState currentState { get; private set; }
 
-        public static Dungeon.Rooms dungeonRooms;
+
+        public static string dungeonSeed;
+        public static int dungeonIndex;
+        public static List<Dungeon.Rooms> currentDungeon;
+
 
         public static Action<GameState> OnSetState;
 

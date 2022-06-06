@@ -42,7 +42,9 @@ namespace Architome
             this.id = id;
         }
 
+        int saveIndex = -1;
 
+        public int SaveIndex { get { return saveIndex; } set { saveIndex = value; } }
 
         public string entityName; 
         [Multiline]
@@ -454,6 +456,7 @@ namespace Architome
                 if (source != null) source.OnDamageDone?.Invoke(combatData);
 
                 OnDamageTaken?.Invoke(combatData);
+
                 DamageShield();
                 DamageHealth();
 

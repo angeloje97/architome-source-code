@@ -14,6 +14,7 @@ namespace Architome
         //public List<int> factors;
         public int factorCount;
 
+        
 
         public void GenerateSeed()
         {
@@ -68,7 +69,17 @@ namespace Architome
         void Awake()
         {
             active = this;
+            AcquireSeed();
             GenerateSeed();
+        }
+        void AcquireSeed()
+        {
+            if (Core.dungeonSeed == null) return;
+            if (Core.dungeonSeed.Length == 0) return;
+
+
+            seedString = Core.dungeonSeed;
+
         }
 
         // Update is called once per frame

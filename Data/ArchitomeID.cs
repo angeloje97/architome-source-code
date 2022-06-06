@@ -394,6 +394,7 @@ namespace Architome
             Catalysts.Clear();
             Items.Clear();
             Classes.Clear();
+            Rooms.Clear();
         }
 
         async void UpdateData()

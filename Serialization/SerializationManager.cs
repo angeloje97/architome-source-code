@@ -10,7 +10,7 @@ namespace Architome
 {
     public class SerializationManager
     {
-        public static bool SaveGame(string saveName, object saveData)
+        public static (bool, string) SaveGame(string saveName, object saveData)
         {
             BinaryFormatter formatter = GetBinaryFormatter();
 
@@ -30,7 +30,7 @@ namespace Architome
             file.Close();
             
 
-            return true;
+            return (true, path);
         }
 
         public static object LoadGame(string saveName)

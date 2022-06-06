@@ -18,6 +18,7 @@ namespace Architome
             public Dictionary<int, EntityInfo> entities;
             public Dictionary<int, BuffInfo> buffs;
             public Dictionary<int, ArchClass> archClasses;
+            public Dictionary<int, RoomInfo> dungeonRooms;
             
         }
 
@@ -72,6 +73,13 @@ namespace Architome
             foreach (var archClass in idDatabase.Classes)
             {
                 map.archClasses.Add(archClass._id, archClass);
+            }
+
+            map.dungeonRooms = new();
+
+            foreach (var room in idDatabase.Rooms)
+            {
+                map.dungeonRooms.Add(room._id, room);
             }
 
             return map;

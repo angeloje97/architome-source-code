@@ -5,6 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.Events;
 using System;
 using UnityEngine.UI;
+using System.Threading.Tasks;
 
 namespace Architome
 {
@@ -16,8 +17,13 @@ namespace Architome
         public AudioClip clickSound;
 
         public Action<ArchButton> OnClick;
+        
         public AudioSource audioSource;
         public UnityEvent OnUnityClick;
+        public UnityEvent OnDoubleClick;
+        public UnityEvent OnRightClick;
+        public UnityEvent MouseEnter;
+        public UnityEvent MouseExit;
 
 
         [Serializable]
@@ -29,6 +35,8 @@ namespace Architome
         }
 
         public Info info;
+
+        bool leftClicked;
 
         void Start()
         {
@@ -75,25 +83,70 @@ namespace Architome
             if (rollOverSound == null) return;
             audioSource.clip = rollOverSound;
             audioSource.Play();
-            
+            MouseEnter?.Invoke();
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
-
+            if (!interactable) return;
+            MouseExit?.Invoke();
         }
 
         public void OnPointerDown(PointerEventData eventData)
         {
             if (!interactable) return;
-            OnClick?.Invoke(this);
-            OnUnityClick?.Invoke();
+            //OnUnityClick?.Invoke();
+
+            HandleRightClick();
+            HandleLeftClick();
 
             if (clickSound == null) return;
 
             audioSource.clip = clickSound;
             audioSource.Play();
+
+            async void HandleLeftClick()
+            {
+                if (!Input.GetKeyDown(KeyCode.Mouse0)) return;
+                if (leftClicked)
+                {
+                    leftClicked = false;
+                    OnDoubleClick?.Invoke();
+                    return;
+                }
+
+                OnUnityClick?.Invoke();
+                OnClick?.Invoke(this);
+
+
+                leftClicked = true;
+
+                var timer = 0.5f;
+
+                while (timer > 0)
+                {
+                    timer -= Time.deltaTime;
+
+                    await Task.Yield();
+
+                    if (leftClicked == false)
+                    {
+                        return;
+                    }
+                }
+
+                leftClicked = false;
+
+
+            }
+
+            void HandleRightClick()
+            {
+                if (!Input.GetKeyDown(KeyCode.Mouse1)) return;
+                OnRightClick?.Invoke();
+            }
         }
+
     }
 
 }

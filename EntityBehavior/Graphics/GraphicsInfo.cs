@@ -48,6 +48,17 @@ namespace Architome
             }
 
         }
+
+        private void Awake()
+        {
+            var gameManager = GMHelper.GameManager();
+
+            if (gameManager.GameState != GameState.Play)
+            {
+                gameObject.SetActive(false);
+            }
+        }
+
         void Start()
         {
             GetDependencies();

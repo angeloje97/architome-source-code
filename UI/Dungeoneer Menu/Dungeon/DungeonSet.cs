@@ -16,7 +16,7 @@ namespace Architome
             }
         }
 
-        bool idSet;
+        [SerializeField] bool idSet;
 
         public void SetID(int id, bool forceSet = false)
         {

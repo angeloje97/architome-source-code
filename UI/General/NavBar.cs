@@ -14,6 +14,8 @@ namespace Architome
 
         public float smoothening = 1f;
 
+        public int index;
+
         private void Start()
         {
             toggles = GetComponentsInChildren<Toggle>().ToList();
@@ -24,8 +26,18 @@ namespace Architome
         private void OnValidate()
         {
             toggles = GetComponentsInChildren<Toggle>().ToList();
-
+            UpdateFromIndex();
             OnValueChange();
+        }
+
+        public void UpdateFromIndex()
+        {
+            if (toggles == null) return;
+            if (toggles.Count == 0) return;
+
+            index = Mathf.Clamp(index, 0, toggles.Count - 1);
+
+            toggles[index].isOn = true;
         }
 
         public void OnValueChange()
@@ -36,9 +48,12 @@ namespace Architome
             var lerpValue = smoothening != 0 ? 1 / smoothening : 1;
             for (int i = 0; i < items.Count; i++)
             {
+                if (items[i] == null) continue;
                 if (toggles.Count <= i) continue;
                 var toggle = toggles[i];
                 var canvasGroup = items[i].GetComponent<CanvasGroup>();
+
+                if (toggle.isOn) index = i;
 
                 if (canvasGroup == null)
                 {

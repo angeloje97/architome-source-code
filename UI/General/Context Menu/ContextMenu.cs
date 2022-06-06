@@ -5,11 +5,12 @@ using TMPro;
 using System.Threading.Tasks;
 using System;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 namespace Architome
 {
     public class ContextMenu : MonoBehaviour
     {
-        public static ContextMenu current;
+        public static ContextMenu current { get; set; }
 
         [Serializable]
         public struct Info
@@ -19,14 +20,16 @@ namespace Architome
             public Transform options;
         }
 
+        public ContextOption currentHover;
+
         public ModuleInfo module;
         public HorizontalOrVerticalLayoutGroup layoutGroup;
 
         public Info info;
-
-        int pickedOption;
-        bool isChoosing;
-        float startingWidth;
+        
+        public int pickedOption;
+        public bool isChoosing;
+        public float startingWidth;
 
         RectTransform rectTransform;
 
@@ -50,16 +53,11 @@ namespace Architome
             GetDependencies();
         }
 
-        public void Update()
-        {
-            if (!isChoosing) return;
-            HandleInput();
-        }
         public void HandleInput()
         {
             if (Input.GetKeyDown(KeyCode.Mouse0) || Input.GetKeyDown(KeyCode.Mouse1))
             {
-                if (!module.isHovering)
+                if (currentHover == null)
                 {
                     CancelOptions();
                 }
@@ -102,9 +100,11 @@ namespace Architome
             info.title.text = contextData.title;
             CreateOptions(contextData.options);
 
+            await Task.Delay(63);
 
             while (isChoosing)
             {
+                HandleInput();
                 await Task.Yield();
             }
 

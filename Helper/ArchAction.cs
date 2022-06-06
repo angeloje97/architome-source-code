@@ -55,6 +55,7 @@ namespace Architome
         }
         public static async void UpdateFor(Action action, float seconds)
         {
+
             float currentTime = 0f;
             while(currentTime < seconds)
             {

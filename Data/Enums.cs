@@ -53,7 +53,9 @@ namespace Architome.Enums
     {
         Any,
         Skeleton,
-        Random
+        Random,
+        Entrance,
+        Boss,
     }
 
     public enum CameraTarget
@@ -270,6 +272,8 @@ namespace Architome.Enums
         Proactive = 2,
         Aggressive = 3,
     }
+
+    public enum ClassType { Melee, Range, Caster }
 
     public enum CompletionType
     {

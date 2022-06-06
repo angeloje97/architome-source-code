@@ -6,14 +6,16 @@ using UnityEngine.EventSystems;
 using System;
 using TMPro;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 namespace Architome
 {
-    public class EntitySlot : MonoBehaviour, IPointerClickHandler
+    public class EntitySlot : MonoBehaviour
     {
         public Role slotRole;
         public EntitySlotType slotType;
-        public EntitySlotIcon currentIcon;
+
+        public EntityInfo entity;
 
 
         public UnityEvent OnIcon;
@@ -23,66 +25,56 @@ namespace Architome
         [Serializable]
         public struct Info
         {
-            public Transform content;
+            public Image iconTarget;
             public Transform borderTrans;
             public TextMeshProUGUI namePlate;
         }
 
         public Info info;
-        EntitySlotIcon iconCheck;
+        EntityInfo entityCheck;
 
-        public EntityInfo entity
-        {
-            get
-            {
-                if (currentIcon == null)
-                {
-                    return null;
-                }
+        public Action<EntityInfo, EntityInfo> OnEntityChange;
+        public Action<EntitySlot> OnSlotAction, OnSlotSelect;
 
-                if (currentIcon.entity == null) return null;
-
-                return currentIcon.entity;
-            }
-        }
-
-        public Action<EntitySlotIcon, EntitySlotIcon> OnNewIcon { get; set; }
-
-        public void InsertContent(Transform item)
-        {
-            item.SetParent(info.content);
-            info.borderTrans.SetAsLastSibling();
-        }
+        public Action<bool> OnActiveChange;
 
         private void Update()
         {
             HandleEvents();
         }
 
-        public void OnPointerClick(PointerEventData eventData)
+        public void SelectSlot()
         {
-            if (!Input.GetKeyDown(KeyCode.Mouse1)) return;
-
-
+            OnSlotSelect?.Invoke(this);
         }
+
+        public void ActionSlot()
+        {
+            OnSlotAction?.Invoke(this);
+        }
+
 
         void HandleEvents()
         {
-            if (iconCheck != currentIcon)
+            if (entityCheck != entity)
             {
-                OnNewIcon?.Invoke(iconCheck, currentIcon);
-                HandleNewIcon(iconCheck, currentIcon);
-                iconCheck = currentIcon;
+                HandleEntityChange(entityCheck, entity);
+                entityCheck = entity;
+                
             }
         }
 
-        public void HandleNewIcon(EntitySlotIcon before, EntitySlotIcon after)
+        public void HandleEntityChange(EntityInfo before, EntityInfo after)
         {
-            if (before)
-            {
-                Destroy(before.gameObject);
-            }
+            var action = after != null ? OnIcon : OnNoIcon;
+            action?.Invoke();
 
+            HandleNewEntity(before, after);
+        }
+
+        public void HandleNewEntity(EntityInfo before, EntityInfo after)
+        {
+            
 
             SetDefault();
             HandleNewEntity();
@@ -106,12 +98,12 @@ namespace Architome
             void HandleNewEntity()
             {
                 if (after == null) return;
-                if (after.entity == null) return;
-
+                
                 if (info.namePlate)
                 {
-                    info.namePlate.text = after.entity.entityName;
-                }
+                    info.namePlate.text = after.entityName;
+                } 
+                info.iconTarget.sprite = after.entityPortrait;
             }
         }
 

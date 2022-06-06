@@ -17,7 +17,7 @@ namespace Architome
         {
             get
             {
-                return idSet ? 999999 : id;
+                return idSet ? id : 999999999;
             }
             private set
             {

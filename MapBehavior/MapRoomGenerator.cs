@@ -90,14 +90,45 @@ namespace Architome
                 OnRoomsGenerated?.Invoke(this);
             }
         }
+
+        void HandleCoreDungeons()
+        {
+            if (!useCoreInfo) return;
+            var levels = Core.currentDungeon;
+
+            var dungeonInfo = levels[Core.dungeonIndex];
+
+            if (dungeonInfo.skeleton == null || dungeonInfo.entrance == null) return;
+
+            skeletonRooms = new();
+            availableRooms = new();
+
+            foreach (var room in dungeonInfo.skeleton)
+            {
+                skeletonRooms.Add(room.gameObject);
+            }
+
+            if (dungeonInfo.entrance)
+            {
+                startingRoom = dungeonInfo.entrance.gameObject;
+            }
+
+            if (dungeonInfo.boss)
+            {
+                skeletonRooms.Add(dungeonInfo.boss.gameObject);
+            }
+
+            foreach (var room in dungeonInfo.random)
+            {
+                availableRooms.Add(room.gameObject);
+            }
+        }
         void Start()
         {
             GetDependencies();
-
+            HandleCoreDungeons();
             GenerateRooms();
-
         }
-
 
 
         private void Awake()

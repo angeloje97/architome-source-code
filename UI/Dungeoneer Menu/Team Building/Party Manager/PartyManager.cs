@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
 using System;
+using System.Threading.Tasks;
 
 namespace Architome
 {
@@ -11,7 +12,7 @@ namespace Architome
         public DungeoneerManager manager;
 
         public List<EntitySlot> partySlots;
-        public List<EntitySlot> rosterSlots;
+        public List<EntityCard> rosterCards;
 
         public EntityInfo selectedEntity;
         
@@ -19,7 +20,7 @@ namespace Architome
         [Serializable]
         public struct Info
         {
-            public Transform rosterSlotParent;
+            public Transform rosterCardParents;
             public Transform partySlotParent;
         }
 
@@ -33,18 +34,67 @@ namespace Architome
         public Info info;
         public Prefabs prefabs;
 
+        
+
         public Dictionary<EntityInfo, EntitySlot> slotMap;
-
         public Action<EntityInfo> OnSelectEntity;
-
         private void Awake()
         {
             manager = GetComponentInParent<DungeoneerManager>();
 
-            manager.OnNewEntity += OnNewEntity;
-            manager.BeforeCheckCondition += BeforeCheckCondition;
+            if (manager)
+            {
+                manager.OnNewEntity += OnNewEntity;
+                manager.BeforeCheckCondition += BeforeCheckCondition;
+                manager.OnLoadSave += OnLoadSave;
+            }
+
+            ArchSceneManager.active.BeforeLoadScene += BeforeLoadScene;
+            SaveSystem.active.BeforeSave += BeforeSave;
         }
 
+        private void Start()
+        {
+            AcquireSlots(); 
+        }
+
+        void BeforeLoadScene(ArchSceneManager sceneManager)
+        {
+            SaveEntities();
+        }
+
+        void BeforeSave(SaveGame save)
+        {
+            SaveEntities();
+        }
+
+        void SaveEntities()
+        {
+            var currentSave = Core.currentSave;
+            if (currentSave == null) return;
+
+            foreach (var entity in manager.entities.pool)
+            {
+                currentSave.SaveEntity(entity);
+            }
+
+            currentSave.selectedEntitiesIndex = new();
+
+            foreach (var slot in partySlots)
+            {
+                if (slot.entity == null) continue;
+                currentSave.selectedEntitiesIndex.Add(slot.entity.SaveIndex);
+            }
+        }
+
+        void AcquireSlots()
+        {
+            foreach (var slot in partySlots)
+            {
+                slot.OnSlotAction += OnPartySlotAction;
+                slot.OnSlotSelect += OnPartySlotSelect;
+            }
+        }
         public void BeforeCheckCondition(List<bool> conditions)
         {
             if (slotMap == null)
@@ -53,140 +103,207 @@ namespace Architome
                 return;
             }
 
-            conditions.Add(slotMap.Count == 5f);
-
+            conditions.Add(slotMap.Count == 5);
         }
 
-        public void OnRightClickIcon(EntitySlotIcon slotIcon)
+        async public void OnCardAction(EntityCard card)
         {
-            var slot = slotIcon.currentSlot;
+            var slot = FirstAvailablePartySlot(card.entity.role);
 
-            HandlePartySlot();
-            HandleRosterSlot();
+            if (slot == null) return;
 
-
-            void HandlePartySlot()
+            var userOption = await ContextMenu.current.UserChoice(new()
             {
-                if (slot.slotType != EntitySlotType.Party) return;
-                slot.currentIcon = null;
-
-            }
-
-            void HandleRosterSlot()     //Create a new icon from the roster icon.
-            {
-                if (slot.slotType != EntitySlotType.Roster) return;
-
-                var newSlot = FirstAvailablePartySlot(slotIcon.entity.role);
-
-                Debugger.InConsole(39052, $"{newSlot != null}");
-
-                if (newSlot == null) return;
-
-                var newIcon = Instantiate(slotIcon, transform);
-
-                newIcon.SetIcon(slotIcon.entity, newSlot);
-
-                newIcon.OnRightClick += OnRightClickIcon;
-                newIcon.OnLeftClick += OnLeftClickIcon;
-            }
-
-            ArchAction.Yield(() => {
-                UpdateDictionary();
-                UpdateRoster();
-                UpdateManager();
+                title = $"{card.entity.entityName}",
+                options = new()
+                {
+                    "Move to Party",
+                    "Stats",
+                    "Banish"
+                }
             });
-        }
 
-        public void OnLeftClickIcon(EntitySlotIcon slotIcon)
-        {
-            if (slotIcon.entity == null) return;
+            HandleOption1();
 
-            selectedEntity = slotIcon.entity;
-
-            OnSelectEntity?.Invoke(selectedEntity);
-        }
-
-
-
-        void UpdateDictionary()
-        {
-            slotMap = new();
-
-            foreach (var slot in partySlots)
+            void HandleOption1()
             {
-                if (slot.entity == null) continue;
-                slotMap.Add(slot.entity, slot);
+                if (userOption != 0) return;
+
+                RosterToParty(slot, card);
+                UpdatePartyManager();
             }
+
+            //RosterToParty(slot, card);
+            //UpdatePartyManager(true);
         }
 
-        void UpdateRoster()
+
+        public void OnPartySlotSelect(EntitySlot slot)
         {
-            foreach (var slot in rosterSlots)
+
+        }
+
+        public void OnPartySlotAction(EntitySlot slot)
+        {
+            if (slot.entity == null) return;
+
+            slot.entity = null;
+
+            UpdatePartyManager(true);
+        }
+
+        public void OnSelectCard(EntityCard slotIcon)
+        {
+            
+
+        }
+
+        public void OnRightClickIcon(EntityCard slotIcon)
+        {
+            //var slot = slotIcon.currentSlot;
+
+            //HandlePartySlot();
+            //HandleRosterSlot();
+
+
+            //void HandlePartySlot()
+            //{
+            //    if (slot.slotType != EntitySlotType.Party) return;
+            //    slot.currentIcon = null;
+
+
+            //}
+
+            //void HandleRosterSlot()     //Create a new icon from the roster icon.
+            //{
+            //    if (slot.slotType != EntitySlotType.Roster) return;
+
+            //    var newSlot = FirstAvailablePartySlot(slotIcon.entity.role);
+
+            //    Debugger.InConsole(39052, $"{newSlot != null}");
+
+            //    if (newSlot == null) return;
+
+            //    RosterToParty(newSlot, slotIcon);
+
+            //}
+
+            //ArchAction.Yield(() => UpdatePartyManager());
+        }
+
+        public void UpdatePartyManager(bool updateDungeoneerManager = true)
+        {
+            UpdateDictionary();
+            UpdateRoster();
+
+            if (updateDungeoneerManager)
             {
-                if (slot.entity == null) continue;
-                if (slotMap.ContainsKey(slot.entity))
+                UpdateManager();
+            }
+
+            void UpdateDictionary()
+            {
+                slotMap = new();
+
+                foreach (var slot in partySlots)
                 {
-                    slot.currentIcon.SetAvailable(false);
-                }
-                else
-                {
-                    slot.currentIcon.SetAvailable(true);
+                    if (slot.entity == null) continue;
+                    slotMap.Add(slot.entity, slot);
                 }
             }
-        }
 
-        void UpdateManager()
-        {
-            if (manager == null) return;
-
-            var newList = new List<EntityInfo>();
-
-            foreach (var keyValuePair in slotMap)
+            void UpdateRoster()
             {
-                var entity = keyValuePair.Key;
-
-                newList.Add(entity);
+                foreach (var card in rosterCards)
+                {
+                    if (card.entity == null) continue;
+                    if (slotMap.ContainsKey(card.entity))
+                    {
+                        card.SetCard(false);
+                    }
+                    else
+                    {
+                        card.SetCard(true);
+                    }
+                }
             }
 
-            manager.SetSelectedEntities(newList);
-            manager.CheckCondition();
+            void UpdateManager()
+            {
+                if (manager == null) return;
+
+                var newList = new List<EntityInfo>();
+
+                foreach (var keyValuePair in slotMap)
+                {
+                    var entity = keyValuePair.Key;
+
+                    newList.Add(entity);
+                }
+
+                manager.SetSelectedEntities(newList);
+
+            }
 
         }
 
-        
+        public void RosterToParty(EntitySlot slot, EntityCard card)
+        {
+
+            slot.entity = card.entity;
+
+        }
+
+        public void OnLoadSave(SaveGame save)
+        {
+            UpdatePartyManager();
+        }
 
         public void OnNewEntity(EntityInfo entity)
         {
             var rosterTemplate = prefabs.rosterSlotTemplate;
             if (rosterTemplate == null) return;
-            var parent = info.rosterSlotParent;
+            var parent = info.rosterCardParents;
             if (parent == null) return;
-            var iconTemplate = manager.prefabs.entityIcon;
+            var iconTemplate = manager.prefabs.entityCard;
             if (iconTemplate == null) return;
 
-            var itemSlot = Instantiate(rosterTemplate, parent).GetComponent<EntitySlot>();
-            var icon = Instantiate(iconTemplate, itemSlot.transform).GetComponent<EntitySlotIcon>();
+            var card = Instantiate(iconTemplate, parent).GetComponent<EntityCard>();
+            card.SetEntity(entity);
 
 
-            icon.OnRightClick += OnRightClickIcon;
-            icon.OnLeftClick += OnLeftClickIcon;
-            icon.info.dragAndDropScope = transform;
-            icon.SetIcon(entity, itemSlot);
+            card.OnSelect += OnSelectCard;
+            card.OnAction += OnCardAction;
+            rosterCards.Add(card);
 
-            rosterSlots.Add(itemSlot);
+            var save = manager.currentSave;
+
+            if (save == null) return;
+
+            var entityIndex = entity.SaveIndex;
+
+            if (save.selectedEntitiesIndex == null) return;
+            if (!save.selectedEntitiesIndex.Contains(entityIndex)) return;
+
+            var selectedIndex = save.selectedEntitiesIndex.IndexOf(entityIndex);
+
+            var partySlot = partySlots[selectedIndex];
+
+            RosterToParty(partySlot, card);
+
+
         }
-
         public EntitySlot FirstAvailableSlot(EntitySlotType slotType)
         {
-            var slots = slotType == EntitySlotType.Party ? partySlots : rosterSlots;
+            //var slots = slotType == EntitySlotType.Party ? partySlots : rosterSlots;
 
-            foreach (var slot in slots)
-            {
-                if (slot.currentIcon == null)
-                {
-                    return slot;
-                }
-            }
+            //foreach (var slot in slots)
+            //{
+            //    if (slot.currentIcon == null)
+            //    {
+            //        return slot;
+            //    }
+            //}
 
             return null;
         }

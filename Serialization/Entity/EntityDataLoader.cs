@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Architome
 {
@@ -28,10 +29,32 @@ namespace Architome
             }
         }
 
+        public static async Task<EntityInfo> SpawnEntity(EntityData data, Transform parent = null)
+        {
+            if (data == null) return null;
+            if (data.dataIndex == -1) return null;
+
+            var db = _maps.entities;
+
+            var entity = db[data.id];
+
+            var newEntity = Object.Instantiate(entity.gameObject, parent).GetComponent<EntityInfo>();
+
+            await Task.Yield();
+
+            LoadEntity(data, newEntity);
+
+            return newEntity;
+
+
+        }
+
         public static void LoadEntity(EntityData data, EntityInfo entity)
         {
             if (data == null || entity == null) return;
             var characterInfo = entity.GetComponentInChildren<CharacterInfo>();
+
+            entity.SaveIndex = data.dataIndex;
 
             LoadInfo();
             LoadCharacter();

@@ -9,8 +9,8 @@ namespace Architome
     [Serializable]
     public class EntityData
     {
-
-
+        public int id;
+        public int dataIndex;
 
         [Serializable] public class Info
         {
@@ -23,6 +23,8 @@ namespace Architome
             
 
             public int classId; //Not Supported by iterator
+            
+
             public Info(EntityInfo entity)
             {
                 if (entity == null) return;
@@ -41,6 +43,7 @@ namespace Architome
                 {
                     classId = entity.archClass._id;
                 }
+
             }
         }
 
@@ -139,8 +142,11 @@ namespace Architome
         public EquipmentData equipment;
         public CharacterData characterData;
 
-        public EntityData(EntityInfo entity)
+        public EntityData(EntityInfo entity, int dataIndex = -1)
         {
+            id = entity._id;
+            this.dataIndex = dataIndex;
+
             name = entity.entityName;
             info = new(entity);
 

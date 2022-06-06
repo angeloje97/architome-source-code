@@ -38,6 +38,7 @@ namespace Architome
         public string build;
         public string timeString;
         public string currentSceneName;
+        public string fileLocation;
         public bool newBorn;
         public DateTime time;
         public Trilogy trilogy;
@@ -45,40 +46,72 @@ namespace Architome
 
         public GameSettingsData gameSettings;
         public List<EntityData> savedEntities;
+        public List<DungeonData> savedDungeons;
 
-        
+        public List<int> selectedEntitiesIndex;
+        public DungeonData currentDungeon;
 
 
         public void SaveEntity(EntityInfo entity)
         {
-            var (data, index) = EntityData(entity);
+            var data = EntityData(entity);
 
+            
 
             if (data == null)
             {
-                data = new(entity);
+                entity.SaveIndex = savedEntities.Count;
+                data = new(entity, entity.SaveIndex);
                 savedEntities.Add(data);
             }
             else
             {
-                savedEntities[index] = new(entity);
+                savedEntities[entity.SaveIndex] = new(entity, entity.SaveIndex);
             }
         }
 
-        public (EntityData, int) EntityData(EntityInfo entity)
+        public EntityData EntityData(EntityInfo entity)
         {
             if (savedEntities == null) savedEntities = new();
 
-            for(int i = 0; i < savedEntities.Count; i++)
+            if (entity.SaveIndex == -1)
             {
-                var data = savedEntities[i];
-                if (data.info.entityName == entity.entityName) //Identifies which data that the entity belongs to.
-                {
-                    return (data, i);
-                }
+                return null;
             }
 
-            return (null, -1);
+            if (entity.SaveIndex >= savedEntities.Count)
+            {
+                return null;
+            }
+
+            return savedEntities[entity.SaveIndex];
+        }
+
+        public void SaveDungeon(Dungeon dungeon)
+        {
+            var data = DungeonData(dungeon);
+
+            if (data == null)
+            {
+                dungeon.SaveIndex = savedDungeons.Count;
+                data = new(dungeon, dungeon.SaveIndex);
+                savedDungeons.Add(data);
+            }
+            else
+            {
+                savedDungeons[dungeon.SaveIndex] = new(dungeon, dungeon.SaveIndex);
+            }
+
+        }
+
+        public DungeonData DungeonData(Dungeon dungeon)
+        {
+            if (savedDungeons == null) savedDungeons = new();
+            if (dungeon.SaveIndex == -1) return null;
+            if (dungeon.SaveIndex >= savedDungeons.Count) return null;
+
+            return savedDungeons[dungeon.SaveIndex];
+
         }
 
         public void Save(string saveName = "")
@@ -105,7 +138,9 @@ namespace Architome
                 this.saveName = saveName;
             }
 
-            SerializationManager.SaveGame(saveName, this);
+            var (success, fileLocation) = SerializationManager.SaveGame(saveName, this);
+
+            this.fileLocation = fileLocation;
         }
 
         public SaveGame LoadSave(string saveName)

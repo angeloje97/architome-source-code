@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-using UnityEngine.SceneManagement;
 
 namespace Architome
 {
@@ -12,8 +11,8 @@ namespace Architome
         public List<SaveGameSlot> slots;
         public SaveGame selectedSave;
         public SaveGame hoverSave;
-
-
+        public MenuModule module;
+        public bool selectedSaveExists;
 
         [Serializable]
         public struct Prefabs
@@ -22,38 +21,39 @@ namespace Architome
         }
 
         [Serializable]
-        public struct Info
+        public class Info
         {
             public Transform slotsParent;
-            public ArchButton loadSave, renameSave, deleteSave;
+            public List<ArchButton> saveInteractionButtons;
         }
 
         [SerializeField] Info info;
         [SerializeField] Prefabs prefabs;
 
         public Action<SaveGame> OnSelectSave;
-
         private void Start()
         {
+            selectedSave = null;
             savedGames = Core.AllSaves();
+            module = GetComponent<MenuModule>();
             CreateSlots();
             UpdateButtons();
         }
-
         private void Update()
         {
-            HandleNullMouseOvers();
+            if (!module.isActive) return;
+            //HandleNullMouseOvers();
         }
 
         void HandleNullMouseOvers()
         {
-            if (hoverSave != null) return;
-            if (!Input.GetKeyDown(KeyCode.Mouse0)) return;
+            if (!Input.GetKeyUp(KeyCode.Mouse0)) return;
+            if (hoverSave.saveId != 0) return;
 
-            selectedSave = null;
+            selectedSaveExists = false;
+            selectedSave = new();
             UpdateButtons();
         }
-
         void CreateSlots()
         {
             if (info.slotsParent == null) return;
@@ -67,28 +67,37 @@ namespace Architome
 
                 newSlot.SetSlot(save);
 
+                newSlot.OnClick += OnClickSave;
+                newSlot.OnDoubleClick += OnDoubleClickSave;
+
                 slots.Add(newSlot);
+                
             }
         }
-
         public void HandleSelect(SaveGame save)
         {
             selectedSave = save;
             OnSelectSave?.Invoke(save);
-
+            selectedSaveExists = true;
             UpdateSlots();
+            UpdateButtons();
         }
 
+        public void OnClickSave(SaveGameSlot slot)
+        {
+            HandleSelect(slot.saveGame);
+        }
 
-
+        public void OnDoubleClickSave(SaveGameSlot slot)
+        {
+            if (selectedSave.saveId <= 0) return;
+            LoadGame();
+        }
         public void UpdateButtons()
         {
-            bool selectedSaveExists = selectedSave != null;
-
             foreach (var save in slots)
             {
-                if (!selectedSaveExists) break;
-                var isSelected = save.saveGame == selectedSave;
+                var isSelected = selectedSaveExists && save.saveGame == selectedSave;
 
                 if (save.info.border.enabled != isSelected)
                 {
@@ -96,28 +105,25 @@ namespace Architome
                 }
             }
 
-            foreach (var field in info.GetType().GetFields())
+            foreach (var button in info.saveInteractionButtons)
             {
-                if (field.FieldType != typeof(ArchButton)) continue;
-                var archButton = (ArchButton) field.GetValue(info);
-
-                archButton.SetButton(selectedSaveExists);
+                button.SetButton(selectedSaveExists);
             }
-        }
 
+        }
         public void UpdateSlots()
         {
             foreach (var slot in slots)
             {
                 slot.SetStatus(slot.saveGame == selectedSave);
             }
-           
         }
-
         public void LoadGame()
         {
             Core.SetSave(selectedSave);
-            SceneManager.LoadScene(selectedSave.currentSceneName);
+
+            ArchSceneManager.active.LoadScene(selectedSave.currentSceneName);
+            //SceneManager.LoadScene(selectedSave.currentSceneName);
         }
         
 

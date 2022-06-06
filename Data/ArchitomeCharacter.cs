@@ -145,15 +145,20 @@ public class ArchitomeCharacter : MonoBehaviour
     }
     void Start()
     {
+       
+    }
+
+    private void Awake()
+    {
         GetDependencies();
 
-        if(!created)
+        if (!created)
         {
             SetDefault();
             SetDefaultMaterial();
         }
 
-        if(!basePartsSet)
+        if (!basePartsSet)
         {
             SetOriginalParts();
             basePartsSet = true;
@@ -165,19 +170,19 @@ public class ArchitomeCharacter : MonoBehaviour
 
     void RandomizeSex()
     {
-        if (randomizeSex)
-        {
-            var role  = Random.Range(0, 100);
+        if (!randomizeSex) return;
 
-            if (role > 50)
-            {
-                SetSex(Sex.Male);
-            }
-            else
-            {
-                SetSex(Sex.Female);
-            }
+        var role  = Random.Range(0, 100);
+
+        if (role > 50)
+        {
+            SetSex(Sex.Male);
         }
+        else
+        {
+            SetSex(Sex.Female);
+        }
+        
     }
     // Update is called once per frame
     void Update()

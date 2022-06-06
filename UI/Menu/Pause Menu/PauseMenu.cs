@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using UnityEngine.SceneManagement;
 
 namespace Architome
 {
@@ -56,7 +57,7 @@ namespace Architome
                 return;
             }
 
-            ToggleMenu();
+            ToggleMenu(); 
         }
 
         public void ToggleMenu()
@@ -86,6 +87,12 @@ namespace Architome
 
             SetCanvas(router, isActive);
 
+        }
+
+        public void LoadScene(string sceneName)
+        {
+            ArchSceneManager.active.LoadScene(sceneName);
+            //SceneManager.LoadScene(sceneName);
         }
 
         public void SetCanvas(CanvasGroup canvas, bool val)

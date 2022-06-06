@@ -31,6 +31,7 @@ namespace Architome
         public string className;
         public Color classColor;
 
+        public ClassType classType;
         public List<ArmorType> equipableArmor;
         public List<WeaponType> equipableWeapons;
         public List<Role> possibleRoles;

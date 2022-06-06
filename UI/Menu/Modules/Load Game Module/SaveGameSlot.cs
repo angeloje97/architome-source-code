@@ -29,6 +29,9 @@ namespace Architome
         public Info info;
 
 
+        public Action<SaveGameSlot> OnClick;
+        public Action<SaveGameSlot> OnDoubleClick;
+
 
         void Start()
         {
@@ -55,20 +58,25 @@ namespace Architome
         {
             if (clicked)
             {
-                OnDoubleClick();
+                OnDoubleClick?.Invoke(this);
                 clicked = false;
                 return;
             }
 
             clicked = true;
 
-            manager.HandleSelect(saveGame);
+            OnClick?.Invoke(this);
 
             float doubleClickTimer = .5f;
 
             while (doubleClickTimer > 0)
             {
                 doubleClickTimer -= Time.deltaTime;
+                
+                if (!clicked)
+                {
+                    return;
+                }
 
                 await Task.Yield();
             }
@@ -96,18 +104,13 @@ namespace Architome
             {
                 if (manager.hoverSave == saveGame)
                 {
-                    manager.hoverSave = null;
+                    manager.hoverSave = new();
                 }
             }
             else
             {
                 manager.hoverSave = saveGame;
             }
-        }
-
-        public void OnDoubleClick()
-        {
-            manager.LoadGame();
         }
     }
 }

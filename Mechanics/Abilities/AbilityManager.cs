@@ -87,18 +87,32 @@ namespace Architome
 
             foreach (Transform child in transform)
             {
-                if (child.GetComponent<AbilityInfo>())
+                var ability = child.GetComponent<AbilityInfo>();
+
+                if (ability == null) continue;
+
+                if (ability.isAttack || ability.abilityType2 == AbilityType2.AutoAttack)
                 {
-                    if (child.GetComponent<AbilityInfo>().isAttack)
-                    {
-                        attackAbility = child.GetComponent<AbilityInfo>();
-                    }
-                    else
-                    {
-                        abilities.Add(child.GetComponent<AbilityInfo>());
-                    }
-                    child.GetComponent<AbilityInfo>().active = true;
+                    attackAbility = ability;
                 }
+                else
+                {
+                    abilities.Add(ability);
+                }
+
+                ability.active = true;
+                //if (child.GetComponent<AbilityInfo>())
+                //{
+                //    if (child.GetComponent<AbilityInfo>().isAttack || child.GetChild)
+                //    {
+                //        attackAbility = child.GetComponent<AbilityInfo>();
+                //    }
+                //    else
+                //    {
+                //        abilities.Add(child.GetComponent<AbilityInfo>());
+                //    }
+                //    child.GetComponent<AbilityInfo>().active = true;
+                //}
             }
 
 
@@ -108,6 +122,8 @@ namespace Architome
         {
             GetDependencies();
         }
+
+        
 
         private void Update()
         {
@@ -172,6 +188,7 @@ namespace Architome
 
         public void OnChangeEquipment(EquipmentSlot slot, Equipment before, Equipment after)
         {
+            if (attackAbility == null) return;
             if (!attackAbility.usesWeaponCatalyst) return;
 
             attackAbility.catalyst = null;

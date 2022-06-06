@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace Architome
 {
-    public class ContextOption : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
+    public class ContextOption : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         // Start is called before the first frame update
         public TextMeshProUGUI optionLable;
@@ -36,6 +36,16 @@ namespace Architome
             UpdateHeight();
         }
 
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            contextMenu.currentHover = this;
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            if (contextMenu.currentHover != this) return;
+            contextMenu.currentHover = null;
+        }
 
         void UpdateHeight()
         {
@@ -54,18 +64,19 @@ namespace Architome
         public void SelectOption()
         {
             contextMenu.PickOption(index);
-        }
-
-        public void OnPointerDown(PointerEventData eventData)
-        {
             
         }
 
-        public void OnPointerUp(PointerEventData eventData)
-        {
-            if (eventData.button != PointerEventData.InputButton.Left) { return; }
-            SelectOption();
-        }
+        //public void OnPointerDown(PointerEventData eventData)
+        //{
+            
+        //}
+
+        //public void OnPointerUp(PointerEventData eventData)
+        //{
+        //    if (eventData.button != PointerEventData.InputButton.Left) { return; }
+        //    SelectOption();
+        //}
     }
 
 }

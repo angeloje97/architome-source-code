@@ -173,7 +173,7 @@ namespace Architome
             //    throw;
             //}
         }
-        void OnDamageTaken(CombatEventData eventData)
+        public void OnDamageTaken(CombatEventData eventData)
         {
             if (entityInfo.entityFX == null) return;
             if (entityInfo.entityFX.hurtSounds == null) return;

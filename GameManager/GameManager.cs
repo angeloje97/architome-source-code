@@ -3,16 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System;
+using Architome.Enums;
 namespace Architome
 {
     public class GameManager : MonoBehaviour
     {
-        //Static variables
         public static GameManager active;
 
         public DataMap data;
 
-
+        [SerializeField] GameState gameState;
+        public GameState GameState { get { return gameState; } }
         // Start is called before the first frame update
         public List<EntityInfo> playableEntities;
         public List<PartyInfo> playableParties;

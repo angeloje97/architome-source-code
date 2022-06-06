@@ -128,7 +128,9 @@ namespace Architome
 
             Core.SetSave(newSave);
 
-            SceneManager.LoadScene(info.sceneToLoad);
+
+            ArchSceneManager.active.LoadScene(info.sceneToLoad);
+            //SceneManager.LoadScene(info.sceneToLoad);
             
         }
 
