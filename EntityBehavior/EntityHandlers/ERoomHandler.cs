@@ -17,6 +17,7 @@ namespace Architome
             base.GetDependencies();
             entityInfo.OnPhysicsEvent += OnPhysicsEvent;
             entityInfo.OnRoomChange += OnRoomChange;
+            entityInfo.sceneEvents.OnTransferScene += OnTransferScene;
 
         }
 
@@ -41,6 +42,13 @@ namespace Architome
                 nextRoom.entities.HandleEntityEnter(entityInfo);
             }
 
+        }
+
+        public void OnTransferScene(string sceneName)
+        {
+            ArchAction.Delay(() => {
+                entityInfo.currentRoom = Entity.Room(entityInfo.transform.position);
+            }, .125f);
         }
 
         public void OnShowRoom(RoomInfo room, bool isShown)

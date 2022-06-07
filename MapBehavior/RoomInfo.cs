@@ -12,7 +12,7 @@ namespace Architome
     public class RoomInfo : MonoBehaviour
     {
         [SerializeField] int id;
-        bool idSet;
+        [SerializeField] bool idSet;
         public int _id
         {
             get

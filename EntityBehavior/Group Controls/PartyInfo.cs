@@ -4,18 +4,19 @@ using UnityEngine;
 using Architome.Enums;
 using System.Linq;
 using System;
+using System.Threading.Tasks;
 
 namespace Architome
 {
     public class PartyInfo : MonoBehaviour
     {
         // Start is called before the first frame update
+        public bool loadEntitiesFromSave;
         public List<GameObject> members;
         public List<GameObject> liveMembers;
         public GameObject raidObject;
         public GameObject center;
-
-        public KeyBindings keyBindings;
+        public KeyBindings keyBindings { get; set; }
         public EntityControlType partyControl;
         public PartyFormation partyFormation;
         public ContainerTargetables targetManager;
@@ -30,6 +31,7 @@ namespace Architome
         public struct PartyEvents
         {
             public Action<bool> OnCombatChange;
+            public Action<string> OnTransferScene;
         }
 
         public struct EventHandlers
@@ -47,6 +49,8 @@ namespace Architome
             partyFormation = GetComponentInChildren<PartyFormation>();
 
             var entities = GetComponentsInChildren<EntityInfo>();
+
+            members = new();
 
             for (int i = 0; i < entities.Length; i++)
             {
@@ -116,12 +120,19 @@ namespace Architome
 
             liveMembers = Entity.LiveEntityObjects(members);
         }
+
         void Start()
         {
-            GetDependencies();
-            ProcessMembers();
-            ArchAction.Delay(() => { AddMembersToGameManager(); }, .50f);
+            ArchAction.Delay(() =>
+            {
+                GetDependencies();
+                ProcessMembers();
+                AddMembersToGameManager();
+            }, .50f);
+            
+            //ArchAction.Delay(() => {  }, .50f);
         }
+
 
         void Update()
         {
@@ -129,6 +140,18 @@ namespace Architome
             HandleEvents();
         }
 
+
+        public void HandleTransferScene(string sceneName)
+        {
+            events.OnTransferScene?.Invoke(sceneName);
+
+            foreach (var member in GetComponentsInChildren<EntityInfo>())
+            {
+                member.sceneEvents.OnTransferScene?.Invoke(sceneName);
+            }
+            GetDependencies();
+            AddMembersToGameManager();
+        }
         //Player Input
         public void OnAlternateAction(int index)
         {

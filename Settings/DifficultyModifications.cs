@@ -24,7 +24,7 @@ namespace Architome
 
         void Start()
         {
-            DetermineSettings();
+            //DetermineSettings();
         }
 
         private void Awake()
@@ -35,7 +35,7 @@ namespace Architome
             {
                 gameDifficulty = Core.currentSave.gameSettings.difficulty;
             }
-
+            DetermineSettings();
         }
 
         public void OnValidate()

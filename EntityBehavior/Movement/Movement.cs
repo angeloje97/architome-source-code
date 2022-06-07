@@ -102,6 +102,8 @@ namespace Architome
                 }
             }
 
+            entityInfo.sceneEvents.OnTransferScene += OnTransferScene;
+
 
             if (behavior == null && entityInfo && entityInfo.AIBehavior())
             {
@@ -126,6 +128,12 @@ namespace Architome
             UpdateMetrics();
             HandleEvents();
         }
+
+        public void OnTransferScene(string sceneName)
+        {
+            StopMoving(true);
+        }
+
         public void OnLifeCheck(bool isAlive)
         {
             if (isAlive)
@@ -387,6 +395,8 @@ namespace Architome
 
 
         }
+
+        
 
         void OnCastStart(AbilityInfo ability)
         {

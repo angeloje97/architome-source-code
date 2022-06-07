@@ -96,7 +96,7 @@ namespace Architome
 
             for (int i = 0; i < size; i++)
             {
-                FillRooms(info);
+                FillRooms(info, i);
             }
 
             UpdateDungeonInfo();
@@ -150,7 +150,7 @@ namespace Architome
             };
         }
 
-        public void FillRooms(DungeonTable.DungeonInfo info)
+        public void FillRooms(DungeonTable.DungeonInfo info, int setIndex)
         {
             
             var rooms = new Rooms();
@@ -165,8 +165,15 @@ namespace Architome
             var bossPresets = new List<RoomInfo>();
             var entrancePresets = new List<RoomInfo>();
 
+            var set = info.sets[0];
 
-            foreach (var room in info.set.rooms)
+            if (setIndex >= 0 && setIndex < info.sets.Count)
+            {
+                set = info.sets[setIndex];
+            }
+
+
+            foreach (var room in set.rooms)
             {
                 var list = room.type switch
                 {
@@ -313,7 +320,7 @@ namespace Architome
 
         public void UpdateDungeonInfo()
         {
-            info.name.text = dungeonInfo.set.dungeonSetName;
+            info.name.text = dungeonInfo.sets[0].dungeonSetName;
             info.description.text = $"Size: {size} | {DungeonRoomsCount()} Rooms | {EntitiesInDungeon().Count()} Unique Entities | Seed : {seed}";
         }
 

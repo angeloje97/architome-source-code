@@ -94,7 +94,10 @@ namespace Architome
         void HandleCoreDungeons()
         {
             if (!useCoreInfo) return;
+            
             var levels = Core.currentDungeon;
+
+            if (levels == null) return;
 
             var dungeonInfo = levels[Core.dungeonIndex];
 

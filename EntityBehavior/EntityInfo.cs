@@ -80,7 +80,6 @@ namespace Architome
 
 
         }
-
         public SummonedEntity summon;
 
         public PresetStats presetStats;
@@ -126,6 +125,11 @@ namespace Architome
             public Action<GroupFormationBehavior> OnRotateFormationEnd;
         }
 
+        public struct SceneEvents
+        {
+            public Action<string> OnTransferScene { get; set; }
+        }
+
         public event Action<CombatEventData> OnDamageTaken;
         public Action<CombatEventData> OnDamageDone;
         public event Action<CombatEventData> OnHealingTaken;
@@ -159,6 +163,7 @@ namespace Architome
         public TargetableEvents targetableEvents = new();
         public CombatEvents combatEvents;
         public PortalEvents portalEvents;
+        public SceneEvents sceneEvents;
 
         //Non Player Events
         public Action<EntityInfo, PartyInfo> OnPlayerLineOfSight;
@@ -194,6 +199,7 @@ namespace Architome
         }
         public void StartUp()
         {
+
             if (fixedStats)
             {
                 stats = entityStats;
@@ -229,14 +235,16 @@ namespace Architome
                 entityControlType = EntityControlType.NoControl;
             }
 
-            health = maxHealth;
-            mana = maxMana;
-            shield = 0;
+            //health = maxHealth;
+            //mana = maxMana;
+            //shield = 0;
             isAlive = true;
 
             GetPartyControls();
-            Invoke("SetEntityStats", .125f);
-            Invoke("UpdateCurrentStats", .250f);
+            //Invoke("SetEntityStats", .125f);
+            //Invoke("UpdateCurrentStats", .250f);
+            SetEntityStats();
+            UpdateCurrentStats();
 
             if(rarity != EntityRarity.Player)
             {
@@ -366,6 +374,7 @@ namespace Architome
 
             var currentStats = entityStats;
             var buffs = Buffs();
+
 
             if (buffs)
             {
@@ -934,7 +943,7 @@ namespace Architome
         }
         public BuffsManager Buffs()
         {
-
+            if (gameObject == null) return null;
 
             foreach (Transform child in transform)
             {

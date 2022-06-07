@@ -12,7 +12,8 @@ namespace Architome
         [Serializable]
         public class DungeonInfo
         {
-            public DungeonSet set;
+            public List<DungeonSet> sets;
+            //public DungeonSet set;
             public int amount;
             public Transform dungeonParent;
             public List<Size> allowedSize;
@@ -73,7 +74,8 @@ namespace Architome
         {
             GetDependencies();
             CreateDungeonSets();
-            UpdateDungeons();
+            ArchAction.Yield(() => UpdateDungeons());
+            
         }
 
         void BeforeSave(SaveGame save)
@@ -138,7 +140,6 @@ namespace Architome
         {
             if (prefabs.dungeon == null) return;
 
-            var mappedInfos = new Dictionary<int, DungeonInfo>();
 
             foreach (var dungeonInfo in dungeonInfos)
             {
@@ -149,7 +150,6 @@ namespace Architome
                     dungeonInfo.dungeons = new();
                 }
 
-                mappedInfos.Add(dungeonInfo.set._id, dungeonInfo);
 
                 FillPresetDungeons(dungeonInfo);
                 ArchAction.Yield(() => FillRandomDungeons(dungeonInfo));
@@ -157,7 +157,7 @@ namespace Architome
 
             }
 
-            LoadDungeons(mappedInfos);
+            LoadDungeons();
 
             void FillPresetDungeons(DungeonInfo info)
             {
@@ -172,7 +172,7 @@ namespace Architome
                 }
             }
 
-            void LoadDungeons(Dictionary<int, DungeonInfo> mappedInfos) // Poor run time
+            void LoadDungeons() // Poor run time
             {
                 var currentSave = Core.currentSave;
 
@@ -183,9 +183,13 @@ namespace Architome
 
                 foreach (var savedDungeon in savedDungeons)
                 {
-                    if (!mappedInfos.ContainsKey(savedDungeon.dungeonSetID)) continue;
-                    var info = mappedInfos[savedDungeon.dungeonSetID];
+                    if (savedDungeon.dungeonInfosIndex == -1) continue;
+                    if (savedDungeon.dungeonInfosIndex >= dungeonInfos.Count) continue;
+
+                    var info = dungeonInfos[savedDungeon.dungeonInfosIndex];
                     var newDungeon = Instantiate(prefabs.dungeon, info.dungeonParent).GetComponent<Dungeon>();
+
+                    newDungeon.OnSelectDungeon += OnSelectDungeon;
 
                     newDungeon.SetDungeon(info, savedDungeon);
                     info.dungeons.Add(newDungeon);

@@ -27,6 +27,8 @@ public class PlayerController : MonoBehaviour
             movement = entityInfo.Movement();
             abilityManager = entityInfo.AbilityManager();
             behavior = entityInfo.AIBehavior();
+
+            entityInfo.sceneEvents.OnTransferScene += OnTransferScene;
         }
 
         targetManager = ContainerTargetables.active;
@@ -40,6 +42,7 @@ public class PlayerController : MonoBehaviour
         {
             ArchInput.active.OnAction += OnAction;
         }
+
         
     }
     void Start()
@@ -54,6 +57,12 @@ public class PlayerController : MonoBehaviour
         //HandlePartyControl();
     }
     
+    public void OnTransferScene(string sceneName)
+    {
+        targetManager = ContainerTargetables.active;
+        keyBindings = GMHelper.KeyBindings();
+    }
+
     public void OnAction()
     {
         if (entityInfo.entityControlType == EntityControlType.EntityControl)

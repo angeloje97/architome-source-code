@@ -58,6 +58,7 @@ namespace Architome
             AcquireSlots(); 
         }
 
+        
         void BeforeLoadScene(ArchSceneManager sceneManager)
         {
             SaveEntities();
@@ -110,31 +111,31 @@ namespace Architome
         {
             var slot = FirstAvailablePartySlot(card.entity.role);
 
-            if (slot == null) return;
+            //if (slot == null) return;
 
-            var userOption = await ContextMenu.current.UserChoice(new()
-            {
-                title = $"{card.entity.entityName}",
-                options = new()
-                {
-                    "Move to Party",
-                    "Stats",
-                    "Banish"
-                }
-            });
+            //var userOption = await ContextMenu.current.UserChoice(new()
+            //{
+            //    title = $"{card.entity.entityName}",
+            //    options = new()
+            //    {
+            //        "Move to Party",
+            //        "Stats",
+            //        "Banish"
+            //    }
+            //});
 
-            HandleOption1();
+            //HandleOption1();
 
-            void HandleOption1()
-            {
-                if (userOption != 0) return;
+            //void HandleOption1()
+            //{
+            //    if (userOption != 0) return;
 
-                RosterToParty(slot, card);
-                UpdatePartyManager();
-            }
+            //    RosterToParty(slot, card);
+            //    UpdatePartyManager();
+            //}
 
-            //RosterToParty(slot, card);
-            //UpdatePartyManager(true);
+            RosterToParty(slot, card);
+            UpdatePartyManager(true);
         }
 
 

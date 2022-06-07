@@ -93,6 +93,13 @@ namespace Architome
         async public Task SceneTransition()
         {
             Debugger.InConsole(89429, $"{this} transitioning");
+
+            if (info.handler)
+            {
+                info.handler.transform.SetAsLastSibling();
+            }
+            transform.SetAsLastSibling();
+
             transitioning = true;
 
             info.animator.SetBool("IsPlaying", false);

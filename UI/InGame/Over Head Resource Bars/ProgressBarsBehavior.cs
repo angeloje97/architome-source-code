@@ -158,6 +158,7 @@ public class ProgressBarsBehavior : MonoBehaviour
     async public void UpdateCanvas(bool val)
     {
         targetAlpha = val ? 1f : 0f;
+        if (canvasGroup == null) return;
         canvasGroup.interactable = targetAlpha == 1f;
         canvasGroup.blocksRaycasts = targetAlpha == 1f;
 
@@ -166,7 +167,7 @@ public class ProgressBarsBehavior : MonoBehaviour
         changingAlpha = true;
 
 
-        while (canvasGroup.alpha != targetAlpha)
+        while (canvasGroup != null && canvasGroup.alpha != targetAlpha)
         {
             if (!entityInfo.isAlive)
             {

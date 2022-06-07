@@ -20,7 +20,7 @@ namespace Architome
         public Action<AsyncOperation> OnLoadEnd;
 
 
-        public string sceneTolLoad;
+        public string sceneToLoad;
 
         private void Awake()
         {
@@ -31,7 +31,7 @@ namespace Architome
         {
             tasksBeforeLoad = new();
 
-            this.sceneTolLoad = sceneName;
+            this.sceneToLoad = sceneName;
 
             BeforeLoadScene?.Invoke(this);
 
@@ -56,8 +56,11 @@ namespace Architome
             }
 
             OnLoadEnd?.Invoke(operation);
+        }
 
-
+        public string CurrentScene()
+        {
+            return SceneManager.GetActiveScene().name;
         }
 
     }

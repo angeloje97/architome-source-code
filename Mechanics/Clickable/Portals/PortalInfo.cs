@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-using UnityEngine.SceneManagement;
+using UnityEngine.Events;
 
 namespace Architome
 {
@@ -10,24 +10,26 @@ namespace Architome
     {
         // Start is called before the first frame update
         public static List<PortalInfo> portals;
+        public ArchSceneManager sceneManager;
+        public bool entryPortal;
 
         public List<PortalInfo> portalList;
         public List<GameObject> entitiesInPortal = new();
         public Transform portalSpot;
         public Transform exitSpot;
         public Clickable clickable;
+        public int partyCount;
         public int portalNum;
+        public string setScene;
 
         [Serializable]
         public struct Info
         {
-            public Scene scene;
+            public string sceneName;
             public RoomInfo room;
             public int portalID;
             public AudioClip portalEnterSound;
             public AudioClip portalExitSound;
-            
-            
         }
 
         public struct Connection
@@ -50,6 +52,10 @@ namespace Architome
             }
 
             PortalManager.active.HandleNewPortal(this);
+
+            GMHelper.GameManager().OnNewPlayableEntity += OnNewPlayableEntity;
+
+            sceneManager = ArchSceneManager.active;
         }
 
         void Start()
@@ -57,6 +63,28 @@ namespace Architome
             GetDependencies();
             portalList = portals;
             portalNum = portals.IndexOf(this);
+            HandlePortalList();
+        }
+
+        void HandlePortalList()
+        {
+            if (portalList == null) portalList = new();
+
+            for (int i = 0; i < portalList.Count; i++)
+            {
+                if (portalList[i] == null)
+                {
+                    portalList.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            portalList.Add(this);
+        }
+
+        void OnNewPlayableEntity(EntityInfo info, int index)
+        {
+            partyCount++;
         }
         private void Awake()
         {
@@ -71,6 +99,35 @@ namespace Architome
         private void Update()
         {
 
+        }
+
+        public void IncreaseDungeonIndex()
+        {
+            if (Core.currentDungeon == null) return;
+            if (Core.currentDungeon.Count == 0) return;
+
+            Core.dungeonIndex++;
+
+            if (Core.dungeonIndex < 0 || Core.dungeonIndex >= Core.currentDungeon.Count)
+            {
+                setScene = "Dungeoneer Menu";
+                return;
+            }
+
+            setScene = "Map Template";
+
+        }
+
+        public void TeleportToScene(string sceneName)
+        {
+            if (setScene == null || setScene.Length == 0) return;
+            sceneManager.LoadScene(sceneName, true);
+        }
+
+        public void TeleportToSetScene()
+        {
+            if (setScene == null || setScene.Length == 0) return;
+            sceneManager.LoadScene(setScene, true);
         }
 
 
@@ -107,9 +164,13 @@ namespace Architome
 
     
 
+    [Serializable]
     public struct PortalEvents
     {
         public Action<PortalInfo, GameObject> OnPortalEnter;
         public Action<PortalInfo, GameObject> OnPortalExit;
+        public Action<PortalInfo, List<GameObject>> OnAllPartyMembersInPortal;
+
+        public UnityEvent OnAllMembersInPortal;
     }
 }

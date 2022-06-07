@@ -20,6 +20,19 @@ namespace Architome
 
             public RoomData(Dungeon.Rooms level)
             {
+                skeletonRoomsIDs = new();
+                randomRoomIDs = new();
+
+                foreach (var room in level.skeleton)
+                {
+                    skeletonRoomsIDs.Add(room._id);
+                }
+
+                foreach (var room in level.random)
+                {
+                    randomRoomIDs.Add(room._id);
+                }
+
                 if (level.entrance)
                 {
                     entranceRoomID = level.entrance._id;
@@ -36,7 +49,7 @@ namespace Architome
 
         public int currentLevel;
         public string seed;
-        public int dungeonSetID;
+        public int dungeonInfosIndex = -1;
         public int saveIndex = -1;
         public Size size;
 
@@ -54,7 +67,12 @@ namespace Architome
 
             this.saveIndex = saveIndex;
 
-            dungeonSetID = dungeon.dungeonInfo.set._id;
+
+            var dungeonTable = dungeon.GetComponentInParent<DungeonTable>();
+            if (dungeonTable)
+            {
+                dungeonInfosIndex = dungeonTable.dungeonInfos.IndexOf(dungeon.dungeonInfo);
+            }
 
             //foreach (var room in dungeon.rooms.skeleton)
             //{

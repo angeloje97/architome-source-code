@@ -40,6 +40,8 @@ namespace Architome
 
             var newEntity = Object.Instantiate(entity.gameObject, parent).GetComponent<EntityInfo>();
 
+            
+
             await Task.Yield();
 
             LoadEntity(data, newEntity);
@@ -55,6 +57,7 @@ namespace Architome
             var characterInfo = entity.GetComponentInChildren<CharacterInfo>();
 
             entity.SaveIndex = data.dataIndex;
+
 
             LoadInfo();
             LoadCharacter();
@@ -75,7 +78,13 @@ namespace Architome
 
                     otherField.SetValue(entity, field.GetValue(info));
 
+                    if (field.Name == "health")
+                    {
+                        Debugger.InConsole(18935, $"{entity.entityName} | health: {entity.health}/{entity.maxHealth}");
+                    }
+
                 }
+
 
                 var archClass = _maps.archClasses[info.classId];
 

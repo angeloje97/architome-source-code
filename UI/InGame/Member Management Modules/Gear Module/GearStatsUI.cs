@@ -82,6 +82,14 @@ public class GearStatsUI : MonoBehaviour
         CreateSingleStats();
     }
 
+    private void OnDestroy()
+    {
+        if (entityInfo)
+        {
+            entityInfo.OnChangeStats -= OnChangeStats;
+        }
+    }
+
     private void Start()
     {
         GetDependenices();
@@ -111,6 +119,11 @@ public class GearStatsUI : MonoBehaviour
 
     void OnChangeStats(EntityInfo entityInfo)
     {
+        if (gameObject == null)
+        {
+            entityInfo.OnChangeStats -= OnChangeStats;
+            return;
+        }
         UpdateNewStats();
     }
 

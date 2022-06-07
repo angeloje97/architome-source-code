@@ -33,7 +33,9 @@ namespace Architome
 
         public void OnChangeEquipment(EquipmentSlot slot, Equipment previous, Equipment after)
         {
-            ArchAction.Yield(() => { entityInfo.UpdateCurrentStats(); });
+            ArchAction.Yield(() => {
+                if (entityInfo == null) return;
+                entityInfo.UpdateCurrentStats(); });
             UpdateModel();
         }
 
