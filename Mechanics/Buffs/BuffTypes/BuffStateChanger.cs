@@ -3,62 +3,71 @@ using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
 using System;
-public class BuffStateChanger : MonoBehaviour
+namespace Architome
 {
-    public BuffInfo buffInfo;
-    public EntityState stateToChange;
-    public bool applied;
-
-    public Action<BuffStateChanger, EntityState> OnSuccessfulStateChange;
-    public Action<BuffStateChanger, EntityState> OnStateChangerEnd;
-    // Start is called before the first frame update
-    void GetDependencies()
+    public class BuffStateChanger : BuffType
     {
-        if (GetComponent<BuffInfo>())
+        public EntityState stateToChange;
+        public bool applied;
+
+        public Action<BuffStateChanger, EntityState> OnSuccessfulStateChange;
+        public Action<BuffStateChanger, EntityState> OnStateChangerEnd;
+        // Start is called before the first frame update
+        new void GetDependencies()
         {
-            buffInfo = GetComponent<BuffInfo>();
-            buffInfo.OnBuffEnd += OnBuffEnd;
+            base.GetDependencies();
 
-            ApplyBuff();
-
-            if (applied == true)
+            if (buffInfo)
             {
-                OnSuccessfulStateChange?.Invoke(this, stateToChange);
-                return;
+                buffInfo.OnBuffEnd += OnBuffEnd;
+
+                ApplyBuff();
+
+                if (applied == true)
+                {
+                    OnSuccessfulStateChange?.Invoke(this, stateToChange);
+                    return;
+                }
+                buffInfo.failed = true;
+                buffInfo.Cleanse();
             }
-            buffInfo.failed = true;
-            buffInfo.Cleanse();
+        }
+
+        public override string BuffTypeDescription()
+        {
+            return $"Target becomes $ {ArchString.CamelToTitle(stateToChange.ToString())}";
+        }
+
+        void Start()
+        {
+            GetDependencies();
+        }
+
+        public void ApplyBuff()
+        {
+            applied = buffInfo.hostInfo.AddState(stateToChange);
+
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+
+        }
+
+        public void OnBuffEnd(BuffInfo buff)
+        {
+            HandleRemoveState(buff);
+        }
+
+        public void HandleRemoveState(BuffInfo buff)
+        {
+            if (!applied) return;
+
+            buffInfo.hostInfo.RemoveState(stateToChange);
+
+            OnStateChangerEnd?.Invoke(this, stateToChange);
         }
     }
 
-    void Start()
-    {
-        GetDependencies();
-    }
-
-    public void ApplyBuff()
-    {
-        applied = buffInfo.hostInfo.AddState(stateToChange);
-
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    public void OnBuffEnd(BuffInfo buff)
-    {
-        HandleRemoveState(buff);
-    }
-
-    public void HandleRemoveState(BuffInfo buff)
-    {
-        if (!applied) return;
-
-        buffInfo.hostInfo.RemoveState(stateToChange);
-
-        OnStateChangerEnd?.Invoke(this, stateToChange);
-    }
 }

@@ -47,6 +47,8 @@ namespace Architome
         public Dungeon selectedDungeon;
         public DungeoneerManager manager;
 
+        public Action<Dungeon, Dungeon> OnSelectedDungeonChange;
+
         void GetDependencies()
         {
             manager = GetComponentInParent<DungeoneerManager>();
@@ -102,21 +104,30 @@ namespace Architome
                 }
             }
 
+            
+
             if (selectedDungeon)
             {
                 Core.currentDungeon = selectedDungeon.levels;
+
+                currentSave.currentDungeon = currentSave.savedDungeons[selectedDungeon.SaveIndex];
+            }
+            else
+            {
+                currentSave.currentDungeon = null;
             }
         }
 
         public void OnSelectDungeon(Dungeon selectedDungeon)
         {
+            if (this.selectedDungeon == selectedDungeon) return;
+
+            OnSelectedDungeonChange?.Invoke(this.selectedDungeon, selectedDungeon);
+
             this.selectedDungeon = selectedDungeon;
             manager.SetDungeon(selectedDungeon);
             UpdateDungeons();
         }
-
-        
-
         public void UpdateDungeons()
         {
             foreach (var dungeonInfo in dungeonInfos)
@@ -129,12 +140,10 @@ namespace Architome
                 }
             }
         }
-
         public void BeforeCheckCondition(List<bool> conditions)
         {
             conditions.Add(selectedDungeon != null);
         }
-
 
         public void CreateDungeonSets()
         {

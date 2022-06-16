@@ -4,10 +4,8 @@ using UnityEngine;
 using Architome.Enums;
 using Architome;
 
-public class BuffHealthOverTime : MonoBehaviour
+public class BuffHealthOverTime : BuffType
 {
-    // Start is called before the first frame update
-    public BuffInfo buffInfo;
 
     public GameObject entityObject;
     public EntityInfo entityInfo;
@@ -15,17 +13,18 @@ public class BuffHealthOverTime : MonoBehaviour
     public bool sourceOfExpiration;
     public DamageType damageType;
     
-    public void GetDependencies()
+    new public void GetDependencies()
     {
-        if(gameObject.GetComponent<BuffInfo>())
-        {
-            buffInfo = gameObject.GetComponent<BuffInfo>();
+        base.GetDependencies();
 
-            if(buffInfo.hostInfo)
+        if (buffInfo)
+        {
+
+            if (buffInfo.hostInfo)
             {
                 entityInfo = buffInfo.hostInfo;
             }
-            if(buffInfo.hostObject)
+            if (buffInfo.hostObject)
             {
                 entityObject = buffInfo.hostObject;
             }
@@ -43,6 +42,25 @@ public class BuffHealthOverTime : MonoBehaviour
         
     }
 
+
+    public override string BuffTypeDescription()
+    {
+        var result = "";
+
+        if (buffInfo.buffTargetType == BuffTargetType.Assist)
+        {
+            result += "Heals ";
+        }
+
+        if (buffInfo.buffTargetType == BuffTargetType.Harm)
+        {
+            result += "Damages ";
+        }
+
+        result += $" the target for {buffInfo.properties.value} health every {buffInfo.properties.intervals} seconds\n";
+
+        return result;
+    }
     public void OnBuffInterval(BuffInfo buff)
     {
         HandleHealthOverTime();

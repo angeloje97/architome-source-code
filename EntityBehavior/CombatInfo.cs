@@ -22,9 +22,11 @@ public class CombatInfo : MonoBehaviour
         {
             public float damageDone;
             public float damageTaken;
+            public float damagePreventedFromShields;
             public float healingDone;
             public float healingTaken;
             public float threatGenerated;
+            public float experienceGained;
             public float deaths;
         }
         public EntityInfo entity;
@@ -47,6 +49,8 @@ public class CombatInfo : MonoBehaviour
             entity.OnHealingTaken += OnHealingTaken;
             entity.OnLifeChange += OnLifeChange;
             entity.OnCombatChange += OnCombatChange;
+            entity.OnExperienceGain += OnExperienceGain;
+            entity.OnDamagePreventedFromShields += OnDamagePreventedFromShields;
 
             var threatManager = entity.GetComponentInChildren<ThreatManager>();
 
@@ -91,6 +95,8 @@ public class CombatInfo : MonoBehaviour
 
             values.damageDone += eventData.value;
         }
+
+
         
         public void OnLifeChange(bool val)
         {
@@ -113,6 +119,16 @@ public class CombatInfo : MonoBehaviour
         public void OnHealingTaken(CombatEventData eventData)
         {
             values.healingTaken += eventData.value;
+        }
+
+        public void OnExperienceGain(float experience)
+        {
+            values.experienceGained += experience;
+        }
+
+        public void OnDamagePreventedFromShields(CombatEventData eventData)
+        {
+            values.damagePreventedFromShields += eventData.value;
         }
 
         public void OnGenerateThreat(ThreatManager.ThreatInfo threatInfo, float value)

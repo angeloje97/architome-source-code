@@ -40,6 +40,8 @@ namespace Architome
             [Header("Settings")]
             public bool updateID;
             public bool searchAnyBuff;
+            public bool emptyName;
+            public bool noIcon;
             
             public BuffTargetType buffTargetType;
             public List<BuffInfo> results;
@@ -72,18 +74,28 @@ namespace Architome
             void HandleSearch()
             {
                 results = idDataBase.Buffs.Where(buff => buff.name.ToLower().Contains(searchQuery.ToLower())).ToList();
-                
+
 
                 if (!searchAnyBuff)
                 {
                     results = results.Where(buff => buff.buffTargetType == buffTargetType).ToList();
+                }
+
+                if (emptyName)
+                {
+                    results = results.Where(buff => buff.name == null || buff.name.Length == 0).ToList();
+                }
+
+                if (noIcon)
+                {
+                    results = results.Where(buff => buff.buffIcon == null).ToList();
                 }
             }
 
 
 
 
-            
+
         }
         [Serializable]
         public class ItemIDSearch
@@ -93,6 +105,7 @@ namespace Architome
             public bool anyItemType;
             public bool hasIcon;
             public bool missingIcon;
+            public bool missingName;
             public ItemType itemType;
             public string searchQuery;
             public bool updateId;
@@ -111,6 +124,7 @@ namespace Architome
                     missingIcon = false;
                 }
 
+
                 if (!anyItemType)
                 {
                     results = idDatabase.Items.Where(item => item.itemType == this.itemType).ToList();
@@ -128,6 +142,11 @@ namespace Architome
                 if (missingIcon)
                 {
                     results = results.Where(item => item.itemIcon == null).ToList();
+                }
+
+                if (missingName)
+                {
+                    results = results.Where(item => item.itemName == null || item.itemName.Length == 0).ToList();
                 }
 
                 if (searchQuery.Length > 0)

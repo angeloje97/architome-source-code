@@ -38,6 +38,34 @@ namespace Architome
             return newText;
         }
 
+        public static string StringList(List<string> strings)
+        {
+            if (strings == null || strings.Count == 0)
+            {
+                return "";
+            }
+
+            if (strings.Count == 1)
+            {
+                return strings[0];
+            }
+
+            var list = "";
+
+            for (int i = 0; i < strings.Count; i++)
+            {
+                if (i == 0)
+                {
+                    list += strings[i];
+                    continue;
+                }
+
+                list += $", {strings[i]}";
+            }
+
+            return list;
+        }
+
         public static string TitleToCamel(string text)
         {
             var newText = "";
@@ -59,6 +87,8 @@ namespace Architome
 
             return newText;
         }
+
+        
 
         public static string FloatToSimple(float value)
         {

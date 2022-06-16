@@ -21,13 +21,14 @@ namespace Architome
             public Rarity rarity;
             [Range(0, 3)]
             public int stars;
-            public List<ItemData> items;
             public int maxChestSlots;
+            public List<ItemData> items;
+            public bool useItemPool;
+            public ItemPool itemPool;
 
             [Header("Interactions")]
             public EntityInfo entityOpened;
             public WorkInfo station;
-           
         }
 
         [Serializable]
@@ -61,6 +62,7 @@ namespace Architome
         }
 
         public Events events;
+        public bool isOpen;
 
         public UnityEvent OnOpen;
         public UnityEvent OnClose;
@@ -72,6 +74,16 @@ namespace Architome
         void Start()
         {
             GetDependencies();
+            CreateItemsFromItemPool();
+        }
+
+        void CreateItemsFromItemPool()
+        {
+            if (!info.useItemPool) return;
+            if (info.itemPool == null) return;
+
+            info.items = info.itemPool.CreatePossibleItems(info.maxChestSlots);
+
         }
         public void Open()
         {
@@ -82,6 +94,7 @@ namespace Architome
             }
 
             events.OnOpen?.Invoke(this);
+            isOpen = true;
             WorldModuleCore.active.HandleChest(this);
             OnOpen?.Invoke();
             ChestRoutine();
@@ -122,6 +135,7 @@ namespace Architome
 
         public void Close()
         {
+            isOpen = false;
             events.OnClose?.Invoke(this);
             OnClose?.Invoke();
             info.entityOpened = null;

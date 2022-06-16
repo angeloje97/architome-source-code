@@ -34,8 +34,7 @@ namespace Architome
         void HandleLastLevel()
         {
             if (party == null) return;
-            if (Core.currentDungeon == null) return;
-            if (Core.dungeonIndex != Core.currentDungeon.Count - 1) return;
+            if (!LastLevel()) return;
 
             var destroyOnLoad = new GameObject("DestroyOnLoad");
             party.transform.SetParent(destroyOnLoad.transform);
@@ -45,6 +44,15 @@ namespace Architome
         void Update()
         {
 
+        }
+
+        public bool LastLevel()
+        {
+            if (Core.currentDungeon == null) return false;
+            if (Core.dungeonIndex >= Core.currentDungeon.Count -1) return false;
+
+
+            return true;
         }
         async void HandleLoadEntities()
         {
@@ -143,6 +151,8 @@ namespace Architome
             if (Core.currentSave == null) return;
             if (party == null) return;
             if (!loadFromSave) return;
+
+            if (!LastLevel()) return;
 
 
             foreach (var entity in party.GetComponentsInChildren<EntityInfo>())

@@ -17,10 +17,10 @@ namespace Architome
         private List<EntityInfo> deadPlayableEntities;
         public bool allPlayableEntitiesDead;
 
-        public Action<CombatEventData> OnEntityDeath;
-        public Action<CombatEventData> OnNPCDeath;
-        public Action<CombatEventData> OnPlayableEntityDeath;
-        public Action<List<EntityInfo>> OnAllPlayableEntityDeath;
+        public Action<CombatEventData> OnEntityDeath { get; set; }
+        public Action<CombatEventData> OnNPCDeath { get; set; }
+        public Action<CombatEventData> OnPlayableEntityDeath { get; set; }
+        public Action<List<EntityInfo>> OnAllPlayableEntityDeath { get; set; }
 
         //Private
 
@@ -41,6 +41,11 @@ namespace Architome
         void Update()
         {
         
+        }
+
+        private void OnDestroy()
+        {
+            
         }
 
         public void HandleDeadEntity(CombatEventData eventData)

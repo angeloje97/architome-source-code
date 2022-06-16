@@ -178,7 +178,7 @@ namespace Architome
             
         }
 
-        public GameObject CreateItem(Item item, bool cloned = false)
+        public GameObject CreateItem(Item item, int amount, bool cloned = false)
         {
             if (!prefabs.item) return null;
             if (item == null) return null;
@@ -190,16 +190,13 @@ namespace Architome
             var newItem = Instantiate(prefabs.item, itemBin).GetComponent<ItemInfo>();
 
             newItem.item = cloned ? Instantiate(item) : item;
+            newItem.currentStacks = amount;
             newItem.UpdateItemInfo();
             newItem.isInInventory = true;
 
             return newItem.gameObject;
-
-
-            
-
-
         }
+
 
         public GameObject CreateEntityIcon(EntityInfo entity)
         {

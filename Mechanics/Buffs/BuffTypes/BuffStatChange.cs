@@ -44,6 +44,38 @@ namespace Architome
             GetDependencies();
         }
 
+        public override string BuffTypeDescription()
+        {
+
+            var result = "";
+
+            var attributes = stats.Attributes();
+
+            if (attributes.Count == 0) return result;
+
+            result += $"Stats provided from buff :\n";
+
+            var percentageFields = Stats.PercentageFields;
+
+            foreach (var attribute in attributes)
+            {
+                var sign = attribute.Positive ? "+" : "-";
+                if (percentageFields.Contains(attribute.Name))
+                {
+                    result += $"{ArchString.CamelToTitle(attribute.Name)}: {sign}({(float) attribute.Data * 100}%)";
+                }
+                else
+                {
+                    result += $"{ArchString.CamelToTitle(attribute.Name)}: {sign}({attribute.Data})";
+                }
+
+
+                result += "\n";
+            }
+
+            return result;
+        }
+
         void OnStack(BuffInfo info, int stacks, float value)
         {
             stats = starting*stacks;

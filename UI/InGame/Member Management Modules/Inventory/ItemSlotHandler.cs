@@ -9,7 +9,7 @@ namespace Architome
     {
         // Start is called before the first frame update
 
-        public Action<ItemEventData> OnChangeItem;
+        public Action<ItemEventData> OnChangeItem { get; set; }
     }
 
     public struct ItemEventData

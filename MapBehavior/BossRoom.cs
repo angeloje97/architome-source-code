@@ -15,9 +15,6 @@ namespace Architome
 
         private void OnValidate()
         {
-            
-
-
             for (int i = 0; i < possibleBosses.Count; i++)
             {
                 var bossToSpawn = possibleBosses[i];
@@ -27,6 +24,11 @@ namespace Architome
                     possibleBosses.RemoveAt(i);
                     i--;
                 }
+            }
+
+            if (pool)
+            {
+                possibleBosses = pool.bossEntities;
             }
         }
         void Start()

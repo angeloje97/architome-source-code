@@ -17,11 +17,13 @@ namespace Architome
             public int bossRoomID = -1;
             public List<int> skeletonRoomsIDs;
             public List<int> randomRoomIDs;
+            public string seed;
 
             public RoomData(Dungeon.Rooms level)
             {
                 skeletonRoomsIDs = new();
                 randomRoomIDs = new();
+                seed = level.levelSeed;
 
                 foreach (var room in level.skeleton)
                 {
@@ -51,6 +53,7 @@ namespace Architome
         public string seed;
         public int dungeonInfosIndex = -1;
         public int saveIndex = -1;
+        public bool completed;
         public Size size;
 
         public DungeonData(Dungeon dungeon, int saveIndex)
@@ -62,7 +65,6 @@ namespace Architome
             }
 
 
-            seed = dungeon.seed;
             size = dungeon.size;
 
             this.saveIndex = saveIndex;

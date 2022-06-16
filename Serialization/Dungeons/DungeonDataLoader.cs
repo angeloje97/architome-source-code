@@ -12,9 +12,13 @@ namespace Architome
         {
             var levels = new List<Dungeon.Rooms>();
 
+
+
             foreach (var rooms in data.levelDatas)
             {
                 var level = new Dungeon.Rooms();
+
+                level.levelSeed = rooms.seed;
                 var maps = GMHelper.GameManager().data;
 
                 if (maps == null) return levels;
@@ -83,7 +87,6 @@ namespace Architome
             dungeon.levels = DungeonLevels(data);
 
 
-            dungeon.seed = data.seed;
             dungeon.size = data.size;
             dungeon.SaveIndex = data.saveIndex;
 

@@ -32,7 +32,7 @@ namespace Architome
             public List<RoomInfo> random;
             public RoomInfo entrance;
             public RoomInfo boss;
-            
+            public string levelSeed;
         }
 
 
@@ -56,7 +56,6 @@ namespace Architome
         public Prefabs prefabs;
 
         public Size size;
-        public string seed;
         public DungeonTable.DungeonInfo dungeonInfo;
         public Info info;
         //public Rooms rooms;
@@ -91,7 +90,6 @@ namespace Architome
         {
             dungeonInfo = info;
 
-            seed = RandomGen.RandomString(10);
             var size = RandomSize();
 
             for (int i = 0; i < size; i++)
@@ -155,7 +153,7 @@ namespace Architome
             
             var rooms = new Rooms();
 
-
+            rooms.levelSeed = RandomGen.RandomString(10);
 
 
             var (skeletonCount, availableCount) = (5, 5);
@@ -318,10 +316,26 @@ namespace Architome
             return allEntities;
         }
 
+        public List<EntityInfo> Bosses()
+        {
+            var bosses = new List<EntityInfo>();
+
+            foreach (var entity in EntitiesInDungeon())
+            {
+                if (entity.rarity != EntityRarity.Boss) continue;
+
+                bosses.Add(entity);
+
+
+            }
+
+            return bosses;
+        }
+
         public void UpdateDungeonInfo()
         {
             info.name.text = dungeonInfo.sets[0].dungeonSetName;
-            info.description.text = $"Size: {size} | {DungeonRoomsCount()} Rooms | {EntitiesInDungeon().Count()} Unique Entities | Seed : {seed}";
+            info.description.text = $"Size: {size} | {DungeonRoomsCount()} Rooms | {EntitiesInDungeon().Count()} Unique Entities";
         }
 
 

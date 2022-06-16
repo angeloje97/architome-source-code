@@ -16,6 +16,7 @@ namespace Architome
 
         public Action<Inventory> OnLoadInventory;
 
+
         void Start()
         {
 
@@ -41,6 +42,18 @@ namespace Architome
             }
         }
 
+        public int FirstAvailableSlotIndex()
+        {
+            foreach (var data in inventoryItems)
+            {
+                if (data.item != null) continue;
+
+                return inventoryItems.IndexOf(data);
+            }
+
+            return -1;
+        }
+
         public void ClearInventory()
         {
             inventoryItems.Clear();
@@ -48,8 +61,6 @@ namespace Architome
             {
                 inventoryItems.Add(new());
             }
-
-
         }
 
         public int ItemCount()

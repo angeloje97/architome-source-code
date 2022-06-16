@@ -74,11 +74,18 @@ namespace Architome
         }
         void AcquireSeed()
         {
-            if (Core.dungeonSeed == null) return;
-            if (Core.dungeonSeed.Length == 0) return;
+            if (Core.currentDungeon == null) return;
+            if (Core.currentDungeon.Count == 0) return;
+
+            var currentDungeon = Core.currentDungeon[Core.dungeonIndex];
 
 
-            seedString = Core.dungeonSeed;
+            seedString = currentDungeon.levelSeed;
+            //if (Core.dungeonSeed == null) return;
+            //if (Core.dungeonSeed.Length == 0) return;
+
+
+            //seedString = Core.dungeonSeed;
 
         }
 

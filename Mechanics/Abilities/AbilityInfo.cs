@@ -36,7 +36,7 @@ public class AbilityInfo : MonoBehaviour
 
     public List<Augment> augments;
     public List<GameObject> buffs;
-    public BuffProperties buffProperties;
+    //public BuffProperties buffProperties;
 
     public AbilityManager abilityManager;
     public EntityInfo entityInfo;
@@ -86,6 +86,18 @@ public class AbilityInfo : MonoBehaviour
         coreContribution.strength = strengthContribution;
         coreContribution.wisdom = wisdomContribution;
         coreContribution.dexterity = dexterityContribution;
+
+
+        //foreach (var buff in buffs)
+        //{
+        //    var info = buff.GetComponent<BuffInfo>();
+
+        //    if (info == null) continue;
+
+        //    info.properties = buffProperties;
+        //    UnityEditor.EditorUtility.SetDirty(buff);
+        //}
+
     }
 
     public StatsContribution coreContribution;
@@ -95,17 +107,14 @@ public class AbilityInfo : MonoBehaviour
     public float wisdomContribution = 1f;
     public float dexterityContribution = 1f;
 
+
+
     [Header("Ability Properties")]
 
     public float knockBackValue = 1.0f;
-    public float manaRequiredPercent = .05f;
-    public float manaRequired = 25f;
-    public float manaProduced = 0f;
-    public float manaProducedPercent = 0f;
     public float baseValue = 5.0f;
     public float value;
     public float originalCastTime = 1f;
-    public float selfCastMultiplier = 1f;
     public float liveTime = 3;
     public int ticksOfDamage = 1;
 
@@ -156,10 +165,6 @@ public class AbilityInfo : MonoBehaviour
     public bool growsForward;
     public bool growsWidth;
 
-    [Header("Recastable Propertiers")]
-    public float canRecast;
-    public float recasted;
-
     [Header("Return Properties")]
     public bool returnAppliesBuffs;
     public bool returnAppliesHeals;
@@ -195,6 +200,7 @@ public class AbilityInfo : MonoBehaviour
     public bool interruptable;
     public bool isAttack;
     public bool usesWeaponCatalyst;
+    public bool usesWeaponAttackDamage;
     public bool active;
 
     [Header("Ability Timers")]
@@ -378,6 +384,243 @@ public class AbilityInfo : MonoBehaviour
         }
     }
 
+    public Sprite Icon()
+    {
+        if (abilityIcon != null)
+        {
+            return abilityIcon;
+        }
+
+        if (catalyst)
+        {
+            var info = catalyst.GetComponent<CatalystInfo>();
+
+            return info.Icon();
+        }
+
+        return abilityIcon;
+    }
+    public string Description()
+    {
+        var description = "";
+
+        if (abilityDescription != null && abilityDescription.Length > 0)
+        {
+            description += $"{abilityDescription}\n";
+        }
+
+        return description;
+    }
+
+    public string PropertiesDescription()
+    {
+        string properties = "";
+
+        if (!nullifyDamage)
+        {
+            properties += $"Deals damage equal to ";
+
+            var listString = new List<string>();
+
+            if (coreContribution.dexterity > 0)
+            {
+                listString.Add($"{coreContribution.dexterity} Dexterity");
+            }
+
+            if (coreContribution.strength > 0)
+            {
+                listString.Add($"{coreContribution.strength} Strength");
+            }
+
+            if (coreContribution.wisdom > 0)
+            {
+                listString.Add($"{coreContribution.wisdom} Wisdom");
+            }
+
+            properties += $"{ArchString.StringList(listString)}.\n";
+        }
+
+        if (destroysSummons)
+        {
+            properties += $"Can destroy any entity that is summoned by this target with this ability\n";
+        }
+
+        if (bounce.enable)
+        {
+            properties += $"Bounces between at most {ticksOfDamage} targets that are {bounce.radius} meters between each other.\n";
+        }
+
+        if (cataling.enable)
+        {
+            properties += $"Releases {cataling.releasePerInterval} cataling(s) {ArchString.CamelToTitle(cataling.releaseCondition.ToString())} every {cataling.interval}";
+
+            if (cataling.catalingType == AbilityType.LockOn)
+            {
+                properties += $", finds targets in a ${cataling.targetFinderRadius} radius";
+            }
+
+            properties += "\n";
+        }
+
+        if (summoning.enabled)
+        {
+            var entityNames = new List<string>();
+
+            foreach (var entity in summoning.summonableEntities)
+            {
+                var info = entity.GetComponent<EntityInfo>();
+                if (info == null) continue;
+
+                entityNames.Add(info.entityName);
+            }
+
+            var listString = ArchString.StringList(entityNames);
+
+            properties += $"Summons {listString} for {summoning.liveTime} seconds\n";
+        }
+
+        if (channel.enabled)
+        {
+            properties += $"Channels for {channel.time} seconds repeating the same ability {channel.invokeAmount} times\n";
+        }
+
+        return properties;
+    }
+
+    public string ResourceDescription()
+    {
+        string resourceDescription = "";
+
+        
+
+        if (resources.requiredAmount > 0 || resources.requiredPercent > 0)
+        {
+            var requiredAmount = $"";
+            if (resources.requiredAmount > 0)
+            {
+                requiredAmount += $"{resources.requiredAmount}";
+
+                if (resources.requiredPercent > 0)
+                {
+                    requiredAmount += " + ";
+                }
+            }
+
+
+
+            if (resources.requiredPercent > 0)
+            {
+                requiredAmount += $"({resources.requiredPercent * 100}%)";
+            }
+
+
+            resourceDescription += $"{requiredAmount} mana required ";
+
+        }
+
+        if (resources.producedAmount > 0 || resources.producedPercent > 0)
+        {
+            var producedAmount = "";
+
+            if (resources.producedAmount > 0)
+            {
+                producedAmount += $"{resources.producedAmount}";
+
+                if (resources.producedPercent > 0)
+                {
+                    producedAmount += " + ";
+                }
+            }
+
+            if (resources.producedPercent > 0)
+            {
+                producedAmount += $"({resources.producedPercent*100}%)";
+            }
+
+            resourceDescription += $"{producedAmount} mana produced";
+        }
+
+        return resourceDescription;
+    }
+
+    public string BuffsDescription()
+    {
+        var buffDescription = "";
+
+        if (buffs.Count > 0)
+        {
+            var assistBuffs = new List<BuffInfo>();
+            var harmBuffs = new List<BuffInfo>();
+            var selfBuffs = new List<BuffInfo>();
+
+            foreach (var buff in buffs)
+            {
+                var info = buff.GetComponent<BuffInfo>();
+                if (info == null) continue;
+
+                var list = assistBuffs;
+
+                if (info.properties.selfBuffOnDestroy)
+                {
+                    list = selfBuffs;
+                }
+
+                if (info.buffTargetType == BuffTargetType.Harm)
+                {
+                    list = harmBuffs;
+                }
+
+                list.Add(info);
+            }
+
+            if (assistBuffs.Count > 0)
+            {
+                buffDescription += $"Applies buffs: ";
+
+                var list = new List<string>();
+
+                foreach (var buff in assistBuffs)
+                {
+                    list.Add(buff.name);
+                }
+
+
+                buffDescription += $"{ArchString.StringList(list)}\n";
+            }
+
+            if (harmBuffs.Count > 0)
+            {
+                buffDescription += $"Applies buffs to enemies: ";
+
+                var list = new List<string>();
+
+                foreach (var buff in harmBuffs)
+                {
+                    list.Add(buff.name);
+                }
+
+                buffDescription += $"{ArchString.StringList(list)}\n";
+            }
+
+            if (selfBuffs.Count > 0)
+            {
+                buffDescription += $"Applies buffs to self: ";
+
+                var list = new List<string>();
+
+                foreach (var buff in selfBuffs)
+                {
+                    list.Add(buff.name);
+                }
+
+
+                buffDescription += $"{ArchString.StringList(list)}\n";
+            }
+        }
+
+        return buffDescription;
+    }
+
 
     async void OnGlobalCoolDown(AbilityInfo ability)
     {
@@ -479,9 +722,6 @@ public class AbilityInfo : MonoBehaviour
         if(entityInfo.isInCombat && onlyCastOutOfCombat) { return false; }
 
         return true;
-
-        
-        
     }
 
     public bool CanCast2()
@@ -680,7 +920,7 @@ public class AbilityInfo : MonoBehaviour
     {
         if (entityInfo)
         {
-            if (entityInfo.mana >= manaRequired + entityInfo.maxMana * manaRequiredPercent)
+            if (entityInfo.mana >= resources.requiredAmount + entityInfo.maxMana * resources.requiredPercent)
             {
                 return true;
             }
@@ -718,8 +958,8 @@ public class AbilityInfo : MonoBehaviour
 
             void HandleResourceProduction()
             {
-                entityInfo.GainResource(manaProduced);
-                entityInfo.GainResource(manaProducedPercent * entityInfo.maxMana);
+                entityInfo.GainResource(resources.producedAmount);
+                entityInfo.GainResource(resources.producedPercent * entityInfo.maxMana);
             }
 
             
@@ -942,7 +1182,7 @@ public class AbilityInfo : MonoBehaviour
     {
         if(entityInfo)
         {
-            entityInfo.Use(manaRequired + entityInfo.maxMana*manaRequiredPercent);
+            entityInfo.Use(resources.requiredAmount + entityInfo.maxMana*resources.requiredPercent);
         }
     }
     public void ActivateWantsToCast(string reason)
@@ -1017,8 +1257,6 @@ public class AbilityInfo : MonoBehaviour
                     + entityInfo.stats.Strength * strengthContribution
                     + entityInfo.stats.Dexterity * dexterityContribution;
 
-                buffProperties.value = value * buffProperties.valueContributionToBuff;
-                buffProperties.aoeValue = value * buffProperties.valueContributionToBuffAOE;
             }
         }
 
@@ -1074,7 +1312,7 @@ public class AbilityInfo : MonoBehaviour
         if (coolDown.globalCoolDownActive) return false;
         if (!HasCorrectWeapon()) return false;
 
-        if(entityInfo.mana < (manaRequired + manaRequiredPercent*entityInfo.maxMana))
+        if(entityInfo.mana < (resources.requiredAmount + resources.requiredPercent*entityInfo.maxMana))
         {
             return false;
         }
@@ -1477,11 +1715,27 @@ public class AbilityInfo : MonoBehaviour
         {
             RadiusType.Catalyst => catalystInfo.range,
             RadiusType.Bounce => bounce.radius,
-            RadiusType.Buff => buffProperties.radius,
+            RadiusType.Buff => BuffRadius(),
             RadiusType.Splash => splash.radius,
             RadiusType.Cataling => cataling.targetFinderRadius,
             RadiusType.Detection => lineOfSight != null ? lineOfSight.radius: 0f,
             _ => 0f,
         };
+
+        float BuffRadius()
+        {
+            float largest = 0;
+            foreach (var buff in buffs)
+            {
+                var info = buff.GetComponent<BuffInfo>();
+
+                if (info.properties.radius > largest)
+                {
+                    largest = info.properties.radius;
+                }
+            }
+
+            return largest;
+        }
     }
 }

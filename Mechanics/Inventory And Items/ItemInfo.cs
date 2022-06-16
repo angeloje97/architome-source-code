@@ -6,6 +6,7 @@ using UnityEngine.EventSystems;
 using TMPro;
 using System;
 using Architome;
+
 public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, IDropHandler, IPointerEnterHandler, IPointerExitHandler
 {
     // Start is called before the first frame update
@@ -21,8 +22,12 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
     public bool isInInventory;
     public TextMeshProUGUI amountText;
 
+    ToolTip toolTip;
+
     public Action<InventorySlot> OnNewSlot { get; set; }
     public Action<ItemInfo> OnUpdate { get; set; }
+
+    public Action<ItemInfo> OnItemAction;
 
     //3d World Trigger
     private void OnTriggerEnter(Collider other)
@@ -68,15 +73,21 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
         transform.position = currentSlot.transform.position;
 
+        if (currentSlot)
+        {
+            transform.SetParent(currentSlot.transform);
+        }
+
         GetComponent<RectTransform>().sizeDelta = currentSlot.GetComponent<RectTransform>().sizeDelta;
         transform.localScale = new(1, 1, 1);
 
-        if (currentSlot.GetComponentInParent<ModuleInfo>() && currentSlot.GetComponentInParent<ModuleInfo>().itemBin)
-        {
-            transform.SetParent(currentSlot.transform);
+
+        //if (currentSlot.GetComponentInParent<ModuleInfo>() && currentSlot.GetComponentInParent<ModuleInfo>().itemBin)
+        //{
+        //    transform.SetParent(currentSlot.transform);
             
-            //transform.SetParent(currentSlot.GetComponentInParent<ModuleInfo>().itemBin);
-        }
+        //    //transform.SetParent(currentSlot.GetComponentInParent<ModuleInfo>().itemBin);
+        //}
     }
 
     public void HandleNewSlot(InventorySlot slot)
@@ -184,6 +195,7 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         }
         currentSlotHover = currentSlot;
         moduleHover = module;
+
     }
 
     void OnValidate()
@@ -226,13 +238,34 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         }
     }
 
+    public void ActivateAction()
+    {
+        OnItemAction?.Invoke(this);
+    }
+
     public void OnPointerEnter(PointerEventData eventData)
     {
+        var toolTipManager = ToolTipManager.active;
 
+        if (toolTipManager == null) return;
+
+        toolTip = toolTipManager.GeneralHeader();
+
+        toolTip.adjustToMouse = true;
+
+        toolTip.SetToolTip(new() {
+            icon = item.itemIcon,
+            name = item.itemName,
+            subeHeadline = item.SubHeadline(),
+            description = item.Description(),
+            attributes = item.Attributes()
+        });
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
+        if (toolTip == null) return;
 
+        toolTip.DestroySelf();
     }
 }

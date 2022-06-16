@@ -46,7 +46,9 @@ namespace Architome
 
         public GameSettingsData gameSettings;
         public List<EntityData> savedEntities;
+
         public List<DungeonData> savedDungeons;
+        public List<DungeonData> completedDungeons;
 
         public List<int> selectedEntitiesIndex;
         public DungeonData currentDungeon;

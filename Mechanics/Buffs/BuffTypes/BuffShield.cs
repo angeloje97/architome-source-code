@@ -2,88 +2,106 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BuffShield : MonoBehaviour
+namespace Architome
 {
-    // Start is called before the first frame update
-    public BuffInfo buffInfo;
-
-    public float shieldAmount;
-    public bool applied;
-    void GetDependencies()
+    public class BuffShield : BuffType
     {
-        if (buffInfo == null)
+        // Start is called before the first frame update
+
+        public float shieldAmount;
+        public bool applied;
+        new void GetDependencies()
         {
-            if (GetComponent<BuffInfo>())
+            base.GetDependencies();
+            if (buffInfo)
             {
-                buffInfo = GetComponent<BuffInfo>();
                 buffInfo.OnBuffEnd += OnBuffEnd;
-            }
 
-            if(buffInfo && buffInfo.hostInfo && buffInfo.sourceInfo)
-            {
-                if (buffInfo.hostInfo == buffInfo.sourceInfo)
-                {
-                    if (buffInfo && buffInfo.sourceAbility)
-                    {
-                        shieldAmount = buffInfo.properties.value * buffInfo.sourceAbility.selfCastMultiplier;
-                    }
-                    
-                }
-                else
-                {
-                    shieldAmount = buffInfo.properties.value;
-                }
-            }
+                //if (buffInfo.hostInfo == buffInfo.sourceInfo)
+                //{
 
-            ApplyBuff();
+                //}
+
+                //if (buffInfo && buffInfo.hostInfo && buffInfo.sourceInfo)
+                //{
+                //    if (buffInfo.hostInfo == buffInfo.sourceInfo)
+                //    {
+                //        if (buffInfo && buffInfo.sourceAbility)
+                //        {
+                //            shieldAmount = buffInfo.properties.value * buffInfo.sourceAbility.selfCastMultiplier;
+                //        }
+
+                //    }
+                //    else
+                //    {
+                //        shieldAmount = buffInfo.properties.value;
+                //    }
+                //}
+
+                shieldAmount = value;
+
+                ApplyBuff();
+            }
         }
-    }
-    void Start()
-    {
-        GetDependencies();
-    }
-    void ApplyBuff()
-    {
-        if(buffInfo && buffInfo.hostInfo)
+
+
+        public override string BuffTypeDescription()
         {
-            applied = true;
+            string result = "";
+
+            result += $"Shield that will absorb {ArchString.FloatToSimple(shieldAmount)} damage.\n";
+
+            return result;
+        }
+
+        void Start()
+        {
+            GetDependencies();
+        }
+        void ApplyBuff()
+        {
+            if (buffInfo && buffInfo.hostInfo)
+            {
+                applied = true;
+                buffInfo.hostInfo.UpdateShield();
+            }
+        }
+        // Update is called once per frame
+        void Update()
+        {
+        }
+
+        public void OnBuffEnd(BuffInfo buff)
+        {
+            shieldAmount = 0;
             buffInfo.hostInfo.UpdateShield();
         }
-    }
-    // Update is called once per frame
-    void Update()
-    {
-    }
 
-    public void OnBuffEnd(BuffInfo buff)
-    {
-        shieldAmount = 0;
-        buffInfo.hostInfo.UpdateShield();
-    }
-
-    public float DamageShield(float value)
-    {
-        var nextValue = shieldAmount > value ? 0 : value - shieldAmount;
-
-        if (value > shieldAmount)
+        public float DamageShield(float value)
         {
-            value = shieldAmount;
+            var nextValue = shieldAmount > value ? 0 : value - shieldAmount;
+
+            if (value > shieldAmount)
+            {
+                value = shieldAmount;
+            }
+
+            shieldAmount -= value;
+
+            if (buffInfo.hostInfo != buffInfo.sourceInfo)
+            {
+                buffInfo.sourceInfo.OnDamagePreventedFromShields?.Invoke(new CombatEventData(buffInfo, buffInfo.sourceInfo, value) { target = buffInfo.sourceInfo });
+            }
+
+            if (shieldAmount == 0)
+            {
+                buffInfo.Deplete();
+            }
+
+            buffInfo.hostInfo.UpdateShield();
+
+            return nextValue;
         }
-
-        shieldAmount -= value;
-
-        if(buffInfo.hostInfo != buffInfo.sourceInfo)
-        {
-            buffInfo.sourceInfo.OnDamagePreventedFromShields?.Invoke(new Architome.CombatEventData(buffInfo, buffInfo.sourceInfo, value) {target = buffInfo.sourceInfo});
-        }
-
-        if(shieldAmount == 0)
-        {
-            buffInfo.Deplete();
-        }
-
-        buffInfo.hostInfo.UpdateShield();
-
-        return nextValue;
     }
+
 }

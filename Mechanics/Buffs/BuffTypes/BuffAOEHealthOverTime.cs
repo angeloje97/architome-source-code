@@ -3,26 +3,53 @@ using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
 using Architome;
-public class BuffAOEHealthOverTime : MonoBehaviour
+public class BuffAOEHealthOverTime : BuffType
 {
-    // Start is called before the first frame update
-    public BuffInfo buffInfo;
     public AOEType aoeType;
     public bool expired;
 
     public bool isHealing;
     public bool isDamage;
 
-    public List<EntityInfo> alliesWithinRange;
-    public List<EntityInfo> enemiesWithinRange;
+
+    new void GetDependencies()
+    {
+        base.GetDependencies();
+
+        if (buffInfo)
+        {
+            buffInfo.OnBuffInterval += OnBuffInterval;
+        }
+    }
 
     void Start()
     {
-        if(GetComponent<BuffInfo>())
+        GetDependencies();
+    }
+
+    public override string BuffTypeDescription()
+    {
+        if (!isHealing && !isDamage) return "";
+
+        var result = $"Every {ArchString.FloatToSimple(buffInfo.properties.intervals)} seconds in a {ArchString.FloatToSimple(buffInfo.properties.radius)} meter radius. ";
+
+        if (isHealing)
         {
-            buffInfo = GetComponent<BuffInfo>();
-            buffInfo.OnBuffInterval += OnBuffInterval;
+            result += $"Heal all allies ";
+
+            if (isDamage)
+            {
+                result += "and ";
+            }
         }
+
+        if (isDamage)
+        {
+            result += $"Damage all enemies ";
+        }
+
+        result += $"for a base value of {value} that {ArchString.CamelToTitle(aoeType.ToString())} through all targets.\n";
+        return result;
     }
 
     public void OnBuffInterval(BuffInfo buff)
@@ -50,7 +77,6 @@ public class BuffAOEHealthOverTime : MonoBehaviour
         if(!isHealing) { return; }
 
         var allies = buffInfo.AlliesWithinRange();
-        alliesWithinRange = allies;
         var value = ProcessedValue(allies.Count);
         foreach (var i in allies)
         {
@@ -60,15 +86,14 @@ public class BuffAOEHealthOverTime : MonoBehaviour
 
     public float ProcessedValue(int count)
     {
-        var aoeValue = buffInfo.properties.aoeValue;
         switch (aoeType)
         {
             case AOEType.Distribute:
-                return aoeValue / count;
+                return value / count;
             case AOEType.Multiply:
-                return aoeValue* count;
+                return value * count;
             default:
-                return aoeValue;
+                return value;
         }
     }
 

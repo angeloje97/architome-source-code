@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System;
+using System.Threading.Tasks;
 using Architome.Enums;
 using TMPro;
+using UnityEngine.EventSystems;
 
 namespace Architome
 {
-    public class BuffIconBehavior : MonoBehaviour
+    public class BuffIconBehavior : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         // Start is called before the first frame update
 
@@ -37,9 +39,17 @@ namespace Architome
         public Dependencies dependencies;
         public BorderColors borderColors;
 
+        public ToolTip toolTip;
+        public ToolTipManager manager;
+
         void Start()
         {
+            GetDependencies();
+        }
 
+        void GetDependencies()
+        {
+            manager = ToolTipManager.active;
         }
 
         // Update is called once per frame
@@ -165,6 +175,58 @@ namespace Architome
             buff.OnBuffEnd -= OnBuffEnd;
             buff.hostInfo.OnLifeChange -= OnLifeChange;
             Destroy(gameObject);
+
+            OnPointerExit(null);
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            if (toolTip != null) return;
+            if (manager == null)
+            {
+                manager = ToolTipManager.active;
+                if (manager == null) return;
+            }
+
+
+            var subHeadline = buff.buffTargetType == BuffTargetType.Harm ? "Debuff" : "Buff";
+
+            toolTip = manager.GeneralHeader();
+
+            toolTip.adjustToMouse = true;
+
+            var timer = buff.properties.time == -1 ? "" : buff.buffTimer.ToString();
+
+            toolTip.SetToolTip(new()
+            {
+                icon = buff.Icon(),
+                name = buff.name,
+                subeHeadline = subHeadline,
+                description = buff.Description(),
+                attributes = buff.TypesDescription(),
+                value = timer
+            });
+
+            ToolTipRoutine();
+        }
+
+        async public void ToolTipRoutine()
+        {
+
+            while (toolTip != null)
+            {
+                toolTip.components.value.text = $"{(int) buff.buffTimer}";
+                toolTip.components.attributes.text = buff.TypesDescription();
+                await Task.Delay(1000);
+            }
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            if (toolTip == null) return;
+
+            toolTip.DestroySelf();
+            toolTip = null;
         }
     }
 

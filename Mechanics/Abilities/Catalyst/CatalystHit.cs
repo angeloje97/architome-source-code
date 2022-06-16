@@ -475,7 +475,8 @@ public class CatalystHit : MonoBehaviour
                 {
                     if(targetInfo.Buffs())
                     {
-                        targetInfo.Buffs().ApplyBuff(buff, catalystInfo.entityInfo, abilityInfo, catalystInfo);
+                        //targetInfo.Buffs().ApplyBuff(buff, catalystInfo.entityInfo, abilityInfo, catalystInfo);
+                        targetInfo.Buffs().ApplyBuff(new(buff, catalystInfo));
                     }
                 }
             }

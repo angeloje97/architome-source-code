@@ -32,6 +32,13 @@ namespace Architome
             public AudioClip portalExitSound;
         }
 
+        [Serializable]
+        public struct Restrictions
+        {
+            public bool requiresNoHostileEntities;
+        }
+
+        [Serializable]
         public struct Connection
         {
             public PortalInfo portal;
@@ -41,8 +48,10 @@ namespace Architome
         public List<Connection> connections;
 
         public Info info;
+        public Restrictions restrictions;
 
         public PortalEvents events;
+
 
         void GetDependencies()
         {
@@ -56,7 +65,10 @@ namespace Architome
             GMHelper.GameManager().OnNewPlayableEntity += OnNewPlayableEntity;
 
             sceneManager = ArchSceneManager.active;
+
+            info.room = GetComponentInParent<RoomInfo>();
         }
+        
 
         void Start()
         {
@@ -134,6 +146,17 @@ namespace Architome
         public void HandleMoveTargets()
         {
             if (clickable == null) { return; }
+            if (restrictions.requiresNoHostileEntities)
+            {
+                foreach (var entity in Entity.EntitiesFromRoom(info.room))
+                {
+                    if (entity.npcType != Enums.NPCType.Hostile) continue;
+
+                    return;
+                }
+            }
+
+
             if (clickable.clickedEntities.Count > 0)
             {
                 var entities = clickable.clickedEntities;
@@ -170,6 +193,8 @@ namespace Architome
         public Action<PortalInfo, GameObject> OnPortalEnter;
         public Action<PortalInfo, GameObject> OnPortalExit;
         public Action<PortalInfo, List<GameObject>> OnAllPartyMembersInPortal;
+
+        public Action<PortalInfo, GameObject> OnHostilesStillInRoom;
 
         public UnityEvent OnAllMembersInPortal;
     }

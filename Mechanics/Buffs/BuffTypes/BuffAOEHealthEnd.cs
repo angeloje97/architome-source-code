@@ -5,25 +5,59 @@ using Architome.Enums;
 
 namespace Architome
 {
-    public class BuffAOEHealthEnd : MonoBehaviour
+    public class BuffAOEHealthEnd : BuffType
     {
 
-
-        // Start is called before the first frame update
-        public BuffInfo buffInfo;
         public AOEType aoeType;
 
-        public bool isDamage;
-        public bool isHealing;
+        public bool heals;
+        public bool damages;
 
-        void Start()
+        new void GetDependencies()
         {
-            if (GetComponent<BuffInfo>())
+            base.GetDependencies();
+
+            if (buffInfo)
             {
-                buffInfo = GetComponent<BuffInfo>();
                 buffInfo.OnBuffCompletion += OnBuffCompletion;
                 buffInfo.OnBuffCleanse += OnBuffCleanse;
             }
+        }
+        void Start()
+        {
+            GetDependencies();
+            //if (GetComponent<BuffInfo>())
+            //{
+            //    buffInfo = GetComponent<BuffInfo>();
+            //    buffInfo.OnBuffCompletion += OnBuffCompletion;
+            //    buffInfo.OnBuffCleanse += OnBuffCleanse;
+            //}
+        }
+
+        public override string BuffTypeDescription()
+        {
+            buffInfo = GetComponent<BuffInfo>();
+
+            var result = $"At the end of the buff, all targets within a {buffInfo.properties.radius} meter radius will ";
+
+            if (heals)
+            {
+                result += $"heal allies for {value}";
+
+                if (damages)
+                {
+                    result += " and ";
+                }
+            }
+
+            if (damages)
+            {
+                result += $"damage enemies for {value}";
+            }
+
+            result += $" that will {ArchString.CamelToTitle(aoeType.ToString())} across all targets.\n";
+
+            return result;
         }
 
         public void OnBuffCompletion(BuffInfo buff)
@@ -44,7 +78,7 @@ namespace Architome
         }
         public void HandleHarm(BuffInfo buff)
         {
-            if (!isDamage) { return; }
+            if (!damages) return;
 
             var enemies = buff.EnemiesWithinRange();
             var value = ProcessedValue(buff, enemies.Count);
@@ -57,7 +91,7 @@ namespace Architome
 
         public void HandleAssist(BuffInfo buff)
         {
-            if (!isHealing) { return; }
+            if (!heals) return;
 
             var allies = buff.AlliesWithinRange();
             var value = ProcessedValue(buff, allies.Count);
@@ -69,15 +103,15 @@ namespace Architome
 
         public float ProcessedValue(BuffInfo buff, int count)
         {
-            var aoeValue = buff.properties.aoeValue;
+            
             switch (aoeType)
             {
                 case AOEType.Distribute:
-                    return aoeValue / count;
+                    return value / count;
                 case AOEType.Multiply:
-                    return aoeValue * count;
+                    return value * count;
                 default:
-                    return aoeValue;
+                    return value;
             }
         }
     }

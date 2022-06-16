@@ -40,13 +40,46 @@ public class V3Helper
         var height = 0f;
         foreach (Transform child in trans)
         {
+            Debugger.InConsole(84923, $"{child.name}");
             var rectTransform = child.GetComponent<RectTransform>();
-
+            if (rectTransform == null) continue;
+                        
 
             height += rectTransform.rect.height;
         }
 
         return height;
+    }
+
+    public static float Height(List<Transform> trans)
+    {
+        var height = 0f;
+
+        foreach (var tran in trans)
+        {
+            var rect = tran.GetComponent<RectTransform>();
+            if (rect == null) continue;
+
+            height += rect.rect.height;
+        }
+
+        return height;
+    }
+
+    public static float Width(List<Transform> trans)
+    {
+        var width = 0f;
+
+
+        foreach (var tran in trans)
+        {
+            var rect = tran.GetComponent<RectTransform>();
+            if (rect == null) continue;
+
+            width += rect.rect.width;
+        }
+
+        return width;
     }
 
     public static Vector3 Difference(Vector3 end, Vector3 start)

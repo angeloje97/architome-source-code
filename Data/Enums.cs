@@ -373,6 +373,7 @@ namespace Architome.Enums
     public enum ItemType
     {
         Equipment,
+        Weapon,
         Consumable,
         QuestItem,
         Catalyst,

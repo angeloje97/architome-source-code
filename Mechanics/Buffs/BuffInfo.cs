@@ -10,9 +10,7 @@ using UnityEngine.UI;
 public class BuffProperties
 {
     public float value;
-    public float aoeValue;
-    public float valueContributionToBuff;
-    public float valueContributionToBuffAOE;
+    public float valueContributionToBuff = 1;
     public float intervals;
     public float time;
     public float radius;
@@ -159,8 +157,14 @@ public class BuffInfo : MonoBehaviour
             hostObject = hostInfo.gameObject;
             hostInfo.OnNewBuff?.Invoke(this, sourceInfo);
 
-        }
-        
+        }   
+    }
+
+    void UpdateValues()
+    {
+        if (sourceAbility == null) return;
+
+        properties.value = sourceAbility.value * properties.valueContributionToBuff;
     }
 
     private void Awake()
@@ -169,6 +173,7 @@ public class BuffInfo : MonoBehaviour
         buffTimer = properties.time;
         progress = 1;
         GetVessel();
+        UpdateValues();
         //Invoke("SpawnParticle", .125f);
         StartCoroutine(BuffIntervalHandler());
     }
@@ -182,11 +187,72 @@ public class BuffInfo : MonoBehaviour
         HandleTimer();
     }
 
-    public void OnBuffStack(BuffInfo buff)
+
+    public string Description()
     {
+        var result = "";
+
+        if (description != null && description.Length > 0)
+        {
+            result += $"{description}\n";
+        }
+
+        return result;
+    }
+
+    public string PropertiesDescription()
+    {
+        if (!properties.canStack) return "";
+
+        var result = "";
+
+        result += $"Can stack to a maximum of {properties.maxStacks} times.";
+
+        if (properties.loseStackAndResetTimer)
+        {
+            result += " Stacks fall off over time.";
+        }
+
+        result += "\n";
+
+        return result;
+    }
+
+    public string TypesDescription()
+    {
+        var result = "";
+
+        foreach (var buffType in GetComponents<BuffType>())
+        {
+            result += $"{buffType.BuffTypeDescription()}";
+        }
+
+        return result;
+    }
+
+    public Sprite Icon()
+    {
+        if (buffIcon != null)
+        {
+            return buffIcon;
+        }
+
+        if (sourceAbility)
+        {
+            return sourceAbility.Icon();
+        }
+
+        return buffIcon;
+    }
+    public void OnBuffStack(BuffsManager.BuffData data)
+    {
+        var buff = data.buffInfo;
         if(buff.id != id) { return; }
         if(stacks == properties.maxStacks) { return; }
         if (!properties.canStack) { return; }
+
+
+        sourceAbility = buff.sourceAbility;
 
         ChangeStack(properties.stacksPerApplication);
     }
@@ -215,15 +281,18 @@ public class BuffInfo : MonoBehaviour
 
     }
 
-    public void OnResetBuff(BuffInfo buff)
+    public void OnResetBuff(BuffsManager.BuffData data)
     {
+        var buff = data.buffInfo;
         if(buff != this) { return; }
         Cleanse();
     }
 
-    public void OnBuffTimerReset(BuffInfo buff)
+    public void OnBuffTimerReset(BuffsManager.BuffData data)
     {
-        if (buff != this) { return; }
+        var buff = data.buffInfo;
+        if (buff.id != id) return;
+
         buffTimer = properties.time;
     }
 

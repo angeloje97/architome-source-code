@@ -16,9 +16,9 @@ namespace Architome
         public EntityInfo entityInfo;
         public Stats stats;
 
-        public Action<BuffInfo> OnBuffStack;
-        public Action<BuffInfo> OnBuffTimerReset;
-        public Action<BuffInfo> OnResetBuff;
+        public Action<BuffData> OnBuffStack;
+        public Action<BuffData> OnBuffTimerReset;
+        public Action<BuffData> OnResetBuff;
         public void GetDependencies()
         {
             if (GetComponentInParent<EntityInfo>())
@@ -131,11 +131,17 @@ namespace Architome
                 }
             }
         }
-        public void ApplyBuff(GameObject buffObject, EntityInfo sourceInfo, AbilityInfo sourceAbility, CatalystInfo sourceCatalyst)
+        public void ApplyBuff(BuffData data)
         {
+            var buffObject = data.buffObject;
             if (!buffObject.GetComponent<BuffInfo>()) return;
-            BuffInfo buffInfo = buffObject.GetComponent<BuffInfo>();
-            var buffProperties = sourceAbility.buffProperties;
+
+            var sourceAbility = data.sourceAbility;
+            var sourceInfo = data.sourceInfo;
+            var sourceCatalyst = data.sourceCatalyst;
+
+            var buffInfo = data.buffInfo;
+            var buffProperties = buffInfo.properties;
             bool hasBuff = HasBuff(buffObject);
             bool canStack = buffProperties.canStack;
             bool resetsTimer = buffProperties.reapplyResetsTimer;
@@ -155,19 +161,19 @@ namespace Architome
                     if (canStack)
                     {
                         //currentBuff.stacks += currentBuff.stacksPerApplication;
-                        OnBuffStack?.Invoke(currentBuff);
+                        OnBuffStack?.Invoke(data);
                     }
                     if (resetsTimer)
                     {
                         // currentBuff.buffTimer = currentBuff.buffTime;
-                        OnBuffTimerReset?.Invoke(currentBuff);
+                        OnBuffTimerReset?.Invoke(data);
                     }
 
                     if (resetBuff)
                     {
                         currentBuff.buffTimer = 0;
                         hasBuff = false;
-                        OnResetBuff?.Invoke(currentBuff);
+                        OnResetBuff?.Invoke(data);
                         return;
                     }
 
@@ -204,7 +210,7 @@ namespace Architome
                     newBuff.targetInfo = sourceCatalyst.target.GetComponent<EntityInfo>();
                 }
 
-                newBuff.properties = buffProperties;
+                //newBuff.properties = buffProperties;
 
                 //newBuff.buffRadius = sourceAbility.buffRadius;
                 //newBuff.buffRadius = sourceAbility.buffRadius;
@@ -269,7 +275,37 @@ namespace Architome
 
         }
 
+        public class BuffData
+        {
+            public GameObject buffObject { get; private set; }
+            public BuffInfo buffInfo { get; private set; }
+            public EntityInfo sourceInfo;
+            public AbilityInfo sourceAbility;
+            public CatalystInfo sourceCatalyst;
 
+            public BuffData(GameObject buffData, CatalystInfo sourceCatalyst)
+            {
+                buffObject = buffData;
+
+                buffInfo = buffData.GetComponent<BuffInfo>();
+
+                this.sourceCatalyst = sourceCatalyst;
+                sourceAbility = sourceCatalyst.abilityInfo;
+                sourceInfo = sourceCatalyst.entityInfo;
+            }
+
+            public BuffData(GameObject buff, AbilityInfo sourceAbility)
+            {
+                buffObject = buff;
+                buffInfo = buffObject.GetComponent<BuffInfo>();
+
+                this.sourceAbility = sourceAbility;
+                sourceCatalyst = sourceAbility.catalystInfo;
+                sourceInfo = sourceAbility.entityInfo;
+            }
+            
+        }
     }
 
+    
 }

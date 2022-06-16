@@ -11,6 +11,8 @@ public class CatalystBuffOnDestroy : MonoBehaviour
     public CatalystHit catalystHit;
     public AbilityInfo abilityInfo;
 
+    
+
     void GetDependencies()
     {
         if(GetComponent<CatalystInfo>())
@@ -47,14 +49,26 @@ public class CatalystBuffOnDestroy : MonoBehaviour
 
     void HandleSelfBuff()
     {
-        if(abilityInfo && abilityInfo.buffProperties.selfBuffOnDestroy)
+        var buffsManager = sourceInfo.Buffs();
+        foreach (var buff in abilityInfo.buffs)
         {
-            catalystHit.isAssisting = true;
-            catalystHit.canSelfCast = true;
-            catalystInfo.IncreaseTicks(false);
-            catalystHit.HandleTargetHit(sourceInfo, true);
-            catalystHit.canSelfCast = false;
-            catalystHit.isAssisting = false;
+            var info = buff.GetComponent<BuffInfo>();
+
+            if (!info.properties.selfBuffOnDestroy) continue;
+
+            //buffsManager.ApplyBuff(buff, sourceInfo, abilityInfo, catalystInfo);
+            buffsManager.ApplyBuff(new(buff, catalystInfo));
         }
+
+
+        //if(abilityInfo && abilityInfo.buffProperties.selfBuffOnDestroy)
+        //{
+        //    catalystHit.isAssisting = true;
+        //    catalystHit.canSelfCast = true;
+        //    catalystInfo.IncreaseTicks(false);
+        //    catalystHit.HandleTargetHit(sourceInfo, true);
+        //    catalystHit.canSelfCast = false;
+        //    catalystHit.isAssisting = false;
+        //}
     }
 }

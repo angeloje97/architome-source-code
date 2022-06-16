@@ -10,6 +10,7 @@ namespace Architome
 
         public float valueContributionToBuffType = 1;
         public float value = 1;
+        public float selfCastMultiplier = 1;
 
         public void GetDependencies()
         {
@@ -23,7 +24,17 @@ namespace Architome
             }
 
             value = valueContributionToBuffType * buffInfo.properties.value;
+
+            if (buffInfo.hostInfo == buffInfo.sourceInfo)
+            {
+                value = selfCastMultiplier * buffInfo.properties.value;
+            }
             
+        }
+
+        public virtual string BuffTypeDescription()
+        {
+            return "";
         }
     }
 

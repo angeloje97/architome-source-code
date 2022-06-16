@@ -101,6 +101,12 @@ public class EntityInventoryUI : MonoBehaviour
         }
     }
 
+    public void RedrawInventory()
+    {
+        ClearItems();
+        ArchAction.Yield(() => HandleExistingItems());
+    }
+
     void OnLoadInventory(Inventory inventory)
     {
         ClearItems();

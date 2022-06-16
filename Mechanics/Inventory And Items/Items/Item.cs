@@ -33,6 +33,20 @@ namespace Architome
         public int maxStacks;
         public GameObject itemObject;
 
+        public virtual string Description()
+        {
+            return $"{itemDescription}";
+        }
+
+        public virtual string Attributes()
+        {
+            return "";
+        }
+        
+        public virtual string SubHeadline()
+        {
+            return "";
+        }
 
         public void SetId(int id, bool forceSet = false)
         {
@@ -40,6 +54,7 @@ namespace Architome
             idSet = true;
             this.id = id;
         }
+
 
         public static bool IsEquipment(Item current)
         {

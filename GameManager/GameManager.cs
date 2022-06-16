@@ -85,6 +85,26 @@ namespace Architome
 
         private void OnValidate()
         {
+            //Stats stats = new()
+            //{
+            //    Wisdom = 5,
+            //    Strength = 3,
+            //    attackSpeed = .25f,
+            //    attackDamage = 10f,
+            //};
+
+            //var percentageFields = Stats.PercentageFields;
+            //foreach (var attribute in stats.Attributes())
+            //{
+            //    if (percentageFields.Contains(attribute.Name))
+            //    {
+            //        Debugger.InConsole(4392, $"{attribute.Name} : {((float)attribute.Data) * 100}%");
+            //    }
+            //    else
+            //    {
+            //        Debugger.InConsole(4328, $"{attribute.Name}: {attribute.Value}");
+            //    }
+            //}
         }
     }
 

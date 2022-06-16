@@ -45,7 +45,21 @@ namespace Architome
 
         public void OnNewPlayableParty(PartyInfo party, int index)
         {
+            UpdateCurrent();
+            SetMemberCoordinates();
             UpdateFormation();
+
+            void UpdateCurrent()
+            {
+                partyInfo = party;
+
+                if (party)
+                {
+                    partyFormation = party.partyFormation;
+
+                    currentParty = partyInfo;
+                }
+            }
         }
 
 
@@ -57,6 +71,25 @@ namespace Architome
             HandleMemberSpotRestrictions();
 
             update = false;
+        }
+
+        void SetMemberCoordinates()
+        {
+            if (partyFormation == null) return;
+            if (partyFormation.spotPositions == null || partyFormation.spotPositions.Count != 5)
+            {
+                partyFormation.spotPositions = memberCoordinates;
+                return;
+            }
+
+            memberCoordinates = partyFormation.spotPositions;
+
+            for (int i = 0; i < memberCoordinates.Count; i++)
+            {
+                if (i < 0 || i >= memberSpots.Count) continue;
+
+                memberSpots[i].GetComponent<RectTransform>().localPosition = memberCoordinates[i];
+            }
         }
 
         // Update is called once per frame
@@ -71,28 +104,9 @@ namespace Architome
 
         void UpdateFormation()
         {
-            HandleNewPlayableCharacters();
-            HandleUserInput();
             if (!IsInteracting()) { return; }
+            HandleUserInput();
             HandleMemberSpotRestrictions();
-        }
-
-        void HandleNewPlayableCharacters()
-        {
-            if (GMHelper.GameManager().playableParties.Count == 1
-                && partyInfo != GMHelper.GameManager().playableParties[0])
-            {
-                partyInfo = GMHelper.GameManager().playableParties[0];
-            }
-
-            if (currentParty != partyInfo)
-            {
-                partyFormation = partyInfo.partyFormation;
-
-                partyFormation.spotPositions = memberCoordinates;
-
-                currentParty = partyInfo;
-            }
         }
 
         void HandleMemberSpotRestrictions()
@@ -164,6 +178,7 @@ namespace Architome
 
         bool IsInteracting()
         {
+            if (!moduleInfo.isActive) return false;
             foreach (GameObject spot in memberSpots)
             {
                 if (spot.GetComponent<DragAndDrop>() && spot.GetComponent<DragAndDrop>().isDragging)

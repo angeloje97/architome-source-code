@@ -70,7 +70,6 @@ namespace Architome
 
             public float value, startingHeight, currentRange, liveTime, inertia, inertiaFallOff, intervals;
 
-            public int ticks;
 
             [Header("Growing Properties")]
 
@@ -336,7 +335,18 @@ namespace Architome
 
                 }
 
-                if (abilityInfo.buffProperties.selfBuffOnDestroy) gameObject.AddComponent<CatalystBuffOnDestroy>();
+
+                foreach (var buffObject in abilityInfo.buffs)
+                {
+                    var buff = buffObject.GetComponent<BuffInfo>();
+                    if (buff.properties.selfBuffOnDestroy)
+                    {
+                        gameObject.AddComponent<CatalystBuffOnDestroy>();
+                        break;
+                    }
+                }
+
+                //if (abilityInfo.buffProperties.selfBuffOnDestroy) gameObject.AddComponent<CatalystBuffOnDestroy>();
 
                 if (abilityInfo.summoning.enabled) gameObject.AddComponent<CatalystSummon>();
 
@@ -393,6 +403,11 @@ namespace Architome
             
             transform.position = trans.position;
             transform.LookAt(location);
+        }
+
+        public Sprite Icon()
+        {
+            return catalystIcon;
         }
         public void OnTriggerEnter(Collider other)
         {

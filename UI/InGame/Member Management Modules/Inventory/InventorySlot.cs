@@ -27,6 +27,8 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
         public Action<InventorySlot> OnSetSlot { get; set; }
     }
 
+    public bool interactable = true;
+
     public Events events;
     public Info info;
 
@@ -73,6 +75,7 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
     //Event Handlers
     public void OnDrop(PointerEventData eventData)
     {
+        if (!interactable) return;
         if (eventData.pointerDrag == null) { return; }
         if (!eventData.pointerDrag.GetComponent<ItemInfo>()) { return; }
 

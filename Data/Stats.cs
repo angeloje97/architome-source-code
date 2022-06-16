@@ -22,6 +22,18 @@ namespace Architome
             string value;
             [SerializeField]
             string type;
+            [SerializeField]
+            object data;
+            [SerializeField]
+            bool positive;
+
+
+
+            public object Data
+            {
+                get { return data; }
+                set { data = value; }
+            }
 
             public string Name
             {
@@ -39,6 +51,12 @@ namespace Architome
             {
                 get { return type; }
                 set { this.type = value; }
+            }
+
+            public bool Positive
+            {
+                get { return positive; }
+                set { positive = value; }
             }
         }
 
@@ -297,13 +315,19 @@ namespace Architome
 
             foreach (var field in this.GetType().GetFields())
             {
+                bool positive = false;
                 if (field.GetValue(this).GetType() == typeof(int))
                 {
+                    positive = (int)field.GetValue(this) >= 0;
                     if ((int)field.GetValue(this) == 0) continue;
+
                 }
 
                 if (field.GetValue(this).GetType() == typeof(float))
                 {
+
+                    positive = (float)field.GetValue(this) >= 0;
+                    
                     if ((float)field.GetValue(this) == 0f) continue;
                 }
 
@@ -311,8 +335,9 @@ namespace Architome
                 {
                     Name = field.Name,
                     Value = field.GetValue(this).ToString(),
-                    Type = field.GetValue(this).GetType().ToString()
-
+                    Type = field.GetValue(this).GetType().ToString(),
+                    Data = field.GetValue(this),
+                    Positive = positive
                 });
             }
 

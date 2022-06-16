@@ -72,6 +72,7 @@ namespace Architome
             public bool interruptable;
             public bool isAttack;
             public bool usesWeaponCatalyst;
+            public bool usesWeaponAttackDamage;
             public bool active;
 
             public static Restrictions operator +(Restrictions restriction1, Restrictions restrictions2)

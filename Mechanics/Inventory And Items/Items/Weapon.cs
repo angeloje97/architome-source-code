@@ -15,8 +15,10 @@ namespace Architome
         public BodyPart sheathPart;
         public BodyPart drawPart;
         public bool usesSecondDraw;
+        public float attackDamage;
         public BodyPart secondDraw;
         public AnimatorOverrideController weaponController;
+
         
         [Header("Animation")]
 
@@ -45,6 +47,33 @@ namespace Architome
             get { return unsheathRot; }
             private set { unsheathRot = value; }
 
+        }
+
+        new private void OnValidate()
+        {
+            itemType = ItemType.Weapon;
+        }
+
+        public override string SubHeadline()
+        {
+            return $"{weaponType}";
+        }
+
+
+
+        public override string Attributes()
+        {
+
+            var result = "";
+
+            if (attackDamage > 0)
+            {
+                result += $"Attack Damage: ({attackDamage})\n";
+            }
+
+            result += $"{base.Attributes()}";
+
+            return result;
         }
 
         public void SetSheath(Transform trans)

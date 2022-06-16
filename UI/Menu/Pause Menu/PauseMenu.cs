@@ -20,6 +20,10 @@ namespace Architome
         public List<CanvasGroup> items;
         public CanvasGroup router;
 
+        public Action<PauseMenu> OnTryOpenPause;
+
+        public bool pauseBlocked;
+
         private void OnValidate()
         {
             UpdateMenu();
@@ -30,7 +34,7 @@ namespace Architome
             if (!selfEscape) return;
             if (!Input.GetKeyDown(KeyCode.Escape)) return;
 
-            OnEscape();
+            PauseMenuBack();
 
         }
 
@@ -39,8 +43,15 @@ namespace Architome
             active = this;
         }
 
-        public void OnEscape()
+        public void PauseMenuBack()
         {
+            pauseBlocked = false;
+
+            OnTryOpenPause?.Invoke(this);
+
+            if (pauseBlocked) return;
+
+
             bool changed = false;
             foreach (var item in items)
             {

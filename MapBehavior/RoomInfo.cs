@@ -37,6 +37,7 @@ namespace Architome
         public RoomType type;
         [Header("Room Properties")]
         public bool isEntranceRoom;
+        public int frequency = 1;
         public bool badSpawn;
         public Transform roomCenter;
         public PathInfo originPath;

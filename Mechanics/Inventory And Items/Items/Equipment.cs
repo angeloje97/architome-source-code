@@ -28,7 +28,33 @@ namespace Architome
         public void OnValidate()
         {
             ProcessStatWeights();
+            itemType = ItemType.Equipment;
         }
+
+        public override string Description()
+        {
+            return base.Description();
+        }
+
+        public override string SubHeadline()
+        {
+            return $"{equipmentSlotType}";
+        }
+
+        public override string Attributes()
+        {
+            var result = base.Attributes();
+            var attributes = stats.Attributes();
+
+            foreach (var attribute in attributes)
+            {
+                result += $"{ArchString.CamelToTitle(attribute.Name)} ({attribute.Value})\n";
+            }
+
+            return result;
+        }
+
+
 
 
         // Start is called before the first frame update

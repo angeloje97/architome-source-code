@@ -15,8 +15,9 @@ public class BuffMindControl : BuffStateChanger
     public GameObject originalFocus;
     
 
-    void GetDependencies()
+    new void GetDependencies()
     {
+        base.GetDependencies();
         if(!GetComponent<BuffInfo>()) return;
 
         buffInfo = GetComponent<BuffInfo>();
@@ -58,6 +59,11 @@ public class BuffMindControl : BuffStateChanger
 
 
         }
+    }
+
+    public override string BuffTypeDescription()
+    {
+        return base.BuffTypeDescription() + $" Will change the target's threat type to the same as the source's threat type.\n";
     }
 
     void OnDamageDone(CombatEventData eventData)
