@@ -45,13 +45,18 @@ namespace Architome
         }
 
 
-        public override string BuffTypeDescription()
+        public override string Description()
         {
             string result = "";
 
-            result += $"Shield that will absorb {ArchString.FloatToSimple(shieldAmount)} damage.\n";
+            result += $"Absorbs the next {ArchString.FloatToSimple(shieldAmount)} damage.\n";
 
             return result;
+        }
+
+        public override string GeneralDescription()
+        {
+            return $"Prevents any type of damage from being taken\n";
         }
 
         void Start()

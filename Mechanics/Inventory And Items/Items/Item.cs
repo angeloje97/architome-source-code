@@ -31,6 +31,7 @@ namespace Architome
         public string itemDescription;
         public ItemType itemType;
         public int maxStacks;
+        public float goldValue = 1f;
         public GameObject itemObject;
 
         public virtual string Description()
@@ -43,9 +44,26 @@ namespace Architome
             return "";
         }
         
+        public virtual string Requirements()
+        {
+            return "";
+        }
+
         public virtual string SubHeadline()
         {
             return "";
+        }
+
+        public virtual string Value()
+        {
+            var value = "";
+
+            if (goldValue > 0)
+            {
+                value += $"{goldValue} gold\n";
+            }
+
+            return value;
         }
 
         public void SetId(int id, bool forceSet = false)
@@ -59,13 +77,9 @@ namespace Architome
         public static bool IsEquipment(Item current)
         {
             if (current == null) { return false; }
-
             var value = current.GetType();
-
             if (value == typeof(Equipment)) { return true; }
-
             return false;
-
         }
 
         public static bool IsWeapon(Item current)

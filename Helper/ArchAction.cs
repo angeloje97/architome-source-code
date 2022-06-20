@@ -209,6 +209,7 @@ namespace Architome
 
     public class ArchCondition
     {
+        public List<bool> conditions;
         public bool isMet;
         public bool condition;
 
@@ -234,6 +235,21 @@ namespace Architome
             if (range < minRange && range < maxRange)
             {
                 return true;
+            }
+
+            return false;
+        }
+
+        public bool OrIsMetConditions()
+        {
+            if (conditions == null) return true;
+
+            foreach (var condition in conditions)
+            {
+                if (condition)
+                {
+                    return true;
+                }
             }
 
             return false;

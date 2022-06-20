@@ -15,7 +15,7 @@ namespace Architome
         public BodyPart sheathPart;
         public BodyPart drawPart;
         public bool usesSecondDraw;
-        public float attackDamage;
+        public float attackValue;
         public BodyPart secondDraw;
         public AnimatorOverrideController weaponController;
 
@@ -24,8 +24,7 @@ namespace Architome
 
         public Vector3 weaponAttackStyle;
         public int weaponMovementStyle;
-        public GameObject weaponCatalyst;
-        public AbilityInfo weaponAbility;
+        public GameObject ability;
 
 
         [Header("Saved Positions")]
@@ -52,11 +51,30 @@ namespace Architome
         new private void OnValidate()
         {
             itemType = ItemType.Weapon;
+
+
+        }
+
+        void UpdateAbility()
+        {
+            if (ability == null) return;
+
+            var info = ability.GetComponent<AbilityInfo>();
+
+            if (info == null)
+            {
+                ability = null;
+
+            }
+
+            if (info.abilityType2 == AbilityType2.AutoAttack) return;
+
+            ability = null;
         }
 
         public override string SubHeadline()
         {
-            return $"{weaponType}";
+            return $"{ArchString.CamelToTitle(weaponType.ToString())}, {ArchString.CamelToTitle(equipmentSlotType.ToString())}";
         }
 
 
@@ -66,9 +84,9 @@ namespace Architome
 
             var result = "";
 
-            if (attackDamage > 0)
+            if (attackValue > 0)
             {
-                result += $"Attack Damage: ({attackDamage})\n";
+                result += $"Attack Value: {attackValue}\n";
             }
 
             result += $"{base.Attributes()}";

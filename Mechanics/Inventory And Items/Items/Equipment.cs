@@ -38,7 +38,7 @@ namespace Architome
 
         public override string SubHeadline()
         {
-            return $"{equipmentSlotType}";
+            return $"{armorType}, {equipmentSlotType}";
         }
 
         public override string Attributes()
@@ -48,12 +48,37 @@ namespace Architome
 
             foreach (var attribute in attributes)
             {
-                result += $"{ArchString.CamelToTitle(attribute.Name)} ({attribute.Value})\n";
+                string value = attribute.Value;
+                //if (Stats.PercentageFields.Contains(attribute.Name))
+                //{
+                //    var floatValue = (float)attribute.Data;
+
+                //    value = $"{ArchString.FloatToSimple(floatValue*100)}%";
+                //}
+
+                result += $"{ArchString.CamelToTitle(attribute.Name)} {value}\n";
             }
 
             return result;
         }
 
+        public override string Requirements()
+        {
+            var requirements = "";
+
+            if (LevelRequired > 0)
+            {
+                requirements += $"Level: {LevelRequired}\n";
+            }
+
+            if (itemLevel > 0)
+            {
+                requirements += $"Item Level : {itemLevel}\n";
+            }
+
+
+            return requirements;
+        }
 
 
 

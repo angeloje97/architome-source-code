@@ -32,7 +32,12 @@ namespace Architome
             
         }
 
-        public virtual string BuffTypeDescription()
+        public virtual string Description()
+        {
+            return "";
+        }
+
+        public virtual string GeneralDescription()
         {
             return "";
         }

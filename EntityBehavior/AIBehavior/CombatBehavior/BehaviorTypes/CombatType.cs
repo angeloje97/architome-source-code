@@ -38,6 +38,13 @@ namespace Architome
 
         }
 
+        public virtual void CombatRoutine()
+        {
+
+        }
+
+
+
     }
 
 }

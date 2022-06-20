@@ -24,7 +24,7 @@ namespace Architome
 
         public Vector3 position;
 
-        public PromptInfo ActivatePrompt(GameObject prompt, Vector3 position = new Vector3())
+        PromptInfo ActivatePrompt(GameObject prompt, Vector3 position = new Vector3())
         {
             var newPrompt = Instantiate(prompt, transform);
 

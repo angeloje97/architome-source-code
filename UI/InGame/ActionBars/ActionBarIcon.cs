@@ -5,12 +5,15 @@ using UnityEngine.EventSystems;
 
 namespace Architome
 {
-    public class ActionBarIcon : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDropHandler
+    public class ActionBarIcon : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDropHandler, IPointerEnterHandler, IPointerExitHandler
     {
         // Start is called before the first frame update
         public ActionBarSlot actionBarSlot;
         public ActionBarSlot hoverSlot;
         public ActionBarBehavior actionBarBehavior;
+
+        ToolTip toolTip;
+        ToolTipManager toolTipManager;
 
 
         public int childIndex;
@@ -130,8 +133,6 @@ namespace Architome
 
 
         }
-
-
         public void ResetBar()
         {
             ReturnToActionBar();
@@ -142,6 +143,34 @@ namespace Architome
             }
 
             actionBarBehavior.ResetBar();
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            if (actionBarBehavior.abilityInfo == null) return;
+            if (toolTipManager == null)
+            {
+                toolTipManager = ToolTipManager.active;
+
+                if (toolTipManager == null) return;
+            }
+
+            toolTip = toolTipManager.GeneralHeader();
+
+            if (toolTip == null) return;
+
+            toolTip.adjustToMouse = true;
+
+            toolTip.SetToolTip(actionBarBehavior.abilityInfo.ToolTipData());
+
+
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            if (toolTip == null) return;
+
+            toolTip.DestroySelf();
         }
     }
 

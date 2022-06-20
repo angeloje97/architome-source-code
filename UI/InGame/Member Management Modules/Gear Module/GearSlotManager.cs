@@ -1,152 +1,197 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Architome;
+using Architome.Enums;
 
-[RequireComponent(typeof(ItemSlotHandler))]
-public class GearSlotManager : MonoBehaviour
+namespace Architome
 {
-    // Start is called before the first frame update
-    public EntityInfo entityInfo;
-    public GearModuleManager moduleManager;
-    public ModuleInfo module;
-    public PartyManager partyManager;
+    [RequireComponent(typeof(ItemSlotHandler))]
+    public class GearSlotManager : MonoBehaviour
+    {
+        // Start is called before the first frame update
+        public EntityInfo entityInfo;
+        public GearModuleManager moduleManager;
+        public ModuleInfo module;
+        public PartyManager partyManager;
 
-    [Header("Gear Slot Manager Properties")]
-    public Transform equipmentBin;
-    public List<GearSlot> gearSlots;
+        [Header("Gear Slot Manager Properties")]
+        public Transform equipmentBin;
+        public List<GearSlot> gearSlots;
+
+
+
+        public Action<GearSlot> OnIncorrectEquipmentInsertion;
 
 
 
     //Update Triggers
-    private EntityInfo currentEntity;
+        private EntityInfo currentEntity;
 
-    void GetDependencies()
-    {
-        module = GetComponentInParent<ModuleInfo>();
-        partyManager = GetComponentInParent<PartyManager>();
-        if (GetComponentInParent<GearModuleManager>())
+
+
+        public void GetDependencies()
         {
+            module = GetComponentInParent<ModuleInfo>();
+            partyManager = GetComponentInParent<PartyManager>();
+
             moduleManager = GetComponentInParent<GearModuleManager>();
-            
-        }
 
-        if (module)
-        {
-            module.OnSelectEntity += OnSelectEntity;
-        }
-
-        if (partyManager)
-        {
-            partyManager.OnSelectEntity += OnSelectEntity;
-        }
-
-
-        GetComponent<ItemSlotHandler>().OnChangeItem += OnChangeItem;
-    }
-    void Start()
-    {
-        GetDependencies();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    public GearModuleManager GearManager()
-    {
-        return GetComponentInParent<GearModuleManager>() ? GetComponentInParent<GearModuleManager>() : null;
-    }
-
-    
-    void OnSelectEntity(EntityInfo entity)
-    {
-        if (entity == null) return;
-
-        entityInfo = entity;
-        SetGearSlots();
-        DestroyItems();
-        CreateItems();
-    }
-
-
-    void SetGearSlots()
-    {
-        if (entityInfo == null || entityInfo.CharacterInfo() == null) { return; }
-
-        foreach (GearSlot slot in gearSlots)
-        {
-            if (slot.equipmentSlot != null)
+            if (moduleManager)
             {
-                slot.equipmentSlot.OnLoadEquipment -= OnLoadEquipment;
+                moduleManager.OnEquipItem += OnEquipItem;
             }
 
-            slot.entityInfo = entityInfo;
-            slot.equipmentSlot = entityInfo.CharacterInfo().EquipmentSlot(slot.slotType);
-            slot.characterInfo = entityInfo.CharacterInfo();
-            slot.events.OnSetSlot?.Invoke(slot);
+            if (module)
+            {
+                module.OnSelectEntity += OnSelectEntity;
+            }
 
-            slot.equipmentSlot.OnLoadEquipment += OnLoadEquipment;
+            if (partyManager)
+            {
+                partyManager.OnSelectEntity += OnSelectEntity;
+            }
+
+
+            GetComponent<ItemSlotHandler>().OnChangeItem += OnChangeItem;
         }
-    }
-
-    void OnLoadEquipment(Equipment equip)
-    {
-        DestroyItems();
-        CreateItems();
-    }
-
-    void DestroyItems()
-    {
-        foreach (var itemInfo in module.GetComponentsInChildren<ItemInfo>())
+        void Start()
         {
-            Destroy(itemInfo.gameObject);
+            GetDependencies();
         }
-    }
 
-    void OnChangeItem(ItemEventData eventData)
-    {
-        var gearSlot = (GearSlot)eventData.itemSlot;
-
-        gearSlot.equipmentSlot.equipment = (Equipment)gearSlot.item ? (Equipment)gearSlot.item : null;
-    }
-
-    
-    void CreateItems()
-    {
-        for(int i = 0; i < gearSlots.Count; i++)
+        public void IncorrectEquipmentType(GearSlot slot)
         {
-            var current = gearSlots[i];
-
-            if(current.equipmentSlot == null ||
-                current.equipmentSlot.equipment == null) { continue; }
-
-            CreateEquipment(current.equipmentSlot.equipment, current);
+            OnIncorrectEquipmentInsertion?.Invoke(slot);
         }
-    }
 
-    public GameObject CreateEquipment(Equipment equipment, GearSlot slot)
-    {
-        var itemTemplate = module.prefabs.item;
-
-        if(equipmentBin != null)
+        void OnSelectEntity(EntityInfo entity)
         {
-            var newEquipment = Instantiate(itemTemplate, equipmentBin);
+            if (entity == null) return;
 
-            var itemInfo = newEquipment.GetComponent<ItemInfo>();
-
-            itemInfo.item = equipment;
-            itemInfo.UpdateItemInfo();
-            itemInfo.isInInventory = true;
-            itemInfo.HandleNewSlot(slot);
-
-            return itemInfo.gameObject;
+            entityInfo = entity;
+            SetGearSlots();
+            DestroyItems();
+            CreateItems();
         }
 
-        return null;
-        
+        void OnEquipItem(ItemInfo info, EntityInfo entity)
+        {
+            if (this.entityInfo != entity)
+            {
+                OnSelectEntity(entity);
+            }
+
+            var equipment = (Equipment)info.item;
+
+            var previousSlot = info.currentSlot;
+
+            var newSlot = Slot(equipment.equipmentSlotType);
+            var currentlyEquipped = newSlot.currentItemInfo;
+            //if (newSlot.currentItemInfo != null)
+            //{
+            //    newSlot.currentItemInfo.HandleNewSlot(currentSlot);
+            //}
+
+            info.HandleNewSlot(newSlot);
+
+            bool success = info.currentSlot == newSlot;
+
+            if (success && currentlyEquipped)
+            {
+                currentlyEquipped.HandleNewSlot(previousSlot);
+            }
+        }
+
+        void SetGearSlots()
+        {
+            if (entityInfo == null || entityInfo.CharacterInfo() == null) { return; }
+
+            foreach (GearSlot slot in gearSlots)
+            {
+                if (slot.equipmentSlot != null)
+                {
+                    slot.equipmentSlot.OnLoadEquipment -= OnLoadEquipment;
+                }
+
+                slot.entityInfo = entityInfo;
+                slot.equipmentSlot = entityInfo.CharacterInfo().EquipmentSlot(slot.slotType);
+                slot.characterInfo = entityInfo.CharacterInfo();
+                slot.events.OnSetSlot?.Invoke(slot);
+
+                slot.equipmentSlot.OnLoadEquipment += OnLoadEquipment;
+            }
+        }
+
+        void OnLoadEquipment(Equipment equip)
+        {
+            DestroyItems();
+            CreateItems();
+        }
+
+        void DestroyItems()
+        {
+            foreach (var itemInfo in module.GetComponentsInChildren<ItemInfo>())
+            {
+                Destroy(itemInfo.gameObject);
+            }
+        }
+
+        public GearSlot Slot(EquipmentSlotType slotType)
+        {
+            foreach (var slot in gearSlots)
+            {
+                if (slot.slotType != slotType) continue;
+
+                return slot;
+            }
+
+            return null;
+        }
+
+        void OnChangeItem(ItemEventData eventData)
+        {
+            var gearSlot = (GearSlot)eventData.itemSlot;
+
+            gearSlot.equipmentSlot.equipment = (Equipment)gearSlot.item ? (Equipment)gearSlot.item : null;
+        }
+
+
+        void CreateItems()
+        {
+            for (int i = 0; i < gearSlots.Count; i++)
+            {
+                var current = gearSlots[i];
+
+                if (current.equipmentSlot == null ||
+                    current.equipmentSlot.equipment == null) { continue; }
+
+                CreateEquipment(current.equipmentSlot.equipment, current);
+            }
+        }
+
+        public GameObject CreateEquipment(Equipment equipment, GearSlot slot)
+        {
+            var itemTemplate = module.prefabs.item;
+
+            if (equipmentBin != null)
+            {
+                var newEquipment = Instantiate(itemTemplate, equipmentBin);
+
+                var itemInfo = newEquipment.GetComponent<ItemInfo>();
+
+                itemInfo.item = equipment;
+                itemInfo.UpdateItemInfo();
+                itemInfo.isInInventory = true;
+                itemInfo.HandleNewSlot(slot);
+
+                return itemInfo.gameObject;
+            }
+
+            return null;
+
+        }
+
     }
 
 }

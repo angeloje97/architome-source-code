@@ -89,9 +89,7 @@ namespace Architome
                 var newItem = module.CreateItem(itemData.item, itemData.amount, true).GetComponent<ItemInfo>();
 
                 newItem.HandleNewSlot(slot);
-                newItem.OnItemAction += OnItemAction;
 
-                newItem.GetComponent<DragAndDrop>().enabled = false;
 
                 ArchAction.Yield(() => newItem.ReturnToSlot());
             }
@@ -108,8 +106,13 @@ namespace Architome
 
             return null;
         }
+
+
         public void OnChangeItem(ItemEventData eventData)
         {
+
+            HandlePreviousItem();
+            HandleNewItem();
             var slot = eventData.itemSlot;
 
             if (!slots.Contains(slot)) return;
@@ -128,6 +131,18 @@ namespace Architome
 
             chest.info.items[index].item = info.item;
             chest.info.items[index].amount = info.currentStacks;
+
+            void HandlePreviousItem()
+            {
+                if (eventData.previousItem == null) return;
+                eventData.previousItem.OnItemAction -= OnItemAction;
+            }
+
+            void HandleNewItem()
+            {
+                if (eventData.newItem == null) return;
+                eventData.newItem.OnItemAction += OnItemAction;
+            }
         }
 
         public void OnItemAction(ItemInfo info)
@@ -138,20 +153,21 @@ namespace Architome
 
             if (inventory == null) return;
 
+
+            var success = inventory.LootItem(info);
+
             var index = inventory.FirstAvailableSlotIndex();
 
-            if (index == -1) return;
+            //inventory.inventoryItems[index].item = info.item;
+            //inventory.inventoryItems[index].amount = info.currentStacks;
 
-            inventory.inventoryItems[index].item = info.item;
-            inventory.inventoryItems[index].amount = info.currentStacks;
+            //if (inventory.entityInventoryUI)
+            //{
+            //    inventory.entityInventoryUI.RedrawInventory();
+            //}
 
-            if (inventory.entityInventoryUI)
-            {
-                inventory.entityInventoryUI.RedrawInventory();
-            }
-
-            info.OnItemAction -= OnItemAction;
-            Destroy(info.gameObject);
+            //info.OnItemAction -= OnItemAction;
+            //Destroy(info.gameObject);
         }
 
         public void OnClose(ArchChest chest)

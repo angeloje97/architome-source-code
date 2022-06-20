@@ -11,7 +11,16 @@ namespace Architome
         public bool buffValueMultiplies;
         public float multiplier;
         public bool stacks;
+        public bool zeroOut;
         [SerializeField]Stats starting;
+
+        private void OnValidate()
+        {
+            if (!zeroOut) return;
+            zeroOut = false;
+            stats.ZeroOut();
+            
+        }
         new void GetDependencies()
         {
             base.GetDependencies();
@@ -44,7 +53,7 @@ namespace Architome
             GetDependencies();
         }
 
-        public override string BuffTypeDescription()
+        public override string Description()
         {
 
             var result = "";
@@ -74,6 +83,11 @@ namespace Architome
             }
 
             return result;
+        }
+
+        public override string GeneralDescription()
+        {
+            return Description();
         }
 
         void OnStack(BuffInfo info, int stacks, float value)

@@ -1,12 +1,13 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using TMPro;
 using Architome;
-using System;
 using Architome.Enums;
-public class PortraitBehavior : MonoBehaviour
+public class PortraitBehavior : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     // Start is called before the first frame update
     public ContainerTargetables targetManager;
@@ -48,6 +49,11 @@ public class PortraitBehavior : MonoBehaviour
 
                 OnHealthChange(entity.health, entity.shield, entity.maxHealth);
             }
+        }
+
+        public void OnHover(bool hover)
+        {
+
         }
 
 
@@ -231,6 +237,17 @@ public class PortraitBehavior : MonoBehaviour
 
         levelText.text = $"{level}";
     }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        healthUI.OnHover(true);
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        healthUI.OnHover(false);
+    }
+
     public void OnNewTargetedBy(GameObject newTarget, List<GameObject> targetedBy)
     {
 

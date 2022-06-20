@@ -172,10 +172,17 @@ public class BuffInfo : MonoBehaviour
         buffTimeComplete = false;
         buffTimer = properties.time;
         progress = 1;
+        UpdateIcon();
         GetVessel();
         UpdateValues();
         //Invoke("SpawnParticle", .125f);
         StartCoroutine(BuffIntervalHandler());
+    }
+
+    void UpdateIcon()
+    {
+        if (buffIcon != null) return;
+        buffIcon = Icon();
     }
 
     public void Start()
@@ -202,18 +209,24 @@ public class BuffInfo : MonoBehaviour
 
     public string PropertiesDescription()
     {
-        if (!properties.canStack) return "";
-
         var result = "";
 
-        result += $"Can stack to a maximum of {properties.maxStacks} times.";
 
-        if (properties.loseStackAndResetTimer)
+        if (properties.canStack)
         {
-            result += " Stacks fall off over time.";
-        }
+            result += $"Can stack to a maximum of {properties.maxStacks} times.";
 
-        result += "\n";
+            if (properties.loseStackAndResetTimer)
+            {
+                result += " Stacks fall off over time.";
+            }
+        }
+        
+
+        if (result.Length > 0)
+        {
+            result += "\n";
+        }
 
         return result;
     }
@@ -224,7 +237,19 @@ public class BuffInfo : MonoBehaviour
 
         foreach (var buffType in GetComponents<BuffType>())
         {
-            result += $"{buffType.BuffTypeDescription()}";
+            result += $"{buffType.Description()}";
+        }
+
+        return result;
+    }
+
+    public string TypesDescriptionGeneral()
+    {
+        var result = "";
+
+        foreach (var buffType in GetComponents<BuffType>())
+        {
+            result += $"{buffType.GeneralDescription()}";
         }
 
         return result;
@@ -252,7 +277,7 @@ public class BuffInfo : MonoBehaviour
         if (!properties.canStack) { return; }
 
 
-        sourceAbility = buff.sourceAbility;
+        sourceAbility = data.sourceAbility;
 
         ChangeStack(properties.stacksPerApplication);
     }
@@ -292,6 +317,8 @@ public class BuffInfo : MonoBehaviour
     {
         var buff = data.buffInfo;
         if (buff.id != id) return;
+
+        sourceAbility = data.sourceAbility;
 
         buffTimer = properties.time;
     }

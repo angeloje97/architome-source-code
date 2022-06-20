@@ -14,6 +14,7 @@ namespace Architome
 
     public struct ItemEventData
     {
+        public ItemInfo previousItem { get; set; }
         public ItemInfo newItem;
         public InventorySlot itemSlot;
     }

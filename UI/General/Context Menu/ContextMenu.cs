@@ -86,6 +86,7 @@ namespace Architome
 
         async public Task<int> UserChoice(ContextMenuData contextData)
         {
+            transform.SetAsLastSibling();
             if (isChoosing)
             {
                 CancelOptions();

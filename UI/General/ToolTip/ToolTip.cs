@@ -39,6 +39,8 @@ namespace Architome
         public float widthOffset;
         public float heightOffSet;
         public float extraTime = 0f;
+
+        [SerializeField] float minXAnchor, maxXAnchor, minYAnchor, maxYAnchor;
         bool canDestroySelf;
         bool destroyedSelf;
 
@@ -56,6 +58,8 @@ namespace Architome
             group.interactable = false;
             group.blocksRaycasts = false;
             group.alpha = 0;
+
+            await Task.Delay((int)(extraTime * 1000));
 
             await Task.Delay(50);
 
@@ -153,8 +157,8 @@ namespace Architome
         public void AdjustToPosition(Vector3 position)
         {
 
-            float xAnchor = position.x > Screen.width / 2 ? 1.0625f : -.0625f;
-            float yAnchor = position.y > Screen.height / 2 ? 1 : 0;
+            float xAnchor = position.x > Screen.width / 2 ? maxXAnchor : minXAnchor;
+            float yAnchor = position.y > Screen.height / 2 ? maxYAnchor : minYAnchor;
 
             GetComponent<RectTransform>().pivot = new Vector2(xAnchor, yAnchor);
 

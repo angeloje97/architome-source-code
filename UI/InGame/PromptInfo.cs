@@ -20,6 +20,7 @@ namespace Architome
         public struct Info
         {
             public TextMeshProUGUI title;
+            public TextMeshProUGUI question;
             public TextMeshProUGUI[] options;
             public Image promptIcon;
             public GameObject screenBlocker;
@@ -78,7 +79,8 @@ namespace Architome
         {
             
 
-            info.title.text = promptData.question;
+            info.title.text = promptData.title;
+            info.question.text = promptData.question;
             info.options[0].text = promptData.option1;
             info.options[1].text = promptData.option2;
 
@@ -110,6 +112,7 @@ namespace Architome
     }
     public struct PromptInfoData
     {
+        public string title;
         public string question;
         public string option1;
         public string option2;

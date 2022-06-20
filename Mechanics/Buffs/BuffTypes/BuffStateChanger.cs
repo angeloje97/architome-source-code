@@ -33,9 +33,14 @@ namespace Architome
             }
         }
 
-        public override string BuffTypeDescription()
+        public override string Description()
         {
-            return $"Target becomes $ {ArchString.CamelToTitle(stateToChange.ToString())}";
+            return $"Status: {ArchString.CamelToTitle(stateToChange.ToString())}\n";
+        }
+
+        public override string GeneralDescription()
+        {
+            return $"Adds the {ArchString.CamelToTitle(stateToChange.ToString())} state to the target.\n";
         }
 
         void Start()

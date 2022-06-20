@@ -53,10 +53,11 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
             var choice = await PromptHandler.active.GeneralPrompt(new()
             { 
-                question = $"{item.itemName}", 
+                icon = item.itemIcon,
+                title = $"{item.itemName}",
+                question = $"Are you sure you want to destroy {item.itemName}", 
                 option1 = "Destroy", 
                 option2 = "Cancel", 
-                icon = item.itemIcon
             });
 
             if (choice == 0)
@@ -258,7 +259,9 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
             name = item.itemName,
             subeHeadline = item.SubHeadline(),
             description = item.Description(),
-            attributes = item.Attributes()
+            attributes = item.Attributes(),
+            requirements = item.Requirements(),
+            value = item.Value()
         });
     }
 

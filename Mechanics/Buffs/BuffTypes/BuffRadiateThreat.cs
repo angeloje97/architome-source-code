@@ -24,6 +24,20 @@ namespace Architome
             GetDependencies();
         }
 
+        public override string Description()
+        {
+            var result = "";
+
+            result += $"Every {ArchString.FloatToSimple(buffInfo.properties.intervals)} seconds, increase the threat of all enemies within a {buffInfo.properties.radius} meter radius by {ArchString.FloatToSimple(value)} threat value\n";
+
+            return result;
+        }
+
+        public override string GeneralDescription()
+        {
+            return $"Emit a force around a unit over time that will make enemies more likely to attack said unit.\n";
+        }
+
         public void OnBuffInterval(BuffInfo buff)
         {
             var position = buff.hostInfo.transform.position;

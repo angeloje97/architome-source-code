@@ -94,6 +94,58 @@ namespace Architome
                 if (inventoryItems[i] != null) { continue; }
             }
         }
+
+
+        public bool LootItem(ItemInfo info)
+        {
+            if (LootViaModule())
+            {
+                return true;
+            }
+
+            if (HardLoot())
+            {
+                return true;
+            }
+
+
+            return false;
+            
+
+            bool LootViaModule()
+            {
+                if (entityInventoryUI == null) return false;
+
+                var slot = entityInventoryUI.FirstAvailableSlot();
+
+                if (slot == null) return false;
+
+                info.HandleNewSlot(slot);
+
+                if (slot.currentItemInfo != info) return false;
+
+
+                var dragAndDrop = info.GetComponent<DragAndDrop>();
+
+                dragAndDrop.enabled = true;
+
+                return true;
+            }
+
+            bool HardLoot()
+            {
+                var slotIndex = FirstAvailableSlotIndex();
+
+                if (slotIndex == -1) return false;
+
+                inventoryItems[slotIndex].item = info.item;
+                inventoryItems[slotIndex].amount = info.currentStacks;
+
+                Destroy(info.gameObject);
+
+                return true;
+            }
+        }
         // Update is called once per frame
 
         public bool PickUpItem(Item item)

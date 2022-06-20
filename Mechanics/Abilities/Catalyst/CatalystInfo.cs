@@ -42,8 +42,8 @@ namespace Architome
         public List<EntityInfo> alliesHealed;
         public List<EntityInfo> alliesAssisted;
         public EntityInfo lastTargetHit;
-        public LayerMask entityLayer;
-        public LayerMask structureLayer;
+        LayerMask entityLayer { get; set; }
+        LayerMask structureLayer { get; set; }
 
         public float value { get { return metrics.value; } set { metrics.value = value; } }
         public bool requiresLockOnTarget { get; set; }

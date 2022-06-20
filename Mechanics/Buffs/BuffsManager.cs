@@ -83,6 +83,15 @@ namespace Architome
             }
         }
 
+        public void CleanseBuff(BuffInfo buff)
+        {
+            foreach (var buffInfo in Buffs())
+            {
+                if (buffInfo._id != buff._id) continue;
+                buffInfo.Cleanse();
+            }
+        }
+
         public void CleanseImmunity()
         {
             for (int i = 0; i < buffObjects.Count; i++)

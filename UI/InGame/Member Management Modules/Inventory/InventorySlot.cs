@@ -43,31 +43,39 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
     }
 
     public Item previousItem;
+    public ItemInfo previousItemInfo;
 
 
-    public void GetDependenencies()
+    protected void GetDependencies()
     {
         module = GetComponentInParent<ModuleInfo>();
         itemSlotHandler = GetComponentInParent<ItemSlotHandler>();
     }
     void Start()
     {
-        GetDependenencies();
+        GetDependencies();
     }
     
     void Update()
     {
+        if (module == null) return;
+        if (!module.isActive) return;
         HandleEvents();
     }
 
     public void HandleEvents()
     {
-        if (module == null) return;
-        if (!module.isActive) return;
-        if (previousItem != item)
+
+        if (previousItemInfo != currentItemInfo)
         {
             events.OnItemChange?.Invoke(this, previousItem, item);
-            itemSlotHandler?.OnChangeItem(new() { itemSlot = this, newItem = currentItemInfo }); 
+            itemSlotHandler?.OnChangeItem(new() {
+                itemSlot = this,
+                newItem = currentItemInfo,
+                previousItem = previousItemInfo
+            });
+
+            previousItemInfo = currentItemInfo;
             previousItem = item;
         }
     }

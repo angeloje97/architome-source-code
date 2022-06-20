@@ -19,6 +19,13 @@ public class CharacterInfo : EntityProp
 
     public CharProperties properties;
 
+
+    [Serializable]
+    public struct Modules
+    {
+        public GearModuleManager gearModule;
+    }
+
     // Start is called before the first frame update
     public GameObject entityObject;
     public Movement movement;
@@ -26,6 +33,8 @@ public class CharacterInfo : EntityProp
     public AbilityInfo currentCasting;
     public List<GameObject> characterProperties;
     public Stats totalEquipmentStats;
+    public Modules modules;
+
     public bool sheathed;
     public bool isCasting;
         
@@ -147,6 +156,7 @@ public class CharacterInfo : EntityProp
     {
         foreach (var renderer in GetComponentsInChildren<Renderer>())
         {
+            if (renderer == null) continue;
             if (renderer.enabled != !isHidden)
             {
                 if (renderer == null) return;
@@ -284,6 +294,21 @@ public class CharacterInfo : EntityProp
             }
         }
         return null;
+    }
+
+    public List<Weapon> Weapons()
+    {
+        var weapons = new List<Weapon>();
+
+        foreach (var slot in GetComponentsInChildren<EquipmentSlot>())
+        {
+            if (slot.equipment == null) continue;
+            if (!Item.IsWeapon(slot.equipment)) continue;
+
+            weapons.Add((Weapon)slot.equipment);
+        }
+
+        return weapons;
     }
 
     public List<Equipment> EquippedItems()

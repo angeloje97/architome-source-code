@@ -49,6 +49,14 @@ namespace Architome
             GetDependencies();
         }
 
+        public override string Description()
+        {
+            var result = "";
+
+            result += $"Fixated on {buffInfo.targetInfo.entityName}\n";
+            return result;
+        }
+
         void OnBuffEnd(BuffInfo buff)
         {
             var eventData = new CombatEventData(buff, buff.sourceInfo, buff.properties.value);

@@ -22,17 +22,41 @@ namespace Architome
             GetDependencies();
         }
 
+        public override string Description()
+        {
+            return $"Unit's size is {ArchString.FloatToSimple(sizeIncrease*100)}% of its original size.\n";
+        }
+
+        public override string GeneralDescription()
+        {
+            return $"Change the unit's size to {ArchString.FloatToSimple(sizeIncrease * 100)}% of its original size.\n";
+        }
+
         async void OnBuffStart(BuffInfo buff)
         {
-            originalSize = buffInfo.hostInfo.transform.localScale;
+            originalSize = OriginalSize();
             ArchAction.Delay(() => { buffInfo.expireDelay = 3f; }, .125f);
 
             while (buffInfo.hostInfo.transform.localScale != originalSize * sizeIncrease)
             {
                 await Task.Yield();
-
+                if (buffInfo.IsComplete) return;
                 buffInfo.hostInfo.transform.localScale = Vector3.Lerp(buffInfo.hostInfo.transform.localScale, originalSize * sizeIncrease, .125f);
             }
+        }
+
+        public Vector3 OriginalSize()
+        {
+            foreach (var buff in buffInfo.buffsManager.GetComponentsInChildren<BuffInfo>())
+            {
+                if (buff == buffInfo) continue;
+                var otherSizeChanger = buff.GetComponent<BuffSizeChanger>();
+                if (otherSizeChanger == null) continue;
+
+                return otherSizeChanger.originalSize;
+            }
+
+            return buffInfo.hostInfo.transform.localScale;
         }
 
         async void OnBuffEnd(BuffInfo buff)

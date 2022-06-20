@@ -39,6 +39,7 @@ namespace Architome
         public Dependencies dependencies;
         public BorderColors borderColors;
 
+
         public ToolTip toolTip;
         public ToolTipManager manager;
 
@@ -103,17 +104,18 @@ namespace Architome
             {
                 UpdateMainSprite();
 
-                if (buff.buffIcon != null)
-                {
-                    SetSprite(buff.buffIcon);
-                    return;
-                }
+                SetSprite(buff.Icon());
+                //if (buff.buffIcon != null)
+                //{
+                //    SetSprite(buff.buffIcon);
+                //    return;
+                //}
 
-                if (buff.sourceCatalyst.catalystIcon != null)
-                {
-                    SetSprite(buff.sourceCatalyst.catalystIcon);
-                    return;
-                }
+                //if (buff.sourceCatalyst.catalystIcon != null)
+                //{
+                //    SetSprite(buff.sourceCatalyst.catalystIcon);
+                //    return;
+                //}
 
 
             }
@@ -191,6 +193,7 @@ namespace Architome
 
             var subHeadline = buff.buffTargetType == BuffTargetType.Harm ? "Debuff" : "Buff";
 
+
             toolTip = manager.GeneralHeader();
 
             toolTip.adjustToMouse = true;
@@ -199,7 +202,7 @@ namespace Architome
 
             toolTip.SetToolTip(new()
             {
-                icon = buff.Icon(),
+                icon = dependencies.mainSprite.sprite,
                 name = buff.name,
                 subeHeadline = subHeadline,
                 description = buff.Description(),
@@ -215,7 +218,7 @@ namespace Architome
 
             while (toolTip != null)
             {
-                toolTip.components.value.text = $"{(int) buff.buffTimer}";
+                toolTip.components.value.text = $"{(int) buff.buffTimer}s";
                 toolTip.components.attributes.text = buff.TypesDescription();
                 await Task.Delay(1000);
             }

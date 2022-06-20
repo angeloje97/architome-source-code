@@ -149,7 +149,8 @@ namespace Architome.Settings
 
             var confirmed = await PromptHandler.active.GeneralPrompt(new()
             {
-                question = "Confirm Reset to Default",
+                title = "Key Bindings",
+                question = "Are you sure you want to reset to default?",
                 option1 = "Confirm",
                 option2 = "Cancel",
                 blocksScreen = true
@@ -192,7 +193,8 @@ namespace Architome.Settings
             if (IsConflicted())
             {
                 var applyWithConflict = await PromptHandler.active.GeneralPrompt(new() {
-                    question = "Apply With Conflicts?",
+                    title = "Key Bindings",
+                    question = "There are conflicting keybindings. Are you sure you want to current settings?",
                     option1 = "Apply",
                     option2 = "Cancel",
                     blocksScreen = true

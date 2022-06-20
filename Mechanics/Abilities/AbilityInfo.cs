@@ -29,11 +29,11 @@ public class AbilityInfo : MonoBehaviour
     public string abilityName;
     [Multiline]
     public string abilityDescription;
-
+    
     public GameObject entityObject;
     public GameObject catalyst;
     public Sprite abilityIcon;
-
+    
     public List<Augment> augments;
     public List<GameObject> buffs;
     //public BuffProperties buffProperties;
@@ -73,7 +73,6 @@ public class AbilityInfo : MonoBehaviour
     public Augment.Tracking tracking;
     public Augment.Bounce bounce;
     public Augment.Threat threat;
-
 
     [Serializable]
     public class StatsContribution
@@ -122,7 +121,6 @@ public class AbilityInfo : MonoBehaviour
     public struct AbilityVisualEffects
     {
         public bool showCastBar;
-        public bool showChannelBar;
         public bool showTargetIconOnTarget;
         public bool activateWeaponParticles;
     }
@@ -179,8 +177,8 @@ public class AbilityInfo : MonoBehaviour
     public bool cancelCastIfMoved;
     public bool cantMoveWhenCasting;
 
-    [Header("AbilityRestrictions")]
-    public bool activated;
+    //[Header("AbilityRestrictions")]
+    public bool activated; //If the ability is casting or channeling.
     public bool playerAiming;
     public bool canCastSelf;
     public bool onlyCastSelf;
@@ -199,9 +197,8 @@ public class AbilityInfo : MonoBehaviour
     public bool nullifyDamage;
     public bool interruptable;
     public bool isAttack;
-    public bool usesWeaponCatalyst;
-    public bool usesWeaponAttackDamage;
-    public bool active;
+    public bool active; //State if the ability can be casted.
+    public bool usesWeaponAttackDamage { get; set; }
 
     [Header("Ability Timers")]
     public float castTimer;
@@ -262,6 +259,7 @@ public class AbilityInfo : MonoBehaviour
     void Start()
     {
         GetDependencies();
+        active = true;
     }
     void Update()
     {
@@ -384,12 +382,40 @@ public class AbilityInfo : MonoBehaviour
         }
     }
 
+    public string Name()
+    {
+        if (abilityName.Length == 0)
+        {
+            if (name.Length == 0)
+            {
+                if (catalyst)
+                {
+                    return catalyst.name;
+                }
+            }
+
+            return name;
+
+        }
+
+        return abilityName;
+    }
+
     public Sprite Icon()
     {
+        //if (abilityType2 == AbilityType2.AutoAttack && abilityManager.settings.useWeaponAbility)
+        //{
+        //    if (abilityManager.currentWeapon && abilityManager.currentWeapon.itemIcon)
+        //    {
+        //        return abilityManager.currentWeapon.itemIcon;
+        //    }
+        //}
+
         if (abilityIcon != null)
         {
             return abilityIcon;
         }
+
 
         if (catalyst)
         {
@@ -416,39 +442,73 @@ public class AbilityInfo : MonoBehaviour
     {
         string properties = "";
 
-        if (!nullifyDamage)
+        if (!nullifyDamage && (isHarming || isHealing))
         {
-            properties += $"Deals damage equal to ";
+            
+            if (isHealing)
+            {
+                properties = "Heals health ";
+                if (isHarming)
+                {
+                    properties += "or ";
+                }
+            }
+
+            if (isHarming)
+            {
+                properties += "Deals damage ";
+            }
+
+
+            properties += "equal to ";
 
             var listString = new List<string>();
 
             if (coreContribution.dexterity > 0)
             {
-                listString.Add($"{coreContribution.dexterity} Dexterity");
+                listString.Add($"{ArchString.FloatToSimple(coreContribution.dexterity*100)}% Dexterity");
             }
 
             if (coreContribution.strength > 0)
             {
-                listString.Add($"{coreContribution.strength} Strength");
+                listString.Add($"{ArchString.FloatToSimple(coreContribution.strength*100)}% Strength");
             }
 
             if (coreContribution.wisdom > 0)
             {
-                listString.Add($"{coreContribution.wisdom} Wisdom");
+                listString.Add($"{ArchString.FloatToSimple(coreContribution.wisdom*100)}% Wisdom");
             }
 
             properties += $"{ArchString.StringList(listString)}.\n";
         }
 
-        if (destroysSummons)
+        if (splash.enable)
         {
-            properties += $"Can destroy any entity that is summoned by this target with this ability\n";
+            if(isHarming)
+            {
+                properties += "Does splash damage to enemies ";
+                
+                if (isHealing)
+                {
+                    properties += "and ";
+                }
+            }
+
+            if (isHealing)
+            {
+                properties += $"Does splash healing to allies ";
+            }
+
+            properties += $"when hitting the main target in a {splash.radius} meter radius equal to " +
+                $"{ArchString.FloatToSimple(splash.valueContribution * 100)}% value of the ability's original value.\n";
         }
+
 
         if (bounce.enable)
         {
-            properties += $"Bounces between at most {ticksOfDamage} targets that are {bounce.radius} meters between each other.\n";
+            properties += $"Bounces targets that are {bounce.radius} meters between each other.\n";
         }
+
 
         if (cataling.enable)
         {
@@ -456,10 +516,26 @@ public class AbilityInfo : MonoBehaviour
 
             if (cataling.catalingType == AbilityType.LockOn)
             {
-                properties += $", finds targets in a ${cataling.targetFinderRadius} radius";
+                properties += $", finds targets in a {cataling.targetFinderRadius} meter radius";
             }
 
             properties += "\n";
+        }
+
+        var condition = new ArchCondition()
+        {
+            conditions = new()
+            {
+                abilityType == AbilityType.SkillShot,
+                splash.enable,
+                bounce.enable,
+                cataling.enable
+            }
+        };
+
+        if (ticksOfDamage > 1 && condition.OrIsMetConditions())
+        {
+            properties += $"Can hit up to {ticksOfDamage} targets.\n";
         }
 
         if (summoning.enabled)
@@ -490,8 +566,15 @@ public class AbilityInfo : MonoBehaviour
     public string ResourceDescription()
     {
         string resourceDescription = "";
+        var info = catalyst.GetComponent<CatalystInfo>();
 
-        
+        if (vfx.showCastBar && info)
+        {
+            var castTime = info.castTime;
+
+            var alteredCastTime = castTime - (castTime * Haste());
+            resourceDescription += $"{ArchString.FloatToSimple(alteredCastTime)}s Cast ";
+        }
 
         if (resources.requiredAmount > 0 || resources.requiredPercent > 0)
         {
@@ -506,16 +589,12 @@ public class AbilityInfo : MonoBehaviour
                 }
             }
 
-
-
             if (resources.requiredPercent > 0)
             {
                 requiredAmount += $"({resources.requiredPercent * 100}%)";
             }
 
-
             resourceDescription += $"{requiredAmount} mana required ";
-
         }
 
         if (resources.producedAmount > 0 || resources.producedPercent > 0)
@@ -537,13 +616,53 @@ public class AbilityInfo : MonoBehaviour
                 producedAmount += $"({resources.producedPercent*100}%)";
             }
 
-            resourceDescription += $"{producedAmount} mana produced";
+            resourceDescription += $"{producedAmount} mana produced ";
+        }
+
+        if (resourceDescription.Length > 0)
+        {
+            resourceDescription += "\n";
         }
 
         return resourceDescription;
     }
 
-    public string BuffsDescription()
+    public string RestrictionDescription()
+    {
+        var properties = "";
+
+        if (destroysSummons)
+        {
+            properties += $"Can destroy any unit that is summoned by this target with this ability\n";
+        }
+
+        if (onlyCastOutOfCombat)
+        {
+            properties += "Can only cast out of combat. \n";
+        }
+
+        if (onlyCastSelf)
+        {
+            properties += $"Can only target self.\n";
+        }
+
+        UpdateFromCatalyst();
+
+        return properties;
+
+        void UpdateFromCatalyst()
+        {
+            if (catalyst == null) return;
+            var info = catalyst.GetComponent<CatalystInfo>();
+            if (info == null) return;
+            if (!info.requiresWeapon) return;
+
+            properties += $"Requires weapon : {ArchString.CamelToTitle(info.weaponType.ToString())}.\n";
+
+        }
+    }
+
+    public string BuffList()
     {
         var buffDescription = "";
 
@@ -575,7 +694,7 @@ public class AbilityInfo : MonoBehaviour
 
             if (assistBuffs.Count > 0)
             {
-                buffDescription += $"Applies buffs: ";
+                buffDescription += $"Applies buff(s): \n";
 
                 var list = new List<string>();
 
@@ -590,7 +709,7 @@ public class AbilityInfo : MonoBehaviour
 
             if (harmBuffs.Count > 0)
             {
-                buffDescription += $"Applies buffs to enemies: ";
+                buffDescription += $"Applies debuff(s) to enemies: \n";
 
                 var list = new List<string>();
 
@@ -604,7 +723,7 @@ public class AbilityInfo : MonoBehaviour
 
             if (selfBuffs.Count > 0)
             {
-                buffDescription += $"Applies buffs to self: ";
+                buffDescription += $"Applies buff(s) to self: \n";
 
                 var list = new List<string>();
 
@@ -621,6 +740,53 @@ public class AbilityInfo : MonoBehaviour
         return buffDescription;
     }
 
+    public string BuffDescriptions()
+    {
+        var buffDescription = "";
+
+        foreach (var buff in buffs)
+        {
+            var info = buff.GetComponent<BuffInfo>();
+
+            if (info == null) continue;
+
+            var name = info.name + $"({info.properties.time}s)";
+
+            var generalDescription = info.TypesDescriptionGeneral();
+
+            if (generalDescription.Length == 0) continue;
+
+            buffDescription += $"{name}: {generalDescription}";
+        }
+
+        return buffDescription;
+    }
+
+    public ToolTipData ToolTipData(bool showResources = true)
+    {
+
+        var attributes = ArchString.NextLineList(new()
+        {
+            PropertiesDescription(),
+            BuffList(),
+            BuffDescriptions()
+        });
+
+        
+
+        var value = showResources ? ResourceDescription() : "";
+
+        return new() {
+            icon = Icon(),
+            subeHeadline = ArchString.CamelToTitle(abilityType2.ToString()),
+            name = Name(),
+            description = Description(),
+            attributes = attributes,
+            requirements = RestrictionDescription(),
+            value = value
+        };
+
+    }
 
     async void OnGlobalCoolDown(AbilityInfo ability)
     {
@@ -726,13 +892,41 @@ public class AbilityInfo : MonoBehaviour
 
     public bool CanCast2()
     {
-        if (!IsReady()) return false;
-        if (IsBusy()) return false;
-        if (!AbilityManagerCanCast()) return false;
-        if (!HasManaRequired()) return false;
-        if (!HandleRequiresTargetLocked()) return false;
-        if (!CorrectCombat()) return false;
-        if (!SpawnHasLineOfSight()) return false;
+        if (!IsReady())
+        {
+            CantCastReason("Not Ready");
+            return false;
+        }
+        if (IsBusy())
+        {
+            CantCastReason("Is Busy");
+            return false;
+        }
+        if (!AbilityManagerCanCast())
+        {
+            CantCastReason("Ability Manager Can't Cast");
+            return false;
+        }
+        if (!HasManaRequired())
+        {
+            CantCastReason("Not Enough Mana");
+            return false;
+        }
+        if (!HandleRequiresTargetLocked())
+        {
+            CantCastReason("Incorrect Target");
+            return false;
+        }
+        if (!CorrectCombat())
+        {
+            CantCastReason("Not in correct combat state.");
+            return false;
+        }
+        if (!SpawnHasLineOfSight())
+        {
+            CantCastReason("Don't have line of sight");
+            return false;
+        }
 
         return true;
 
@@ -761,6 +955,11 @@ public class AbilityInfo : MonoBehaviour
 
             return false;
 
+        }
+
+        void CantCastReason(string reason)
+        {
+            Debugger.InConsole(5329, $"{this} can't cast because {reason}");
         }
     }
 
@@ -1252,10 +1451,15 @@ public class AbilityInfo : MonoBehaviour
         {
             if (entityInfo)
             {
-                value = baseValue
-                    + entityInfo.stats.Wisdom * wisdomContribution
-                    + entityInfo.stats.Strength * strengthContribution
-                    + entityInfo.stats.Dexterity * dexterityContribution;
+                if (usesWeaponAttackDamage && abilityManager.currentWeapon)
+                {
+                    value = abilityManager.currentWeapon.attackValue;
+                }
+                else
+                {
+                    value = AbilityValue();
+                }
+                
 
             }
         }
@@ -1268,6 +1472,8 @@ public class AbilityInfo : MonoBehaviour
             abilityIcon = catalystInfo.catalystIcon;
             range = catalystInfo.range;
             speed = catalystInfo.speed;
+
+            var isAttack = abilityType2 == AbilityType2.AutoAttack;
 
             if(isAttack && entityInfo)
             {
@@ -1303,29 +1509,76 @@ public class AbilityInfo : MonoBehaviour
             }
 
         }
-     }
+    }
+
+    float AbilityValue()
+    {
+        var value = baseValue
+                        + entityInfo.stats.Wisdom * wisdomContribution
+                        + entityInfo.stats.Strength * strengthContribution
+                        + entityInfo.stats.Dexterity * dexterityContribution;
+
+        return value;
+    }
     public bool IsReady()
     {
-        if(!active) { return false; }
-        if (isCasting) return false;
-        if (channel.active) return false;
-        if (coolDown.globalCoolDownActive) return false;
-        if (!HasCorrectWeapon()) return false;
+        if (!active)
+        {
+            NotReadyReason("not active");
+            return false;
+        }
 
-        if(entityInfo.mana < (resources.requiredAmount + resources.requiredPercent*entityInfo.maxMana))
+        if (isCasting)
+        {
+            NotReadyReason("Already casting");
+            return false;
+        }
+        if (channel.active)
+        {
+            NotReadyReason("Already channeling");
+            return false;
+        }
+        if (coolDown.globalCoolDownActive)
+        {
+            NotReadyReason("Global Cooldown is still active");
+            return false;
+        }
+        if (!HasCorrectWeapon())
         {
             return false;
         }
 
-        if(coolDown.charges <= 0) { return false; }
+        if(entityInfo.mana < (resources.requiredAmount + resources.requiredPercent*entityInfo.maxMana))
+        {
+            NotReadyReason("Not enough resources");
+            return false;
+        }
+
+        if (coolDown.charges <= 0)
+        {
+            NotReadyReason("still on cooldown");
+            return false;
+        }
 
         return true;
 
         bool HasCorrectWeapon()
         {
             if (!catalystInfo.requiresWeapon) return true;
+            
+            var hasWeapon = abilityManager.HasWeaponType(catalystInfo.weaponType);
 
-            return abilityManager.HasWeaponType(catalystInfo.weaponType);
+            if (hasWeapon == false)
+            {
+                NotReadyReason($"Ability requires {catalystInfo.weaponType}");
+            }
+
+            return hasWeapon;
+        }
+
+        void NotReadyReason(string reason)
+        {
+            Debugger.InConsole(5330, $"{this} can't cast because {reason}");
         }
     }
     public void HandleAutoAttack()

@@ -14,19 +14,22 @@ namespace Architome
         public CharacterInfo characterInfo;
         public EquipmentSlot equipmentSlot;
         public EquipmentSlotType slotType;
-
+        GearSlotManager manager;
         //Update Trigger Handlers
 
-        public GearSlotManager GearManager()
+
+
+        new void GetDependencies()
         {
-            return GetComponentInParent<GearSlotManager>() ? GetComponentInParent<GearSlotManager>() : null;
+            base.GetDependencies();
+
+            manager = GetComponentInParent<GearSlotManager>();
         }
-
-
 
         public void Start()
         {
-            GetDependenencies();
+            GetDependencies();
+            
         }
 
         public void Update()
@@ -48,11 +51,14 @@ namespace Architome
 
             if (!IsCorrectEquipment())
             {
+                manager.IncorrectEquipmentType(this);
                 return false;
+                
             }
 
             if (!IsCorrectWeapon())
             {
+                manager.IncorrectEquipmentType(this);
                 return false;
             }
 

@@ -203,6 +203,8 @@ namespace Architome
         {
 
             ArchAction.Delay(() => {
+                if (movement == null) return;
+                if(movement.Target() == null) return;
 
                 if (Entity.IsEntity(movement.Target().gameObject))
                 {

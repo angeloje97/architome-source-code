@@ -22,21 +22,17 @@ namespace Architome
             {
                 int choice = await PromptHandler.active.GeneralPrompt(new() 
                 {
+                    title = "Quit Game",
+                    question = "Are you sure you want to quit?",
                     option1 = "Quit",
                     option2 = "Cancel",
-                    question = "Are you sure you want to quit?",
                     blocksScreen = true,
                 });
 
-                if (choice == 1)
+                if (choice == 0)
                 {
-                    quit = false;
+                    Application.Quit();
                 }
-            }
-
-            if (quit)
-            {
-                Application.Quit();
             }
 
         }

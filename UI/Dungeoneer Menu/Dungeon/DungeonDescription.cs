@@ -243,14 +243,16 @@ namespace Architome
 
                 abilityToolTip.adjustToMouse = true;
 
-                abilityToolTip.SetToolTip(new()
-                {
-                    icon = ability.catalyst.GetComponent<CatalystInfo>().catalystIcon,
-                    name = ability.abilityName,
-                    description = ability.Description(),
-                    attributes = ability.PropertiesDescription() + ability.BuffsDescription(),
-                    //requirements = ability.ResourceDescription(),
-                });
+                abilityToolTip.SetToolTip(ability.ToolTipData(false));
+
+                //abilityToolTip.SetToolTip(new()
+                //{
+                //    icon = ability.catalyst.GetComponent<CatalystInfo>().catalystIcon,
+                //    name = ability.abilityName,
+                //    description = ability.Description(),
+                //    attributes = ability.PropertiesDescription() + ability.BuffList(),
+                //    //requirements = ability.ResourceDescription(),
+                //});
             }
 
             void HandleHoverExit()

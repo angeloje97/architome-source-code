@@ -47,6 +47,31 @@ namespace Architome
             
         }
 
+        public override string Description()
+        {
+            var result = "";
+
+            if (statesImmuneTo == null || statesImmuneTo.Count == 0)
+            {
+                return result;
+            }
+
+            result += $"Target is immune to";
+
+            var list = new List<string>();
+
+            foreach (var state in statesImmuneTo)
+            {
+                list.Add(state.ToString());
+            }
+
+            var listString = ArchString.StringList(list);
+
+            result += $"{listString}\n";
+
+            return result;
+        }
+
         private void Awake()
         {
             GetDependencies();

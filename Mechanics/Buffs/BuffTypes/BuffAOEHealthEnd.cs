@@ -34,7 +34,7 @@ namespace Architome
             //}
         }
 
-        public override string BuffTypeDescription()
+        public override string Description()
         {
             buffInfo = GetComponent<BuffInfo>();
 
@@ -56,6 +56,15 @@ namespace Architome
             }
 
             result += $" that will {ArchString.CamelToTitle(aoeType.ToString())} across all targets.\n";
+
+            return result;
+        }
+
+        public override string GeneralDescription()
+        {
+            var result = "";
+
+
 
             return result;
         }

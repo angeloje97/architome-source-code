@@ -43,7 +43,7 @@ public class BuffHealthOverTime : BuffType
     }
 
 
-    public override string BuffTypeDescription()
+    public override string Description()
     {
         var result = "";
 
@@ -57,7 +57,17 @@ public class BuffHealthOverTime : BuffType
             result += "Damages ";
         }
 
-        result += $" the target for {buffInfo.properties.value} health every {buffInfo.properties.intervals} seconds\n";
+        result += $" the target for {ArchString.FloatToSimple(buffInfo.properties.value)} health every {buffInfo.properties.intervals} seconds\n";
+
+        return result;
+    }
+
+    public override string GeneralDescription()
+    {
+        var buffInfo = GetComponent<BuffInfo>();
+        var result = buffInfo.buffTargetType == BuffTargetType.Assist ? "Heals " : "Damages ";
+
+        result += $"target every {buffInfo.properties.intervals} seconds\n";
 
         return result;
     }

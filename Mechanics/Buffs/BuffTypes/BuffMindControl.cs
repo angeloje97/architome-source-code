@@ -61,9 +61,27 @@ public class BuffMindControl : BuffStateChanger
         }
     }
 
-    public override string BuffTypeDescription()
+    public override string Description()
     {
-        return base.BuffTypeDescription() + $" Will change the target's threat type to the same as the source's threat type.\n";
+
+        var result = base.Description();
+
+        result += $" Will change the target's threat type to the same as the source's threat type.\n";
+
+        if (buffInfo.sourceAbility)
+        {
+            if (buffInfo.sourceAbility.recastProperties.enabled)
+            {
+                result += $"Can recast the source ability to move the target or have the target attack/heal another target\n";
+            }
+        }
+
+        return result;
+    }
+
+    public override string GeneralDescription()
+    {
+        return "Control an enemy to switch them over to the source's side.";
     }
 
     void OnDamageDone(CombatEventData eventData)

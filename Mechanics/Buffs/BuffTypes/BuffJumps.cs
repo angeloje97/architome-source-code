@@ -3,17 +3,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
 using Architome;
-public class BuffJumps : MonoBehaviour
+public class BuffJumps : BuffType
 {
     // Start is called before the first frame update
-    public BuffInfo buffInfo;
+    
     public bool expired = false;
     public bool jumpsWhenTimerRunsOut;
-    void GetDependencies()
+    new void GetDependencies()
     {
-        if(GetComponent<BuffInfo>())
+        base.GetDependencies();
+
+        if (buffInfo)
         {
-            buffInfo = GetComponent<BuffInfo>();
             buffInfo.OnBuffCompletion += OnBuffCompletion;
         }
     }
@@ -23,7 +24,17 @@ public class BuffJumps : MonoBehaviour
         expired = false;
     }
 
-    // Update is called once per frame
+
+    public override string Description()
+    {
+        var additive = buffInfo.buffTargetType == BuffTargetType.Assist ? "enemy" : "ally";
+        return $"Once the buff timer is complete, the buff will be applied to an {additive} that's within a {buffInfo.properties.radius} meter radius\n";
+    }
+
+    public override string GeneralDescription()
+    {
+        return "Will be applied to a new target within a the radius when the buff timer is complete";
+    }
 
     public void OnBuffCompletion(BuffInfo buff)
     {

@@ -1,16 +1,25 @@
+using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
-using System;
-using System.Linq;
 
 namespace Architome
 {
     [RequireComponent(typeof(AbilityFXHandler))]
     public class AbilityManager : MonoBehaviour
     {
-        // Start is called before the first frame update
+
+        [Serializable]
+        public class ManagerSettings
+        {
+            public bool useWeaponAbility;
+        }
+        public ManagerSettings settings;
+
+        [Header("In Game Properties")]
+
         public GameObject entityObject;
         public EntityInfo entityInfo;
 
@@ -20,6 +29,7 @@ namespace Architome
 
         public AbilityInfo attackAbility;
         public AbilityInfo currentlyCasting;
+        public Weapon currentWeapon;
         public bool wantsToCastAbility;
 
         public GameObject target;
@@ -121,9 +131,38 @@ namespace Architome
         void Start()
         {
             GetDependencies();
+            HandleUseWeaponAbility(null);
         }
 
-        
+        void HandleUseWeaponAbility(Item weaponItem)
+        {
+            if (!settings.useWeaponAbility) return;
+
+            if (attackAbility)
+            {
+                Debugger.InConsole(4329, $"Destroying {attackAbility}");
+                Destroy(attackAbility.gameObject);
+            }
+
+            if (!Item.IsWeapon(weaponItem)) return;
+
+            var weapon = (Weapon) weaponItem;
+
+            if (weapon.ability == null || 
+                weapon.ability.GetComponent<AbilityInfo>() == null) return;
+
+            var ability = weapon.ability;
+
+            
+            attackAbility = Instantiate(ability, transform).GetComponent<AbilityInfo>();
+
+            attackAbility.usesWeaponAttackDamage = true;
+
+            attackAbility.UpdateAbility();
+
+            attackAbility.active = true;
+
+        }
 
         private void Update()
         {
@@ -138,6 +177,7 @@ namespace Architome
         {
             SetAbilities(isAlive, isAlive);
         }
+
 
         public void OnStatesChange(List<EntityState> previous, List<EntityState> states)
         {
@@ -188,18 +228,26 @@ namespace Architome
 
         public void OnChangeEquipment(EquipmentSlot slot, Equipment before, Equipment after)
         {
-            if (attackAbility == null) return;
-            if (!attackAbility.usesWeaponCatalyst) return;
+                        
+            HandleUseWeaponAbility(after);
 
-            attackAbility.catalyst = null;
+            if (Item.IsWeapon(after) && slot.equipmentSlotType == EquipmentSlotType.MainHand)
+            {
+                currentWeapon = (Weapon)after;
+            }
 
-            if (after == null) return;
-            if (!Item.IsWeapon(after)) return;
-            if (slot.equipmentSlotType != EquipmentSlotType.MainHand) return;
+            //if (attackAbility == null) return;
+            //if (!attackAbility.usesWeaponCatalyst) return;
 
-            var weapon = (Weapon)slot.equipment;
+            //attackAbility.catalyst = null;
 
-            attackAbility.catalyst = weapon.weaponCatalyst;
+            //if (after == null) return;
+            //if (!Item.IsWeapon(after)) return;
+            //if (slot.equipmentSlotType != EquipmentSlotType.MainHand) return;
+
+            //var weapon = (Weapon)slot.equipment;
+
+            //attackAbility.catalyst = weapon.weaponCatalyst;
 
 
         }

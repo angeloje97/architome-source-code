@@ -88,7 +88,52 @@ namespace Architome
             return newText;
         }
 
-        
+        public static string Spacer(string line)
+        {
+            if (line.Length > 0)
+            {
+                return $" {line}";
+            }
+
+            return line;
+        }
+
+        public static string NextLineList(List<string> stringList)
+        {
+            var result = "";
+            for (int i = 0; i < stringList.Count; i++)
+            {
+                var item = stringList[i];
+
+                if (i == 0)
+                {
+                    result += item;
+                    continue;
+                }
+
+                if (item.Length > 0)
+                {
+                    if (result.Length > 0)
+                    {
+                        result += "\n";
+                    }
+
+                    result += $"{item}";
+                }
+            }
+
+            return result;
+        }
+
+        public static string NextLine(string line)
+        {
+            if (line.Length > 0)
+            {
+                line += "\n";
+            }
+
+            return line;
+        }
 
         public static string FloatToSimple(float value)
         {
