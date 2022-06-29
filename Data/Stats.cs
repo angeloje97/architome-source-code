@@ -366,7 +366,7 @@ namespace Architome
 
         public void UpdateExperienceRequiredToLevel()
         {
-            experienceReq = GMHelper.Difficulty().settings.experienceMultiplier * Level;
+            experienceReq = DifficultyModifications.active.ExperienceRequiredToLevel(Level);
         }
     }
 }

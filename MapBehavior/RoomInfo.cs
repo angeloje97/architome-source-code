@@ -84,7 +84,6 @@ namespace Architome
         public struct Events
         {
             public Action<RoomInfo, bool> OnShowRoom;
-            
         }
 
         public Events events;
@@ -158,10 +157,11 @@ namespace Architome
 
         protected virtual void GetDependencies()
         {
-            if (MapHelper.MapInfo())
+            mapInfo = MapInfo.active;
+            if (mapInfo)
             {
-                mapInfo = MapHelper.MapInfo();
                 mapInfo.RoomGenerator().roomsInUse.Add(gameObject);
+                mapInfo.EntityGenerator().OnEntitiesGenerated += OnEntitiesGenerated;
             }
 
             entities.room = this;
@@ -189,22 +189,19 @@ namespace Architome
             ShowRoomAsyncPoint(val, point, percentReveal);
         }
 
-        public void ClosePaths()
+        public void SetPaths(bool close)
         {
             foreach (var path in GetComponentsInChildren<PathInfo>())
             {
-                path.Close();
+                if (path.otherRoom == null) continue;
+                path.SetPath(close);
             }
         }
 
-        public void OpenPaths()
+        public virtual void OnEntitiesGenerated(MapEntityGenerator generator)
         {
-            foreach (var path in GetComponentsInChildren<PathInfo>())
-            {
-                path.Open();
-            }
-        }
 
+        }
 
         public async void ShowRoomAsyncPoint(bool val, Vector3 pointPosition, float percent = .025f)
         {

@@ -26,7 +26,7 @@ namespace Architome
             CameraManager.active.cameraAnchor = this;
 
 
-            var gameManager = GMHelper.GameManager();
+            var gameManager = GameManager.active;
 
             if (targetType == CameraTarget.PartyCenter)
             {
@@ -34,6 +34,9 @@ namespace Architome
             }
 
             check = GetComponentInChildren<CameraAnchor>();
+
+
+
         }
 
         void Start()
@@ -46,7 +49,7 @@ namespace Architome
             target = party.center;
         }
 
-        public void OnValidate()
+        private void Awake()
         {
             active = this;
         }

@@ -60,7 +60,7 @@ namespace Architome
             GetDependencies();
         }
 
-        public void IncorrectEquipmentType(GearSlot slot)
+        public void IncorrectEquipmentType(GearSlot slot, string reason = "")
         {
             OnIncorrectEquipmentInsertion?.Invoke(slot);
         }
@@ -77,9 +77,9 @@ namespace Architome
 
         void OnEquipItem(ItemInfo info, EntityInfo entity)
         {
-            if (this.entityInfo != entity)
+            if (entityInfo != entity)
             {
-                OnSelectEntity(entity);
+                module.OnSelectEntity?.Invoke(entity);
             }
 
             var equipment = (Equipment)info.item;

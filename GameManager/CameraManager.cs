@@ -8,7 +8,7 @@ namespace Architome
     {
         // Start is called before the first frame update
         public static CameraManager active;
-        Camera current;
+        public Camera current;
         public static Camera Main { get { return active.current; } }
         public Camera Current { get { return current; } private set { current = value; } }
 

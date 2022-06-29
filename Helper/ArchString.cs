@@ -113,7 +113,8 @@ namespace Architome
 
                 if (item.Length > 0)
                 {
-                    if (result.Length > 0)
+
+                    if (result.Length > 0 && item.Length > 0 && i != stringList.Count - 1)
                     {
                         result += "\n";
                     }

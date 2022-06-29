@@ -149,6 +149,8 @@ namespace Architome
 
         public void SetActive(bool val, bool playSound = true)
         {
+            if (isActive == val) return;
+
             if (canvasGroup)
             {
                 canvasGroup.interactable = val;

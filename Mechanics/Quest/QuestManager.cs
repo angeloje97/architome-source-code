@@ -1,7 +1,9 @@
+using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System;
+
 namespace Architome
 {
     public class QuestManager : MonoBehaviour
@@ -12,8 +14,17 @@ namespace Architome
         public List<Quest> quests;
         public Action<Quest> OnNewQuest;
 
-        public Action<Quest> OnQuestCompleted;
-        public Action<Quest> OnQuestActive;
+        public Action<Quest> OnQuestEnd { get; set; }
+        public Action<Quest> OnQuestActive { get; set; }
+
+        private void Start()
+        {
+        }
+
+        public void Awake()
+        {
+            active = this;
+        }
 
         public Quest AddQuest(GameObject questObject)
         {
@@ -29,15 +40,25 @@ namespace Architome
 
         }
 
-        void UpdateQuest()
+        public void DeleteQuest(Quest quest)
         {
-            quests = new List<Quest>(GetComponentsInChildren<Quest>());
+            for (int i = 0; i < quests.Count; i++)
+            {
+                var current = quests[i];
+                if (current != quest) continue;
+
+                Destroy(current.gameObject);
+                quests.RemoveAt(i);
+                i--;
+            }
         }
 
-        public void Awake()
+        void UpdateQuest()
         {
-            active = this;
+            quests = GetComponentsInChildren<Quest>().ToList();
         }
+
+        
 
 
     }

@@ -990,7 +990,7 @@ public class AbilityInfo : MonoBehaviour
         if (!lineOfSight.HasLineOfSight(locationLocked))
         {
 
-            locationLocked = V3Helper.InterceptionPoint(locationLocked, transform.position, LayerMasksData.active.wallLayer, 2f);
+            locationLocked = V3Helper.InterceptionPoint(locationLocked, transform.position, LayerMasksData.active.structureLayerMask, 2f);
             return true;
             if (movement)
             {

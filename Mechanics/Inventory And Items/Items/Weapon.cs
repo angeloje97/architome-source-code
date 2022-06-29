@@ -51,7 +51,7 @@ namespace Architome
         new private void OnValidate()
         {
             itemType = ItemType.Weapon;
-
+            UpdateAbility();
 
         }
 

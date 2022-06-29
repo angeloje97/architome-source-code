@@ -39,62 +39,36 @@ namespace Architome
 
         public bool CanEquip(Item item)
         {
-            if (!Item.IsWeapon(item) && !Item.IsEquipment(item)) return false;
+            if (!Item.Equipable(item))
+            {
+                manager.IncorrectEquipmentType(this, "Not an equipable item.");
+                return false;
+            }
+
             if (entityInfo == null) return false;
 
             var equipment = (Equipment)item;
 
-            if (slotType != equipment.equipmentSlotType && equipment.secondarySlotType != slotType) return false;
+            if (slotType != equipment.equipmentSlotType && equipment.secondarySlotType != slotType)
+            {
+                manager.IncorrectEquipmentType(this, "Incorrect slot type for weapon.");
+                return false;
+            }
 
             var archClass = entityInfo.archClass;
 
-
-            if (!IsCorrectEquipment())
+            if (archClass)
             {
-                manager.IncorrectEquipmentType(this);
-                return false;
-                
-            }
+                if (!archClass.CanEquip(item, out string reason))
+                {
+                    manager.IncorrectEquipmentType(this, reason);
 
-            if (!IsCorrectWeapon())
-            {
-                manager.IncorrectEquipmentType(this);
-                return false;
-            }
+                    return false;
+                }
 
+            }
 
             return true;
-
-            bool IsCorrectEquipment()
-            {
-                if (archClass == null) return true;
-                if (!Item.IsEquipment(item)) return true;
-
-                var equipment = (Equipment)item;
-
-                if (!archClass.equipableArmor.Contains(equipment.armorType))
-                {
-                    return false;
-                }
-
-
-                return true;
-            }
-
-            bool IsCorrectWeapon()
-            {
-                if (archClass == null) return true;
-                if (!Item.IsWeapon(item)) return true;
-
-                var weapon = (Weapon)item;
-
-                if (!archClass.equipableWeapons.Contains(weapon.weaponType))
-                {
-                    return false;
-                }
-
-                return true;
-            }
         }
 
     }

@@ -13,10 +13,48 @@ public class WorldActions : MonoBehaviour
     public Action<GameObject> OnWorldReviveB;
     public Action<GameObject> OnWorldReviveA;
 
+    public bool devToolsActive;
+    public float value;
+    public string stringValue;
+    public bool giveExperience;
+    public bool damage;
+    public bool forceLoadScene;
+    private void Update()
+    {
+        HandleLoadScene();
+    }
+
+    void HandleLoadScene()
+    {
+        if (!forceLoadScene) return;
+        forceLoadScene = false;
+        var sceneManager = ArchSceneManager.active;
+        if (sceneManager == null) return;
+
+        sceneManager.LoadScene(stringValue, true);
+    }
+
+
+    
+
+    void GetDependencies()
+    {
+        var targetManager = ContainerTargetables.active;
+
+        targetManager.OnSelectTarget += OnSelectTarget;
+    }
+
     public void Awake()
     {
         active = this;
+
     }
+
+    private void Start()
+    {
+        GetDependencies();
+    }
+
     public void Restore(GameObject entity, float health = 1, float mana = 1)
     {
         var entityInfo = entity.GetComponent<EntityInfo>();
@@ -31,6 +69,44 @@ public class WorldActions : MonoBehaviour
             entityInfo.isAlive = true;
         }
 
+    }
+
+    void OnSelectTarget(GameObject target)
+    {
+        HandleSelectEntity(target);
+    }
+
+    void HandleSelectEntity(GameObject target)
+    {
+        if (!devToolsActive) return;
+        var info = target.GetComponent<EntityInfo>();
+        if (info == null) return;
+
+        HandleExperience();
+        HandleDamage();
+
+        void HandleExperience()
+        {
+            if (!giveExperience) return;
+            if (value <= 0)
+            {
+                value = 0;
+                return;
+            }
+
+
+            var experienceHandler = info.GetComponentInChildren<EExperienceHandler>();
+            if (experienceHandler == null) return;
+            experienceHandler.GainExp(value);
+        }
+
+        void HandleDamage()
+        {
+            if (!damage) return;
+            if (value <= 0) return;
+
+            info.Damage(new(info) { value = value});
+        }
     }
 
     public void Revive(GameObject entity, Vector3 position = new Vector3(), float health = 1, float mana = 1)

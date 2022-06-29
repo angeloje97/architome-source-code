@@ -53,7 +53,6 @@ namespace Architome
         {
             return "";
         }
-
         public virtual string Value()
         {
             var value = "";
@@ -71,6 +70,22 @@ namespace Architome
             if (idSet && !forceSet) return;
             idSet = true;
             this.id = id;
+        }
+
+        public virtual ToolTipData ToolTipData()
+        {
+            return new()
+            {
+                icon = itemIcon,
+                name = itemName,
+                enableRarity = true,
+                type = rarity.ToString(),
+                subeHeadline = SubHeadline(),
+                attributes = Attributes(),
+                requirements = Requirements(),
+                description = Description(),
+                value = Value()
+            };
         }
 
 

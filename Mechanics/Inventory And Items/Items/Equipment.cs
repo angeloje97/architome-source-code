@@ -79,9 +79,6 @@ namespace Architome
 
             return requirements;
         }
-
-
-
         // Start is called before the first frame update
         public void UpdateEquipmentStats()
         {

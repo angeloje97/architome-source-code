@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
+
 namespace Architome
 {
     public class ArchGeneric
@@ -30,7 +31,12 @@ namespace Architome
             return component;
         }
 
+        public static T RandomItem<T>(List<T> items)
+        {
+            var randomIndex = UnityEngine.Random.Range(0, items.Count);
 
+            return items[randomIndex];
+        }
     }
 
 }

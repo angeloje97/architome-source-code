@@ -57,6 +57,11 @@ namespace Architome
             return result;
         }
 
+        public override string GeneralDescription()
+        {
+            return "Forced to focus a target.\n";
+        }
+
         void OnBuffEnd(BuffInfo buff)
         {
             var eventData = new CombatEventData(buff, buff.sourceInfo, buff.properties.value);

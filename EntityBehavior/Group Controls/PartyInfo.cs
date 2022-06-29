@@ -96,14 +96,26 @@ namespace Architome
         }
         public void AddMembersToGameManager()
         {
-            if (GMHelper.GameManager())
+            var raidInfo = GetComponentInParent<RaidInfo>();
+            var manager = GameManager.active;
+
+
+            if (manager == null) return;
+
+            if (manager.playableParties != null && manager.playableParties.Count == 1)
             {
-                foreach (GameObject member in members)
+                if (!raidInfo)
                 {
-                    GMHelper.GameManager().AddPlayableCharacter(member.GetComponent<EntityInfo>());
+                    return;
                 }
-                GMHelper.GameManager().AddPlayableParty(this);
             }
+
+            foreach (GameObject member in members)
+            {
+                GMHelper.GameManager().AddPlayableCharacter(member.GetComponent<EntityInfo>());
+            }
+            GMHelper.GameManager().AddPlayableParty(this);
+            
         }
         public void ProcessMembers()
         {

@@ -11,6 +11,7 @@ namespace Architome
         public bool showEnemyPositions;
         public bool showPatrolSpots;
         public bool showPatrolGroupSpots;
+        public bool showChestSpots;
 
         public RoomInfo info;
         private void OnValidate()
@@ -23,6 +24,7 @@ namespace Architome
             ShowEnemiesPos(showEnemyPositions);
             ShowPatrolSpots(showPatrolSpots);
             ShowPatrolGroupSpots(showPatrolGroupSpots);
+            ShowChestSpots(showChestSpots);
         }
 
         private void Start()
@@ -32,6 +34,16 @@ namespace Architome
             showPatrolSpots = false;
 
             OnValidate();
+        }
+
+        void ShowChestSpots(bool val)
+        {
+            if (info.chestPos == null) return;
+
+            foreach (Transform child in info.chestPos)
+            {
+                child.gameObject.SetActive(val);
+            }
         }
 
         void ShowEnemiesPos(bool val)

@@ -38,10 +38,16 @@ namespace Architome
             if (entityInfo.entityStats.experience + value > entityInfo.entityStats.experienceReq)
             {
                 var pastExperienceReq = entityInfo.entityStats.experienceReq;
-                LevelUp();
-                value = entityInfo.entityStats.experience + value - pastExperienceReq;
+                var currentExperience = entityInfo.entityStats.experience;
                 
+                value = currentExperience + value - pastExperienceReq;
+                var leftOver = pastExperienceReq - currentExperience;
+
+                LevelUp();
                 GainExp(value);
+
+                entityInfo.OnExperienceGain?.Invoke(leftOver);
+                return;
             }
             else if (entityInfo.entityStats.experience + value == entityInfo.entityStats.experienceReq)
             {

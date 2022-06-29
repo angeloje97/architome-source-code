@@ -41,6 +41,15 @@ namespace Architome
             bindings = KeyBindings.active;
             gui = IGGUIInfo.active;
 
+            var archSceneManager = ArchSceneManager.active;
+
+
+            if (archSceneManager)
+            {
+                archSceneManager.BeforeLoadScene += BeforeLoadScene;
+            }
+            
+
             if (gui)
             {
                 gui.OnModuleEnableChange += OnModuleEnableChange;
@@ -54,6 +63,13 @@ namespace Architome
         private void Awake()
         {
             active = this;
+        }
+
+        void BeforeLoadScene(ArchSceneManager archSceneManager)
+        {
+            if (!archSceneManager.sceneToLoad.Equals("PostDungeonResults")) return;
+            inputMode = ArchInputMode.Inactive;
+
         }
 
         async void OnModuleEnableChange(ModuleInfo changed)

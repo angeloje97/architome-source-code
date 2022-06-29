@@ -62,7 +62,7 @@ public class CatalystHit : MonoBehaviour
     }
     public void OnTriggerEnter(Collider other)
     {
-        Debugger.InConsole(5123, $"Your projectile hit an object of {other}");
+        //Debugger.InConsole(5123, $"Your projectile hit an object of {other}");
         if (!other.CompareTag("Entity") || other.GetComponent<EntityInfo>() == null)
         {
             return;
@@ -78,7 +78,7 @@ public class CatalystHit : MonoBehaviour
         }
         catch
         {
-            Debugger.InConsole(1094, $"{targetHit}, {catalystInfo.entityInfo}, {abilityInfo}");
+            //Debugger.InConsole(1094, $"{targetHit}, {catalystInfo.entityInfo}, {abilityInfo}");
         }
         
     }

@@ -145,17 +145,17 @@ namespace Architome
         void OnLevelUp(int level)
         {
             HandleEffect(EntityEvent.OnLevelUp);
-            try
-            {
-                var particle = entityInfo.entityFX.leveUpParticles;
-                var sound = entityInfo.entityFX.levelUpSound;
-                soundFX.PlaySound(sound);
-                particleManager.PlayOnceAt(particle, bodyParts.BodyPartTransform(BodyPart.Root), 3);
-            }
-            catch
-            {
-                throw;
-            }
+            //try
+            //{
+            //    var particle = entityInfo.entityFX.leveUpParticles;
+            //    var sound = entityInfo.entityFX.levelUpSound;
+            //    soundFX.PlaySound(sound);
+            //    particleManager.PlayOnceAt(particle, bodyParts.BodyPartTransform(BodyPart.Root), 3);
+            //}
+            //catch
+            //{
+            //    throw;
+            //}
         }
         void OnRevive(CombatEventData eventData)
         {

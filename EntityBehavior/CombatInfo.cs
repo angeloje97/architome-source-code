@@ -29,11 +29,51 @@ public class CombatInfo : MonoBehaviour
             public float experienceGained;
             public float deaths;
         }
+
+        [Serializable]
+        public class LevelProperties
+        {
+            public int startingLevel, currentLevel;
+
+            public float startingExperience, currentExperienceGained;
+
+
+            public void InitializeEntity(EntityInfo entity)
+            {
+                entity.OnLevelUp += OnLevelUp;
+                entity.OnExperienceGain += OnExperienceGain;
+
+
+
+                startingLevel = entity.entityStats.Level;
+                currentLevel = entity.entityStats.Level;
+
+                startingExperience = entity.entityStats.experience;
+                currentExperienceGained = startingExperience;
+            }
+
+            public void OnLevelUp(int newLevel)
+            {
+                var difficulty = DifficultyModifications.active;
+                if (difficulty == null) return;
+
+                currentLevel = newLevel;
+            }
+
+            public void OnExperienceGain(float amount)
+            {
+                Debugger.InConsole(4581, $"{amount}");
+                currentExperienceGained += amount;
+            }
+        }
+
         public EntityInfo entity;
 
         public Values values;
         public Values startCombatValues;
         public Values combatValues;
+
+        public LevelProperties levels;
 
         public float secondsInCombat;
         public float totalSecondsInCombat;
@@ -53,8 +93,13 @@ public class CombatInfo : MonoBehaviour
             entity.OnDamagePreventedFromShields += OnDamagePreventedFromShields;
 
             var threatManager = entity.GetComponentInChildren<ThreatManager>();
-
             threatManager.OnGenerateThreat += OnGenerateThreat;
+
+            ArchAction.Delay(() => {
+                levels = new();
+                levels.InitializeEntity(entity);
+            },.250f);
+
         }
 
         async void OnCombatChange(bool isInCombat)
@@ -95,7 +140,6 @@ public class CombatInfo : MonoBehaviour
 
             values.damageDone += eventData.value;
         }
-
 
         
         public void OnLifeChange(bool val)
@@ -144,12 +188,9 @@ public class CombatInfo : MonoBehaviour
 
     public bool isClearing;
 
-    //Events
-
     public event Action<GameObject, List<GameObject>> OnNewTargetedBy;
     public event Action<GameObject, List<GameObject>> OnTargetedByRemove;
     public Action<CombatInfo> OnTargetedByEvent;
-
 
     void Start()
     {
@@ -179,7 +220,6 @@ public class CombatInfo : MonoBehaviour
             entityInfo.OnLifeChange += OnLifeChange;
         }
     }
-
     protected void AddTarget(GameObject target)
     {
         if(!targetedBy.Contains(target))
@@ -190,7 +230,6 @@ public class CombatInfo : MonoBehaviour
             ClearEnemies();
         }
     }
-
     protected void RemoveTarget(GameObject target)
     {
         if(targetedBy.Contains(target))
@@ -200,7 +239,6 @@ public class CombatInfo : MonoBehaviour
             OnTargetedByEvent?.Invoke(this);
         }
     }
-
     protected void AddCaster(GameObject target)
     {
         if (castedBy.Contains(target)) return;
@@ -209,14 +247,12 @@ public class CombatInfo : MonoBehaviour
         OnTargetedByEvent?.Invoke(this);
         ClearEnemies();
     }
-
     protected void RemoveCaster(GameObject target)
     {
         if (!castedBy.Contains(target)) return;
         castedBy.Remove(target);
         OnTargetedByEvent?.Invoke(this);
     }
-
     public void OnNewTarget(GameObject previousTarget, GameObject newTarget)
     {
         if(previousTarget != null)
@@ -235,7 +271,6 @@ public class CombatInfo : MonoBehaviour
             combatInfo.AddTarget(entityInfo.gameObject);
         }
     }
-
     public bool IsBeingAttacked()
     {
         if (EnemiesCastedBy().Count > 0)
@@ -250,7 +285,6 @@ public class CombatInfo : MonoBehaviour
 
         return false;
     }
-
     void ClearLogic()
     {
         if (entityInfo == null) return;
@@ -292,7 +326,6 @@ public class CombatInfo : MonoBehaviour
             OnTargetedByEvent?.Invoke(this);
         }
     }
-
     async public void ClearEnemies()
     {
         if (isClearing) return;
@@ -308,15 +341,12 @@ public class CombatInfo : MonoBehaviour
         isClearing = false;
 
     }
-
     public void OnLifeChange(bool isAlive)
     {
         if (isAlive) return;
         castedBy.Clear();
         targetedBy.Clear();
     }
-
-
     public void OnAbilityStart(AbilityInfo ability)
     {
         if(ability.isAttack) { return; }
@@ -326,7 +356,6 @@ public class CombatInfo : MonoBehaviour
         var combatInfo = ability.target.GetComponentInChildren<CombatInfo>();
         combatInfo.AddCaster(entityInfo.gameObject);
     }
-
     public void OnAbilityEnd(AbilityInfo ability)
     {
         if (ability.isAttack) return;
@@ -335,9 +364,6 @@ public class CombatInfo : MonoBehaviour
 
         combatInfo.RemoveCaster(entityInfo.gameObject);
     }
-
-    
-
     public List<GameObject> EnemiesTargetedBy()
     {
         return targetedBy.Where(entity => entity.GetComponent<EntityInfo>().CanAttack(entityInfo.gameObject)).ToList();

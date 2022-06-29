@@ -12,10 +12,20 @@ namespace Architome
         // Start is called before the first frame update
         private QuestManager questManager;
 
+
         public string questName;
         [Multiline]
         public string questDescription;
         public int questId;
+        public string sourceAlias;
+        public object sourceData;
+
+        [Serializable]
+        public struct Rewards
+        {
+            public float experience;
+            public ItemData items;
+        }
 
         [Serializable]
         public struct QuestInfo
@@ -28,11 +38,15 @@ namespace Architome
         }
 
         public QuestInfo info;
+        public Rewards rewards;
         
         public List<Objective> questObjectives;
 
-        public Action<Quest> OnActive;
-        public Action<Quest> OnCompleted;
+        public Action<Quest> OnActive { get; set; }
+        public Action<Quest> OnCompleted { get; set; }
+        public Action<Quest> OnQuestEnd { get; set; }
+        public Action<Quest> OnQuestFail { get; set; }
+
         public Action<Objective> OnObjectiveComplete;
         public Action<Objective> OnObjectiveActivate;
         public Action<Objective> OnObjectiveChange;
@@ -104,6 +118,7 @@ namespace Architome
             HandleLinear();
             HandleRadio();
             HandleCompleted();
+            HandleFail();
 
             void HandleParallel()
             {
@@ -133,21 +148,34 @@ namespace Architome
                 info.state = QuestState.Completed;
             }   
         }
-
         void HandleCompleted()
         {
             if (info.state != QuestState.Completed) return;
 
             OnCompleted?.Invoke(this);
-            questManager.OnQuestCompleted?.Invoke(this);
+            OnQuestEnd?.Invoke(this);
+            questManager.OnQuestEnd?.Invoke(this);
         }
+        public void FailQuest()
+        {
+            info.state = QuestState.Failed;
 
+            HandleFail();
+        }
+        void HandleFail()
+        {
+            if (info.state != QuestState.Failed) return;
+
+            OnQuestFail?.Invoke(this);
+            OnQuestEnd?.Invoke(this);
+            questManager.OnQuestEnd?.Invoke(this);
+
+        }
         public void ForceComplete()
         {
             info.state = QuestState.Completed;
             HandleCompleted();
         }
-
         public bool AllObjectivesComplete()
         {
             foreach(var currentObjective in questObjectives)
@@ -160,5 +188,10 @@ namespace Architome
             return true;
         }
 
+        public void SetSource(object sourceData, string alias)
+        {
+            this.sourceData = sourceData;
+            sourceAlias = alias;
+        }
     }
 }

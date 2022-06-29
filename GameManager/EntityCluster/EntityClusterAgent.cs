@@ -9,7 +9,7 @@ public class EntityClusterAgent : MonoBehaviour
     public EntityInfo entityInfo;
     public bool lastToEnter;
     public Action<EntityCluster, int> OnClusterEnter;
-    public Action<EntityCluster, int> OnClusterExit;
+    public Action<EntityCluster, int> OnClusterExit { get; set; }
     public Action<EntityCluster, int> OnClusterChange;
 
 

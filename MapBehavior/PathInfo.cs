@@ -56,21 +56,27 @@ namespace Architome
 
         }
 
-        public void Close()
+        public void SetPath(bool close)
         {
-            if (otherRoom == null) return;
             if (pathBlock == null) return;
-
-            pathBlock.SetActive(true);
+            pathBlock.SetActive(close);
         }
 
-        public void Open()
-        {
-            if (otherRoom == null) return;
-            if (pathBlock == null) return;
+        //public void Close()
+        //{
+        //    if (otherRoom == null) return;
+        //    if (pathBlock == null) return;
 
-            pathBlock.SetActive(false);
-        }
+        //    pathBlock.SetActive(true);
+        //}
+
+        //public void Open()
+        //{
+        //    if (otherRoom == null) return;
+        //    if (pathBlock == null) return;
+
+        //    pathBlock.SetActive(false);
+        //}
 
 
         public RoomInfo SpawnRoom(GameObject room, Transform parent)

@@ -87,7 +87,7 @@ namespace Architome
             for (int i = 0; i < memberCoordinates.Count; i++)
             {
                 if (i < 0 || i >= memberSpots.Count) continue;
-
+                
                 memberSpots[i].GetComponent<RectTransform>().localPosition = memberCoordinates[i];
             }
         }

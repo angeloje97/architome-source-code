@@ -22,7 +22,7 @@ namespace Architome
         void Start()
         {
             GetDependencies();
-
+            //UpdateCanvas();
         }
 
         // Update is called once per frame
@@ -36,26 +36,22 @@ namespace Architome
             CreateQuestUI(quest);
         }
 
+        public void UpdateCanvas()
+        {
+            if (moduleInfo == null) return;
+
+            moduleInfo.SetActive(GetComponentsInChildren<QuestUISide>().Length > 0);
+        }
+
         public void CreateQuestUI(Quest quest)
         {
             if (questUIPrefab == null || questPrefabBin == null) { return; }
 
-            var newQuest = Instantiate(questUIPrefab, questPrefabBin);
+            var newQuest = Instantiate(questUIPrefab, questPrefabBin).GetComponent<QuestUISide>();
 
-            newQuest.GetComponent<QuestUISide>()?.SetQuest(quest);
+            newQuest.SetQuest(quest);
 
-            var cGroup = newQuest.GetComponent<CanvasGroup>();
-
-            cGroup.alpha = 0;
-
-            ArchAction.Delay(() => {
-                moduleInfo.UpdateModule();
-            }, .0625f);
-
-            ArchAction.Delay(() =>
-            {
-                cGroup.alpha = 1;
-            }, .50f);
+            //UpdateCanvas();
         }
 
         public void OnNewQuest(Quest quest)

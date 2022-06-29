@@ -8,7 +8,6 @@ public class ClusterContainer : MonoBehaviour
     // Start is called before the first frame update
     public GameObject firstAgent;
     public EntityCluster cluster;
-
     private GameObject previousAgent;
     
     
@@ -34,6 +33,13 @@ public class ClusterContainer : MonoBehaviour
                 var agent = cluster.entities[i];
                 yield return null;
 
+                if (agent == null)
+                {
+                    cluster.entities.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+
                 if (V3Helper.Distance(agent.transform.position, transform.position) > 6f)
                 {
                     var clusterAgent = agent.GetComponentInChildren<EntityClusterAgent>();
@@ -54,7 +60,6 @@ public class ClusterContainer : MonoBehaviour
 
     void FollowAgents()
     {
-        
         var agents = cluster.entities;
 
         if(agents.Count == 0) { return; }
@@ -63,6 +68,7 @@ public class ClusterContainer : MonoBehaviour
 
         foreach(var agent in agents)
         {
+            if (agent == null) continue;
             sum += agent.transform.position;
         }
 

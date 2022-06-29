@@ -9,7 +9,8 @@ namespace Architome
     [RequireComponent(typeof(Clickable))]
     public class WorkInfo : MonoBehaviour
     {
-        public static List<WorkInfo> workObjects;
+        public static List<WorkInfo> workStations { get; set; }
+        List<WorkInfo> workStationsDebugging;
 
         public List<TaskInfo> tasks;
 
@@ -29,12 +30,59 @@ namespace Architome
                 SetClickable();
             }
 
-            if (workObjects == null)
-            {
-                workObjects = new List<WorkInfo>();
-            }
-            workObjects.Add(this);
+            workStationsDebugging = workStations;
+        }
+        void Start()
+        {
+            GetDependencies();
 
+        }
+
+        private void Awake()
+        {
+            HandleGlobal(true);
+        }
+
+        private void OnDestroy()
+        {
+            HandleGlobal(false);
+        }
+
+        void HandleGlobal(bool adding)
+        {
+            if (workStations == null) workStations = new();
+            var included = false;
+            for (int i = 0; i < workStations.Count; i++)
+            {
+                var station = workStations[i];
+                var remove = false;
+
+                if (station == null)
+                {
+                    remove = true;
+                }
+                
+                if (station == this)
+                {
+                    included = true;
+
+                    if (!adding)
+                    {
+                        remove = true;
+                    }
+                }
+
+                if (remove)
+                {
+                    workStations.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            if (!included && adding)
+            {
+                workStations.Add(this);
+            }
         }
 
         public void SetClickable()
@@ -81,10 +129,6 @@ namespace Architome
 
         
         // Start is called before the first frame update
-        void Start()
-        {
-            GetDependencies();
-        }
 
         private void OnValidate()
         {

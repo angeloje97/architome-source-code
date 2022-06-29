@@ -37,7 +37,10 @@ public class V3Helper
 
     public static float Height(Transform trans)
     {
+        if (trans == null) return 0f;
         var height = 0f;
+
+
         foreach (Transform child in trans)
         {
             Debugger.InConsole(84923, $"{child.name}");
@@ -53,6 +56,7 @@ public class V3Helper
 
     public static float Height(List<Transform> trans)
     {
+        if (trans == null) return 0f;
         var height = 0f;
 
         foreach (var tran in trans)

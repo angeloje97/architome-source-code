@@ -77,6 +77,29 @@ namespace Architome
             portalNum = portals.IndexOf(this);
             HandlePortalList();
         }
+        private void OnDestroy()
+        {
+            if (portalList == null) return;
+
+           if (portalList.Contains(this))
+            {
+                portalList.Remove(this);
+            }
+            
+        }
+        private void Awake()
+        {
+            if (portals == null) portals = new();
+            portals.Add(this);
+        }
+        private void OnValidate()
+        {
+            info.room = GetComponentInParent<RoomInfo>();
+        }
+        private void Update()
+        {
+
+        }
 
         void HandlePortalList()
         {
@@ -94,23 +117,10 @@ namespace Architome
             portalList.Add(this);
         }
 
+
         void OnNewPlayableEntity(EntityInfo info, int index)
         {
             partyCount++;
-        }
-        private void Awake()
-        {
-            if (portals == null) portals = new();
-            portals.Add(this);
-        }
-        private void OnValidate()
-        {
-            info.room = GetComponentInParent<RoomInfo>();
-        }
-
-        private void Update()
-        {
-
         }
 
         public void IncreaseDungeonIndex()
@@ -126,8 +136,7 @@ namespace Architome
                 return;
             }
 
-            setScene = "Map Template";
-
+            setScene = "Map Template Continue";
         }
 
         public void TeleportToScene(string sceneName)

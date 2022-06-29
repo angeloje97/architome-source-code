@@ -9,6 +9,7 @@ public class BuffJumps : BuffType
     
     public bool expired = false;
     public bool jumpsWhenTimerRunsOut;
+    public int maxJumpTargets;
     new void GetDependencies()
     {
         base.GetDependencies();
@@ -39,12 +40,44 @@ public class BuffJumps : BuffType
     public void OnBuffCompletion(BuffInfo buff)
     {
         if (!jumpsWhenTimerRunsOut) { return; }
+        HandleJump();
 
-        if (NewTarget().GetComponent<EntityInfo>())
+
+        //if (NewTarget().GetComponent<EntityInfo>())
+        //{
+        //    //buffInfo.buffTimeComplete = false;
+        //    NewTarget().GetComponent<EntityInfo>().Buffs().ApplyBuff(new(gameObject, buffInfo.sourceAbility));
+        //}
+    }
+
+    public void HandleJump()
+    {
+        var entitiesInRange = Physics.OverlapSphere(transform.position, buffInfo.properties.radius, GMHelper.LayerMasks().entityLayerMask);
+
+        var obstructionLayer = GMHelper.LayerMasks().structureLayerMask;
+
+        var sourceInfo = buffInfo.sourceInfo;
+        var targetType = buffInfo.buffTargetType;
+        int count = 0;
+        
+        foreach (var entity in entitiesInRange)
         {
-            //buffInfo.buffTimeComplete = false;
-            NewTarget().GetComponent<EntityInfo>().Buffs().ApplyBuff(new(gameObject, buffInfo.sourceAbility));
+            if (count == maxJumpTargets) break;
+            var info = entity.GetComponent<EntityInfo>();
+
+            if (info == null) continue;
+
+            var distance = Vector3.Distance(entity.transform.position, transform.position);
+            var direction = V3Helper.Direction(entity.transform.position, transform.position);
+
+            if (sourceInfo && targetType == BuffTargetType.Harm && !sourceInfo.CanAttack(info.gameObject)) continue;
+            if (sourceInfo && targetType == BuffTargetType.Assist && !sourceInfo.CanHelp(info.gameObject)) continue;
+            if (Physics.Raycast(transform.position, direction, distance, obstructionLayer)) continue;
+
+
+            info.Buffs().ApplyBuff(new(gameObject, buffInfo.sourceAbility));
         }
+
     }
 
     public GameObject NewTarget()

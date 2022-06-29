@@ -54,7 +54,10 @@ namespace Architome
 
         }
 
-
+        public float ExperienceRequiredToLevel(int currentLevel)
+        {
+            return settings.experienceMultiplier * currentLevel;
+        }
 
 
     }
@@ -68,6 +71,9 @@ namespace Architome
         public float npcDetectionRange = 10f;
         public float playerDetectionRange = 45f;
         public float experienceMultiplier = 300f;
+
+        [Range(0, 1)]
+        public float minimumEnemyForces = .90f;
     }
 
 }

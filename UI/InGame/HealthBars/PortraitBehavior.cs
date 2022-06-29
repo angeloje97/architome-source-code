@@ -85,6 +85,7 @@ public class PortraitBehavior : MonoBehaviour, IPointerEnterHandler, IPointerExi
 
         }
 
+
     }
 
     [Serializable]
@@ -122,6 +123,8 @@ public class PortraitBehavior : MonoBehaviour, IPointerEnterHandler, IPointerExi
 
         
     }
+
+    public ToolTip currentToolTip;
 
     public HealthBar healthUI;
     public StateIcon stateIcon;

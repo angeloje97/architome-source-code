@@ -7,12 +7,15 @@ namespace Architome
     public class BuffStatChange : BuffType
     {
         // Start is called before the first frame update
-        public Stats stats;
-        public bool buffValueMultiplies;
-        public float multiplier;
         public bool stacks;
         public bool zeroOut;
-        [SerializeField]Stats starting;
+        public bool affectedByValue;
+        public Stats stats;
+
+        //Warning : If planning to use percentage type stats and floating stats, do not use affected by value = true
+        //Reason : Might give an insane amount of haste or attack speed which will break the game.
+
+        Stats starting;
 
         private void OnValidate()
         {
@@ -24,15 +27,15 @@ namespace Architome
         new void GetDependencies()
         {
             base.GetDependencies();
+            
+            if (affectedByValue)
+            {
+                stats *= value;
+            }
 
             if (buffInfo)
             {
                 buffInfo.OnBuffEnd += OnBuffEnd;
-
-                if (buffValueMultiplies)
-                {
-                    stats *= buffInfo.properties.value * multiplier;
-                }
 
                 if (stacks)
                 {

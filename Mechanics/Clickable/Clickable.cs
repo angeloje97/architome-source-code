@@ -44,7 +44,7 @@ namespace Architome
         
             async void MouseEnterRoutine()
             {
-                while (isOver)
+                while (this != null && isOver)
                 {
                     await Task.Yield();
 

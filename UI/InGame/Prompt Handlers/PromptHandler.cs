@@ -18,6 +18,7 @@ namespace Architome
             public GameObject allDeathPrompt;
             public GameObject generalPrompt;
             public GameObject inputPrompt;
+            public GameObject messagePrompt;
         }
 
         public Prefabs prefabs;
@@ -70,7 +71,9 @@ namespace Architome
 
         public void OnAllPlayableEntityDeath(List<EntityInfo> members)
         {
-            ActivatePrompt(prefabs.allDeathPrompt, new Vector3(0, 270, 0));
+            //ActivatePrompt(prefabs.allDeathPrompt, new Vector3(0, 270, 0));
+
+            var prompt = ActivatePrompt(prefabs.allDeathPrompt, new Vector3(0, 270, 0));
         }
 
         async public Task<int> GeneralPrompt(PromptInfoData promptData)
@@ -113,10 +116,23 @@ namespace Architome
                 if (!prompt.isActive) break;
             }
 
-
             return (prompt.choicePicked, prompt.userInput);
         }
 
+        async public Task MessagePrompt(PromptInfoData promptData)
+        {
+            if (prefabs.messagePrompt == null) return;
+            var prompt = ActivatePrompt(prefabs.messagePrompt);
+
+            prompt.SetPrompt(promptData);
+
+            prompt.choicePicked = -1;
+
+            while (prompt.choicePicked == -1)
+            {
+                await Task.Yield();
+            }
+        }
     }
 
     

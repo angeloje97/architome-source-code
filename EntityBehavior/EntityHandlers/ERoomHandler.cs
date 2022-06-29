@@ -21,7 +21,16 @@ namespace Architome
 
         }
 
+        void Update()
+        {
+            HandleEvents();
+        }
 
+        private void Start()
+        {
+            GetDependencies();
+            AcquireRoom();
+        }
         public void OnPhysicsEvent(EntityInfo entity, GameObject other, bool isEnter)
         {
             if(!other.GetComponent<WalkThroughActivate>()) { return; }
@@ -63,24 +72,19 @@ namespace Architome
                 entityInfo.currentRoom.events.OnShowRoom -= OnShowRoom;
             }
         }
-        private void Awake()
-        {
-            GetDependencies();
-            AcquireRoom();
-        }
-        // Update is called once per frame
-        void Update()
-        {
-            HandleEvents();
-        }
+        
 
         async void AcquireRoom()
         {
             if (MapRoomGenerator.active == null) return;
-            while (entityInfo.currentRoom == null)
+            var tries = 5;
+            var current = 0;
+            while (this != null && entityInfo.currentRoom == null && current < tries)
             {
-                await Task.Delay(1000);
+                
                 entityInfo.currentRoom = entityInfo.CurrentRoom();
+                current++;
+                await Task.Delay(1000);
             }
 
         }

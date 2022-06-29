@@ -156,7 +156,7 @@ namespace Architome
             rooms.levelSeed = RandomGen.RandomString(10);
 
 
-            var (skeletonCount, availableCount) = (5, 5);
+            var (skeletonCount, availableCount) = (2, 2);
 
             var skeletonPresets = new List<RoomInfo>();
             var availablePresets = new List<RoomInfo>();

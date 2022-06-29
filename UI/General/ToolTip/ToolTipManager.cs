@@ -14,7 +14,11 @@ namespace Architome
         {
             public GameObject generalHeader;
             public GameObject general;
+            public GameObject side;
         }
+
+        public Transform sideToolBarPosition;
+        
 
         [SerializeField] ToolTips tools;
 
@@ -23,25 +27,31 @@ namespace Architome
             active = this;
         }
 
+        ToolTip ToolTip(GameObject toolTip)
+        {
+            if (toolTip == null) return null;
+
+            var newToolTip = Instantiate(toolTip, transform).GetComponent<ToolTip>();
+
+            transform.SetAsLastSibling();
+
+            return newToolTip;
+
+        }
+
         public ToolTip GeneralHeader()
         {
-            if (tools.generalHeader == null) return null;
-            transform.SetAsLastSibling();
-            var toolTip = Instantiate(tools.generalHeader, transform).GetComponent<ToolTip>();
-
-            return toolTip;
-
+            return ToolTip(tools.generalHeader);
         }
 
         public ToolTip General()
         {
-            if (tools.general == null) return null;
+            return ToolTip(tools.general);
+        }
 
-            transform.SetAsLastSibling();
-
-            var toolTip = Instantiate(tools.general, transform).GetComponent<ToolTip>();
-
-            return toolTip;
+        public ToolTip Side()
+        {
+            return ToolTip(tools.side);
         }
     }
 }

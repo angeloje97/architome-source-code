@@ -1,11 +1,11 @@
+using System;
 using System.Collections;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
-using System;
-using TMPro;
-using Architome.Enums;
 using UnityEngine.UI;
-using System.Threading.Tasks;
+using Architome.Enums;
+using TMPro;
 
 namespace Architome
 {
@@ -13,11 +13,12 @@ namespace Architome
     public class ToolTip : MonoBehaviour
     {
 
+        public ToolTipManager manager;
         [Serializable]
         public class Components
         {
             public Icon icon;
-            public TextMeshProUGUI name, subHeadline, description, attributes, requirements, value;
+            public TextMeshProUGUI name, subHeadline, type, description, attributes, requirements, value;
             public List<Transform> manifestHeight, manifestWidth;
             public RectTransform rectTransform;
             public CanvasGroup canvasGroup;
@@ -32,24 +33,34 @@ namespace Architome
         }
 
         public bool adjustToMouse;
+        public bool adjustToSide;
+        
         public Components components;
         public List<RarityInfo> rarityInfos;
 
         [Header("Adjustments")]
         public float widthOffset;
+        public float minWidth;
         public float heightOffSet;
+        public float minHeight;
         public float extraTime = 0f;
 
         [SerializeField] float minXAnchor, maxXAnchor, minYAnchor, maxYAnchor;
         bool canDestroySelf;
         bool destroyedSelf;
 
-        void Start()
+        void GetDependencies()
         {
-            ToolTipRoutine();
+            manager = ToolTipManager.active;
         }
 
-        async void ToolTipRoutine()
+        void Start()
+        {
+            GetDependencies();
+            PrepareFormatting();
+        }
+
+        async void PrepareFormatting()
         {
             if (components.canvasGroup == null) return;
 
@@ -73,6 +84,8 @@ namespace Architome
             }
 
             AdjustToMouse();
+            AdjustToSide();
+
 
             canDestroySelf = true;
 
@@ -91,7 +104,8 @@ namespace Architome
             {
                 await Task.Yield();
             }
-
+            if (this == null) return;
+            if (gameObject == null) return;
             Destroy(gameObject);
         }
 
@@ -117,8 +131,10 @@ namespace Architome
 
         public void SetToolTip(ToolTipData data)
         {
+
             components.name.text = data.name;
             components.subHeadline.text = data.subeHeadline;
+            components.type.text = data.type;
             components.description.text = data.description;
             components.attributes.text = data.attributes;
             components.requirements.text = data.requirements;
@@ -126,6 +142,18 @@ namespace Architome
             components.icon.SetIconImage(data.icon);
 
             HandleNullTexts();
+            HandleRarity();
+
+            void HandleRarity()
+            {
+                if (!data.enableRarity) return;
+                var world = World.active;
+                if (world == null) return;
+
+                var rarityProperties = world.RarityProperty(data.rarity);
+
+                components.type.color = rarityProperties.color;
+            }
         }
 
 
@@ -147,11 +175,22 @@ namespace Architome
             return this;
         }
 
-        public void AdjustToMouse()
+        public void AdjustToMouse(bool forceAdjust = false)
         {
+            if (forceAdjust) adjustToMouse = true;
             if (!adjustToMouse) return;
 
             AdjustToPosition(Input.mousePosition);
+        }
+
+        public void AdjustToSide(bool forceAdjust = false)
+        {
+            if (forceAdjust) adjustToSide = true;
+            if (!adjustToSide) return;
+            if (manager == null) return;
+            if (manager.sideToolBarPosition == null) return;
+
+            AdjustToPosition(manager.sideToolBarPosition.position);
         }
 
         public void AdjustToPosition(Vector3 position)
@@ -168,15 +207,20 @@ namespace Architome
         public void AdjustSize()
         {
 
-            var height = V3Helper.Height(components.manifestHeight);
-            var width = V3Helper.Width(components.manifestWidth);
+            var height = V3Helper.Height(components.manifestHeight) + heightOffSet;
+            var width = V3Helper.Width(components.manifestWidth) + widthOffset;
 
-            //var width = V3Helper.Width(new List<Transform>() {
-            //    components.icon.transform,
-            //    components.name.transform
-            //});
+            if (height < minHeight)
+            {
+                height = minHeight;
+            }
 
-            components.rectTransform.sizeDelta = new(width + widthOffset, height + heightOffSet);
+            if (width < minWidth)
+            {
+                width = minWidth;
+            }
+
+            components.rectTransform.sizeDelta = new(width, height);
 
             foreach (var sizeFitter in GetComponentsInChildren<ContentSizeFitter>())
             {
@@ -190,7 +234,10 @@ namespace Architome
 
     public struct ToolTipData
     {
-        public string name, subeHeadline, description, attributes, requirements, value;
+        public string name, subeHeadline, type, description, attributes, requirements, value;
         public Sprite icon;
+        public bool enableRarity;
+        public Rarity rarity;
+        
     }
 }

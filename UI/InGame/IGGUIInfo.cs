@@ -6,6 +6,7 @@ using System.Linq;
 
 namespace Architome
 {
+    [RequireComponent(typeof(CanvasGroup))]
     public class IGGUIInfo : MonoBehaviour
     {
         public static IGGUIInfo active;
@@ -127,6 +128,14 @@ namespace Architome
             }
 
             return false;
+        }
+
+        public void SetUI(bool val)
+        {
+            var canvasGroup = GetComponent<CanvasGroup>();
+            if (canvasGroup == null) return;
+
+            ArchUI.SetCanvas(canvasGroup, val);
         }
 
         public ActionBarsInfo ActionBarInfo()

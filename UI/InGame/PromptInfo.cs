@@ -84,15 +84,9 @@ namespace Architome
             info.options[0].text = promptData.option1;
             info.options[1].text = promptData.option2;
 
-            if (promptData.blocksScreen)
-            {
-                info.screenBlocker.SetActive(true);
-            }
+            info.screenBlocker.SetActive(promptData.blocksScreen);
+            forceActive = promptData.forcePick;
 
-            if (promptData.forcePick)
-            {
-                forceActive = true;
-            }
 
             if (promptData.icon)
             {

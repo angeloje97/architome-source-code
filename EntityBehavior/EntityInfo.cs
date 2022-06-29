@@ -46,7 +46,7 @@ namespace Architome
 
         public int SaveIndex { get { return saveIndex; } set { saveIndex = value; } }
 
-        public string entityName; 
+        public string entityName;
         [Multiline]
         public string entityDescription;
         public ArchClass archClass;
@@ -58,6 +58,7 @@ namespace Architome
         [Header("Entity Properties")]
         public EntityRarity rarity;
         public List<EntityState> stateImmunities;
+        public List<string> objectives;
         public bool isAlive;
         public bool isInCombat;
         public bool isHidden = true;
@@ -106,7 +107,10 @@ namespace Architome
 
 
 
-
+        public struct InfoEvents
+        {
+            public Action<List<string>> OnUpdateObjectives;
+        }
 
         //Events
         public struct CombatEvents
@@ -159,6 +163,7 @@ namespace Architome
         public Action<EntityInfo, Collision, bool> OnCollisionEvent;
         public Action<EntityInfo, GameObject, bool> OnPhysicsEvent;
         public Action<EntityInfo> OnChangeStats;
+        public InfoEvents infoEvents;
         public TaskEvents taskEvents = new();
         public TargetableEvents targetableEvents = new();
         public CombatEvents combatEvents;
@@ -251,6 +256,13 @@ namespace Architome
                 healthRegenPercent = .25f;
             }
         }
+
+        public void UpdateObjectives(object sender)
+        {
+            objectives = new();
+            infoEvents.OnUpdateObjectives?.Invoke(objectives);
+        }
+
         void UpdateResources(bool val)
         {
             if (role == Role.Tank && rarity == EntityRarity.Player)
@@ -339,6 +351,12 @@ namespace Architome
             }
         }
 
+
+        public string ObjectivesDescription()
+        {
+            if (objectives == null) objectives = new();
+            return ArchString.NextLineList(objectives);
+        }
         public void OnTriggerEnter(Collider other)
         {
             OnTriggerEvent?.Invoke(this, other, true);

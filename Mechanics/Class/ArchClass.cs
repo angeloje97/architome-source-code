@@ -36,6 +36,44 @@ namespace Architome
         public List<WeaponType> equipableWeapons;
         public List<Role> possibleRoles;
 
+        public bool CanEquip(Item item, out string reason)
+        {
+            if (!Item.Equipable(item))
+            {
+                reason = "Item is not equippable";
+                return false;
+
+            }
+
+            if (Item.IsWeapon(item))
+            {
+                var weapon = (Weapon)item;
+
+                if (!equipableWeapons.Contains(weapon.weaponType))
+                {
+                    reason = $"{className} can't weild {weapon.weaponType}.";
+                    return false;
+                }
+            }
+
+            if (Item.IsEquipment(item))
+            {
+                var equipment = (Equipment)item;
+
+                if (!equipableArmor.Contains(equipment.armorType))
+                {
+                    reason = $"{className} can't equip {equipment.armorType} armor.";
+                    return false;
+                }
+            }
+
+
+            reason = "Can equip";
+            return true;
+        }
+
     }
+
+    
 
 }

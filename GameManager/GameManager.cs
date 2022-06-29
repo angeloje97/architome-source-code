@@ -39,13 +39,47 @@ namespace Architome
 
         void Awake()
         {
+
+
+            if (gameState == GameState.Play)
+            {
+                if (active != null && active.gameState == GameState.Play)
+                {
+                    Destroy(gameObject);
+                    return;
+                }
+            }
+            //if (gameState == GameState.Play)
+            //{
+            //    if (active != null&& active.gameState == GameState.Play)
+            //    {
+            //        Destroy(gameObject);
+            //        return;
+            //    }
+
+            //    DontDestroyOnLoad(gameObject);
+
+            //}
+
+           
+
+
             data.SetData();
+
             active = this;
             playableEntities = new List<EntityInfo>();
             isPaused = false;
 
             Core.Reset();
 
+        }
+
+        private void Start()
+        {
+            if (gameState == GameState.Play)
+            {
+                DontDestroyOnLoad(gameObject);
+            }
         }
 
         // Update is called once per frame

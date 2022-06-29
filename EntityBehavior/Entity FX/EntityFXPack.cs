@@ -16,9 +16,6 @@ public class EntityFXPack : ScriptableObject
     public AudioClip levelUpSound;
     public AudioClip reviveSound;
 
-    [Header("Particle Effects")]
-    public GameObject leveUpParticles;
-    public GameObject reviveParticles;
 
     [Header("Phrases")]
     public List<string> deathPhrases;

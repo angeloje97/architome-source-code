@@ -254,15 +254,7 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
         toolTip.adjustToMouse = true;
 
-        toolTip.SetToolTip(new() {
-            icon = item.itemIcon,
-            name = item.itemName,
-            subeHeadline = item.SubHeadline(),
-            description = item.Description(),
-            attributes = item.Attributes(),
-            requirements = item.Requirements(),
-            value = item.Value()
-        });
+        toolTip.SetToolTip(item.ToolTipData());
     }
 
     public void OnPointerExit(PointerEventData eventData)

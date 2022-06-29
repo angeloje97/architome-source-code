@@ -57,10 +57,16 @@ namespace Architome
         void Start()
         {
             sceneManager = ArchSceneManager.active;
-
+            var gameManager = GameManager.active;
             if (sceneManager)
             {
                 sceneManager.BeforeLoadScene += TasksBeforeLoadScene;
+                
+
+                if (gameManager.GameState == Enums.GameState.Play)
+                {
+                    sceneManager.OnLoadScene += OnLoadScene;
+                }
             }
         }
 
@@ -69,7 +75,24 @@ namespace Architome
             var tasks = archSceneManager.tasksBeforeLoad;
             var activeTransition = info.activeTransition;
             if (activeTransition == null) return;
-            tasks.Add(activeTransition.SceneTransition());
+
+            
+
+            tasks.Add(activeTransition.SceneTransitionIn());
+            activeTransition.transform.SetAsLastSibling();
+
+            transform.SetAsLastSibling();
+        }
+
+
+        public async void OnLoadScene(ArchSceneManager sceneManager)
+        {
+            var activeTransition = info.activeTransition;
+            if (activeTransition == null) return;
+
+            await activeTransition.SceneTransitionOut();
+            transform.SetAsLastSibling();
+            activeTransition.transform.SetAsLastSibling();
         }
 
         void Update()

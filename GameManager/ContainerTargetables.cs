@@ -35,7 +35,7 @@ namespace Architome
             protected set { isSelecting = value; }
         }
 
-        public Action<GameObject, GameObject> OnNewHoverTarget;
+        public Action<GameObject, GameObject> OnNewHoverTarget { get; set; }
         public Action<GameObject> OnSelectTarget;
         public Action OnClearSelected;
 
@@ -264,6 +264,11 @@ namespace Architome
         public void Hover(GameObject target)
         {
             if (hoverTargets.Contains(target)) return;
+            var info = target.GetComponent<EntityInfo>();
+            if (info == null) return;
+            if (info.currentRoom && !info.currentRoom.isRevealed) return;
+
+
             hoverTargets.Add(target);
             currentHover = target;
 

@@ -58,6 +58,23 @@ public class EntityClusterManager : MonoBehaviour
         active = this;
     }
 
+    public void GetDependencies()
+    {
+        var sceneManager = ArchSceneManager.active;
+        if (sceneManager)
+        {
+            sceneManager.BeforeLoadScene += BeforeLoadScene;
+        }
+    }
+
+    public void BeforeLoadScene(ArchSceneManager sceneManager)
+    {
+        foreach (var cluster in entityClusters)
+        {
+            HandleEmptyCluster(cluster);
+        }
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -114,13 +131,23 @@ public class EntityClusterManager : MonoBehaviour
     public void HandleEmptyCluster(EntityCluster cluster)
     {
         if (!entityClusters.Contains(cluster)) { return; }
-        if(cluster.entities[0] != null)
+
+        foreach (var entity in cluster.entities)
         {
-            cluster.entities[0].GetComponentInChildren<EntityClusterAgent>().OnClusterExit?.Invoke(cluster, 0);
+            var clusterAgent = entity.GetComponentInChildren<EntityClusterAgent>();
+
+            if (clusterAgent == null) continue;
+
+            clusterAgent.OnClusterExit?.Invoke(cluster, cluster.entities.IndexOf(entity));
         }
         
         Destroy(cluster.clusterContainer);
         entityClusters.Remove(cluster);
+    }
+
+    public void DeleteCluster()
+    {
+        
     }
 
     public int Position(GameObject entity)

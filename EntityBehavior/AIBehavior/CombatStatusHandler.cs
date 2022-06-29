@@ -97,6 +97,7 @@ public class CombatStatusHandler : MonoBehaviour
 
     public void OnDamageDone(CombatEventData eventData)
     {
+        if (threatManager.threats == null || threatManager.threats.Count == 0) return;
         SetCombatStatus(true);
     }
 

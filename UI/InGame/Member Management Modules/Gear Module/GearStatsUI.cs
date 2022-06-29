@@ -13,6 +13,7 @@ public class GearStatsUI : MonoBehaviour
     public EntityInfo entityInfo;
     public PartyManager partyManager;
     public TextMeshProUGUI entityName;
+    public Transform adjustLayoutTarget;
 
     [Serializable]
     public struct Info
@@ -103,6 +104,7 @@ public class GearStatsUI : MonoBehaviour
         entityName.text = entity.entityName;
         HandleNewEntity();
         UpdateNewStats();
+        UpdateUI();
 
         void HandleOldEntity()
         {
@@ -114,6 +116,17 @@ public class GearStatsUI : MonoBehaviour
         void HandleNewEntity()
         {
             entityInfo.OnChangeStats += OnChangeStats;
+        }
+    }
+
+    async void UpdateUI()
+    {
+        var canvasGroup = adjustLayoutTarget.GetComponent<CanvasGroup>();
+
+        ArchUI.SetCanvas(canvasGroup, false);
+        for (int i = 0; i < 3; i++)
+        {
+            await ArchUI.FixLayoutGroups(adjustLayoutTarget.gameObject, i == 2 );
         }
     }
 

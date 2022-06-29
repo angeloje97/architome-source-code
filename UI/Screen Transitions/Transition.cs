@@ -90,19 +90,26 @@ namespace Architome
             this.active = active;
         }
 
-        async public Task SceneTransition()
+        async public Task SceneTransitionIn()
         {
             Debugger.InConsole(89429, $"{this} transitioning");
 
-            if (info.handler)
-            {
-                info.handler.transform.SetAsLastSibling();
-            }
-            transform.SetAsLastSibling();
-
+            
             transitioning = true;
 
             info.animator.SetBool("IsPlaying", false);
+
+            while (transitioning)
+            {
+                await Task.Yield();
+            }
+        }
+
+        async public Task SceneTransitionOut()
+        {
+            transitioning = true;
+
+            info.animator.SetBool("IsPlaying", true);
 
             while (transitioning)
             {

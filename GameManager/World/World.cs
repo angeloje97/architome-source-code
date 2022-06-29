@@ -40,8 +40,6 @@ namespace Architome
             public float valueMultiplier;
         }
         public List<RarityProperties> rarities;
-
-
         [Serializable]
         public class NPCProperty
         {
@@ -49,36 +47,47 @@ namespace Architome
             public Color color;
         }
 
-        public List<NPCProperty> npcProperties; 
+        public List<NPCProperty> npcProperties;
+
+        public SpawnerInfo currentSpawnBeacon { get; private set; }
+
+        public Action<SpawnerInfo> OnNewSpawnBeacon;
+
+
 
         void Start()
         {
 
         }
+        
 
         private void Awake()
         {
-            if (active)
-            {
-                foreach (var field in typeof(World).GetFields())
-                {
-                    field.SetValue(this, field.GetValue(active));
-                }
+            //if (active)
+            //{
+            //    foreach (var field in typeof(World).GetFields())
+            //    {
+            //        field.SetValue(this, field.GetValue(active));
+            //    }
 
-                foreach (var property in typeof(World).GetProperties())
-                {
-                    property.SetValue(this, property.GetValue(active));
-                }
+            //    foreach (var property in typeof(World).GetProperties())
+            //    {
+            //        property.SetValue(this, property.GetValue(active));
+            //    }
                 
-            }
+            //}
 
             active = this;
         }
-
-        // Update is called once per frame
         void Update()
         {
             HandleTimers();
+        }
+
+        public void SetSpawnBeacon(SpawnerInfo spawner)
+        {
+            currentSpawnBeacon = spawner;
+            OnNewSpawnBeacon?.Invoke(spawner);
         }
 
         void HandleTimers()
@@ -128,7 +137,7 @@ namespace Architome
             }
         }
 
-        public RarityProperties RarityColor(Rarity rarity)
+        public RarityProperties RarityProperty(Rarity rarity)
         {
             foreach (var property in rarities)
             {

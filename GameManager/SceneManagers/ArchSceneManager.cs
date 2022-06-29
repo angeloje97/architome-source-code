@@ -12,15 +12,22 @@ namespace Architome
         public static ArchSceneManager active { get; private set; }
 
         public List<Task> tasksBeforeLoad;
+        public List<Task> tasksBeforeConfirmLoad;
+        public List<Task> tasksBeforeActivateScene;
 
         public Action<ArchSceneManager> BeforeLoadScene;
+        public Action<ArchSceneManager> BeforeActivateScene;
+        public Action<ArchSceneManager> OnLoadScene;
+        public Action<ArchSceneManager> BeforeConfirmLoad;
 
         public Action<AsyncOperation> OnLoadStart;
         public Action<AsyncOperation> WhileLoading;
         public Action<AsyncOperation> OnLoadEnd;
 
 
+        public bool confirmLoad;
         public string sceneToLoad;
+        public float progressValue;
 
         private void Awake()
         {
@@ -29,14 +36,20 @@ namespace Architome
 
         async public void LoadScene(string sceneName, bool async = true)
         {
-            tasksBeforeLoad = new();
-
+            confirmLoad = true;
             this.sceneToLoad = sceneName;
 
+            tasksBeforeConfirmLoad = new();
+
+            BeforeConfirmLoad?.Invoke(this);
+
+            await Task.WhenAll(tasksBeforeConfirmLoad);
+
+            if (!confirmLoad) return;
+
+            tasksBeforeLoad = new();
             BeforeLoadScene?.Invoke(this);
-
             await Task.WhenAll(tasksBeforeLoad);
-
 
             if (!async)
             {
@@ -44,18 +57,30 @@ namespace Architome
                 return;
             }
 
-            var operation = SceneManager.LoadSceneAsync(sceneName);
+            var scene = SceneManager.LoadSceneAsync(sceneName);
+            scene.allowSceneActivation = false;
+            OnLoadStart?.Invoke(scene);
 
-            OnLoadStart?.Invoke(operation);
-            
-            while (!operation.isDone)
+            while (scene.progress < .9f)
             {
-                WhileLoading?.Invoke(operation);
+                progressValue = scene.progress / .9f;
+                WhileLoading?.Invoke(scene);
 
                 await Task.Yield();
             }
 
-            OnLoadEnd?.Invoke(operation);
+            OnLoadEnd?.Invoke(scene);
+
+            tasksBeforeActivateScene = new();
+
+            BeforeActivateScene?.Invoke(this);
+
+            await Task.WhenAll(tasksBeforeActivateScene);
+
+            scene.allowSceneActivation = true;
+
+            OnLoadScene?.Invoke(this);
+
         }
 
         public string CurrentScene()

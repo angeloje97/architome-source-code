@@ -30,20 +30,6 @@ namespace Architome
 
             buffInfo.buffsManager.CleanseImmunity();
 
-            //foreach (var buff in buffInfo.buffsManager.Buffs())
-            //{
-            //    if (!buff.GetComponent<BuffStateChanger>()) continue;
-            //}
-
-            //var buffsToCleanse = buffInfo.buffsManager.Buffs()
-            //                    .Where(buffInfo => buffInfo.GetComponent<BuffStateChanger>() != null &&
-            //                    statesImmuneTo.Contains(buffInfo.GetComponent<BuffStateChanger>().stateToChange)).ToList();
-
-            //foreach (var buff in buffsToCleanse)
-            //{
-            //    buff.Cleanse();
-            //}
-
             
         }
 
@@ -56,7 +42,7 @@ namespace Architome
                 return result;
             }
 
-            result += $"Target is immune to";
+            result += $"Cannot be effected by";
 
             var list = new List<string>();
 
@@ -70,6 +56,11 @@ namespace Architome
             result += $"{listString}\n";
 
             return result;
+        }
+
+        public override string GeneralDescription()
+        {
+            return Description();
         }
 
         private void Awake()

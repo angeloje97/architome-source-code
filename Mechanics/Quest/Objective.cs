@@ -14,9 +14,9 @@ namespace Architome
         public bool isActive = false;
         public bool isComplete = false;
 
-        public Action<Objective> OnActivate;
-        public Action<Objective> OnChange;
-        public Action<Objective> OnComplete;
+        public Action<Objective> OnActivate { get; set; }
+        public Action<Objective> OnChange { get; set; }
+        public Action<Objective> OnComplete { get; set; }
 
         public void GetDependencies()
         {
@@ -41,7 +41,7 @@ namespace Architome
             questInfo.OnObjectiveChange?.Invoke(this);
         }
 
-        public void Activate()
+        public virtual void Activate()
         {
             if (questInfo == null)
             {

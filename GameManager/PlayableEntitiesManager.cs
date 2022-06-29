@@ -25,6 +25,26 @@ namespace Architome
             HandleLoadEntities();
         }
 
+        void GetDependencies()
+        {
+
+            saveSystem = SaveSystem.active;
+            sceneManager = ArchSceneManager.active;
+
+            if (saveSystem)
+            {
+                saveSystem.BeforeSave += BeforeSave;
+            }
+
+            if (sceneManager)
+            {
+                sceneManager.BeforeLoadScene += BeforeLoadScene;
+                sceneManager.OnLoadScene += OnLoadScene;
+            }
+
+
+        }
+
         void Start()
         {
             GetDependencies();
@@ -36,8 +56,8 @@ namespace Architome
             if (party == null) return;
             if (!LastLevel()) return;
 
-            var destroyOnLoad = new GameObject("DestroyOnLoad");
-            party.transform.SetParent(destroyOnLoad.transform);
+            //var destroyOnLoad = new GameObject("DestroyOnLoad");
+            //party.transform.SetParent(destroyOnLoad.transform);
         }
 
         // Update is called once per frame
@@ -69,28 +89,28 @@ namespace Architome
             {
                 
 
-                Destroy(party.gameObject);
+                //Destroy(party.gameObject);
 
-                party = partyObject.GetComponent<PartyInfo>();
+                //party = partyObject.GetComponent<PartyInfo>();
 
 
-                ArchAction.Delay(() => {
-                    foreach (var member in party.GetComponentsInChildren<EntityInfo>())
-                    {
-                        member.transform.localPosition = new();
-                        //member.sceneEvents.OnTransferScene?.Invoke(sceneManager.CurrentScene());
-                        GMHelper.GameManager().AddPlayableParty(party);
-                    }
+                //ArchAction.Delay(() => {
+                //    foreach (var member in party.GetComponentsInChildren<EntityInfo>())
+                //    {
+                //        member.transform.localPosition = new();
+                //        member.sceneEvents.OnTransferScene?.Invoke(sceneManager.CurrentScene());
+                //        GMHelper.GameManager().AddPlayableParty(party);
+                //    }
 
-                    party.HandleTransferScene(sceneManager.CurrentScene());
-                }, .250f);
+                //    party.HandleTransferScene(sceneManager.CurrentScene());
+                //}, .250f);
                 
 
                 return;
             }
 
             partyObject = party.gameObject;
-            DontDestroyOnLoad(party);
+            //DontDestroyOnLoad(party);
             var savedEntities = currentSave.savedEntities;
             var entityIndex = currentSave.selectedEntitiesIndex;
 
@@ -116,25 +136,37 @@ namespace Architome
             }
 
             await Task.WhenAll(tasks);
+            TransferUnitsToEntrancePortal();
         }
 
-        void GetDependencies()
+        void OnLoadScene(ArchSceneManager sceneManager)
         {
-
-            saveSystem = SaveSystem.active;
-            sceneManager = ArchSceneManager.active;
-
-            if (saveSystem)
-            {
-                saveSystem.BeforeSave += BeforeSave;
-            }
-
-            if (sceneManager)
-            {
-                sceneManager.BeforeLoadScene += BeforeLoadScene;
-            }
+            TransferUnitsToEntrancePortal();
         }
-        
+
+        void TransferUnitsToEntrancePortal()
+        {
+            var portals = PortalInfo.portals;
+
+            ArchAction.Delay(() => {
+                if (portals == null || portals.Count == 0) return;
+                foreach (var portal in portals)
+                {
+                    if (portal == null) continue;
+                    if (portal.entryPortal)
+                    {
+                        foreach (var entity in party.GetComponentsInChildren<EntityInfo>())
+                        {
+                            entity.transform.position = portal.portalSpot.position + new Vector3(0, .25f, 0);
+                        }
+
+                        break;
+                    }
+                }
+            }, 2f);
+            
+        }
+
 
         void BeforeSave(SaveGame save)
         {
@@ -143,7 +175,7 @@ namespace Architome
 
         void BeforeLoadScene(ArchSceneManager sceneManager)
         {
-            SaveEntities();
+            //SaveEntities();
         }
 
         void SaveEntities()
