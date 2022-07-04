@@ -24,7 +24,8 @@ namespace Architome
         public struct Rewards
         {
             public float experience;
-            public ItemData items;
+            public ItemPool possibleItems;
+            public List<ItemData> items;
         }
 
         [Serializable]
@@ -156,11 +157,18 @@ namespace Architome
             OnQuestEnd?.Invoke(this);
             questManager.OnQuestEnd?.Invoke(this);
         }
-        public void FailQuest()
+        public void ForceFail()
         {
+            if (info.state == QuestState.Failed) return;
             info.state = QuestState.Failed;
 
             HandleFail();
+        }
+        public void ForceComplete()
+        {
+            if (info.state == QuestState.Completed) return;
+            info.state = QuestState.Completed;
+            HandleCompleted();
         }
         void HandleFail()
         {
@@ -170,11 +178,6 @@ namespace Architome
             OnQuestEnd?.Invoke(this);
             questManager.OnQuestEnd?.Invoke(this);
 
-        }
-        public void ForceComplete()
-        {
-            info.state = QuestState.Completed;
-            HandleCompleted();
         }
         public bool AllObjectivesComplete()
         {

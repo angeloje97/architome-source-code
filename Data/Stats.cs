@@ -106,6 +106,18 @@ namespace Architome
             }
         }
 
+        public static HashSet<string> CoreFields 
+        { 
+            get 
+            {
+                return new() {
+                    "Vitality",
+                    "Strength",
+                    "Dexterity",
+                    "Wisdom",
+                }; 
+            } 
+        }
         public static HashSet<string> PercentageFields
         {
             get
@@ -362,6 +374,18 @@ namespace Architome
             Strength = (Level * 5) + 5;
             Dexterity = (Level * 5) + 5;
             Wisdom = (Level * 5) + 5;
+        }
+        public void MultiplyCoreStats(float amount)
+        {
+            foreach (var core in CoreFields)
+            {
+                var field = this.GetType().GetField(core);
+                var value = (int) field.GetValue(this);
+
+                var expectedAmount = value * amount;
+
+                field.SetValue(this, (int)expectedAmount); //Floor
+            }
         }
 
         public void UpdateExperienceRequiredToLevel()

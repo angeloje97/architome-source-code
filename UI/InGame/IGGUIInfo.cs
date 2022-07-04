@@ -15,7 +15,14 @@ namespace Architome
         public List<GameObject> modules;
         public Action<ModuleInfo> OnModuleEnableChange;
 
+        [Serializable]
+        public struct Prefabs
+        {
+            public ItemBin itemBin;
+            public Transform itemBinParent;
+        }
 
+        [SerializeField] Prefabs prefabs;
 
         PromptHandler promptHandler;
         WorldModuleCore worldModuleCore;
@@ -110,6 +117,7 @@ namespace Architome
         {
             foreach (var extra in extraModules)
             {
+                if (extra == null) continue;
                 bool changed = false;
                 foreach (var module in extra.GetComponentsInChildren<ModuleInfo>())
                 {
@@ -227,6 +235,33 @@ namespace Architome
         }
 
 
+        public ItemBin CreateItemBin(Transform parent = null)
+        {
+            if (prefabs.itemBin == null)
+            {
+                throw new Exception("Item bin in in game ui is null");
+            }
+
+            if (parent == null)
+            {
+                parent = prefabs.itemBinParent;
+
+                if (parent == null)
+                {
+                    parent = transform;
+                }
+                else
+                {
+                    parent.transform.SetAsLastSibling();
+                }
+            }
+
+            var newGameObject = Instantiate(prefabs.itemBin, parent);
+
+            var itemBin = newGameObject.GetComponent<ItemBin>();
+
+            return itemBin;
+        }
     }
 }
 

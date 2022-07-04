@@ -20,10 +20,11 @@ namespace Architome
 
         public void GetDependencies()
         {
-            if(GetComponentInParent<Quest>())
-            {
-                questInfo = GetComponentInParent<Quest>();
-            }
+            questInfo = GetComponentInParent<Quest>();
+            //if(GetComponentInParent<Quest>())
+            //{
+            //    questInfo = GetComponentInParent<Quest>();
+            //}
         }
 
         public void CompleteObjective()

@@ -40,6 +40,7 @@ namespace Architome
 
         public void HandleChest(ArchChest chest)
         {
+            return;
             OnChestOpen?.Invoke(chest);
             if (prefabs.chestModule == null) return;
 

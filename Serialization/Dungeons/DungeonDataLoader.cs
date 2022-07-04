@@ -18,6 +18,7 @@ namespace Architome
             {
                 var level = new Dungeon.Rooms();
 
+                level.levelName = rooms.levelName;
                 level.levelSeed = rooms.seed;
                 var maps = GMHelper.GameManager().data;
 
@@ -26,6 +27,16 @@ namespace Architome
                 var dungeons = maps._maps.dungeonRooms;
 
                 if (dungeons == null) return levels;
+
+                if (rooms.bossId != -1)
+                {
+                    var entities = maps._maps.entities;
+
+                    if (entities.ContainsKey(rooms.bossId))
+                    {
+                        level.selectedBoss = entities[rooms.bossId];
+                    }
+                }
 
                 var skeleton = new List<RoomInfo>();
 

@@ -13,7 +13,8 @@ namespace Architome
 
 
         public static int dungeonIndex;
-        public static List<Dungeon.Rooms> currentDungeon;
+
+        public static List<Dungeon.Rooms> currentDungeon { get; set; }
 
 
         public static Action<GameState> OnSetState;

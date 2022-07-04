@@ -78,6 +78,7 @@ namespace Architome
             {
                 OnNewHoverTarget?.Invoke(hoverTargetCheck, currentHover);
                 hoverTargetCheck = currentHover;
+                
             }
         }
         public void HandleUserMouseOvers()

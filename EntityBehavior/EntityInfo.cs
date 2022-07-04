@@ -110,6 +110,7 @@ namespace Architome
         public struct InfoEvents
         {
             public Action<List<string>> OnUpdateObjectives;
+            public Action<Quest> OnQuestComplete;
         }
 
         //Events
@@ -146,6 +147,7 @@ namespace Architome
         public Action<BuffInfo, EntityInfo> OnNewBuff;
         public Action<BuffInfo, EntityInfo> OnBuffApply;
         public Action<float> OnExperienceGain;
+        public Action<object, float> OnExperienceGainOutside;
         public Action<int> OnLevelUp;
         public Action OnEntityDestroy;
         public Action<float, float, float> OnHealthChange { get; set; }
@@ -297,6 +299,13 @@ namespace Architome
         {
             HandleEventTriggers();
         }
+
+
+        public void GainExperience(object sender, float amount)
+        {
+            OnExperienceGainOutside?.Invoke(sender, amount);
+        }
+
         void HandleEventTriggers()
         {
             if (healthCheck != health || maxHealthCheck != maxHealth || shieldCheck != shield)
@@ -573,9 +582,6 @@ namespace Architome
                 source.OnHealingDone?.Invoke(combatData);
             }
         }
-
-        
-
         public bool AddState(EntityState state)
         {
             if (stateImmunities.Contains(state) || states.Contains(EntityState.Immune))
@@ -590,7 +596,6 @@ namespace Architome
 
             return true;
         }
-
         public bool RemoveState(EntityState state)
         {
             if (!states.Contains(state))
@@ -607,7 +612,6 @@ namespace Architome
 
             return true;
         }
-
         public Transform Target()
         {
             var movement = Movement();
@@ -623,20 +627,10 @@ namespace Architome
         public bool IsEnemy(GameObject target)
         {
             if (!target.GetComponent<EntityInfo>()) return false;
-
             var targetNPCType = target.GetComponent<EntityInfo>().npcType;
 
-            if(npcType == NPCType.Friendly && targetNPCType == NPCType.Hostile)
-            {
-                return true;
-            }
-
-            if(npcType == NPCType.Hostile && targetNPCType == NPCType.Friendly)
-            {
-                return true;
-            }
-
-
+            if (npcType == NPCType.Friendly && targetNPCType == NPCType.Hostile) return true;
+            if (npcType == NPCType.Hostile && targetNPCType == NPCType.Friendly) return true;
             return false;
 
         }
@@ -741,6 +735,10 @@ namespace Architome
             OnReviveThis?.Invoke(combatData);
         }
 
+        public void CompleteQuest(Quest quest)
+        {
+            infoEvents.OnQuestComplete?.Invoke(quest);
+        }
         public void ChangeNPCType(NPCType type)
         {
             this.npcType = type;

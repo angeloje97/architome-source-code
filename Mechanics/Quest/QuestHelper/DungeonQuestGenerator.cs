@@ -51,10 +51,19 @@ namespace Architome
         void BeforeLoadScene(ArchSceneManager manager)
         {
             if (questGenerated == null) return;
-            if (questGenerated.info.state == QuestState.Completed) return;
+            if (questGenerated.info.state != QuestState.Active) return;
 
-            questGenerated.FailQuest();
+            questGenerated.ForceFail();
 
+        }
+
+        public string QuestName()
+        {
+            var dungeons = Core.currentDungeon;
+            if (dungeons == null) return "Generated Dungeon Quest";
+            var index = Core.dungeonIndex;
+            if (index < 0 || index >= dungeons.Count) return "Generated Dungeon Quest";
+            return dungeons[index].levelName;
         }
 
         public void OnEntitiesGenerated(MapEntityGenerator generator)
@@ -74,7 +83,9 @@ namespace Architome
 
             questGenerated = dungeonQuest;
             var entities = generator.GetComponentsInChildren<EntityInfo>();
+            float experience = 0f;
 
+            HandleTimer();
             HandleGenerateForces();
             HandleGenerateBoss();
 
@@ -83,9 +94,12 @@ namespace Architome
                 QuestManager.active.DeleteQuest(dungeonQuest);
                 return;
             }
-            
-            dungeonQuest.questName = "Complete Dungeon Objectives";
+
+            dungeonQuest.rewards.experience = experience;
+            dungeonQuest.questName = QuestName();
             dungeonQuest.Activate();
+
+
 
             void HandleGenerateForces()
             {
@@ -100,6 +114,7 @@ namespace Architome
                     if(entity.npcType == NPCType.Hostile && entity.rarity != EntityRarity.Boss)
                     {
                         killEntities.HandleEntity(entity);
+                        ////experience += entity.maxHealth * .25f;
                     }
                 }
 
@@ -110,8 +125,18 @@ namespace Architome
                     killEntities.percentageNeeded = difficulty.settings.minimumEnemyForces;
                 }
 
+
+
                 activeObjectives = true;
 
+            }
+
+            void HandleTimer()
+            {
+                var timerObjective = objectives.AddComponent<ObjectiveTimer>();
+
+                timerObjective.transform.SetAsFirstSibling();
+                timerObjective.timer = 600f;
             }
 
             void HandleGenerateBoss()
@@ -125,6 +150,8 @@ namespace Architome
                     var killEntity = objectives.AddComponent<ObjectiveKillEntity>();
 
                     killEntity.HandleEntity(entity);
+                    //experience += entity.maxHealth * .25f;
+
                     count++;
                 }
 

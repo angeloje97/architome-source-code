@@ -1,10 +1,11 @@
+using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using System;
-using UnityEngine.SceneManagement;
-using System.Linq;
 using System.Threading.Tasks;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using TMPro;
 
 namespace Architome
 {
@@ -24,6 +25,8 @@ namespace Architome
         public struct Info
         {
             public ArchButton startDungeonButton;
+            public List<Icon> entityIcons;
+            public TextMeshProUGUI partyLevel;
         }
 
         [Serializable]
@@ -40,7 +43,6 @@ namespace Architome
         public Prefabs prefabs;
 
         public SaveSystem saveSystem;
-
         public SaveGame currentSave;
 
 
@@ -52,16 +54,26 @@ namespace Architome
 
         public Action<List<bool>> OnCheckCondition;
         public Action<List<bool>> BeforeCheckCondition;
+        public Action<DungeoneerManager> BeforeUpdateParty;
         public Action<EntityInfo> OnNewEntity;
         public Action<SaveGame> OnNewSave;
         public Action<SaveGame> OnLoadSave;
+
+        float dungeonLevel;
+        float partyLevel;
+        private void Start()
+        {
+            GetDependencies();
+            LoadEntities();
+            OnNewBorn();
+            CheckCondition();
+            UpdatePartyInfo();
+        }
 
         void GetDependencies()
         {
             saveSystem = SaveSystem.active;
             currentSave = Core.currentSave;
-
-
         }
 
         void SpawnPresetEntities()
@@ -99,6 +111,7 @@ namespace Architome
             }
 
         }
+
 
         async void LoadEntities()
         {
@@ -162,10 +175,36 @@ namespace Architome
 
             SpawnPresetEntities();
         }
+        void UpdatePartyInfo()
+        {
+            if (selectedEntities == null) selectedEntities = new();
+            for (int i = 0; i < info.entityIcons.Count; i++)
+            {
+                if (i >= selectedEntities.Count)
+                {
+                    info.entityIcons[i].SetIcon(new() { data = null });
+                    continue;
+                }
+
+                info.entityIcons[i].SetIcon(new()
+                {
+                    sprite = selectedEntities[i].entityPortrait,
+                    data = selectedEntities[i]
+                });
+            }
+
+            info.partyLevel.text = partyLevel > 0 ? $"Party Level: {partyLevel}" : "";
+
+        }
 
         void CheckCondition()
         {
             var newCondition = new List<bool>();
+
+
+
+            newCondition.Add(partyLevel + 5 >= dungeonLevel);
+
             BeforeCheckCondition?.Invoke(newCondition);
             OnCheckCondition?.Invoke(newCondition);
 
@@ -191,37 +230,57 @@ namespace Architome
             }
         }
 
-        
-
-        private void Start()
-        {
-            GetDependencies();
-            LoadEntities();
-            OnNewBorn();
-            CheckCondition();
-        }
-
-        public void SetSelectedEntities(List<EntityInfo> entities)
+        public void SetSelectedEntities(List<EntityInfo> entities, float partyLevel = 0f)
         {
             selectedEntities = entities;
             var currentSave = Core.currentSave;
 
-            if (currentSave == null) return;
+            //if (currentSave == null) return;
             
-            if (selectedEntities.Count == 0)
+            //if (selectedEntities.Count == 0)
+            //{
+            //    currentSave.selectedEntitiesIndex = new();
+            //    return;
+            //}
+
+            if (currentSave != null)
             {
-                currentSave.selectedEntitiesIndex = new();
-                return;
+                currentSave.selectedEntitiesIndex = new(); /* selectedEntities.Select(entity => entity.SaveIndex).ToList();*/
+            }
+            
+            for (int i = 0; i < info.entityIcons.Count; i++)
+            {
+                if (i >= selectedEntities.Count)
+                {
+                    info.entityIcons[i].SetIcon(new() { data = null });
+                    continue;
+                }
+
+                if (currentSave != null)
+                {
+                    currentSave.selectedEntitiesIndex.Add(selectedEntities[i].SaveIndex);
+                }
+
+                info.entityIcons[i].SetIcon(new()
+                {
+                    data = selectedEntities[i],
+                    sprite = selectedEntities[i].entityPortrait
+                });
             }
 
-            currentSave.selectedEntitiesIndex = selectedEntities.Select(entity => entity.SaveIndex).ToList();
 
+            this.partyLevel = partyLevel;
+
+            UpdatePartyInfo();
             CheckCondition();
         }
+
 
         public void SetDungeon(Dungeon dungeon)
         {
             currentDungeon = dungeon;
+
+            dungeonLevel = dungeon.RecommendedLevel();
 
             CheckCondition();
         }

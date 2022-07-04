@@ -12,7 +12,7 @@ namespace Architome
     [RequireComponent(typeof(CanvasGroup))]
     public class ToolTip : MonoBehaviour
     {
-
+        public bool update;
         public ToolTipManager manager;
         [Serializable]
         public class Components
@@ -111,6 +111,8 @@ namespace Architome
 
         private void OnValidate()
         {
+            if (!update) return;
+            update = false;
             components.rectTransform = GetComponent<RectTransform>();
             AdjustSize();
         }
@@ -139,7 +141,9 @@ namespace Architome
             components.attributes.text = data.attributes;
             components.requirements.text = data.requirements;
             components.value.text = data.value;
-            components.icon.SetIconImage(data.icon);
+
+            components.icon.SetIcon(new() { sprite = data.icon });
+            //components.icon.SetIconImage(data.icon);
 
             HandleNullTexts();
             HandleRarity();
@@ -159,7 +163,8 @@ namespace Architome
 
         public ToolTip Icon(Sprite sprite)
         {
-            components.icon.SetIconImage(sprite);
+            //components.icon.SetIconImage(sprite);
+            components.icon.SetIcon(new() { sprite = sprite });
             return this;
         }
 

@@ -71,7 +71,7 @@ namespace Architome
         public float npcDetectionRange = 10f;
         public float playerDetectionRange = 45f;
         public float experienceMultiplier = 300f;
-
+        public float dungeonCoreMultiplier = .15f;
         [Range(0, 1)]
         public float minimumEnemyForces = .90f;
     }

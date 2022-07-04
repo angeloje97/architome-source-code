@@ -87,10 +87,12 @@ namespace Architome
             }
 
             equipmentSlots = new EquipmentSlot[0];
+
             if (character)
             {
                 equipmentSlots = character.GetComponentsInChildren<EquipmentSlot>();
                 character.OnChangeEquipment += OnChangeEquipment;
+
             }
 
             abilities.Clear();
@@ -136,6 +138,7 @@ namespace Architome
 
         void HandleUseWeaponAbility(Item weaponItem)
         {
+
             if (!settings.useWeaponAbility) return;
 
             if (attackAbility)
@@ -228,13 +231,25 @@ namespace Architome
 
         public void OnChangeEquipment(EquipmentSlot slot, Equipment before, Equipment after)
         {
-                        
+            if (slot.equipmentSlotType != EquipmentSlotType.MainHand) return;
+
             HandleUseWeaponAbility(after);
 
-            if (Item.IsWeapon(after) && slot.equipmentSlotType == EquipmentSlotType.MainHand)
+
+            if (Item.IsWeapon(after))
             {
                 currentWeapon = (Weapon)after;
             }
+            else
+            {
+                currentWeapon = null;
+            }
+
+            //if (Item.IsWeapon(after) && slot.equipmentSlotType == EquipmentSlotType.MainHand)
+            //{
+            //    HandleUseWeaponAbility(after);  
+            //    currentWeapon = (Weapon)after;
+            //}
 
             //if (attackAbility == null) return;
             //if (!attackAbility.usesWeaponCatalyst) return;

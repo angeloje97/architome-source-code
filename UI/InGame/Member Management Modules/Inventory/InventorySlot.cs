@@ -14,6 +14,8 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
     public Item item { get { return currentItemInfo ? currentItemInfo.item : null; } }
     public ModuleInfo module;
     public ItemSlotHandler itemSlotHandler;
+
+    Transform parent;
     
     [Serializable]
     public struct Info
@@ -33,15 +35,6 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
     public Info info;
 
     [Header("Inventory Properties")]
-    
-    public Inventory inventory;
-
-    public EntityInventoryUI InventoryUI()
-    {
-        return GetComponentInParent<EntityInventoryUI>() ? GetComponentInParent<EntityInventoryUI>() : null;
-
-    }
-
     public Item previousItem;
     public ItemInfo previousItemInfo;
 
@@ -56,6 +49,27 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
         GetDependencies();
     }
     
+    public int Index()
+    {
+        if (parent == null)
+        {
+            parent = transform.parent;
+            if (parent == null) return -1;
+        }
+
+        var slots = parent.GetComponentsInChildren<InventorySlot>();
+
+        for (int i = 0; i < slots.Length; i++)
+        {
+            if (slots[i] == this)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
     void Update()
     {
         if (module == null) return;
@@ -79,6 +93,7 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
             previousItem = item;
         }
     }
+
 
     //Event Handlers
     public void OnDrop(PointerEventData eventData)
@@ -108,13 +123,5 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
         var draggingItem = eventData.pointerDrag.GetComponent<ItemInfo>();
 
         draggingItem.currentSlotHover = null;
-    }
-    public int SlotNum()
-    {
-        if(InventoryUI())
-        {
-            return InventoryUI().inventorySlots.IndexOf(this);
-        }
-        return -1;
     }
 }

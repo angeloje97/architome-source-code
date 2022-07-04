@@ -19,6 +19,8 @@ namespace Architome
             entityInfo.OnDamageTaken += OnDamageTaken;
             entityInfo.OnDamageDone += OnDamageDone;
             entityInfo.OnHealingDone += OnHealingDone;
+
+            entityInfo.OnExperienceGainOutside += OnGainExperienceOutside;
         }
 
 
@@ -43,10 +45,10 @@ namespace Architome
                 value = currentExperience + value - pastExperienceReq;
                 var leftOver = pastExperienceReq - currentExperience;
 
+                entityInfo.OnExperienceGain?.Invoke(leftOver);
                 LevelUp();
                 GainExp(value);
 
-                entityInfo.OnExperienceGain?.Invoke(leftOver);
                 return;
             }
             else if (entityInfo.entityStats.experience + value == entityInfo.entityStats.experienceReq)
@@ -79,6 +81,12 @@ namespace Architome
         {
             GainExp(eventData.value * .25f);
         }
+
+        public void OnGainExperienceOutside(object sender, float amount)
+        {
+            GainExp(amount);
+        }
+
 
         public void OnDamageTaken(CombatEventData eventData)
         {

@@ -113,8 +113,12 @@ namespace Architome
 
                     if (isInRange)
                     {
-                        components.bossIcons[i].SetIconImage(bosses[i].entityPortrait);
-                        components.bossIcons[i].data = bosses[i];
+                        //components.bossIcons[i].SetIconImage(bosses[i].entityPortrait);
+                        components.bossIcons[i].SetIcon(new() {
+                            sprite = bosses[i].entityPortrait,
+                            data = bosses[i]
+                        });
+                        
                     }
 
                 }
@@ -139,6 +143,7 @@ namespace Architome
         }
         public void OnSelectBossIcon(Icon icon)
         {
+            if (icon == null || icon.data == null) return;
             if (!typeof(EntityInfo).IsAssignableFrom(icon.data.GetType())) return;
             var entity = (EntityInfo) icon.data;
             OnSelectEntity?.Invoke(entity);
@@ -146,19 +151,16 @@ namespace Architome
 
             SetBoss(entity);
         }
-
         public void SetBossCanvas(bool value)
         {
             ArchUI.SetCanvas(components.bossDetailsCanvasGroup, value);
             UpdateLayouts();
         }
-
         public void SetDetailsCanvas(bool val)
         {
             ArchUI.SetCanvas(components.mainCanvas, val);
             UpdateLayouts();
         }
-
         public void UpdateLayouts()
         {
             
@@ -181,7 +183,6 @@ namespace Architome
                 }
             }
         }
-
         public void SetBoss(EntityInfo entity)
         {
             ArchAction.Yield(() => SetBossCanvas(true));
@@ -191,7 +192,8 @@ namespace Architome
 
             Debugger.InConsole(3295, $"{entity} has {abilities.Length} abilities");
 
-            components.bossIcon.SetIconImage(entity.entityPortrait);
+            //components.bossIcon.SetIconImage(entity.entityPortrait);
+            components.bossIcon.SetIcon(new() { sprite = entity.entityPortrait });
             components.bossName.text = entity.entityName;
 
             for (int i = 0; i < components.bossAbilityIcons.Count; i++)
@@ -214,13 +216,15 @@ namespace Architome
 
                 var catalyst = abilities[i].catalyst.GetComponent<CatalystInfo>();
 
-                components.bossAbilityIcons[i].SetIconImage(catalyst.catalystIcon);
+                //components.bossAbilityIcons[i].SetIconImage(catalyst.catalystIcon);
+                components.bossAbilityIcons[i].SetIcon(new(){
+                    sprite = catalyst.catalystIcon,
+                    data = abilities[i]
+                });
                 //components.bossAbilityIcons[i].SetIconImage(abilities[i].catalystInfo.catalystIcon);
-                components.bossAbilityIcons[i].data = abilities[i];
 
             }
         }
-
         public void OnHoverAbilityIcon(Icon icon, bool hovering) //Display tooltip for boss ability here
         {
             Debugger.InConsole(1239, $"{icon.data.GetType()}");

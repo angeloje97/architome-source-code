@@ -28,6 +28,8 @@ namespace Architome
         [Serializable]
         public struct Rooms
         {
+            public string levelName;
+            public EntityInfo selectedBoss;
             public List<RoomInfo> skeleton;
             public List<RoomInfo> random;
             public RoomInfo entrance;
@@ -44,6 +46,7 @@ namespace Architome
             public TextMeshProUGUI name, description;
             public Transform entityPortraitParent;
             public List<EntityInfo> entitiesInDungeons;
+            public List<EntityInfo> bossesInDungeon;
 
         }
 
@@ -64,8 +67,30 @@ namespace Architome
         public Action<Dungeon> OnSelectDungeon;
 
         public bool preset;
+        public List<EntityInfo> uniqueEntities
+        {
+            get
+            {
+                if (info.entitiesInDungeons == null || info.entitiesInDungeons.Count == 0)
+                {
+                    info.entitiesInDungeons = EntitiesInDungeon();
+                }
 
+                return info.entitiesInDungeons;
+            }
+        }
+        public List<EntityInfo> uniqueBosses
+        {
+            get
+            {
+                if (info.bossesInDungeon == null)
+                {
+                    info.bossesInDungeon = Bosses();
+                }
 
+                return info.bossesInDungeon;
+            }
+        }
         public Size DungeonSize()
         {
             var size = Size.Small;
@@ -86,22 +111,34 @@ namespace Architome
 
         }
 
-        public void SetDungeon(DungeonTable.DungeonInfo info) // Fresh Dungeon
+        public void SetDungeon(DungeonTable.DungeonInfo info, int size = 0) // Fresh Dungeon
         {
             dungeonInfo = info;
+            var randomBosses = false;
 
-            var size = RandomSize();
+
+            if (size == 0)
+            {
+                randomBosses = true;
+                size = RandomSize();
+            }
 
             for (int i = 0; i < size; i++)
             {
-                FillRooms(info, i);
+                FillRooms(info, i, randomBosses);
             }
 
             UpdateDungeonInfo();
         }
 
-        
+        void Start()
+        {
 
+        }
+        void Update()
+        {
+
+        }
         public void SetDungeon(DungeonTable.DungeonInfo info, DungeonData savedDungeon)
         {
             dungeonInfo = info;
@@ -148,22 +185,29 @@ namespace Architome
             };
         }
 
-        public void FillRooms(DungeonTable.DungeonInfo info, int setIndex)
+        public void FillRooms(DungeonTable.DungeonInfo info, int setIndex, bool randomBoss)
         {
-            
+            var originalIndex = setIndex;
+
+            if (setIndex < 0 || setIndex >= info.sets.Count)
+            {
+                setIndex = info.sets.Count - 1;
+            }
+
             var rooms = new Rooms();
 
+            rooms.levelName = info.sets[setIndex].dungeonSetName;
             rooms.levelSeed = RandomGen.RandomString(10);
 
 
-            var (skeletonCount, availableCount) = (2, 2);
+            var (skeletonCount, availableCount) = (5, 5);
 
             var skeletonPresets = new List<RoomInfo>();
             var availablePresets = new List<RoomInfo>();
             var bossPresets = new List<RoomInfo>();
             var entrancePresets = new List<RoomInfo>();
 
-            var set = info.sets[0];
+            var set = info.sets[setIndex];
 
             if (setIndex >= 0 && setIndex < info.sets.Count)
             {
@@ -216,10 +260,31 @@ namespace Architome
                 rooms.random.Add(availablePresets[availableIndex]);
             }
 
-            rooms.boss = bossPresets[UnityEngine.Random.Range(0, bossPresets.Count)];
+            HandleLevelBoss();
+
             rooms.entrance = entrancePresets[UnityEngine.Random.Range(0, entrancePresets.Count)];
 
             levels.Add(rooms);
+
+            void HandleLevelBoss()
+            {
+                rooms.boss = bossPresets[UnityEngine.Random.Range(0, bossPresets.Count)];
+
+                var bosses = rooms.boss.pool.bossEntities;
+
+                if (randomBoss)
+                {
+                    rooms.selectedBoss = ArchGeneric.RandomItem(bosses).GetComponent<EntityInfo>();
+                }
+                else if(originalIndex >= bosses.Count && bosses.Count > 0)
+                {
+                    rooms.selectedBoss = bosses[bosses.Count - 1].GetComponent<EntityInfo>();
+                }
+                else
+                {
+                    rooms.selectedBoss = bosses[originalIndex].GetComponent<EntityInfo>();
+                }
+            }
 
         }
         public void SelectDungeon()
@@ -256,23 +321,41 @@ namespace Architome
 
         }
         
-        public List<EntityInfo> EntitiesInDungeon()
+        List<EntityInfo> EntitiesInDungeon()
         {
             var uniqueDungeonPools = new HashSet<RoomPool>();
             var allEntities = new List<EntityInfo>();
-
             var allRooms = new List<RoomInfo>();//rooms.random.Concat(rooms.skeleton).ToList();
+            var bosses = new List<EntityInfo>();
             
-
-
-
             foreach (var level in levels)
             {
-                allRooms.Add(level.entrance);
-                allRooms.Add(level.boss);
+                if (!allRooms.Contains(level.entrance))
+                {
+                    allRooms.Add(level.entrance);
+                }
 
-                allRooms = allRooms.Concat(level.random).ToList();
-                allRooms = allRooms.Concat(level.skeleton).ToList();
+                if (!allRooms.Contains(level.boss))
+                {
+                    allRooms.Add(level.boss);
+                }
+                //allRooms.Add(level.entrance);
+                //allRooms.Add(level.boss);
+
+                foreach (var room in level.random)
+                {
+                    if (allRooms.Contains(room)) continue;
+                    allRooms.Add(room);
+                }
+
+                foreach (var room in level.skeleton)
+                {
+                    if (allRooms.Contains(room)) continue;
+                    allRooms.Add(room);
+                }
+
+                //allRooms = allRooms.Concat(level.random).ToList();
+                //allRooms = allRooms.Concat(level.skeleton).ToList();
 
             }
 
@@ -290,8 +373,13 @@ namespace Architome
                     foreach (var entity in entityList)
                     {
                         var info = entity.GetComponent<EntityInfo>();
-
                         if (info == null) continue;
+
+                        if (info.rarity == EntityRarity.Boss)
+                        {
+                            continue;
+                        }
+
 
                         if (allEntities.Contains(info)) continue;
 
@@ -311,22 +399,21 @@ namespace Architome
                 }
             }
 
-            info.entitiesInDungeons = allEntities;
+            //info.entitiesInDungeons = allEntities;
 
             return allEntities;
         }
 
         public List<EntityInfo> Bosses()
         {
+            
             var bosses = new List<EntityInfo>();
 
-            foreach (var entity in EntitiesInDungeon())
+            foreach (var level in levels)
             {
-                if (entity.rarity != EntityRarity.Boss) continue;
-
-                bosses.Add(entity);
-
-
+                if (level.selectedBoss == null) continue;
+                if (bosses.Contains(level.selectedBoss)) continue;
+                bosses.Add(level.selectedBoss);
             }
 
             return bosses;
@@ -334,22 +421,44 @@ namespace Architome
 
         public void UpdateDungeonInfo()
         {
-            info.name.text = dungeonInfo.sets[0].dungeonSetName;
-            info.description.text = $"Size: {size} | {DungeonRoomsCount()} Rooms | {EntitiesInDungeon().Count()} Unique Entities";
+            info.name.text = LevelNames();
+            info.description.text = $"Dungeon Level : {RecommendedLevel()}\nFloors: {levels.Count}";
         }
 
-
-        void Start()
+        public float RecommendedLevel()
         {
-        
+            float recommendedLevel = 0f;
+
+            for (int i = 0; i < levels.Count; i++)
+            {
+                var levelBoss = levels[i].selectedBoss;
+                if (levelBoss == null) continue;
+                var predictedLevel = (i * 2) + levelBoss.entityStats.Level;
+
+                if (predictedLevel > recommendedLevel)
+                {
+                    recommendedLevel = predictedLevel;
+                }
+            }
+
+
+            return recommendedLevel;
         }
 
-        // Update is called once per frame
-        void Update()
+        string LevelNames()
         {
-        
+            var names = new List<string>();
+            foreach (var level in levels)
+            {
+                if (names.Contains(level.levelName)) continue;
+                names.Add(level.levelName);
+            }
+
+            return ArchString.StringList(names);
         }
 
+
+        
 
     }
 }

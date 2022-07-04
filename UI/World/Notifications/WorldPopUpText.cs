@@ -24,11 +24,19 @@ namespace Architome
             public TextMeshProUGUI text;
             public Transform textTransform;
             public CanvasGroup canvasGroup;
+            public Animator animator;
         }
 
         public Transform target;
-
         public Info info;
+
+        public class PopUpParameters
+        {
+            public bool healthChange;
+            public bool stateChange;
+            public bool stateImmunity;
+        }
+
 
         // Start is called before the first frame update
 
@@ -40,6 +48,14 @@ namespace Architome
         void Update()
         {
             StickToTarget();
+        }
+
+        public void SetAnimation(PopUpParameters bools)
+        {
+            foreach (var field in bools.GetType().GetFields())
+            {
+                info.animator.SetBool(field.Name, (bool)field.GetValue(bools));
+            }
         }
 
         void StickToTarget()
@@ -61,7 +77,7 @@ namespace Architome
             info.time = time;
             info.text.color = color;
             info.text.enabled = true;
-
+            
             
 
             Play();
@@ -69,6 +85,7 @@ namespace Architome
 
         async void Play()
         {
+            return;
             var startXPos = UnityEngine.Random.Range(-info.startXPositionRange, info.startXPositionRange);
 
             info.text.transform.localPosition = new Vector3(startXPos, 0, 0);
@@ -94,10 +111,12 @@ namespace Architome
                 }
 
             }
-
-
             Destroy(gameObject);
-            
+        }
+
+        public void EndAnimation()
+        {
+            Destroy(gameObject);
         }
 
         

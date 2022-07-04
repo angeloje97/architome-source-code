@@ -100,16 +100,21 @@ public class SocialBehavior : MonoBehaviour
     public void SociallyInteractWith(EntityInfo entity)
     {
         Collider[] listeners = Physics.OverlapSphere(entityInfo.transform.position, 10, LayerMasksData.active.entityLayerMask);
+        var structureLayer = LayerMasksData.active.structureLayerMask;
 
         foreach(Collider listener in listeners)
         {
-            if (!listener.GetComponent<EntityInfo>()) { continue; }
+            var info = listener.GetComponent<EntityInfo>();
+            if (info == null) continue;
 
-            var listenerInfo = listener.GetComponent<EntityInfo>();
+            var distance = Vector3.Distance(info.transform.position, transform.position);
+            var direction = V3Helper.Direction(info.transform.position, transform.position);
+            if (Physics.Raycast(entityInfo.transform.position, direction, distance, structureLayer)) continue;
 
+            
             var newInteraction = new SocialEventData(entityInfo, entity);
+            info.ReactToSocial(newInteraction);
 
-            listenerInfo.ReactToSocial(newInteraction);
         }
     }
 }

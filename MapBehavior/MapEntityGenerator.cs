@@ -196,7 +196,23 @@ public class MapEntityGenerator : MonoBehaviour
 
         if (boss == null) return false;
 
-        SpawnEntity(boss, bossPosition);
+        //int bossLevel = boss.GetComponent<EntityInfo>().entityStats.Level;
+
+        if (Core.currentDungeon != null)
+        {
+            var dungeon = Core.currentDungeon[Core.dungeonIndex];
+
+            if (dungeon.selectedBoss)
+            {
+                boss = dungeon.selectedBoss.gameObject;
+            }
+
+        }
+
+
+
+        var entity = SpawnEntity(boss, bossPosition);
+
 
         return true;
     }
@@ -208,18 +224,34 @@ public class MapEntityGenerator : MonoBehaviour
         newEntity.GetComponentInChildren<NoCombatBehavior>().patrolSpot = spot;
     }
 
-    GameObject SpawnEntity(GameObject entity, Transform spot)
+    EntityInfo SpawnEntity(GameObject entity, Transform spot)
     {
         //var normalRotation = new Quaternion();
         var roomInfo = spot.GetComponentInParent<RoomInfo>();
 
-        var newEntity = world.SpawnEntity(entity, spot.position);
+        var newEntity = world.SpawnEntity(entity, spot.position).GetComponent<EntityInfo>();
         newEntity.transform.SetParent(entityList, true);
             
             //Instantiate(entity, spot.position, normalRotation, entityList);
 
-        newEntity.GetComponent<EntityInfo>().CharacterInfo().gameObject.transform.rotation = spot.rotation;
+        newEntity.CharacterInfo().gameObject.transform.rotation = spot.rotation;
+
+        HandleDungeonLevels();
 
         return newEntity;
+
+        void HandleDungeonLevels()
+        {
+            if (Core.currentDungeon == null) return;
+            var difficulty = DifficultyModifications.active;
+
+
+            float multiplier = 1 + (Core.dungeonIndex * difficulty.settings.dungeonCoreMultiplier);
+
+            newEntity.entityStats.Level += (Core.dungeonIndex * 2);
+            newEntity.entityStats.MultiplyCoreStats(multiplier);
+
+
+        }
     }
 }

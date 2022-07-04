@@ -132,7 +132,7 @@ namespace Architome
 
             if (Core.dungeonIndex < 0 || Core.dungeonIndex >= Core.currentDungeon.Count)
             {
-                setScene = "Dungeoneer Menu";
+                setScene = "PostDungeonResults";
                 return;
             }
 

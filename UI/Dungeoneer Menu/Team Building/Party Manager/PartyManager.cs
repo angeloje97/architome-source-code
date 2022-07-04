@@ -38,6 +38,7 @@ namespace Architome
 
         public Dictionary<EntityInfo, EntitySlot> slotMap;
         public Action<EntityInfo> OnSelectEntity;
+
         private void Awake()
         {
             manager = GetComponentInParent<DungeoneerManager>();
@@ -137,7 +138,6 @@ namespace Architome
             RosterToParty(slot, card);
             UpdatePartyManager(true);
         }
-
 
         public void OnPartySlotSelect(EntitySlot slot)
         {
@@ -242,7 +242,7 @@ namespace Architome
                     newList.Add(entity);
                 }
 
-                manager.SetSelectedEntities(newList);
+                manager.SetSelectedEntities(newList, PartyLevel());
 
             }
 
@@ -321,6 +321,19 @@ namespace Architome
             }
 
             return null;
+        }
+
+        public float PartyLevel()
+        {
+            var totalEntityLevels = 0f;
+
+            foreach (var slot in partySlots)
+            {
+                if (slot.entity == null) continue;
+                totalEntityLevels += slot.entity.entityStats.Level;
+            }
+
+            return totalEntityLevels / 5f;
         }
 
     }

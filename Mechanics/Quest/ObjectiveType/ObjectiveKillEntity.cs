@@ -10,14 +10,9 @@ namespace Architome
         [Header("Objective Kill Entity Properties")]
         public EntityInfo targetEntity;
         
-        public void GetDependencies1()
-        {
-
-        }
 
         void Start()
         {
-            GetDependencies();
         }
 
 
@@ -29,6 +24,7 @@ namespace Architome
 
             targetEntity.OnDeath += OnEntityDeath;
             targetEntity.infoEvents.OnUpdateObjectives += OnUpdateEntityObjectives;
+            questInfo.rewards.experience += targetEntity.maxHealth * .25f;
 
             UpdatePrompt();
 

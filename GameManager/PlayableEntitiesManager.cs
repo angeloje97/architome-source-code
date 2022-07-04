@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Threading.Tasks;
 using System.Linq;
+using Architome.Enums;
+
+
 namespace Architome
 {
     public class PlayableEntitiesManager : MonoBehaviour
@@ -15,21 +18,28 @@ namespace Architome
         public static GameObject partyObject;
 
         public PartyInfo party;
-
         public SaveSystem saveSystem;
         public ArchSceneManager sceneManager;
+
+        public List<string> scenesToSaveEntities;
 
         void Awake()
         {
             active = this;
             HandleLoadEntities();
         }
-
         void GetDependencies()
         {
 
             saveSystem = SaveSystem.active;
             sceneManager = ArchSceneManager.active;
+
+            var questManager = QuestManager.active;
+
+            if (questManager)
+            {
+                questManager.OnQuestEnd += OnQuestEnd;
+            }
 
             if (saveSystem)
             {
@@ -44,13 +54,11 @@ namespace Architome
 
 
         }
-
         void Start()
         {
             GetDependencies();
             HandleLastLevel();
         }
-
         void HandleLastLevel()
         {
             if (party == null) return;
@@ -59,13 +67,10 @@ namespace Architome
             //var destroyOnLoad = new GameObject("DestroyOnLoad");
             //party.transform.SetParent(destroyOnLoad.transform);
         }
-
-        // Update is called once per frame
         void Update()
         {
 
         }
-
         public bool LastLevel()
         {
             if (Core.currentDungeon == null) return false;
@@ -136,14 +141,31 @@ namespace Architome
             }
 
             await Task.WhenAll(tasks);
-            TransferUnitsToEntrancePortal();
-        }
 
+            TransferUnitsToEntrancePortal();
+            StopMovingEntities();
+        }
         void OnLoadScene(ArchSceneManager sceneManager)
         {
             TransferUnitsToEntrancePortal();
+            StopMovingEntities();
         }
-
+        void OnQuestEnd(Quest quest)
+        {
+            if (quest.info.state != QuestState.Completed) return;
+            
+            foreach (var entity in party.GetComponentsInChildren<EntityInfo>())
+            {
+                entity.CompleteQuest(quest);
+            }
+        }
+        void StopMovingEntities()
+        {
+            foreach (var movement in party.GetComponentsInChildren<Movement>())
+            {
+                movement.StopMoving(true);
+            }
+        }
         void TransferUnitsToEntrancePortal()
         {
             var portals = PortalInfo.portals;
@@ -163,21 +185,16 @@ namespace Architome
                         break;
                     }
                 }
-            }, 2f);
+            }, .125f);
             
         }
-
-
         void BeforeSave(SaveGame save)
         {
             SaveEntities();
         }
-
         void BeforeLoadScene(ArchSceneManager sceneManager)
         {
-            //SaveEntities();
         }
-
         void SaveEntities()
         {
             if (Core.currentSave == null) return;

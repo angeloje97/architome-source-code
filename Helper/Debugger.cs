@@ -5,7 +5,9 @@ using UnityEngine;
 public class Debugger : MonoBehaviour
 {
     // Start is called before the first frame update
-    static bool debugging = true;
+    static bool debugging = false;
+    static bool debugCombat = false;
+    static bool debugEnvironment = false;
     void Start()
     {
         
@@ -24,4 +26,17 @@ public class Debugger : MonoBehaviour
             Debug.Log($"{id}: {sentence}");
         }
     }
+
+    public static void Combat(int id, string sentence)
+    {
+        if (!debugCombat) return;
+        Debug.Log($"Combat {id}: {sentence}");
+    }
+
+    public static void Environment(int id, string sentence)
+    {
+        if (!debugEnvironment) return;
+        Debug.Log($"Environment {id}: {sentence}");
+    }
+
 }

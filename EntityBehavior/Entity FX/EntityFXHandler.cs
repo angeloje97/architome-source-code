@@ -19,6 +19,9 @@ namespace Architome
         CatalystManager catalystManager;
         CharacterBodyParts characterBodyPart;
 
+        public List<string> activeScenes;
+        bool active;
+
         public Dictionary<EntityEvent, List<EntityFXPack.EntityEffect>> effectMap;
         new void GetDependencies()
         {
@@ -27,8 +30,12 @@ namespace Architome
             particleManager = GetComponentInChildren<ParticleManager>();
 
             var mixer = GMHelper.Mixer();
+            var sceneManager = ArchSceneManager.active;
 
-
+            if (sceneManager)
+            {
+                sceneManager.OnLoadScene += OnLoadScene;
+            }
 
             foreach (var soundManager in GetComponentsInChildren<AudioManager>())
             {
@@ -72,6 +79,19 @@ namespace Architome
             }
         }
 
+
+        void DetermineActive(string sceneName = "")
+        {
+            if (sceneName == "")
+            {
+                var sceneManager = ArchSceneManager.active;
+                if (sceneManager != null)
+                {
+                    sceneName = ArchSceneManager.active.CurrentScene();
+                }
+            }
+            active = activeScenes.Contains(sceneName);
+        }
         public void FillMap()
         {
             if (entityFX == null) return;
@@ -93,6 +113,11 @@ namespace Architome
         {
             GetDependencies();
             FillMap();
+            DetermineActive();
+        }
+        void OnLoadScene(ArchSceneManager sceneManager)
+        {
+            DetermineActive(sceneManager.sceneToLoad);
         }
         void OnFirstThreat(ThreatManager.ThreatInfo info)
         {
@@ -192,6 +217,7 @@ namespace Architome
 
         public void HandleEffect(EntityEvent eventTrigger)
         {
+            if (!active) return;
             if (effectMap == null) return;
             if (!effectMap.ContainsKey(eventTrigger)) return;
             var effects = effectMap[eventTrigger];

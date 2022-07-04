@@ -30,7 +30,7 @@ namespace Architome
         {
             ArchUI.SetCanvas(canvasGroup, false);
 
-            for (int i = 0; i < 2; i++)
+            for (int i = 0; i < 3; i++)
             {
                 await ArchUI.FixLayoutGroups(gameObject, false, .35f);
             }
@@ -90,8 +90,7 @@ namespace Architome
 
         async void FadeAway()
         {
-            
-            await Task.Delay(1000);
+            await Task.Delay(5000);
 
             transitioning = true;
 
@@ -112,6 +111,7 @@ namespace Architome
                 Destroy(objective.gameObject);
             }
             GetComponentInParent<ModuleListInfo>()?.UpdateModule();
+
         }
 
 

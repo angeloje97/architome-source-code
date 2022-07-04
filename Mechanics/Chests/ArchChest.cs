@@ -13,6 +13,7 @@ namespace Architome
     [RequireComponent(typeof(WorkInfo))]
     public class ArchChest : MonoBehaviour
     {
+
         [Serializable]
         public struct Info
         {
@@ -64,6 +65,10 @@ namespace Architome
         public Events events;
         public bool isOpen;
 
+        ModuleInfo currentModule;
+        List<InventorySlot> slots;
+        bool moduleOpen;
+
         public UnityEvent OnOpen;
         public UnityEvent OnClose;
 
@@ -95,10 +100,20 @@ namespace Architome
 
             events.OnOpen?.Invoke(this);
             isOpen = true;
-            WorldModuleCore.active.HandleChest(this);
+            //WorldModuleCore.active.HandleChest(this);
             OnOpen?.Invoke();
             ChestRoutine();
 
+        }
+
+        
+
+        private void OnModuleChange(bool isActive)
+        {
+            if (isActive) return;
+            info.station.RemoveAllLingers();
+            moduleOpen = false;
+            currentModule.OnActiveChange -= OnModuleChange;
         }
 
         bool FindEntityThatOpened()
@@ -126,6 +141,8 @@ namespace Architome
             if (info.entityOpened.Movement() == null) return;
             if (info.station == null) return;
 
+            CreateChestUI();
+
             while (info.station.IsOfWorkStation(info.entityOpened.Target()))
             {
                 await Task.Yield();
@@ -133,8 +150,71 @@ namespace Architome
 
         }
 
+        void CreateChestUI()
+        {
+            var itemBin = IGGUIInfo.active.CreateItemBin();
+            currentModule = itemBin.GetComponent<ModuleInfo>();
+            itemBin.SetItemBin(new() {
+                title = "Chest",
+                items = info.items,
+                maxSlots = info.maxChestSlots
+            });
+
+            currentModule.SetActive(false, false);
+            ArchAction.Yield(() => {
+                currentModule.SetActive(true);
+                currentModule.OnActiveChange += OnModuleChange;
+            });
+
+
+            slots = itemBin.Slots();
+            var slotHandler = itemBin.GetComponent<ItemSlotHandler>();
+
+            slotHandler.OnChangeItem += OnChangeItem;
+
+        }
+
+        void OnChangeItem(ItemEventData eventData)
+        {
+            if (eventData.previousItem)
+            {
+                eventData.previousItem.OnItemAction -= OnItemAction;
+            }
+
+            if (eventData.newItem)
+            {
+                eventData.newItem.OnItemAction += OnItemAction;
+            }
+
+            if (!slots.Contains(eventData.itemSlot)) return;
+
+            int index = slots.IndexOf(eventData.itemSlot);
+
+            if (eventData.newItem == null)
+            {
+                info.items[index].item = null;
+                info.items[index].amount = 0;
+            }
+            else
+            {
+                info.items[index].item = eventData.newItem.item;
+                info.items[index].amount = eventData.newItem.currentStacks;
+            }
+        }
+
+        void OnItemAction(ItemInfo item)
+        {
+
+        }
+
         public void Close()
         {
+            if (currentModule && moduleOpen)
+            {
+                currentModule.SetActive(false, true);
+                moduleOpen = false;
+            }
+
             isOpen = false;
             events.OnClose?.Invoke(this);
             OnClose?.Invoke();

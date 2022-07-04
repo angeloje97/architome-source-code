@@ -69,7 +69,10 @@ namespace Architome
                     break;
             }
 
-            Instantiate(prefabs.damagePopUp, transform).GetComponent<WorldPopUpText>().SetPopUp(target, text, color);
+            var popUp = Instantiate(prefabs.damagePopUp, transform).GetComponent<WorldPopUpText>();
+            popUp.SetPopUp(target, text, color);
+            popUp.SetAnimation(new() { healthChange = true });
+
         }
 
 
@@ -77,7 +80,11 @@ namespace Architome
         {
             if (prefabs.stateChange == null) return;
             if (!preferences.popUpPreferences.showCrowdControl) return;
-            Instantiate(prefabs.stateChange, transform).GetComponent<WorldPopUpText>().SetPopUp(position, text, colors.state);
+            var popUp = Instantiate(prefabs.stateChange, transform).GetComponent<WorldPopUpText>();
+
+            popUp.SetPopUp(position, text, colors.state);
+            popUp.SetAnimation(new() { stateChange = true });
+
         }
 
         public void StateChangeImmunityPopUp(Transform target, string text)
@@ -85,21 +92,28 @@ namespace Architome
             if (prefabs.stateChangeImmune == null) return;
             if (!preferences.popUpPreferences.showCrowdControl) return;
 
-            Instantiate(prefabs.stateChangeImmune, transform).GetComponent<WorldPopUpText>().SetPopUp(target, $"{text} Immune", colors.stateImmune);
+            var popUp = Instantiate(prefabs.stateChangeImmune, transform).GetComponent<WorldPopUpText>();
+            popUp.SetPopUp(target, $"{text} Immune", colors.stateImmune);
+            popUp.SetAnimation(new() { stateImmunity = true });
         }
 
         public void HealPopUp(Transform target, string text)
         {
             if (prefabs.healPopUp == null) return;
 
-            Instantiate(prefabs.healPopUp, transform).GetComponent<WorldPopUpText>().SetPopUp(target, text, colors.heal);
+            var popUp = Instantiate(prefabs.healPopUp, transform).GetComponent<WorldPopUpText>();
+            popUp.SetPopUp(target, text, colors.heal);
+            popUp.SetAnimation(new() { healthChange = true });
         }
 
         public void GeneralPopUp(Transform target, string text)
         {
             if (prefabs.generalNotification == null) return;
             if (!preferences.popUpPreferences.showGeneral) return;
-            Instantiate(prefabs.generalNotification, transform).GetComponent<WorldPopUpText>().SetPopUp(target, text, colors.general);
+            var popUp = Instantiate(prefabs.generalNotification, transform).GetComponent<WorldPopUpText>();
+            popUp.SetPopUp(target, text, colors.general);
+
+            ArchAction.Delay(() => { popUp.EndAnimation(); }, 1f);
         }
     }
 

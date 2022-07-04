@@ -269,6 +269,7 @@ public class ProgressBarsBehavior : MonoBehaviour
 
     async void UpdateOutOfCombatCanvas(float timer)
     {
+        if (entityInfo.isInCombat) return;
         if (timer > canvasTimer)
         {
             canvasTimer = timer;

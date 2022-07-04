@@ -7,7 +7,7 @@ using UnityEngine.EventSystems;
 using TMPro;
 using Architome;
 using Architome.Enums;
-public class PortraitBehavior : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+public class PortraitBehavior : MonoBehaviour
 {
     // Start is called before the first frame update
     public ContainerTargetables targetManager;
@@ -27,6 +27,7 @@ public class PortraitBehavior : MonoBehaviour, IPointerEnterHandler, IPointerExi
 
         public Action OnChangeEntity;
 
+        bool showNormalHealth;
 
         void Clear()
         {
@@ -37,6 +38,7 @@ public class PortraitBehavior : MonoBehaviour, IPointerEnterHandler, IPointerExi
         public void SetEntity(EntityInfo entity)
         {
             if (healthBar == null) return;
+
 
             Clear();
 
@@ -53,7 +55,8 @@ public class PortraitBehavior : MonoBehaviour, IPointerEnterHandler, IPointerExi
 
         public void OnHover(bool hover)
         {
-
+            showNormalHealth = hover;
+            OnHealthChange(entity.health, entity.shield, entity.maxHealth);
         }
 
 
@@ -70,12 +73,17 @@ public class PortraitBehavior : MonoBehaviour, IPointerEnterHandler, IPointerExi
 
                 secondaryHealth.fillAmount = shield / maxHealth;
 
-                if (health != 0)
+                if (!showNormalHealth)
                 {
                     //healthText.text = $"{(int)health}{shieldText}/{(int)maxHealth}"; 
-                    healthText.text = $" ({Mathg.Round(health / maxHealth * 100, 2)})%";
+                    healthText.text = $" ({Mathg.Round(health / maxHealth * 100, 2)})% HP";
                 }
-                else { healthText.text = $"Dead"; }
+                else
+                {
+                    healthText.text = $"{ArchString.FloatToSimple(health)}/{ArchString.FloatToSimple(maxHealth)} HP";
+                }
+
+                if(health == 0f) { healthText.text = $"Dead"; }
 
             }
             catch
@@ -168,17 +176,37 @@ public class PortraitBehavior : MonoBehaviour, IPointerEnterHandler, IPointerExi
 
     public void GetDependencies()
     {
-        if(targetManager == null)
+        targetManager = ContainerTargetables.active;
+        
+        if (targetManager)
         {
-            if(GMHelper.TargetManager())
-            {
-                targetManager = GMHelper.TargetManager();
-            }
+            targetManager.OnNewHoverTarget += OnNewHoverTarget;
         }
+
+        
     }
+
+    private void OnNewHoverTarget(GameObject previous, GameObject newTarget)
+    {
+        if (entity == null) return;
+        if (newTarget == null)
+        {
+            healthUI.OnHover(false);
+            return;
+        }
+
+        var info = newTarget.GetComponent<EntityInfo>();
+
+        if (info == null) return;
+        if (info != entity) return;
+
+
+        healthUI.OnHover(true);
+    }
+
     void Start()
     {
-        
+        GetDependencies();
     }
     // Update is called once per frame
     void Update()
@@ -239,16 +267,6 @@ public class PortraitBehavior : MonoBehaviour, IPointerEnterHandler, IPointerExi
         level = entity.stats.Level;
 
         levelText.text = $"{level}";
-    }
-
-    public void OnPointerEnter(PointerEventData eventData)
-    {
-        healthUI.OnHover(true);
-    }
-
-    public void OnPointerExit(PointerEventData eventData)
-    {
-        healthUI.OnHover(false);
     }
 
     public void OnNewTargetedBy(GameObject newTarget, List<GameObject> targetedBy)

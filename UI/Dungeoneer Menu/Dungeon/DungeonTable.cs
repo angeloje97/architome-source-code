@@ -144,7 +144,6 @@ namespace Architome
         {
             conditions.Add(selectedDungeon != null);
         }
-
         public void CreateDungeonSets()
         {
             if (prefabs.dungeon == null) return;
@@ -192,6 +191,7 @@ namespace Architome
 
                 foreach (var savedDungeon in savedDungeons)
                 {
+                    if (savedDungeon.completed) continue;
                     if (savedDungeon.dungeonInfosIndex == -1) continue;
                     if (savedDungeon.dungeonInfosIndex >= dungeonInfos.Count) continue;
 
@@ -209,15 +209,20 @@ namespace Architome
             {
                 while (info.dungeons.Count < info.amount)
                 {
+                    var size = 0;
+
+                    if (info.dungeons.Count < 3)
+                    {
+                        size = info.dungeons.Count + 1;
+                    }
+
                     var newDungeon = Instantiate(prefabs.dungeon, info.dungeonParent).GetComponent<Dungeon>();
-                    newDungeon.SetDungeon(info);
+                    newDungeon.SetDungeon(info, size);
                     newDungeon.OnSelectDungeon += OnSelectDungeon;
                     info.dungeons.Add(newDungeon);
                 }
             }
         }
-
-        
 
 
     }

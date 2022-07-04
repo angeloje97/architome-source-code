@@ -13,17 +13,30 @@ namespace Architome
         [Serializable]
         public class RoomData
         {
+            public string levelName;
             public int entranceRoomID = -1;
             public int bossRoomID = -1;
+            public int bossId = -1;
             public List<int> skeletonRoomsIDs;
             public List<int> randomRoomIDs;
             public string seed;
 
             public RoomData(Dungeon.Rooms level)
             {
+                levelName = level.levelName;
                 skeletonRoomsIDs = new();
                 randomRoomIDs = new();
                 seed = level.levelSeed;
+
+
+                if (level.selectedBoss != null)
+                {
+                    bossId = level.selectedBoss._id;
+                }
+                else
+                {
+                    bossId = -1;
+                }
 
                 foreach (var room in level.skeleton)
                 {

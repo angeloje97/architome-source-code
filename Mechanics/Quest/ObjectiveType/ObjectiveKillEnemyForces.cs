@@ -23,8 +23,6 @@ namespace Architome
 
         void Start()
         {
-            EntityDeathHandler.active.OnEntityDeath += OnEntityDeath;
-            GetDependencies();
         }
 
         public void HandleEntity(EntityInfo entity)
@@ -53,13 +51,15 @@ namespace Architome
         public override void Activate()
         {
             base.Activate();
+            EntityDeathHandler.active.OnEntityDeath += OnEntityDeath;
 
 
             foreach (var entity in entities)
             {
                 entity.infoEvents.OnUpdateObjectives += OnUpdateObjectives;
             }
-            
+
+            questInfo.rewards.experience += totalHealthPool * .25f;
             UpdateSlainPercentPrompt();
 
 
