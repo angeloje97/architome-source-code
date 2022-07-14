@@ -37,6 +37,10 @@ public class CurrentTargetManager : MonoBehaviour
     {
         SetCanvasGroup(targetPortrait.GetComponent<CanvasGroup>(), true);
         targetPortrait.SetEntity(target.GetComponent<EntityInfo>());
+        if (target == targetManager.currentHover)
+        {
+            targetPortrait.OnNewHoverTarget(null, target);
+        }
     }
 
     async public void OnClearSelected()

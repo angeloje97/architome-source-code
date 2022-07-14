@@ -53,9 +53,11 @@ public class ProgressBarsBehavior : MonoBehaviour
 
     void GetDependencies()
     {
-        if (GetComponentInParent<EntityInfo>())
+        entityInfo = GetComponentInParent<EntityInfo>();
+        graphicsInfo = GetComponentInParent<GraphicsInfo>();
+
+        if (entityInfo)
         {
-            entityInfo = GetComponentInParent<EntityInfo>();
             SetHealthBarColor();
             entityInfo.OnHealthChange += OnHealthChange;
             entityInfo.OnManaChange += OnManaChange;
@@ -80,10 +82,10 @@ public class ProgressBarsBehavior : MonoBehaviour
             }
         }
 
-        if(GetComponentInParent<GraphicsInfo>())
+        if(graphicsInfo)
         {
-            graphicsInfo = GetComponentInParent<GraphicsInfo>();
-            if(graphicsInfo.EntityClusterAgent())
+            var clusterAgent = graphicsInfo.EntityClusterAgent();
+            if(clusterAgent)
             {
                 clusterAgent = graphicsInfo.EntityClusterAgent();
                 clusterAgent.OnClusterEnter += OnClusterEnter;
@@ -143,6 +145,11 @@ public class ProgressBarsBehavior : MonoBehaviour
         
     }
 
+    public void OnClusterChange(EntityCluster cluster, int index)
+    {
+        transform.localPosition = localPosition + new Vector3(0, index * 1, 0);
+    }
+
     public void OnCombatChange(bool isInCombat)
     {
         
@@ -159,6 +166,7 @@ public class ProgressBarsBehavior : MonoBehaviour
     {
         targetAlpha = val ? 1f : 0f;
         if (canvasGroup == null) return;
+        if (canvasGroup.alpha == targetAlpha) return;
         canvasGroup.interactable = targetAlpha == 1f;
         canvasGroup.blocksRaycasts = targetAlpha == 1f;
 
@@ -181,12 +189,38 @@ public class ProgressBarsBehavior : MonoBehaviour
 
         changingAlpha = false;
     }
-
-
-    public void OnClusterChange(EntityCluster cluster, int index)
+    async void UpdateOutOfCombatCanvas(float timer)
     {
-        transform.localPosition = localPosition + new Vector3(0, index * 1, 0);
+        if (timer > canvasTimer)
+        {
+            canvasTimer = timer;
+        }
+
+        if (entityInfo.isInCombat) return;
+
+        targetAlpha = 1f;
+
+        UpdateCanvas(true);
+
+        if (activeTimer) return;
+        activeTimer = true;
+
+        while (canvasTimer > 0)
+        {
+            canvasTimer -= Time.deltaTime;
+
+            await Task.Yield();
+        }
+
+        activeTimer = false;
+
+
+
+        if (entityInfo.isInCombat) return;
+        targetAlpha = 0f;
+        UpdateCanvas(false);
     }
+    
     public void OnLifeChange(bool isAlive)
     {
         var canvases = GetComponentsInChildren<Canvas>();
@@ -267,37 +301,6 @@ public class ProgressBarsBehavior : MonoBehaviour
         castBar.transform.parent.gameObject.SetActive(castBarActive);
     }
 
-    async void UpdateOutOfCombatCanvas(float timer)
-    {
-        if (entityInfo.isInCombat) return;
-        if (timer > canvasTimer)
-        {
-            canvasTimer = timer;
-        }
-
-        if (activeTimer) return;
-        if (entityInfo.isInCombat) return;
-
-        activeTimer = true;
-
-        targetAlpha = 1f;
-        UpdateCanvas(true);
-
-        while (canvasTimer > 0)
-        {
-            canvasTimer -= Time.deltaTime;
-
-            await Task.Yield();
-        }
-
-        activeTimer = false;
-
-
-
-        if (entityInfo.isInCombat) return;
-        targetAlpha = 0f;
-        UpdateCanvas(false);
-    }
 
     public void OnHealingTaken(CombatEventData eventData)
     {

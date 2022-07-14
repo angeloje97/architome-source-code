@@ -53,7 +53,13 @@ namespace Architome
         {
             var result = "";
 
-            result += $"Fixated on {buffInfo.targetInfo.entityName}\n";
+            result += "Forces the caster to focus a target.\n";
+
+            if (buffInfo.targetInfo)
+            {
+                result += $"- Currently fixated on {buffInfo.targetInfo.entityName}.\n";
+            }
+
             return result;
         }
 

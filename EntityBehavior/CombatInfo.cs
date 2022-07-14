@@ -31,6 +31,22 @@ public class CombatInfo : MonoBehaviour
         }
 
         [Serializable]
+        public class Logs
+        {
+            public List<string> logs;
+            public bool healing;
+            public bool damage;
+
+            public void LogCombatData(string text)
+            {
+                if (logs == null) logs = new();
+                if (logs.Count > 25) logs.RemoveAt(0);
+
+                logs.Add(text);
+            }
+        }
+
+        [Serializable]
         public class LevelProperties
         {
             public int startingLevel, currentLevel;
@@ -74,6 +90,7 @@ public class CombatInfo : MonoBehaviour
         public Values combatValues;
 
         public LevelProperties levels;
+        public Logs logs = new();
 
         public float secondsInCombat;
         public float totalSecondsInCombat;
@@ -139,6 +156,21 @@ public class CombatInfo : MonoBehaviour
         {
 
             values.damageDone += eventData.value;
+            if (logs.damage)
+            {
+                var source = eventData.source.entityName;
+                if (eventData.catalyst)
+                {
+                    source = eventData.catalyst.name;
+                }
+                else if (eventData.buff)
+                {
+                    source = eventData.buff.name;
+                }
+
+                logs.LogCombatData($"{source} did {eventData.value} damage to {eventData.target.entityName}");
+
+            }
         }
 
         
@@ -354,7 +386,11 @@ public class CombatInfo : MonoBehaviour
         if (ignoreIndicator) return;
 
         var combatInfo = ability.target.GetComponentInChildren<CombatInfo>();
-        combatInfo.AddCaster(entityInfo.gameObject);
+
+        if (combatInfo)
+        {
+            combatInfo.AddCaster(entityInfo.gameObject);
+        }
     }
     public void OnAbilityEnd(AbilityInfo ability)
     {
@@ -362,7 +398,10 @@ public class CombatInfo : MonoBehaviour
         if (ability.targetLocked == null) return;
         var combatInfo = ability.targetLocked.GetComponentInChildren<CombatInfo>();
 
-        combatInfo.RemoveCaster(entityInfo.gameObject);
+        if (combatInfo)
+        {
+            combatInfo.RemoveCaster(entityInfo.gameObject);
+        }
     }
     public List<GameObject> EnemiesTargetedBy()
     {

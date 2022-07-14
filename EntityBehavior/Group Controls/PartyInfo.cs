@@ -185,8 +185,10 @@ namespace Architome
                 {
                     var location = Mouse.CurrentPositionLayer(walkableLayer);
                     if (location == new Vector3(0, 0, 0)) { return; }
-                    partyFormation.MoveFormation(location);
-                    MoveParty();
+
+                    MovePartyTo(location);
+                    //partyFormation.MoveFormation(location);
+                    //MoveParty();
                 }
                 else if (targetManager.currentHover != null)
                 {
@@ -225,18 +227,10 @@ namespace Architome
             if (!clickable.GetComponent<Clickable>()) { return false; }
             return true;
         }
-        public void MovePartyTo(Transform position)
+        public void MovePartyTo(Vector3 position)
         {
-            foreach (GameObject member in members)
-            {
-                if (member.GetComponent<EntityInfo>())
-                {
-                    var memberInfo = member.GetComponent<EntityInfo>();
-                    var memberMovement = memberInfo.Movement();
-                    
-                    memberMovement.MoveTo(position.position);
-                }
-            }
+            partyFormation.MoveFormation(position);
+            MoveParty();
         }
         public void Attack(GameObject target)
         {

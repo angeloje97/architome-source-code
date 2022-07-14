@@ -16,6 +16,8 @@ namespace Architome
         public ParticleManager particleManager;
         public ArchLightManager lightManager;
 
+        public Dictionary<CatalystEvent, List<CatalystInfo.CatalystEffects.Catalyst>> effectMap;
+
         new void GetDependencies()
         {
             base.GetDependencies();
@@ -39,11 +41,29 @@ namespace Architome
         void Start()
         {
             GetDependencies();
+            UpdateMap();
             AdjustDestroyDelay();
             HandleLight();
             HandleGrow();
             HandleStartFromGround();
             ActivateAwakeEffects();
+        }
+
+        void UpdateMap()
+        {
+            if (catalyst == null) return;
+            effectMap = new();
+            foreach (var effect in catalyst.effects.catalystsEffects)
+            {
+                if (effectMap.ContainsKey(effect.playTrigger))
+                {
+                    effectMap[effect.playTrigger].Add(effect);
+                }
+                else
+                {
+                    effectMap.Add(effect.playTrigger, new() { effect });
+                }
+            }
         }
 
         void HandleLight()
@@ -148,11 +168,13 @@ namespace Architome
         }
         public void HandleEffects(CatalystEvent action)
         {
-            var effects = catalyst.effects.catalystsEffects;
 
-            foreach (var effect in effects)
+            if (!effectMap.ContainsKey(action)) return;
+            //var effects = catalyst.effects.catalystsEffects;
+
+            foreach (var effect in effectMap[action])
             {
-                if (effect.playTrigger != action) continue;
+                //if (effect.playTrigger != action) continue;
 
                 HandleAudio(effect);
                 HandleParticle(effect);

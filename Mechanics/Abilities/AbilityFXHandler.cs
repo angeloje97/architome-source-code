@@ -17,13 +17,14 @@ namespace Architome
         AudioManager audioManager;
         ParticleManager particleManager;
         LayerMasksData layers;
+        
+
 
         [Serializable]
         public struct Info
         {
             public List<GameObject> CastingParticles, ChannelingParticles, AbilityParticles, ReleaseParticles;
-
-
+            public Dictionary<AbilityEvent, List<CatalystInfo.CatalystEffects.Ability>> effectMap;
         }
 
         public Info info;
@@ -83,10 +84,28 @@ namespace Architome
 
         private void OnAbilityStart(AbilityInfo ability)
         {
-
+            UpdateMap(ability.catalystInfo);
             HandleEffects(ability.catalystInfo, AbilityEvent.OnAbility, true);
             currentAbility = ability;
 
+        }
+
+        void UpdateMap(CatalystInfo newCatalyst)
+        {
+            info.effectMap = new();
+            if (newCatalyst == null) return;
+
+            foreach (var effect in newCatalyst.effects.abilityEffects)
+            {
+                if (info.effectMap.ContainsKey(effect.trigger))
+                {
+                    info.effectMap[effect.trigger].Add(effect);
+                }
+                else
+                {
+                    info.effectMap.Add(effect.trigger, new() { effect });
+                }
+            }
         }
 
         private void OnAbilityEnd(AbilityInfo ability)
@@ -149,9 +168,11 @@ namespace Architome
         void HandleEffects(CatalystInfo catalyst, AbilityEvent trigger, bool status)
         {
             if (catalyst == null) return;
-            foreach (var effect in catalyst.effects.abilityEffects)
+            if (!info.effectMap.ContainsKey(trigger)) return;
+
+
+            foreach (var effect in info.effectMap[trigger]/*catalyst.effects.abilityEffects*/)
             {
-                if (effect.trigger != trigger) continue;
 
                 HandleSound(effect, status);
                 HandleParticle(effect, status);

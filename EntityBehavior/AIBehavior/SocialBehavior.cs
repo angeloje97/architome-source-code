@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,20 +12,29 @@ public class SocialBehavior : MonoBehaviour
     public CharacterInfo character;
 
     public bool isListening;
+    bool isInCombat;
+    bool isMoving;
     
     public void GetDependencies()
     {
-        if(GetComponentInParent<EntityInfo>())
+        entityInfo = GetComponentInParent<EntityInfo>();
+        
+        if(entityInfo)
         {
-            entityInfo = GetComponentInParent<EntityInfo>();
             movement = entityInfo.Movement();
             lineOfSight = entityInfo.LineOfSight();
             character = entityInfo.CharacterInfo();
 
             entityInfo.OnCombatChange += OnCombatChange;
-            entityInfo.OnReceiveInteraction += OnReceiveInteraction;
-            entityInfo.OnReactToInteraction += OnReactToInteraction;
-            movement.OnArrival += OnArrival;
+            entityInfo.socialEvents.OnReceiveInteraction += OnReceiveInteraction;
+            entityInfo.socialEvents.OnReactToInteraction += OnReactToInteraction;
+            
+        }
+
+        if (movement)
+        {
+            movement.OnEndMove += OnEndMove;
+            movement.OnStartMove += OnStartMove;
         }
     }
     void Start()
@@ -41,32 +51,54 @@ public class SocialBehavior : MonoBehaviour
 
     public void OnCombatChange(bool val)
     {
-        
-        
-    }
-    public void OnArrival(Movement movement, Transform location)
-    {
+        isInCombat = val;
         
     }
 
+    void OnStartMove(Movement movement)
+    {
+        isMoving = true;
+    }
+
+    void OnEndMove(Movement movement)
+    {
+        isMoving = false;
+    }
     public IEnumerator SocialRoutine()
     {
         while(true)
         {
             
-            yield return new WaitForSeconds(Random.Range(4f, 10f));
-            if (entityInfo.isInCombat) { continue; }
-            if (movement.isMoving) { continue; }
+            yield return new WaitForSeconds(UnityEngine.Random.Range(4f, 10f));
+            if (isInCombat) { continue; }
+            if (isMoving) { continue; }
             if(isListening) 
             {
                 isListening = false;
                 continue; 
             }
-            var allies = lineOfSight.FilterWhiteList(entityInfo.npcType, lineOfSight.EntitiesLOSInRange(5f));
-            Debugger.InConsole(4291, $"allies around {allies.Count}");
-            if (allies.Count == 0) { continue; }
 
-            TalkToAlly(allies[Random.Range(0, allies.Count)]);
+            var entities = lineOfSight.EntitiesLOSInRange(5f);
+
+            Debugger.Social(4290, $"Entities around {entities.Count}");
+
+            var allies = new List<EntityInfo>();
+
+            foreach (var entity in entities)
+            {
+                if (entity.npcType != entityInfo.npcType) continue;
+                if (!entity.GetComponentInChildren<SocialBehavior>()) continue;
+
+                allies.Add(entity);
+            }
+
+
+            Debugger.Social(4291, $"allies around {allies.Count}");
+            if (allies.Count == 0) { continue; }
+            var target = ArchGeneric.RandomItem(allies);
+
+            Debugger.Social(4292, $"{entityInfo.entityName} is talking to {target.entityName}");
+            TalkToAlly(ArchGeneric.RandomItem(allies));
 
         }
     }
@@ -92,29 +124,34 @@ public class SocialBehavior : MonoBehaviour
 
     public void LookAt(EntityInfo entity)
     {
-        var allyPosition = entity.CharacterInfo().transform.position;
-        allyPosition.y = entityInfo.CharacterInfo().transform.position.y;
-        character.transform.LookAt(allyPosition);
+        var allyPosition = entity.transform.position;
+        //allyPosition.y = entityInfo.CharacterInfo().transform.position.y;
+        character.LookAt(allyPosition);
     }
     
     public void SociallyInteractWith(EntityInfo entity)
     {
-        Collider[] listeners = Physics.OverlapSphere(entityInfo.transform.position, 10, LayerMasksData.active.entityLayerMask);
-        var structureLayer = LayerMasksData.active.structureLayerMask;
+        var layerMask = LayerMasksData.active.entityLayerMask;
+        Collider[] listeners = Physics.OverlapSphere(entityInfo.transform.position, 10, layerMask);
+        //var structureLayer = LayerMasksData.active.structureLayerMask;
+
+        var newInteraction = new SocialEventData(entityInfo, entity);
+
+        entityInfo.socialEvents.OnTalkTo?.Invoke(newInteraction);
 
         foreach(Collider listener in listeners)
         {
             var info = listener.GetComponent<EntityInfo>();
             if (info == null) continue;
 
-            var distance = Vector3.Distance(info.transform.position, transform.position);
-            var direction = V3Helper.Direction(info.transform.position, transform.position);
-            if (Physics.Raycast(entityInfo.transform.position, direction, distance, structureLayer)) continue;
-
             
-            var newInteraction = new SocialEventData(entityInfo, entity);
             info.ReactToSocial(newInteraction);
 
         }
     }
+}
+
+public struct SocialEvents
+{
+    public Action<SocialEventData> OnReceiveInteraction, OnReactToInteraction, OnTalkTo;
 }

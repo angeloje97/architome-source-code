@@ -78,7 +78,7 @@ namespace Architome
         public bool hideOnStart;
         public bool ignoreCheckRoomCollison;
         public bool isRevealed = true;
-
+        public bool spawnedByGenerator = false;
         //events
 
         public struct Events
@@ -155,10 +155,12 @@ namespace Architome
         //Private properties
         private float percentReveal;
 
+        public float PercentReveal { get { return percentReveal; } set { percentReveal = value; } }
+
         protected virtual void GetDependencies()
         {
             mapInfo = MapInfo.active;
-            if (mapInfo)
+            if (mapInfo && !spawnedByGenerator)
             {
                 mapInfo.RoomGenerator().roomsInUse.Add(gameObject);
                 mapInfo.EntityGenerator().OnEntitiesGenerated += OnEntitiesGenerated;
@@ -228,31 +230,25 @@ namespace Architome
             }
 
             var count = 0;
-            try
+            while (count < orderedRenders.Count)
             {
-                while (count < orderedRenders.Count)
+                if (isRevealed != val) { break; }
+                if (HandleActivator(orderedRenders[count].gameObject))
                 {
-                    if (isRevealed != val) { break; }
-                    if (HandleActivator(orderedRenders[count].gameObject))
-                    {
-                        count++;
-                        continue;
-                    }
-
-                    if (orderedRenders[count].enabled == val)
-                    {
-                        count++;
-                        continue;
-                    }
-
-                    orderedRenders[count].enabled = val;
                     count++;
-                    if (count % increments == 0) { await Task.Yield(); }
+                    continue;
                 }
-            }
-            catch
-            {
-                Debugger.InConsole(5439, $"{orderedRenders[count]} bugged out");
+
+                if (orderedRenders[count].enabled == val)
+                {
+                    count++;
+                    continue;
+                }
+
+                orderedRenders[count].enabled = val;
+                count++;
+                if (increments == 0) await Task.Yield();
+                else if (count % increments == 0) { await Task.Yield(); }
             }
 
             if (!val)
@@ -282,63 +278,71 @@ namespace Architome
         {
             GetDependencies();
         }
-        void Start()
+        async void Start()
         {
-            CheckBadSpawn();
+            var badSpawn = await CheckBadSpawn();
             entities.room = this;
         }
 
-        protected virtual void CheckBadSpawn()
+        public virtual async Task<bool> CheckBadSpawn()
         {
             if (ignoreCheckRoomCollison)
             {
                 percentReveal = MapInfo.active.RoomGenerator().roomRevealPercent;
-                return;
+                return true;
             }
 
             badSpawn = false;
-            ArchAction.Delay(() => {
-                if (!CheckRoomCollision())
+
+            await Task.Yield();
+
+            if (!CheckRoomCollision())
+            {
+                badSpawn = true;
+            }
+            else if (!CheckRoomAbove())
+            {
+                badSpawn = true;
+            }
+            
+
+            if (badSpawn)
+            {
+                incompatablePaths.Add(originPath);
+                return true;
+            }
+
+            return false;
+
+            if (badSpawn)
+            {
+                var incompatable = incompatables.Find(incompatable => incompatable.roomPath == Entrance);
+
+                if (incompatable == null)
                 {
-                    badSpawn = true;
-                }
-                else if (!CheckRoomAbove())
-                {
-                    badSpawn = true;
-                }
-
-                if (badSpawn)
-                {
-                    var incompatable = incompatables.Find(incompatable => incompatable.roomPath == Entrance);
-
-                    if (incompatable == null)
-                    {
-                        incompatable = new() { roomPath = Entrance };
-                        incompatables.Add(incompatable);
-                    }
-
-                    incompatable.otherPaths.Add(originPath);
-
-                    incompatablePaths.Add(originPath);
-                    mapInfo.RoomGenerator().fixTimer = mapInfo.RoomGenerator().fixTimeFrame;
-                    if (mapInfo) { mapInfo.RoomGenerator().badSpawnRooms.Add(gameObject); }
-                }
-
-                foreach (PathInfo path in paths)
-                {
-                    if (!path.isEntrance)
-                    {
-                        path.isUsed = false;
-                    }
+                    incompatable = new() { roomPath = Entrance };
+                    incompatables.Add(incompatable);
                 }
 
-                if (!badSpawn)
+                incompatable.otherPaths.Add(originPath);
+
+                incompatablePaths.Add(originPath);
+                if (mapInfo) { mapInfo.RoomGenerator().badSpawnRooms.Add(gameObject); }
+            }
+
+            foreach (PathInfo path in paths)
+            {
+                if (!path.isEntrance)
                 {
-
-                    percentReveal = MapInfo.active.RoomGenerator().roomRevealPercent;
+                    path.isUsed = false;
                 }
+            }
 
-            }, .0625f);
+            if (!badSpawn)
+            {
+
+                percentReveal = MapInfo.active.RoomGenerator().roomRevealPercent;
+            }
 
             
         }

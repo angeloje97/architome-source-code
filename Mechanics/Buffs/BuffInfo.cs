@@ -9,7 +9,7 @@ using UnityEngine.UI;
 [Serializable]
 public class BuffProperties
 {
-    public float value;
+    public float value = 1;
     public float valueContributionToBuff = 1;
     public float intervals;
     public float time;
@@ -26,7 +26,7 @@ public class BuffProperties
     public bool selfBuffOnDestroy;
     public bool reapplyResetsTimer;
     public bool reapplyResetsBuff;
-    public bool outOfCombatCleanse;
+    
 }
 
 [RequireComponent(typeof(BuffFXHandler))]
@@ -59,6 +59,7 @@ public class BuffInfo : MonoBehaviour
     public EntityInfo sourceInfo;
     public AbilityInfo sourceAbility;
     public CatalystInfo sourceCatalyst;
+    public Item sourceItem;
 
     [Header("Host")]
     public GameObject hostObject;
@@ -75,6 +76,12 @@ public class BuffInfo : MonoBehaviour
     public float expireDelay = .125f;
 
     public BuffProperties properties;
+    public CleanseConditions cleanseConditions;
+
+    [Serializable]
+    public struct CleanseConditions {
+        public bool enterCombat, exitCombat, damageTaken;
+    }
 
     [Header("Buff Properties")]
     public DamageType damageType;
@@ -86,6 +93,7 @@ public class BuffInfo : MonoBehaviour
     public bool failed { get; set; }
 
     public bool IsComplete { get { return buffTimeComplete; } }
+
 
     [Serializable]
     public struct BuffFX
@@ -162,9 +170,27 @@ public class BuffInfo : MonoBehaviour
 
     void UpdateValues()
     {
-        if (sourceAbility == null) return;
+        FromAbility();
+        FromConsumable();
 
-        properties.value = sourceAbility.value * properties.valueContributionToBuff;
+        void FromAbility()
+        {
+            if (sourceAbility == null) return;
+
+            properties.value = sourceAbility.value * properties.valueContributionToBuff;
+
+        }
+
+        void FromConsumable()
+        {
+            if (sourceItem == null) return;
+            if (sourceItem.GetType() != typeof(Consumable)) return;
+
+            var consumable = (Consumable)sourceItem;
+
+            properties.value = consumable.value * properties.valueContributionToBuff;
+
+        }
     }
 
     private void Awake()
@@ -220,12 +246,24 @@ public class BuffInfo : MonoBehaviour
             {
                 result += " Stacks fall off over time.";
             }
+
+            result += "\n";
+        }
+
+        var conditions = new List<string>();
+
+        foreach (var field in cleanseConditions.GetType().GetFields())
+        {
+            var condition = (bool)field.GetValue(cleanseConditions);
+            if (!condition) continue;
+
+            conditions.Add(ArchString.CamelToTitle(field.Name));
         }
         
 
-        if (result.Length > 0)
+        if (conditions.Count > 0)
         {
-            result += "\n";
+            result += $"Buff ends from: {ArchString.StringList(conditions)}\n";
         }
 
         return result;
@@ -255,8 +293,29 @@ public class BuffInfo : MonoBehaviour
         return result;
     }
 
+    public string TypeDescriptionFace(float theoreticalValue)
+    {
+
+        var projectedValue = properties.valueContributionToBuff * theoreticalValue;
+
+
+        var result = $"{Description()}";
+
+        foreach (var buffType in GetComponents<BuffType>())
+        {
+            var faceDescription = buffType.FaceDescription(projectedValue);
+            if (faceDescription.Length <= 0) continue;
+
+            result += $"{faceDescription}";
+        }
+
+        return result;
+    }
+
     public Sprite Icon()
     {
+        
+
         if (buffIcon != null)
         {
             return buffIcon;
@@ -265,6 +324,11 @@ public class BuffInfo : MonoBehaviour
         if (sourceAbility)
         {
             return sourceAbility.Icon();
+        }
+
+        if (sourceItem)
+        {
+            return sourceItem.itemIcon;
         }
 
         return buffIcon;
@@ -462,8 +526,25 @@ public class BuffInfo : MonoBehaviour
         var combatData = new CombatEventData(this, sourceInfo, val);
         combatData.target = target;
 
+        HandleNeutral();
         HandleDamage();
         HandleHealing();
+        
+        void HandleNeutral()
+        {
+            if (targettingType != BuffTargetType.Neutral) return;
+
+            if (val >= 0)
+            {
+                targettingType = BuffTargetType.Assist;
+            }
+            else
+            {
+                targettingType = BuffTargetType.Harm;
+                val = -val;
+            }
+
+        }
 
         void HandleDamage()
         {

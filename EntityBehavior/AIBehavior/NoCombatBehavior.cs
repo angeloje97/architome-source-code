@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
@@ -34,7 +35,9 @@ namespace Architome
 
         public void GetDependencies()
         {
-            if (GetComponentInParent<EntityInfo>())
+            entityInfo = GetComponentInParent<EntityInfo>();
+
+            if (entityInfo)
             {
                 entityInfo = GetComponentInParent<EntityInfo>();
                 entityObject = entityInfo.gameObject;
@@ -44,10 +47,15 @@ namespace Architome
                 character = entityInfo.CharacterInfo();
 
                 entityInfo.OnCombatChange += OnCombatChange;
-                movement.OnArrival += OnArrival;
-                movement.OnAway += OnAway;
+                
 
                 originalMovementSpeed = 1;
+            }
+
+            if (movement)
+            {
+                movement.OnArrival += OnArrival;
+                movement.OnAway += OnAway;
             }
 
             if (isSocial)
@@ -125,6 +133,29 @@ namespace Architome
             if (val) { return; }
             if (patrolSpot == null) { return; }
             movement.MoveTo(patrolSpot);
+
+            ManagePatrolDistance();
+
+            async void ManagePatrolDistance()
+            {
+                int tries = 4;
+                int current = 0;
+
+                await Task.Delay(1000);
+                while (movement.Target() == patrolSpot)
+                {
+                    if (movement.DistanceFromTarget() != 0f)
+                    {
+                        movement.MoveTo(patrolSpot, 0);
+                        break;
+                    }
+                    current++;
+                    if (current >= tries) break;
+                    await Task.Delay(1000);
+                    
+                }
+            }
+            //movement.MoveTo(patrolSpot);
         }
         public void OnArrival(Movement movement, Transform transform)
         {

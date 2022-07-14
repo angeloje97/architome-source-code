@@ -85,14 +85,15 @@ namespace Architome
 
 
             otherRoom = Instantiate(room, roomAnchor.transform.position, roomAnchor.transform.rotation);
+            var info = otherRoom.GetComponent<RoomInfo>();
 
-            
+            info.spawnedByGenerator = true;
 
             otherRoom.transform.parent = parent;
-            otherRoom.GetComponent<RoomInfo>().originPath = this;
+            info.originPath = this;
 
             isUsed = true;
-            return otherRoom.GetComponent<RoomInfo>();
+            return info;
 
         }
         public void CheckPath()

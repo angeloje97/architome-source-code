@@ -16,6 +16,9 @@ namespace Architome
         public bool optionEnded;
 
 
+        public Action<PromptInfo> OnPickChoice;
+        public PromptChoiceData choiceData;
+
         [Serializable]
         public struct Info
         {
@@ -66,8 +69,10 @@ namespace Architome
         public void PickOption(int option)
         {
             choicePicked = option;
+            choiceData.optionPicked = option;
+            choiceData.optionString = info.options[option].text;
 
-            
+            OnPickChoice?.Invoke(this);
         }
 
         public void OnInputChange(TMP_InputField input)
@@ -114,5 +119,23 @@ namespace Architome
         public bool forcePick;
         public Sprite icon;
 
+    }
+
+    public struct PromptChoiceData
+    {
+        public int optionPicked;
+        public string optionString;
+
+        public static PromptChoiceData defaultPrompt
+        {
+            get
+            {
+                return new()
+                {
+                    optionPicked = -1,
+                    optionString = "",
+                };
+            }
+        }
     }
 }

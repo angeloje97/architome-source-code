@@ -20,9 +20,10 @@ public class CombatStatusHandler : MonoBehaviour
             entityInfo.OnHealingDone += OnHealingDone;
             entityInfo.OnLifeChange += OnLifeChange;
 
-            if (entityInfo.AbilityManager())
+            var abilityManager = entityInfo.AbilityManager();
+
+            if (abilityManager)
             {
-                var abilityManager = entityInfo.AbilityManager();
                 abilityManager.OnCastRelease += OnCastRelease;
                 abilityManager.OnAbilityStart += OnAbilityStart;
                 abilityManager.OnWantsToCastChange += OnWantsToCastChange;

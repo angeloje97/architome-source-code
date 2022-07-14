@@ -110,25 +110,12 @@ namespace Architome
             var value = eventData.value;
 
 
-            var damageType = DamageType.True;
-
-            if (eventData.value > eventData.target.shield)
-            {
-                if (eventData.catalyst)
-                {
-                    damageType = eventData.catalyst.damageType;
-                }
-
-                if (eventData.buff)
-                {
-                    damageType = eventData.buff.damageType;
-                }
-            }
+            var damageType = eventData.DataDamageType();
 
             popUpManager.DamagePopUp(transform, $" {ArchString.FloatToSimple(value)}", damageType);
         }
 
-        void OnImmuneDamage()
+        void OnImmuneDamage(CombatEventData eventData)
         {
             popUpManager.DamagePopUp(transform, $"Immune", DamageType.True);
         }

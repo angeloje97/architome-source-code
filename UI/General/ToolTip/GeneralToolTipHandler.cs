@@ -43,17 +43,19 @@ namespace Architome
 
             if (current == null) return;
 
-            var className = info.archClass ? info.archClass.className : "";
+            //var className = info.archClass ? info.archClass.className : "";
 
-            current.SetToolTip(new() {
-                name = info.entityName,
-                type = className,
-                subeHeadline = info.role.ToString(),
-                description = info.entityDescription,
-                attributes = $"{info.npcType} {info.rarity}",
-                requirements = info.ObjectivesDescription(),
-                value = $"Level {info.entityStats.Level}",
-            });
+            current.SetToolTip(info.ToolTipData());
+
+            //current.SetToolTip(new() {
+            //    name = info.entityName,
+            //    type = className,
+            //    subeHeadline = info.role.ToString(),
+            //    description = info.entityDescription,
+            //    attributes = $"{info.npcType} {info.rarity}",
+            //    requirements = info.ObjectivesDescription(),
+            //    value = $"Level {info.entityStats.Level}",
+            //});
 
 
         }

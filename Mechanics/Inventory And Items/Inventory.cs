@@ -148,20 +148,56 @@ namespace Architome
         }
         // Update is called once per frame
 
-        public bool PickUpItem(Item item)
+        public bool PickUpItem(ItemInfo info)
         {
             if (ItemCount() == maxSlots) { return false; }
 
-            var clone = Instantiate(item);
+
+
+            var currentStacks = info.currentStacks;
+
+
+            for (int i = 0; i < inventoryItems.Count; i++)
+            {
+                var data = inventoryItems[i];
+                if (data.item == null) continue;
+                if (data.item != info.item) continue;
+
+                if (data.amount + currentStacks <= data.item.maxStacks)
+                {
+                    data.amount += currentStacks;
+                    return true;
+                }
+
+
+                currentStacks = data.item.maxStacks - data.amount;
+                data.amount = data.item.maxStacks;
+            }
+
+            if (currentStacks <= 0) return true;
+
+            int index = -1;
+
             for (int i = 0; i < inventoryItems.Count; i++)
             {
                 if (inventoryItems[i] == null)
                 {
-                    inventoryItems[i].item = item;
+                    index = i;
+                    break;
                 }
             }
 
-            entityInventoryUI.CreateItem(clone, entityInventoryUI.FirstAvailableSlot());
+            var slot = entityInventoryUI.InventorySlot(index);
+
+            if (slot == null) return false;
+
+            var itemData = new ItemData()
+            {
+                item = info.item,
+                amount = currentStacks,
+            };
+
+            entityInventoryUI.CreateItem(itemData, entityInventoryUI.FirstAvailableSlot());
 
             return true;
         }

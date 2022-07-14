@@ -33,10 +33,13 @@ namespace Architome
         public List<GameObject> tier1Entities;
         public List<GameObject> tier2Entities;
         public List<GameObject> tier3Entities;
+        public List<GameObject> tier1Spawners;
+        public List<GameObject> tier2Spawners;
         public List<GameObject> neutralEntities;
         public List<GameObject> bossEntities;
         public List<GameObject> chests;
         public List<PatrolGroup> patrolGroups;
+
         private void OnValidate()
         {
             CleanChests();

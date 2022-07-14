@@ -91,8 +91,9 @@ public class CatalystBounce : MonoBehaviour
     public void LookForNewTarget()
     {
         if (catalystInfo == null || abilityInfo == null || catalystHit == null) { return; }
+        if (catalystInfo.Ticks() == 0) return;
 
-        var entityList = catalystInfo.EntitiesWithinRadius(bounce.radius);
+        var entityList = catalystInfo.EntitiesWithinRadius(bounce.radius, abilityInfo.requiresLineOfSight);
 
         Debugger.InConsole(9414, $"Starting to find new target");
 

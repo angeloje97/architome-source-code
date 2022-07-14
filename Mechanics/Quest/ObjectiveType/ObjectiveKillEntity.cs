@@ -23,11 +23,11 @@ namespace Architome
             if (targetEntity == null) return;
 
             targetEntity.OnDeath += OnEntityDeath;
-            targetEntity.infoEvents.OnUpdateObjectives += OnUpdateEntityObjectives;
+            targetEntity.infoEvents.OnUpdateObjectives += OnEntityObjectiveCheck;
             questInfo.rewards.experience += targetEntity.maxHealth * .25f;
 
             UpdatePrompt();
-
+            requirement = (object o) => !targetEntity.isAlive;
         }
 
 
@@ -51,25 +51,33 @@ namespace Architome
             targetEntity.UpdateObjectives(this);
         }
 
-        void OnUpdateEntityObjectives(List<string> objectives)
+        void OnEntityObjectiveCheck(List<string> objectives)
         {
             if (questInfo == null) GetDependencies();
-
             var prompt = $"{questInfo.questName}\n";
-
             prompt += $"- {this.prompt}";
-
             objectives.Add(prompt);
         }
+
+        //void OnUpdateEntityObjectives(List<string> objectives)
+        //{
+        //    if (questInfo == null) GetDependencies();
+
+        //    var prompt = $"{questInfo.questName}\n";
+
+        //    prompt += $"- {this.prompt}";
+
+        //    objectives.Add(prompt);
+        //}
 
         public void OnEntityDeath(CombatEventData eventData)
         {
             if (!isActive) return;
 
-            if(eventData.target == targetEntity)
-            {
-                CompleteObjective();
-            }
+            //if(eventData.target == targetEntity)
+            //{
+            //    CompleteObjective();
+            //}
 
             HandleObjectiveChange();
             UpdatePrompt();

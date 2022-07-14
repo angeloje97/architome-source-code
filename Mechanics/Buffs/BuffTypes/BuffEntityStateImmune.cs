@@ -42,7 +42,7 @@ namespace Architome
                 return result;
             }
 
-            result += $"Cannot be effected by";
+            result += $"Cannot be effected by: ";
 
             var list = new List<string>();
 
@@ -53,7 +53,7 @@ namespace Architome
 
             var listString = ArchString.StringList(list);
 
-            result += $"{listString}\n";
+            result += $"{listString}.\n";
 
             return result;
         }

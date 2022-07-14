@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -76,9 +77,29 @@ namespace Architome
 
         private void Start()
         {
+            HandleDungeons();
+        }
+
+        void HandleDungeons()
+        {
             if (gameState == GameState.Play)
             {
                 DontDestroyOnLoad(gameObject);
+
+                var archSceneManager = ArchSceneManager.active;
+
+                archSceneManager.BeforeLoadScene += (ArchSceneManager manager) => {
+                    var validScenes = new List<string>() {
+                        "Map Template Continue",
+                        "PostDungeonResults",
+                    };
+
+
+                    if (!validScenes.Contains(manager.sceneToLoad))
+                    {
+                        ArchGeneric.DestroyOnLoad(gameObject);
+                    }
+                };
             }
         }
 

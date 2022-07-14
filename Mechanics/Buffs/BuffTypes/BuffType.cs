@@ -32,6 +32,8 @@ namespace Architome
             
         }
 
+
+
         public virtual string Description()
         {
             return "";
@@ -40,6 +42,20 @@ namespace Architome
         public virtual string GeneralDescription()
         {
             return "";
+        }
+
+        public virtual string FaceDescription(float theoreticalValue)
+        {
+            buffInfo = GetComponent<BuffInfo>();
+            value = theoreticalValue * valueContributionToBuffType;
+            var selfCastValue = theoreticalValue * selfCastMultiplier;
+            var description = Description();
+            if (selfCastValue != value)
+            {
+                description += $"({selfCastValue} value if the host is the source.)\n";
+            }
+
+            return description;
         }
     }
 

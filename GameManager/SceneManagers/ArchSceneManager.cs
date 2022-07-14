@@ -12,7 +12,7 @@ namespace Architome
         public static ArchSceneManager active { get; private set; }
 
         public List<Task> tasksBeforeLoad;
-        public List<Task> tasksBeforeConfirmLoad;
+        public List<Task<bool>> tasksBeforeConfirmLoad;
         public List<Task> tasksBeforeActivateScene;
 
         public Action<ArchSceneManager> BeforeLoadScene;
@@ -25,7 +25,6 @@ namespace Architome
         public Action<AsyncOperation> OnLoadEnd;
 
 
-        public bool confirmLoad;
         public string sceneToLoad;
         public float progressValue;
 
@@ -36,16 +35,21 @@ namespace Architome
 
         async public void LoadScene(string sceneName, bool async = true)
         {
-            confirmLoad = true;
             this.sceneToLoad = sceneName;
 
             tasksBeforeConfirmLoad = new();
 
             BeforeConfirmLoad?.Invoke(this);
 
-            await Task.WhenAll(tasksBeforeConfirmLoad);
+            foreach (var choice in tasksBeforeConfirmLoad)
+            {
+                if (!await choice) return;
+            }
 
-            if (!confirmLoad) return;
+            //await Task.WhenAll(tasksBeforeConfirmLoad);
+
+            await Task.Delay(125);
+
 
             tasksBeforeLoad = new();
             BeforeLoadScene?.Invoke(this);

@@ -62,8 +62,6 @@ namespace Architome
 
         public HealSettings healSettings;
 
-
-
         //Private fields
 
         //Events
@@ -76,7 +74,7 @@ namespace Architome
 
         public float tryMoveTimer;
 
-        bool proactiveTank;
+        bool proactiveTank { get; set; }
 
         public void GetDependencies()
         {

@@ -26,6 +26,7 @@ namespace Architome
         public bool completeAllQuests;
         private void Update()
         {
+            if (!devToolsActive) return;
             HandleLoadScene();
             HandleCompleteQuests();
             HandleAllPlayableEntities();

@@ -59,13 +59,22 @@ namespace Architome
             var summoned = world.SpawnEntity(entity, transform.position).GetComponent<EntityInfo>();
 
 
-            summoned.transform.SetParent(entityGenerator.summons, true);
-            summoned.ChangeNPCType(this.entity.npcType);
-            summoned.summon.sourceAbility = ability;
-            summoned.summon.isSummoned = true;
-            summoned.summon.master = this.entity;
-            summoned.summon.timeRemaining = summoning.liveTime;
 
+            summoned.SetSummoned(new()
+            {
+                master = this.entity,
+                liveTime = summoning.liveTime,
+            });
+
+
+            summoned.summon.sourceAbility = ability;
+            //summoned.transform.SetParent(entityGenerator.summons, true);
+            //summoned.ChangeNPCType(this.entity.npcType);
+            //summoned.summon.isSummoned = true;
+            //summoned.summon.master = this.entity;
+            //summoned.summon.timeRemaining = summoning.liveTime;
+
+            this.entity.combatEvents.OnSummonEntity?.Invoke(summoned);
 
             UpdateStats(summoned);
         }

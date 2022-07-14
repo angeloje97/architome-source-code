@@ -14,6 +14,8 @@ namespace Architome
         public bool isActive = false;
         public bool isComplete = false;
 
+        public Predicate<object> requirement { get; set; }
+
         public Action<Objective> OnActivate { get; set; }
         public Action<Objective> OnChange { get; set; }
         public Action<Objective> OnComplete { get; set; }
@@ -38,6 +40,11 @@ namespace Architome
 
         public void HandleObjectiveChange()
         {
+            if (requirement.Invoke(null))
+            {
+                CompleteObjective();
+            }
+
             OnChange?.Invoke(this);
             questInfo.OnObjectiveChange?.Invoke(this);
         }

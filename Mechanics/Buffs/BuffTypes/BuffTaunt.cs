@@ -40,7 +40,13 @@ namespace Architome
         // Update is called once per frame
         public override string Description()
         {
-            return $"Forces this unit to focus {buffInfo.sourceInfo.name}\n";
+            var description = "Forces unit to focus caster.\n";
+
+            if (buffInfo && buffInfo.sourceInfo)
+            {
+                description += $"Currently focusing {buffInfo.sourceInfo.name}\n";
+            }
+            return description;
         }
 
         public override string GeneralDescription()

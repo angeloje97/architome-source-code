@@ -169,12 +169,14 @@ namespace Architome
         public struct SplashProperties
         {
             public bool enable;
-            public GameObject splashParticleEffects;
+            public CatalystEvent trigger;
             public bool requiresLOS;
             public bool appliesBuffs;
+            public int maxSplashTargets;
             public float valueContribution;
             public float radius;
             public float delay;
+
         }
 
         [Serializable]

@@ -39,13 +39,20 @@ namespace Architome
         public bool generatingAvailable;
 
         public float spawnDelay = 1f;
+        public float startDelay = 0f;
         public float hideDelay;
-        public float fixTimer;
-        public float fixTimeFrame;
+        //public float fixTimer;
+        //public float fixTimeFrame;
 
         //Events
         public Action<MapRoomGenerator> OnRoomsGenerated;
+        public Action<MapRoomGenerator> OnAllRoomsHidden;
+        public Action<MapRoomGenerator, RoomInfo> OnSpawnRoom;
+        public Action<MapRoomGenerator> BeforeEndGeneration;
+        public Action<MapRoomGenerator> AfterEndGeneration;
 
+        public int roomsGenerated;
+        public int roomsToGenerate;
 
         void GetDependencies()
         {
@@ -66,6 +73,14 @@ namespace Architome
             }
 
 
+            if (startingRoom)
+            {
+                roomsToGenerate++;
+            }
+
+
+            roomsToGenerate += availableRooms.Count;
+            roomsToGenerate += skeletonRooms.Count;
         }
 
         async void GenerateRooms()
@@ -73,8 +88,9 @@ namespace Architome
             if (mapInfo.generateRooms)
             {
                 UpdateStartingRoom();
-                await Task.Delay(1000);
-                StartCoroutine(ClearNullsRoutine());
+                await Task.Delay((int) (startDelay * 1000));
+                await Task.Yield();
+                //StartCoroutine(ClearNullsRoutine());
                 await UpdateskeletonRooms();
                 await UpdateAvailableRooms();
                 await HandleEndGeneration();
@@ -106,25 +122,36 @@ namespace Architome
             skeletonRooms = new();
             availableRooms = new();
 
+            roomsToGenerate = 0;
+
             foreach (var room in dungeonInfo.skeleton)
             {
                 skeletonRooms.Add(room.gameObject);
+                roomsToGenerate++;
             }
 
             if (dungeonInfo.entrance)
             {
                 startingRoom = dungeonInfo.entrance.gameObject;
+                roomsToGenerate++;
+
             }
 
             if (dungeonInfo.boss)
             {
                 skeletonRooms.Add(dungeonInfo.boss.gameObject);
+                roomsToGenerate++;
+
             }
 
             foreach (var room in dungeonInfo.random)
             {
                 availableRooms.Add(room.gameObject);
+                roomsToGenerate++;
+
             }
+
+
         }
         void Start()
         {
@@ -142,56 +169,20 @@ namespace Architome
         // Update is called once per frame
         void Update()
         {
-            HandleTimers();
-            if (badSpawnRooms.Count > 0 && mapInfo.generateRooms)
-            {
-                fixTimer = fixTimeFrame;
-                HandleBadSpawnRooms();
-            }
+            //HandleTimers();
+            //if (badSpawnRooms.Count > 0 && mapInfo.generateRooms)
+            //{
+            //    fixTimer = fixTimeFrame;
+            //    HandleBadSpawnRooms();
+            //}
         }
 
         void UpdateStartingRoom()
         {
             if (startingRoom == null) return;
             Instantiate(startingRoom, roomList);
-        }
-        async Task UpdateAvailableRooms()
-        {
-            generatingAvailable = true;
-            do
-            {
-                if (!mapInfo.generateRooms) { break; }
-                HandleAvailableRooms();
 
-                await Task.Delay((int)(spawnDelay * 1000));
-            } while (availableRooms.Count > 0 || fixTimer > 0);
-
-            generatingAvailable = false;
-
-
-
-            //HandleEndGeneration();
-
-            void HandleAvailableRooms()
-            {
-                if (fixTimer > 0) { return; }
-                if (availableRooms.Count > 0 && AvailablePaths().Count > 0)
-                {
-                    var availablePaths = AvailablePaths();
-                    //var randomPathIndex = Random.Range((int)0, (int)AvailablePaths().Count);
-                    //var seedPathIndex = mapInfo.seedGenerator.factors[AvailablePaths().Count];
-                    //var seedRoomIndex = mapInfo.seedGenerator.factors[availableRooms.Count];
-                    //var randomRoomIndex = Random.Range((int)0, (int)availableRooms.Count);
-                    var seedPathIndex = UnityEngine.Random.Range(0, availablePaths.Count);
-                    var seedRoomIndex = UnityEngine.Random.Range(0, availableRooms.Count);
-
-
-                    availablePaths[seedPathIndex].SpawnRoom(availableRooms[seedRoomIndex], roomList);
-                    availableRooms.Remove(availableRooms[seedRoomIndex]);
-                    return;
-
-                }
-            }
+            roomsGenerated++;
         }
         async Task UpdateskeletonRooms()
         {
@@ -201,20 +192,24 @@ namespace Architome
             {
                 if (!mapInfo.generateRooms) { break; }
 
-                HandleSekeletonRooms();
-                generatingSkeleton = true;
+                //generatingSkeleton = true;
+                roomsGenerated++;
+                await HandleSekeletonRooms();
                 await Task.Delay((int) (spawnDelay * 1000));
 
-            } while (skeletonRooms.Count > 0 || fixTimer > 0);
+            } while (skeletonRooms.Count > 0);
 
             await Task.Delay((int)(spawnDelay * 1000));
             generatingSkeleton = false;
             
 
 
-            void HandleSekeletonRooms()
+            async Task HandleSekeletonRooms()
             {
-                if (fixTimer > 0 || roomsInUse.Count == 0 || seedGenerator == null || skeletonRooms.Count == 0) { return; }
+                if  (roomsInUse.Count == 0 || seedGenerator == null || skeletonRooms.Count == 0) { return; }
+
+                ClearNullPaths();
+                ClearNullRooms();
 
                 var lastRoom = roomsInUse[roomsInUse.Count - 1].GetComponent<RoomInfo>();
                 var availablePaths = AvailablePaths(lastRoom);
@@ -232,9 +227,121 @@ namespace Architome
                 //var pathSeed = seedGenerator.Factor2(skeletonRooms.Count, availablePaths.Count);
                 Debugger.InConsole(9532, $"{pathSeed}");
 
-
-                availablePaths[pathSeed].SpawnRoom(skeletonRooms[0], roomList);
+                var newRoom = availablePaths[pathSeed].SpawnRoom(skeletonRooms[0], roomList);
                 skeletonRooms.RemoveAt(0);
+                var badSpawn = await newRoom.CheckBadSpawn();
+
+
+                while (badSpawn)
+                {
+                    var badRoom = newRoom;
+                    ClearNullPaths();
+                    ClearNullRooms();
+                    var avaiablePaths = AvailablePaths(roomsInUse[roomsInUse.Count - 1].GetComponent<RoomInfo>());
+                    
+                    ClearIncompatablePaths(badRoom, availablePaths);
+
+                    if (avaiablePaths.Count == 0)
+                    {
+                        availablePaths = PreviousPaths(roomsInUse.Count - 2);
+                    }
+
+                    if (availablePaths.Count == 0) return;
+
+                    var randomPath = availablePaths[UnityEngine.Random.Range(0, availablePaths.Count)];
+
+                    newRoom = randomPath.SpawnRoom(badRoom.gameObject, roomList);
+
+                    badRoom.originPath.isUsed = false;
+
+                    foreach (var path in newRoom.paths)
+                    {
+                        if (path.isEntrance) continue;
+                        path.isUsed = false;
+                    }
+
+                    Destroy(badRoom.gameObject);
+
+                    badSpawn = await newRoom.CheckBadSpawn();
+
+                }
+
+                roomsInUse.Add(newRoom.gameObject);
+                newRoom.PercentReveal = roomRevealPercent;
+                OnSpawnRoom?.Invoke(this, newRoom);
+            }
+        }
+        async Task UpdateAvailableRooms()
+        {
+            generatingAvailable = true;
+            do
+            {
+                if (!mapInfo.generateRooms) { break; }
+                roomsGenerated++;
+                await HandleAvailableRooms();
+                //await Task.Delay((int)(spawnDelay * 1000));
+            } while (availableRooms.Count > 0);
+
+            generatingAvailable = false;
+
+
+
+            //HandleEndGeneration();
+
+            async Task HandleAvailableRooms()
+            {
+                ClearNullPaths();
+                ClearNullRooms();
+
+                if (availableRooms.Count <= 0) return;
+                if (AvailablePaths().Count <= 0)
+                {
+                    availableRooms.Clear();
+                    return;
+                }
+                var availablePaths = AvailablePaths();
+                //var randomPathIndex = Random.Range((int)0, (int)AvailablePaths().Count);
+                //var seedPathIndex = mapInfo.seedGenerator.factors[AvailablePaths().Count];
+                //var seedRoomIndex = mapInfo.seedGenerator.factors[availableRooms.Count];
+                //var randomRoomIndex = Random.Range((int)0, (int)availableRooms.Count);
+                var seedPathIndex = UnityEngine.Random.Range(0, availablePaths.Count);
+                var seedRoomIndex = UnityEngine.Random.Range(0, availableRooms.Count);
+
+                var newRoom = availablePaths[seedPathIndex].SpawnRoom(availableRooms[seedRoomIndex], roomList);
+
+                availableRooms.Remove(availableRooms[seedRoomIndex]);
+
+
+                var badSpawn = await newRoom.CheckBadSpawn();
+
+                while (badSpawn)
+                {
+                    ClearNullRooms();
+                    ClearNullPaths();
+                    var badRoom = newRoom;
+
+
+                    availablePaths = AvailablePaths(badRoom.incompatablePaths);
+
+                    if (availablePaths.Count == 0)
+                    {
+                        Destroy(badRoom);
+                        return;
+                    }
+
+                    var randomPath = ArchGeneric.RandomItem(availablePaths);
+
+                    newRoom = randomPath.SpawnRoom(badRoom.gameObject, roomList);
+
+                    Destroy(badRoom.gameObject);
+
+                    badSpawn = await newRoom.CheckBadSpawn();
+                }
+
+                newRoom.PercentReveal = roomRevealPercent;
+                roomsInUse.Add(newRoom.gameObject);
+                OnSpawnRoom?.Invoke(this, newRoom);
+
             }
         }
         async Task HandleBackgroundAdjustment()
@@ -285,13 +392,14 @@ namespace Architome
         }
         async Task HandleEndGeneration()
         {
+            BeforeEndGeneration?.Invoke(this);
+            ClearNullPaths();
+            ClearNullRooms();
             HandleCheckPaths();
             await HandleBackgroundAdjustment();
             AssignRooms();
             AssignPatrolPoints();
-
-            
-
+            AfterEndGeneration?.Invoke(this);
 
             void AssignRooms()
             {
@@ -425,19 +533,23 @@ namespace Architome
         }
         public void HandleTimers()
         {
-            if (fixTimer > 0 && badSpawnRooms.Count == 0)
-            {
-                fixTimer -= Time.deltaTime;
-            }
-            if (fixTimer < 0)
-            {
-                fixTimer = 0;
-            }
+            //if (fixTimer > 0 && badSpawnRooms.Count == 0)
+            //{
+            //    fixTimer -= Time.deltaTime;
+            //}
+            //if (fixTimer < 0)
+            //{
+            //    fixTimer = 0;
+            //}
 
         }
         void HandleHideRooms()
         {
-            if (!hideRooms) { return; }
+            if (!hideRooms)
+            {
+                OnAllRoomsHidden?.Invoke(this);
+                return;
+            }
             if (!roomsHidden)
             {
                 if (availableRooms.Count == 0 && badSpawnRooms.Count == 0)
@@ -458,6 +570,9 @@ namespace Architome
                         room.GetComponent<RoomInfo>().ShowRoom(false);
                     }
                 }
+
+                yield return new WaitForSeconds(2f);
+                OnAllRoomsHidden?.Invoke(this);
             }
         }
         void HandleCheckPaths()
@@ -504,7 +619,7 @@ namespace Architome
         }
         public List<PathInfo> PreviousPaths(int currentIndex)
         {
-
+            ClearNullRooms();
             if (currentIndex == 0) { return AvailablePaths(); }
             if (currentIndex >= roomsInUse.Count) { return AvailablePaths(); }
 

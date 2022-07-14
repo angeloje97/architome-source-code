@@ -147,7 +147,7 @@ namespace Architome.Settings
         async public void ResetToDefault()
         {
 
-            var confirmed = await PromptHandler.active.GeneralPrompt(new()
+            var choice = await PromptHandler.active.GeneralPrompt(new()
             {
                 title = "Key Bindings",
                 question = "Are you sure you want to reset to default?",
@@ -157,7 +157,7 @@ namespace Architome.Settings
             });
 
 
-            if (confirmed != 0) return;
+            if (choice.optionPicked != 0) return;
 
 
             foreach (var binding in KeyBindings.keyBindsDefault)
@@ -192,7 +192,7 @@ namespace Architome.Settings
         {
             if (IsConflicted())
             {
-                var applyWithConflict = await PromptHandler.active.GeneralPrompt(new() {
+                var choice = await PromptHandler.active.GeneralPrompt(new() {
                     title = "Key Bindings",
                     question = "There are conflicting keybindings. Are you sure you want to current settings?",
                     option1 = "Apply",
@@ -200,7 +200,7 @@ namespace Architome.Settings
                     blocksScreen = true
                 });
 
-                if (applyWithConflict == 1)
+                if (choice.optionString == "Cancel")
                 {
                     return;
                 }

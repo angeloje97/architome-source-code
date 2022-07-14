@@ -323,15 +323,34 @@ namespace Architome
         public void Cast(AbilityInfo ability)
         {
             if (!entityInfo.isAlive) { return; }
-            if (abilities.Contains(ability))
+            if (!abilities.Contains(ability)) return;
+
+            for (int i = 0; i < abilities.Count; i++)
             {
-                Debugger.InConsole(7829, $"{ability}, {abilities.IndexOf(ability)}");
-                if (entityInfo && entityInfo.PlayerController())
+                if (abilities[i] != ability) continue;
+
+                if (entityInfo && !entityInfo.states.Contains(EntityState.MindControlled))
                 {
-                    entityInfo.PlayerController().HandlePlayerTargetting();
+                    var playerController = entityInfo.PlayerController();
+
+                    if (playerController)
+                    {
+                        playerController.HandlePlayerTargetting();
+                    }
                 }
-                Cast(abilities.IndexOf(ability));
+
+
+                Cast(i);
             }
+            //if (abilities.Contains(ability))
+            //{
+            //    Debugger.InConsole(7829, $"{ability}, {abilities.IndexOf(ability)}");
+            //    if (entityInfo && entityInfo.PlayerController())
+            //    {
+            //        entityInfo.PlayerController().HandlePlayerTargetting();
+            //    }
+            //    Cast(abilities.IndexOf(ability));
+            //}
         }
 
         // Update is called once per frame
@@ -354,6 +373,7 @@ namespace Architome
         }
         public void Attack()
         {
+            if (attackAbility == null) return;
             if (target) { attackAbility.target = target; }
             else { attackAbility.target = null; }
 

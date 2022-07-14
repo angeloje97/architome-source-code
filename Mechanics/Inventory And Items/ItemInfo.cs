@@ -11,7 +11,14 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 {
     // Start is called before the first frame update
     public Item item;
-    public int maxStacks;
+    public int maxStacks
+    {
+        get
+        {
+            if (item == null) return -1;
+            return item.maxStacks;
+        }
+    }
     public int currentStacks = 1;
     
     [Header("UI Properties")]
@@ -29,6 +36,8 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
     public Action<ItemInfo> OnItemAction;
 
+    public Action<ItemInfo> OnDepleted;
+
     //3d World Trigger
     private void OnTriggerEnter(Collider other)
     {
@@ -36,7 +45,7 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         {
             if(other.GetComponent<EntityInfo>().Inventory())
             {
-                if(other.GetComponent<EntityInfo>().Inventory().PickUpItem(item))
+                if(other.GetComponent<EntityInfo>().Inventory().PickUpItem(this))
                 {
                     Destroy(gameObject);
                 }
@@ -44,6 +53,7 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         }
     }
 
+    
     async public void OnPointerUp(PointerEventData eventData)
     {
         ArchAction.Yield(() => ReturnToSlot());
@@ -60,9 +70,9 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
                 option2 = "Cancel", 
             });
 
-            if (choice == 0)
+            if (choice.optionString == "Destroy")
             {
-                Destroy(gameObject);
+                DestroySelf();
             }
         }
         
@@ -145,6 +155,7 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
             }
             slot.currentItemInfo = this;
             currentSlot = slot;
+            
             changedSlot = true;
         }
 
@@ -206,6 +217,35 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         UpdateItemInfo();
     }
 
+    public bool ReduceStacks(int amount = 1)
+    {
+        if (currentStacks < amount) return false;
+
+        currentStacks -= amount;
+
+        if (currentStacks <= 0)
+        {
+            OnDepleted?.Invoke(this);
+
+            DestroySelf();
+        }
+
+        
+        UpdateItemInfo();
+
+        return true;
+    }
+
+    public void DestroySelf()
+    {
+        if (currentSlot)
+        {
+            currentSlot.currentItemInfo = null;
+        }
+
+        ArchAction.Yield(() => { Destroy(gameObject); });
+    }
+
     public void UpdateItemInfo()
     {
         if(item == null) { return; }
@@ -228,12 +268,13 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         void UpdateStackText()
         {
             if(amountText == null) { return; }
-            maxStacks = item.maxStacks;
-            if (maxStacks == 1)
-            { 
-                amountText.gameObject.SetActive(false);
-                return;
-            }
+
+            amountText.gameObject.SetActive(maxStacks > 1);
+            //if (maxStacks == 1)
+            //{ 
+            //    amountText.gameObject.SetActive(false);
+            //    return;
+            //}
             
             amountText.text = $"{currentStacks}";
         }

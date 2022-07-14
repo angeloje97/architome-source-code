@@ -40,6 +40,18 @@ namespace Architome
             info.savedParticles = new();
             info.savedSources = new();
 
+            if (buffInfo.hostInfo)
+            {
+                buffInfo.hostInfo.OnDamageTaken += OnHostDamageTaken;
+                buffInfo.hostInfo.combatEvents.OnImmuneDamage += OnHostImmuneDamage;
+
+                buffInfo.OnBuffEnd += (BuffInfo buff) => {
+                    buffInfo.hostInfo.OnDamageTaken -= OnHostDamageTaken;
+                    buffInfo.hostInfo.combatEvents.OnImmuneDamage -= OnHostImmuneDamage;
+                };
+            }
+
+
         }
         void Start()
         {
@@ -52,6 +64,8 @@ namespace Architome
             CalculateDelayTime(buff);
             HandleEffect(buffInfo, BuffEvents.OnStart);
         }
+
+
         void CalculateDelayTime(BuffInfo buff)
         {
             var particles = GetComponentsInChildren<ParticleSystem>();
@@ -63,6 +77,7 @@ namespace Architome
         {
             HandleEffect(buff, BuffEvents.OnInterval);
         }
+        
         public void OnBuffEnd(BuffInfo buff)
         {
             HandleEffect(buff, BuffEvents.OnEnd);
@@ -105,6 +120,16 @@ namespace Architome
                 light.intensity = Mathf.Lerp(light.intensity, 0, smoothening);
                 light.range = Mathf.Lerp(light.range, 0, smoothening);
             }
+        }
+
+        public void OnHostDamageTaken(CombatEventData eventData)
+        {
+            HandleEffect(buffInfo, BuffEvents.OnDamageTaken);
+        }
+
+        public void OnHostImmuneDamage(CombatEventData eventData)
+        {
+            HandleEffect(buffInfo, BuffEvents.OnDamageImmune);
         }
 
         public void OnBuffCompletion(BuffInfo buff)

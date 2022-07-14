@@ -57,7 +57,7 @@ public class BuffHealthOverTime : BuffType
             result += "Damages ";
         }
 
-        result += $" the target for {ArchString.FloatToSimple(buffInfo.properties.value)} health every {buffInfo.properties.intervals} seconds\n";
+        result += $" the target for {ArchString.FloatToSimple(value)} health every {buffInfo.properties.intervals} seconds\n";
 
         return result;
     }
@@ -79,7 +79,6 @@ public class BuffHealthOverTime : BuffType
 
     public void HandleHealthOverTime()
     {
-        var value = buffInfo.properties.value;
         switch(buffInfo.buffTargetType)
         { 
             case BuffTargetType.Assist:

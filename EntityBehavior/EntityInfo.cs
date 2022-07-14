@@ -120,7 +120,8 @@ namespace Architome
             public Action<List<EntityState>, List<EntityState>> OnStatesChange;
             public Action<List<EntityState>, EntityState> OnStateNegated;
             public Action<EntityInfo, float> OnPingThreat { get; set; }
-            public Action OnImmuneDamage;
+            public Action<CombatEventData> OnImmuneDamage;
+            public Action<EntityInfo> OnSummonEntity;
 
         }
 
@@ -155,8 +156,8 @@ namespace Architome
         public Action<bool> OnCombatChange;
         public Action<bool> OnLifeChange;
         public Action<bool> OnHiddenChange;
-        public Action<SocialEventData> OnReceiveInteraction;
-        public Action<SocialEventData> OnReactToInteraction;
+        //public Action<SocialEventData> OnReceiveInteraction;
+        //public Action<SocialEventData> OnReactToInteraction;
         public Action<RoomInfo, RoomInfo> OnRoomChange;
         public Action<RoomInfo, bool> OnCurrentShowRoom;
         
@@ -171,6 +172,7 @@ namespace Architome
         public CombatEvents combatEvents;
         public PortalEvents portalEvents;
         public SceneEvents sceneEvents;
+        public SocialEvents socialEvents;
 
         //Non Player Events
         public Action<EntityInfo, PartyInfo> OnPlayerLineOfSight;
@@ -287,6 +289,11 @@ namespace Architome
         }
         void Start()
         {
+            EntityStart();
+        }
+
+        public virtual void EntityStart()
+        {
             if (!properties.created)
             {
                 GetDependencies();
@@ -300,13 +307,11 @@ namespace Architome
             HandleEventTriggers();
         }
 
-
         public void GainExperience(object sender, float amount)
         {
             OnExperienceGainOutside?.Invoke(sender, amount);
         }
-
-        void HandleEventTriggers()
+        protected void HandleEventTriggers()
         {
             if (healthCheck != health || maxHealthCheck != maxHealth || shieldCheck != shield)
             {
@@ -359,11 +364,10 @@ namespace Architome
                 }
             }
         }
-
-
         public string ObjectivesDescription()
         {
             if (objectives == null) objectives = new();
+            //infoEvents.OnObjectiveCheck?.Invoke(objectives);
             return ArchString.NextLineList(objectives);
         }
         public void OnTriggerEnter(Collider other)
@@ -422,18 +426,10 @@ namespace Architome
         }
         public void Damage(CombatEventData combatData)
         {
+            if (!isAlive) return;
             combatData.target = this;
             var source = combatData.source;
-            var damageType = DamageType.True;
-
-            if(combatData.catalyst)
-            {
-                damageType = combatData.catalyst.damageType;
-            }
-            else if(combatData.buff)
-            {
-                damageType = combatData.buff.damageType;
-            }
+            var damageType = combatData.DataDamageType();
 
 
             HandleValue();
@@ -441,10 +437,11 @@ namespace Architome
 
             void HandleValue()
             {
+                var originalValue = combatData.value;
                 if (states.Contains(EntityState.Immune))
                 {
                     combatData.value = 0;
-                    combatEvents.OnImmuneDamage?.Invoke();
+                    combatEvents.OnImmuneDamage?.Invoke(combatData);
                     return;
                 }
 
@@ -465,6 +462,7 @@ namespace Architome
                 }
 
                 combatData.value *= stats.damageTakenMultiplier;
+
                 combatData.value -= combatData.value * stats.damageReduction;
 
                 if (damageType == DamageType.Physical)
@@ -479,6 +477,11 @@ namespace Architome
                 if (combatData.value < 0)
                 {
                     combatData.value = 0;
+                }
+                
+                if (combatData.value < originalValue && damageType == DamageType.True)
+                {
+                    combatData.value = originalValue;
                 }
 
                 if (combatData.value > health + shield)
@@ -507,9 +510,13 @@ namespace Architome
                     foreach (var buff in buffs)
                     {
                         if (buff.shieldAmount == 0) continue;
-                        if (combatData.value <= 0) break;
+                        if (combatData.value <= 0)
+                        {
+                            combatData.value = 0;
+                            break;
+                        }
 
-                        combatData.value = buff.DamageShield(combatData.value);
+                        buff.DamageShield(combatData);
 
                     }
                 }
@@ -623,7 +630,6 @@ namespace Architome
 
             return null;
         }
-
         public bool IsEnemy(GameObject target)
         {
             if (!target.GetComponent<EntityInfo>()) return false;
@@ -638,11 +644,11 @@ namespace Architome
         {
             if (eventData.target == this)
             {
-                OnReceiveInteraction?.Invoke(eventData);
+                socialEvents.OnReceiveInteraction?.Invoke(eventData);
             }
             else
             {
-                OnReactToInteraction?.Invoke(eventData);
+                socialEvents.OnReactToInteraction?.Invoke(eventData);
             }
         }
         public void Use(float value)
@@ -734,7 +740,6 @@ namespace Architome
             
             OnReviveThis?.Invoke(combatData);
         }
-
         public void CompleteQuest(Quest quest)
         {
             infoEvents.OnQuestComplete?.Invoke(quest);
@@ -806,6 +811,57 @@ namespace Architome
             }
 
             return true;
+        }
+
+        public void SetSummoned(SpawnerInfo.SummonData summonData)
+        {
+
+            summon.isSummoned = true;
+            summon.timeRemaining = summonData.liveTime;
+            summon.master = summonData.master;
+
+            ChangeNPCType(summonData.master.npcType);
+            SetParent();
+
+            AIBehavior().CreateBehavior<ArchSummonAgent>("Summon Behavior");
+
+            void SetParent()
+            {
+                var entityGenerator = MapEntityGenerator.active;
+                if (entityGenerator == null) return;
+                transform.SetParent(entityGenerator.summons);
+            }
+
+
+        }
+        public ToolTipData ToolTipData()
+        {
+
+
+            var type = archClass != null ? $"{archClass.className} {role}" : $"{role}";
+
+
+            var (health, maxHealth) = Health();
+
+
+            return new()
+            {
+                icon = entityPortrait,
+                name = $"{entityName}",
+                subeHeadline = type,
+                type = $"{health}/{maxHealth} Health",
+                description = entityDescription,
+                attributes = $"{npcType} {rarity}",
+                requirements = ObjectivesDescription(),
+                value = $"Level {entityStats.Level}",
+            };
+        }
+        public (string, string) Health()
+        {
+            var health = ArchString.FloatToSimple(this.health);
+            var maxHealth = ArchString.FloatToSimple(this.maxHealth);
+
+            return (health, maxHealth);
         }
         public IEnumerator HandleRegeneration()
         {
@@ -961,15 +1017,17 @@ namespace Architome
         {
             if (gameObject == null) return null;
 
-            foreach (Transform child in transform)
-            {
-                if (child.GetComponent<BuffsManager>())
-                {
-                    return child.GetComponent<BuffsManager>();
-                }
-            }
+            return GetComponentInChildren<BuffsManager>();
 
-            return null;
+            //foreach (Transform child in transform)
+            //{
+            //    if (child.GetComponent<BuffsManager>())
+            //    {
+            //        return child.GetComponent<BuffsManager>();
+            //    }
+            //}
+
+            //return null;
         }
         public AudioManager Voice()
         {
@@ -987,18 +1045,14 @@ namespace Architome
         {
             return GetComponentsInChildren<AudioManager>().First(manager => manager.mixerGroup == GMHelper.Mixer().SoundEffect);
         }
-
         public ParticleManager ParticleManager()
         {
             return GetComponentInChildren<ParticleManager>();
         }
-
-
         public AudioManager VoiceEffect()
         {
             return GetComponentsInChildren<AudioManager>().First(manager => manager.mixerGroup == GMHelper.Mixer().Voice);
         }
-
         public EntitySpeech Speech { get { return GetComponentInChildren<EntitySpeech>(); } }
         public Inventory Inventory()
         {

@@ -12,7 +12,7 @@ public class LineOfSight : MonoBehaviour
     public PartyInfo partyInfo;
     public AIBehavior behavior;
 
-    public List<GameObject> entitiesDetected;
+    //public List<GameObject> entitiesDetected;
     public List<GameObject> enemiesWithinLineOfSight;
     public List<GameObject> entitiesWithinLineOfSight;
 
@@ -149,6 +149,8 @@ public class LineOfSight : MonoBehaviour
             if (!entity.isAlive) continue;
             if (entitiesWithinLineOfSight.Contains(entity.gameObject)) continue;
 
+            if (InvisibilityAffected(entity)) continue;
+
             entitiesWithinLineOfSight.Add(entity.gameObject);
             behavior.events.OnSightedEntity?.Invoke(entity.gameObject);
         }
@@ -170,134 +172,149 @@ public class LineOfSight : MonoBehaviour
             }
 
         }
-    }
-    public void DetectionCheck()
-    {
-        if(entityObject == null)
-        {
-            return;
-        }
 
-        Collider[] rangeChecks = Physics.OverlapSphere(entityObject.transform.position, radius, targetLayer);
-        var entities = Entity.EntitesWithinLOS(entityObject.transform.position, radius);
+        bool InvisibilityAffected(EntityInfo entity)
+        {
+            if (!entity.states.Contains(EntityState.Invisible)) return false;
+            if (entityInfo.CanHelp(entity.gameObject)) return false;
+
+            var distance = V3Helper.Distance(entity.transform.position, transform.position);
+
+            if (distance <= radius * .25f)
+            {
+                return false;
+            }
+
+            return true;
+        }
+    }
+    //public void DetectionCheck()
+    //{
+    //    if(entityObject == null)
+    //    {
+    //        return;
+    //    }
+
+    //    Collider[] rangeChecks = Physics.OverlapSphere(entityObject.transform.position, radius, targetLayer);
+    //    var entities = Entity.EntitesWithinLOS(entityObject.transform.position, radius);
         
 
-        foreach(Collider check in rangeChecks)
-        {
-            if(!entitiesDetected.Contains(check.gameObject))
-            {
-                if(check.GetComponent<EntityInfo>())
-                {
-                    if(check.GetComponent<EntityInfo>() == entityInfo)
-                    {
-                        continue;
-                    }
+    //    foreach(Collider check in rangeChecks)
+    //    {
+    //        if(!entitiesDetected.Contains(check.gameObject))
+    //        {
+    //            if(check.GetComponent<EntityInfo>())
+    //            {
+    //                if(check.GetComponent<EntityInfo>() == entityInfo)
+    //                {
+    //                    continue;
+    //                }
 
-                    if(check.GetComponent<EntityInfo>().isAlive)
-                    {
-                        if(check.GetComponent<EntityInfo>().currentRoom == null || 
-                            (check.GetComponent<EntityInfo>().currentRoom && check.GetComponent<EntityInfo>().currentRoom.isRevealed))
-                        {
-                            entitiesDetected.Add(check.gameObject);
-                        }
+    //                if(check.GetComponent<EntityInfo>().isAlive)
+    //                {
+    //                    if(check.GetComponent<EntityInfo>().currentRoom == null || 
+    //                        (check.GetComponent<EntityInfo>().currentRoom && check.GetComponent<EntityInfo>().currentRoom.isRevealed))
+    //                    {
+    //                        entitiesDetected.Add(check.gameObject);
+    //                    }
                         
-                    }
-                }
-            }
-        }
+    //                }
+    //            }
+    //        }
+    //    }
 
-        for(int i = 0; i < entitiesDetected.Count; i++)
-        {
-            bool isDetected = false;
+    //    for(int i = 0; i < entitiesDetected.Count; i++)
+    //    {
+    //        bool isDetected = false;
 
-            foreach(Collider collide in rangeChecks)
-            {
-                if(collide.gameObject == entitiesDetected[i])
-                {
-                    isDetected = true;
-                }
-            }
+    //        foreach(Collider collide in rangeChecks)
+    //        {
+    //            if(collide.gameObject == entitiesDetected[i])
+    //            {
+    //                isDetected = true;
+    //            }
+    //        }
 
-            //Out of Range
-            if(!isDetected)
-            {
-                PlayerOutOfRangeCheck(entitiesDetected[i]);
-                entitiesDetected.RemoveAt(i);
-                i--;
-            }
-        }
+    //        //Out of Range
+    //        if(!isDetected)
+    //        {
+    //            PlayerOutOfRangeCheck(entitiesDetected[i]);
+    //            entitiesDetected.RemoveAt(i);
+    //            i--;
+    //        }
+    //    }
 
-        DeadCheck();
-        //PlayerLineOfSightCheck();
-    }
+    //    DeadCheck();
+    //    //PlayerLineOfSightCheck();
+    //}
 
-    public void PlayerLineOfSightCheck()
-    {
-        if(!isPlayer) { return; }
-        for(int i = 0; i < entitiesDetected.Count; i++)
-        {
-            if(!entityInfo.CanAttack(entitiesDetected[i])) { continue; }
+    //public void PlayerLineOfSightCheck()
+    //{
+    //    if(!isPlayer) { return; }
+    //    for(int i = 0; i < entitiesDetected.Count; i++)
+    //    {
+    //        if(!entityInfo.CanAttack(entitiesDetected[i])) { continue; }
 
-            var isInLineOfSight = enemiesWithinLineOfSight.Contains(entitiesDetected[i]);
+    //        var isInLineOfSight = enemiesWithinLineOfSight.Contains(entitiesDetected[i]);
 
-            if(HasLineOfSight(entitiesDetected[i]))
-            {
-                if (!isInLineOfSight)
-                {
-                    entitiesDetected[i].GetComponent<EntityInfo>().OnPlayerLineOfSight?.Invoke(entityInfo, partyInfo);
-                    enemiesWithinLineOfSight.Add(entitiesDetected[i]);
-                }
-            }
-            else
-            {
-                if(isInLineOfSight)
-                {
-                    entitiesDetected[i].GetComponent<EntityInfo>().OnPlayerLOSBreak?.Invoke(entityInfo, partyInfo);
-                    entitiesDetected.RemoveAt(i);
-                    i--;
-                }
-            }
-        }
-    }
+    //        if(HasLineOfSight(entitiesDetected[i]))
+    //        {
+    //            if (!isInLineOfSight)
+    //            {
+    //                entitiesDetected[i].GetComponent<EntityInfo>().OnPlayerLineOfSight?.Invoke(entityInfo, partyInfo);
+    //                enemiesWithinLineOfSight.Add(entitiesDetected[i]);
+    //            }
+    //        }
+    //        else
+    //        {
+    //            if(isInLineOfSight)
+    //            {
+    //                entitiesDetected[i].GetComponent<EntityInfo>().OnPlayerLOSBreak?.Invoke(entityInfo, partyInfo);
+    //                entitiesDetected.RemoveAt(i);
+    //                i--;
+    //            }
+    //        }
+    //    }
+    //}
 
-    public void PlayerOutOfRangeCheck(GameObject target)
-    {
-        if (!isPlayer) { return; }
-        target.GetComponent<EntityInfo>().OnPlayerOutOfRange?.Invoke(entityInfo, partyInfo);
-    }
+    //public void PlayerOutOfRangeCheck(GameObject target)
+    //{
+    //    if (!isPlayer) { return; }
+    //    target.GetComponent<EntityInfo>().OnPlayerOutOfRange?.Invoke(entityInfo, partyInfo);
+    //}
     
-    public void RangeCheck()
-    {
-        foreach(GameObject entity in entitiesDetected)
-        {
-            if(V3Helper.Distance(entity.transform.position, entityObject.transform.position) > radius + 2)
-            {
+    //public void RangeCheck()
+    //{
+    //    foreach(GameObject entity in entitiesDetected)
+    //    {
+    //        if(V3Helper.Distance(entity.transform.position, entityObject.transform.position) > radius + 2)
+    //        {
                 
                 
-                entitiesDetected.Remove(entity);
-                MemberLosCheck(entity);
+    //            entitiesDetected.Remove(entity);
+    //            MemberLosCheck(entity);
 
 
-                return;
-            }
-        }
-    }
-    public void DeadCheck()
-    {
-        for(int i = 0; i < entitiesDetected.Count; i++)
-        {
-            var entity = entitiesDetected[i];
-            if(entity.GetComponent<EntityInfo>())
-            {
-                if(!entity.GetComponent<EntityInfo>().isAlive)
-                {
-                    entitiesDetected.RemoveAt(i);
-                    i--;
+    //            return;
+    //        }
+    //    }
+    //}
+    //public void DeadCheck()
+    //{
+    //    for(int i = 0; i < entitiesDetected.Count; i++)
+    //    {
+    //        var entity = entitiesDetected[i];
+    //        if(entity.GetComponent<EntityInfo>())
+    //        {
+    //            if(!entity.GetComponent<EntityInfo>().isAlive)
+    //            {
+    //                entitiesDetected.RemoveAt(i);
+    //                i--;
 
-                }
-            }
-        }
-    }
+    //            }
+    //        }
+    //    }
+    //}
     public void MemberLosCheck(GameObject target)
     {
         if(partyInfo == null)
@@ -358,33 +375,41 @@ public class LineOfSight : MonoBehaviour
 
     public List<EntityInfo> EntitiesLOS()
     {
-        var entityList = new List<EntityInfo>();
+        var entities = new List<EntityInfo>();
 
-
-        foreach (GameObject entity in entitiesDetected)
+        foreach (var entity in entitiesWithinLineOfSight)
         {
-            if(entity.GetComponent<EntityInfo>() &&
-                HasLineOfSight(entity))
-            {
-                entityList.Add(entity.GetComponent<EntityInfo>());
-            }
+            var info = entity.GetComponent<EntityInfo>();
+            if (info == null) continue;
+            entities.Add(info);
         }
 
-        return entityList;
+        return entities;
     }
 
     public List<EntityInfo> EntitiesWithinRange(float val)
     {
         var entityList = new List<EntityInfo>();
 
-        foreach(GameObject entity in entitiesDetected)
+        foreach (var entity in entitiesWithinLineOfSight)
         {
-            if(entity.GetComponent<EntityInfo>() &&
-                Vector3.Distance(entity.transform.position, entityObject.transform.position) <= val)
-            {
-                entityList.Add(entity.GetComponent<EntityInfo>());
-            }
+            var info = entity.GetComponent<EntityInfo>();
+            if (info == null) continue;
+
+            var distance = V3Helper.Distance(info.transform.position, entityInfo.transform.position);
+            if (distance > val) continue;
+            entityList.Add(info);
         }
+
+
+        //foreach(GameObject entity in entitiesDetected)
+        //{
+        //    if(entity.GetComponent<EntityInfo>() &&
+        //        Vector3.Distance(entity.transform.position, entityObject.transform.position) <= val)
+        //    {
+        //        entityList.Add(entity.GetComponent<EntityInfo>());
+        //    }
+        //}
 
         return entityList;
     }
@@ -393,14 +418,14 @@ public class LineOfSight : MonoBehaviour
     {
         var entityList = new List<EntityInfo>();
 
-        foreach(GameObject entity in entitiesDetected)
+        foreach (var entity in entitiesWithinLineOfSight)
         {
-            if (entity.GetComponent<EntityInfo>() &&
-                Vector3.Distance(entity.transform.position, entityObject.transform.position) <= range &&
-                HasLineOfSight(entity))
-            {
-                entityList.Add(entity.GetComponent<EntityInfo>());
-            }
+            var info = entity.GetComponent<EntityInfo>();
+            if (info == null) continue;
+            var distance = V3Helper.Distance(info.transform.position, entityInfo.transform.position);
+            if (distance > range) continue;
+
+            entityList.Add(info);
         }
 
         return entityList;

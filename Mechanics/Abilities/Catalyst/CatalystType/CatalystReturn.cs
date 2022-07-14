@@ -56,10 +56,13 @@ public class CatalystReturn : MonoBehaviour
 
     public void OnTickChange(CatalystInfo catalyst, int ticks)
     {
-        if(ticks == 0 && !hasReturned)
-        {
-            Return();
-        }
+        ArchAction.Yield(() => {
+            if (ticks == 0 && !hasReturned)
+            {
+                Return();
+            }
+        });
+        
     }
 
     public void Return()

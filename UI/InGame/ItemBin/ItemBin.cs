@@ -93,7 +93,7 @@ namespace Architome
                 {
                     if (itemDatas[i].item == null) continue;
 
-                    var itemInfoGameObject = module.CreateItem(itemDatas[i].item, itemDatas[i].amount, true);
+                    var itemInfoGameObject = module.CreateItem(itemDatas[i], true);
                     var newItemInfo = itemInfoGameObject.GetComponent<ItemInfo>();
                     newItemInfo.HandleNewSlot(slots[i]);
                     ArchAction.Yield(() => { newItemInfo.ReturnToSlot(); });

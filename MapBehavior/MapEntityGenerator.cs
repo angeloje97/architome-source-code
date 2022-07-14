@@ -17,6 +17,9 @@ public class MapEntityGenerator : MonoBehaviour
     public Transform pets;
     public Transform summons;
 
+    public int entitiesSpawned;
+    public int expectedEntities;
+    public int targetYield;
     //[Serializable] public class PatrolGroup
     //{
     //    public List<GameObject> entityMembers;
@@ -32,6 +35,9 @@ public class MapEntityGenerator : MonoBehaviour
 
     //Events
     public Action<MapEntityGenerator> OnEntitiesGenerated;
+    public Action<MapEntityGenerator, EntityInfo> OnGenerateEntity;
+
+
 
     void GetDependencies()
     {
@@ -65,7 +71,7 @@ public class MapEntityGenerator : MonoBehaviour
         {
             ArchAction.Delay(() => 
             {
-
+                expectedEntities = ExpectedEntities();
                 HandleEntities();
             }, 1f);
         }
@@ -73,6 +79,43 @@ public class MapEntityGenerator : MonoBehaviour
         {
             OnEntitiesGenerated?.Invoke(this);
         }
+    }
+
+    public int ExpectedEntities()
+    {
+        int count = 0;
+
+        foreach (var room in mapInfo.rooms)
+        {
+            var info = room.GetComponent<RoomInfo>();
+            var bossRoom = room.GetComponent<BossRoom>();
+            if (info == null) continue;
+
+            if (info.tier1EnemyPos)
+            {
+                count += info.tier1EnemyPos.childCount;
+            }
+
+            if (info.tier2EnemyPos)
+            {
+                count += info.tier2EnemyPos.childCount;
+            }
+
+            if (info.patrolGroups)
+            {
+                foreach (Transform child in info.patrolGroups)
+                {
+                    count += child.childCount;
+                }
+            }
+
+            if (bossRoom && bossRoom.bossPosition)
+            {
+                count += bossRoom.bossPosition.childCount;
+            }
+        }
+
+        return count;
     }
 
     async void HandleEntities()
@@ -96,7 +139,7 @@ public class MapEntityGenerator : MonoBehaviour
             {
                 foreach (GameObject room in mapInfo.rooms)
                 {
-                    var roomInfo = room.GetComponent<RoomInfo>() ? room.GetComponent<RoomInfo>() : null;
+                    var roomInfo = room.GetComponent<RoomInfo>();
                     if (roomInfo == null) { continue; }
 
                     var pool = roomInfo.pool;
@@ -105,32 +148,64 @@ public class MapEntityGenerator : MonoBehaviour
 
                     var tier1Entities = pool.tier1Entities;
                     var tier2Entities = pool.tier2Entities;
+                    var tier1Spawners = pool.tier1Spawners;
+                    var tier2Spawners = pool.tier2Spawners;
                     var patrolGroups = pool.patrolGroups;
 
+                    await SpawnRandomInPosition(tier1Entities, roomInfo.tier1EnemyPos);
+                    await SpawnRandomInPosition(tier2Entities, roomInfo.tier2EnemyPos);
+                    await SpawnRandomInPosition(tier1Spawners, roomInfo.tier1SpawnerPos);
+                    await SpawnRandomInPosition(tier2Spawners, roomInfo.tier2SpawnerPos);
 
-                    if (roomInfo.tier1EnemyPos && tier1Entities.Count > 0)
-                    {
-                        foreach (Transform trans in roomInfo.tier1EnemyPos)
-                        {
-                            SpawnEntity(tier1Entities[UnityEngine.Random.Range(0, tier1Entities.Count)], trans);
-                            await Task.Yield();
-                        }
 
-                        
-                    }
+                    //if (roomInfo.tier1EnemyPos && tier1Entities.Count > 0)
+                    //{
+                    //    foreach (Transform trans in roomInfo.tier1EnemyPos)
+                    //    {
+                    //        await SpawnEntity(tier1Entities[UnityEngine.Random.Range(0, tier1Entities.Count)], trans);
+                    //        //await Task.Yield();
+                    //    }
+                    //}
 
                 
-                    if (roomInfo.tier2EnemyPos && tier2Entities.Count > 0)
-                    {
-                        foreach (Transform trans in roomInfo.tier2EnemyPos)
-                        {
-                            SpawnEntity(tier2Entities[0], trans);
-                            await Task.Yield();
-                        }
+                    //if (roomInfo.tier2EnemyPos && tier2Entities.Count > 0)
+                    //{
+                    //    foreach (Transform trans in roomInfo.tier2EnemyPos)
+                    //    {
+                    //        await SpawnEntity (tier2Entities[0], trans);
+                    //        //await Task.Yield();
+                    //    }
 
                         
-                    }
+                    //}
 
+                    //if (roomInfo.tier1SpawnerPos)
+                    //{
+                    //    if (tier1Spawners != null && tier1Spawners.Count > 0)
+                    //    {
+                    //        foreach (Transform trans in roomInfo.tier1SpawnerPos)
+                    //        {
+                    //            var randomSpawner = ArchGeneric.RandomItem(tier1Spawners);
+
+                    //            await SpawnEntity(randomSpawner, trans);
+                    //        }
+                    //    }
+                    //}
+                    
+                    
+                    
+                    //if (roomInfo.tier2SpawnerPos)
+                    //{
+                    //    if (tier2Spawners != null && tier2Spawners.Count > 0)
+                    //    {
+                    //        foreach (Transform trans in roomInfo.tier2SpawnerPos)
+                    //        {
+                    //            var randomSpawner = ArchGeneric.RandomItem(tier2Spawners);
+
+                    //            await SpawnEntity(randomSpawner, trans);
+                    //        }
+                    //    }
+                    //}
                 
 
                     if (roomInfo.patrolGroups != null &&
@@ -156,10 +231,7 @@ public class MapEntityGenerator : MonoBehaviour
                         }
                     }
 
-                    if (HandleBossRoom(roomInfo))
-                    {
-                        await Task.Yield();
-                    }
+                    await HandleBossRoom(roomInfo);
 
                     //if (roomInfo.GetType() == typeof(BossRoom))
                     //{
@@ -187,7 +259,22 @@ public class MapEntityGenerator : MonoBehaviour
         
     }
 
-    bool HandleBossRoom(RoomInfo room)
+
+    async Task SpawnRandomInPosition(List<GameObject> randomEntities, Transform parent)
+    {
+        if (randomEntities == null) return;
+        if (randomEntities.Count == 0) return;
+        if (parent == null) return;
+
+        foreach (Transform trans in parent)
+        {
+            var pickedEntity = ArchGeneric.RandomItem(randomEntities);
+
+            await SpawnEntity(pickedEntity, trans);
+        }
+    }
+
+    async Task<bool> HandleBossRoom(RoomInfo room)
     {
         if (room.GetType() != typeof(BossRoom)) return false;
         var bossRoom = (BossRoom)room;
@@ -211,22 +298,24 @@ public class MapEntityGenerator : MonoBehaviour
 
 
 
-        var entity = SpawnEntity(boss, bossPosition);
+        var entity = await SpawnEntity(boss, bossPosition);
 
 
         return true;
     }
 
 
-    void SpawnPatrolEntity(GameObject entity, Transform spot)
+    async void SpawnPatrolEntity(GameObject entity, Transform spot)
     {
-        var newEntity = SpawnEntity(entity, spot);
+        var newEntity = await SpawnEntity(entity, spot);
         newEntity.GetComponentInChildren<NoCombatBehavior>().patrolSpot = spot;
     }
 
-    EntityInfo SpawnEntity(GameObject entity, Transform spot)
+    async Task<EntityInfo> SpawnEntity(GameObject entity, Transform spot)
     {
         //var normalRotation = new Quaternion();
+        
+        
         var roomInfo = spot.GetComponentInParent<RoomInfo>();
 
         var newEntity = world.SpawnEntity(entity, spot.position).GetComponent<EntityInfo>();
@@ -238,6 +327,18 @@ public class MapEntityGenerator : MonoBehaviour
 
         HandleDungeonLevels();
 
+        entitiesSpawned++;
+
+        if (targetYield == 0)
+        {
+            await Task.Yield();
+        }
+        else if(entitiesSpawned % targetYield == 0)
+        {
+            await Task.Yield();
+        }
+
+        OnGenerateEntity?.Invoke(this, newEntity);
         return newEntity;
 
         void HandleDungeonLevels()

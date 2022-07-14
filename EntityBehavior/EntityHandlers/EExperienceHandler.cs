@@ -95,7 +95,15 @@ namespace Architome
 
         public void OnDamageDone(CombatEventData eventData)
         {
+            if (!IsValidtarget()) return;
+
             GainExp(eventData.value * .25f);
+
+            bool IsValidtarget()
+            {
+                if (eventData.target.summon.isSummoned) return false;
+                return true;
+            }
         }
 
         public void OnHealingDone(CombatEventData eventData)

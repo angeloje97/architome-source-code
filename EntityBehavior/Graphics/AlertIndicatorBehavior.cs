@@ -46,8 +46,11 @@ namespace Architome
             if (entityInfo != null)
             {
                 combatInfo = entityInfo.GetComponentInChildren<CombatInfo>();
+            }
+
+            if (combatInfo)
+            {
                 combatInfo.OnTargetedByEvent += OnTargetedByEvent;
-                return;
             }
         }
 

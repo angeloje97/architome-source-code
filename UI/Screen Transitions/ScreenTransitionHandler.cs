@@ -14,6 +14,7 @@ namespace Architome
         {
             public Transition activeTransition;
             public List<Transition> transitions;
+            public CanvasGroup canvasGroup;
         }
 
         public Info info;
@@ -38,10 +39,18 @@ namespace Architome
 
         public ArchSceneManager sceneManager;
 
-        
+        [SerializeField] bool waitForMapGeneration;
+
         public void OnValidate()
         {
             transitions = GetComponentsInChildren<Transition>().ToList();
+            info.canvasGroup = GetComponent<CanvasGroup>();
+
+
+            if (info.canvasGroup)
+            {
+                ArchUI.SetCanvas(info.canvasGroup, false);
+            }
         }
 
         public void SetActiveTransition(Transition trans)
@@ -56,6 +65,7 @@ namespace Architome
 
         void Start()
         {
+            ArchUI.SetCanvas(info.canvasGroup, true);
             sceneManager = ArchSceneManager.active;
             var gameManager = GameManager.active;
             if (sceneManager)
@@ -68,31 +78,66 @@ namespace Architome
                     sceneManager.OnLoadScene += OnLoadScene;
                 }
             }
+
+
+
+            HandleMapRoomGenerator();
         }
 
+        void HandleMapRoomGenerator()
+        {
+            if (!waitForMapGeneration)
+            {
+                TransitionOut();
+                return;
+            }
+
+            var mapRoomGenerator = MapRoomGenerator.active;
+            var mapInfo = MapInfo.active;
+            if (mapRoomGenerator == null)
+            {
+                TransitionOut();
+                return;
+            }
+            
+
+            info.activeTransition.SetActive(false);
+            mapRoomGenerator.OnAllRoomsHidden += OnAllRoomsHidden;
+
+        }
+
+        void OnAllRoomsHidden(MapRoomGenerator roomGenerator)
+        {
+            TransitionOut();
+        }
         public void TasksBeforeLoadScene(ArchSceneManager archSceneManager)
         {
             var tasks = archSceneManager.tasksBeforeLoad;
             var activeTransition = info.activeTransition;
             if (activeTransition == null) return;
 
-            
 
             tasks.Add(activeTransition.SceneTransitionIn());
-            activeTransition.transform.SetAsLastSibling();
 
             transform.SetAsLastSibling();
         }
 
-
-        public async void OnLoadScene(ArchSceneManager sceneManager)
+        async void TransitionOut()
         {
             var activeTransition = info.activeTransition;
             if (activeTransition == null) return;
 
-            await activeTransition.SceneTransitionOut();
             transform.SetAsLastSibling();
-            activeTransition.transform.SetAsLastSibling();
+            await activeTransition.SceneTransitionOut();
+        }
+
+        public void OnLoadScene(ArchSceneManager sceneManager)
+        {
+
+            ArchAction.Delay(() => {
+                if (this == null) return;
+                HandleMapRoomGenerator();
+            }, 2f);
         }
 
         void Update()

@@ -109,13 +109,19 @@ namespace Architome
             SetPermits();
             entityInfo = behavior.GetComponentInParent<EntityInfo>();
 
-            entityInfo.OnLifeChange += OnLifeChange;
-            entityInfo.OnChangeNPCType += OnChangeNPCType;
-            entityInfo.OnDamageTaken += OnDamageTaken;
-            
-            if(entityInfo.Movement())
+
+            if (entityInfo != null)
             {
+                entityInfo.OnLifeChange += OnLifeChange;
+                entityInfo.OnChangeNPCType += OnChangeNPCType;
+                entityInfo.OnDamageTaken += OnDamageTaken;
+
                 movement = entityInfo.Movement();
+                abilityManager = entityInfo.AbilityManager();
+            }
+            
+            if(movement)
+            {
                 movement.OnStartMove += OnStartMove;
                 movement.OnEndMove += OnEndMove;
                 movement.OnTryMove += OnTryMove;
@@ -126,7 +132,7 @@ namespace Architome
                         stateMachine.TransitionAnyState(BehaviorState.Inactive);
                         return;
                     }
-                    if (movement.isMoving)
+                    if (IsMoving)
                     {
                         stateMachine.TransitionAnyState(BehaviorState.Moving);
                     }
@@ -138,9 +144,8 @@ namespace Architome
                 
             }
 
-            if(entityInfo.AbilityManager())
+            if(abilityManager)
             {
-                abilityManager = entityInfo.AbilityManager();
                 abilityManager.OnWantsToCastChange += OnWantsToCastChange;
                 abilityManager.OnAbilityStart += OnAbilityStart;
                 abilityManager.OnAbilityEnd += OnAbilityEnd;
@@ -256,7 +261,7 @@ namespace Architome
             if (behavior.behaviorState == BehaviorState.Fleeing)
             {
 
-                if (movement.isMoving)
+                if (IsMoving)
                 {
                     stateMachine.TransitionAnyState(BehaviorState.Moving);
                 }
@@ -273,13 +278,15 @@ namespace Architome
             var source = eventData.source;
 
             if(source == null) { return; }
-            if(movement.isMoving) { return; }
+            if(IsMoving) { return; }
 
-            if (abilityManager.attackAbility.AbilityIsInRange(source.gameObject))
+            if (AttackAbilityIsInRange(source.gameObject))
             {
                 stateMachine.Transition(Transition.OnDamageTaken, BehaviorState.Idle);
             }
         }
+
+        
         public void OnEndMove(Movement movement)
         {
             stateMachine.Transition(Transition.OnEndMove, BehaviorState.Idle);
@@ -287,7 +294,7 @@ namespace Architome
         }
         public void OnChangeNPCType(NPCType before, NPCType after)
         {
-            if(movement.isMoving)
+            if(IsMoving)
             {
                 stateMachine.Transition(Transition.OnStateChange, BehaviorState.Moving);
             }
@@ -317,7 +324,7 @@ namespace Architome
             {
                 if(!ability.isCasting)
                 {
-                    if(movement.isMoving)
+                    if(IsMoving)
                     {
                         stateMachine.Transition(Transition.OnCastEnd, BehaviorState.Moving);
                     }
@@ -355,7 +362,7 @@ namespace Architome
 
         public void OnAbilityEnd(AbilityInfo ability)
         {
-            if (!movement.isMoving)
+            if (!IsMoving)
             {
                 stateMachine.Transition(Transition.OnCastEnd, BehaviorState.Idle);
             }
@@ -368,6 +375,27 @@ namespace Architome
         public void OnLifeChange(bool isAlive)
         {
             stateMachine.TransitionAnyState(isAlive ? BehaviorState.Idle : BehaviorState.Inactive);
+        }
+
+        public bool IsMoving
+        {
+            get
+            {
+                if (movement == null) return false;
+                if (!movement.isMoving) return false;
+                return true;
+            }
+        }
+
+        public bool AttackAbilityIsInRange(GameObject source)
+        {
+            if (abilityManager == null) return false;
+
+            var attackAbility = abilityManager.attackAbility;
+            if (!attackAbility) return false;
+
+            if (!attackAbility.AbilityIsInRange(source)) return false;
+            return true;
         }
     }
 

@@ -28,7 +28,7 @@ namespace Architome
         {
             var result = "";
 
-            result += $"Every {ArchString.FloatToSimple(buffInfo.properties.intervals)} seconds, increase the threat of all enemies within a {buffInfo.properties.radius} meter radius by {ArchString.FloatToSimple(value)} threat value\n";
+            result += $"Every {ArchString.FloatToSimple(buffInfo.properties.intervals)} seconds, increase the threat of all enemies within a {buffInfo.properties.radius} meter radius by {ArchString.FloatToSimple(value)} threat value.\n";
 
             return result;
         }
@@ -49,8 +49,8 @@ namespace Architome
             foreach (var entity in entities)
             {
                 var info = entity.GetComponent<EntityInfo>();
-
                 if (!info) continue;
+                if (!buff.hostInfo.CanAttack(info.gameObject)) continue;
 
                 if (requiresLOS)
                 {

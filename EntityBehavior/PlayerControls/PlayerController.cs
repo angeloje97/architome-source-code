@@ -153,9 +153,27 @@ public class PlayerController : MonoBehaviour
             }
             if(abilityManager)
             {
-                var location = Mouse.CurrentPositionLayer(entityInfo.walkableLayer);
-                var heightFromGround = V3Helper.HeightFromGround(entityObject.transform.position, GMHelper.LayerMasks().walkableLayer);
-                location.y += heightFromGround;
+                var layer = GMHelper.LayerMasks().walkableLayer;
+                var location = Mouse.CurrentPositionLayer(layer);
+
+                Debugger.Combat(1040, $"Original Location: {location}");
+
+                var heightFromGround = V3Helper.HeightFromGround(entityObject.transform.position, layer);
+
+                Debugger.Combat(1041, $"Height from ground: {heightFromGround}");
+
+                if (location == new Vector3(0, 0, 0))
+                {
+                    location = Mouse.RelativePosition(entityInfo.transform.position);
+                    Debugger.Combat(1041, $"Relative Location: {location}");
+                    location.y = entityInfo.transform.position.y;
+                }
+                else
+                {
+                    location.y += heightFromGround;
+
+                }
+
 
                 abilityManager.location = location;
             }

@@ -44,6 +44,11 @@ namespace Architome
         {
 
         }
+
+        private void Start()
+        {
+            transform.SetAsLastSibling();
+        }
         // Update is called once per frame
         void Update()
         {

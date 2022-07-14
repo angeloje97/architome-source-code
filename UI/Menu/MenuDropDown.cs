@@ -20,7 +20,7 @@ namespace Architome
 
             if (PromptHandler.active)
             {
-                int choice = await PromptHandler.active.GeneralPrompt(new() 
+                var choice = await PromptHandler.active.GeneralPrompt(new() 
                 {
                     title = "Quit Game",
                     question = "Are you sure you want to quit?",
@@ -29,7 +29,7 @@ namespace Architome
                     blocksScreen = true,
                 });
 
-                if (choice == 0)
+                if (choice.optionPicked == 0)
                 {
                     Application.Quit();
                 }

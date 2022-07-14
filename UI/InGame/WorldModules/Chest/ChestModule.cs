@@ -86,7 +86,7 @@ namespace Architome
 
                 if (slot == null) return;
 
-                var newItem = module.CreateItem(itemData.item, itemData.amount, true).GetComponent<ItemInfo>();
+                var newItem = module.CreateItem(itemData, true);
 
                 newItem.HandleNewSlot(slot);
 

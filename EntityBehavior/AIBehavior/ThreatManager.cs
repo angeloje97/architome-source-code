@@ -398,6 +398,7 @@ public class ThreatManager : MonoBehaviour
     public void IncreaseThreat(GameObject source, float value,  bool fromAlert = false)
     {
         if (!entityInfo.isAlive) return;
+        if (!entityInfo.CanAttack(source)) return;
         if(entityInfo.gameObject == source) { return; }
         if (entityInfo.npcType == source.GetComponent<EntityInfo>().npcType) return;
 

@@ -8,7 +8,7 @@ namespace Architome
     {
         // Start is called before the first frame update
 
-        public float shieldAmount;
+        public float shieldAmount { get { return value; } private set { this.value = value; } }
         public bool applied;
         new void GetDependencies()
         {
@@ -82,8 +82,10 @@ namespace Architome
             buffInfo.hostInfo.UpdateShield();
         }
 
-        public float DamageShield(float value)
+        public virtual float DamageShield(CombatEventData eventData)
         {
+            var value = eventData.value;
+            
             var nextValue = shieldAmount > value ? 0 : value - shieldAmount;
 
             if (value > shieldAmount)
@@ -104,6 +106,8 @@ namespace Architome
             }
 
             buffInfo.hostInfo.UpdateShield();
+
+            eventData.value = nextValue;
 
             return nextValue;
         }

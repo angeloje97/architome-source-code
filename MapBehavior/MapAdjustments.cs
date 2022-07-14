@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,12 +9,13 @@ namespace Architome
 {
     public class MapAdjustments : MonoBehaviour
     {
-        // Start is called before the first frame update
+        public static MapAdjustments active;
 
         public Transform background;
         public MapInfo mapInfo;
         public MapEntityGenerator entityGenerator;
 
+        public Action<MapAdjustments, float> WhileLoading { get; set; }
         void GetDependencies()
         {
             entityGenerator = MapEntityGenerator.active;
@@ -26,6 +28,11 @@ namespace Architome
         void Start()
         {
             GetDependencies();
+        }
+
+        private void Awake()
+        {
+            active = this;
         }
 
         // Update is called once per frame
@@ -52,6 +59,7 @@ namespace Architome
             foreach (var progress in AstarPath.active.ScanAsync())
             {
                 await Task.Yield();
+                WhileLoading?.Invoke(this, progress.progress);
                 timer += Time.deltaTime;
             }
 

@@ -79,12 +79,12 @@ public class AbilityInfo : MonoBehaviour
     {
         public float strength, wisdom, dexterity = 1f;
     }
-
     public void OnValidate()
     {
-        coreContribution.strength = strengthContribution;
-        coreContribution.wisdom = wisdomContribution;
-        coreContribution.dexterity = dexterityContribution;
+        //coreContribution.strength = strengthContribution;
+        //coreContribution.wisdom = wisdomContribution;
+        //coreContribution.dexterity = dexterityContribution;
+
 
 
         //foreach (var buff in buffs)
@@ -99,12 +99,13 @@ public class AbilityInfo : MonoBehaviour
 
     }
 
+
     public StatsContribution coreContribution;
 
     [Header("Stats Contribution")]
-    public float strengthContribution = 1f;
-    public float wisdomContribution = 1f;
-    public float dexterityContribution = 1f;
+    //public float strengthContribution = 1f;
+    //public float wisdomContribution = 1f;
+    //public float dexterityContribution = 1f;
 
 
 
@@ -459,8 +460,12 @@ public class AbilityInfo : MonoBehaviour
                 properties += "Deals damage ";
             }
 
-
             properties += "equal to ";
+
+            if (entityInfo)
+            {
+                properties += $"{value} value. ";
+            }
 
             var listString = new List<string>();
 
@@ -479,7 +484,9 @@ public class AbilityInfo : MonoBehaviour
                 listString.Add($"{ArchString.FloatToSimple(coreContribution.wisdom*100)}% Wisdom");
             }
 
-            properties += $"{ArchString.StringList(listString)}.\n";
+            
+
+            properties += $"({ArchString.StringList(listString)}).\n";
         }
 
         if (splash.enable)
@@ -499,21 +506,21 @@ public class AbilityInfo : MonoBehaviour
                 properties += $"Does splash healing to allies ";
             }
 
-            properties += $"when hitting the main target in a {splash.radius} meter radius equal to " +
+            properties += $"({ArchString.CamelToTitle(splash.trigger.ToString())}) in a {splash.radius} meter radius equal to " +
                 $"{ArchString.FloatToSimple(splash.valueContribution * 100)}% value of the ability's original value.\n";
         }
 
 
         if (bounce.enable)
         {
-            properties += $"Bounces targets that are {bounce.radius} meters between each other.\n";
+            properties += $"Bounces between targets that are {bounce.radius} meters between each other.\n";
         }
 
 
         if (cataling.enable)
         {
             properties += $"Releases {cataling.releasePerInterval} cataling(s) {ArchString.CamelToTitle(cataling.releaseCondition.ToString())} every {cataling.interval}";
-
+            properties += $" for {(int) (cataling.valueContribution * 100)}% of its original value";
             if (cataling.catalingType == AbilityType.LockOn)
             {
                 properties += $", finds targets in a {cataling.targetFinderRadius} meter radius";
@@ -694,7 +701,7 @@ public class AbilityInfo : MonoBehaviour
 
             if (assistBuffs.Count > 0)
             {
-                buffDescription += $"Applies buff(s): \n";
+                buffDescription += $"Applies buff(s): ";
 
                 var list = new List<string>();
 
@@ -709,7 +716,7 @@ public class AbilityInfo : MonoBehaviour
 
             if (harmBuffs.Count > 0)
             {
-                buffDescription += $"Applies debuff(s) to enemies: \n";
+                buffDescription += $"Applies debuff(s) to enemies: ";
 
                 var list = new List<string>();
 
@@ -723,7 +730,7 @@ public class AbilityInfo : MonoBehaviour
 
             if (selfBuffs.Count > 0)
             {
-                buffDescription += $"Applies buff(s) to self: \n";
+                buffDescription += $"Applies buff(s) to self: ";
 
                 var list = new List<string>();
 
@@ -743,16 +750,30 @@ public class AbilityInfo : MonoBehaviour
     public string BuffDescriptions()
     {
         var buffDescription = "";
-
+        var entityExists = entityInfo != null;
         foreach (var buff in buffs)
         {
             var info = buff.GetComponent<BuffInfo>();
 
             if (info == null) continue;
 
-            var name = info.name + $"({info.properties.time}s)";
+            var time = info.properties.time > 0 ? $"({info.properties.time}s)" : "";
 
-            var generalDescription = info.TypesDescriptionGeneral();
+            var name = info.name + time;
+
+            var generalDescription = "";
+            
+
+            if (!entityExists)
+            {
+                generalDescription += info.TypesDescriptionGeneral();
+            }
+            else
+            {
+                generalDescription += info.TypeDescriptionFace(value);
+            }
+
+            generalDescription += $"{info.PropertiesDescription()}";
 
             if (generalDescription.Length == 0) continue;
 
@@ -764,15 +785,15 @@ public class AbilityInfo : MonoBehaviour
 
     public ToolTipData ToolTipData(bool showResources = true)
     {
+        var propertiesDescription = PropertiesDescription();
+        var buffDescriptions = BuffDescriptions();
 
-        var attributes = ArchString.NextLineList(new()
+        if (propertiesDescription.Length > 0 && buffDescriptions.Length > 0)
         {
-            PropertiesDescription(),
-            BuffList(),
-            BuffDescriptions()
-        });
+            propertiesDescription += "\n";
+        }
 
-        
+        var attributes = propertiesDescription + buffDescriptions;
 
         var value = showResources ? ResourceDescription() : "";
 
@@ -1100,7 +1121,6 @@ public class AbilityInfo : MonoBehaviour
 
         return false;
     }
-
     public bool AbilityIsInRange(GameObject target)
     {
         if (catalystInfo == null) return false;
@@ -1510,13 +1530,12 @@ public class AbilityInfo : MonoBehaviour
 
         }
     }
-
     float AbilityValue()
     {
         var value = baseValue
-                        + entityInfo.stats.Wisdom * wisdomContribution
-                        + entityInfo.stats.Strength * strengthContribution
-                        + entityInfo.stats.Dexterity * dexterityContribution;
+                        + entityInfo.stats.Wisdom * coreContribution.wisdom
+                        + entityInfo.stats.Strength * coreContribution.strength
+                        + entityInfo.stats.Dexterity * coreContribution.dexterity;
 
         return value;
     }

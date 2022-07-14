@@ -63,10 +63,10 @@ public class AIBehavior : MonoBehaviour
                 combatType = CombatBehaviorType.Aggressive;
             }
 
-            if (entityInfo.summon.isSummoned)
-            {
-                CreateBehavior<ArchSummonAgent>("Summon Behavior");
-            }
+            //if (entityInfo.summon.isSummoned)
+            //{
+            //    CreateBehavior<ArchSummonAgent>("Summon Behavior");
+            //}
         }
 
         StartCoroutine(DependenciesLate());

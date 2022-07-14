@@ -46,14 +46,17 @@ namespace Architome
 
         public void OnCatalystDestroy(CatalystDeathCondition deathCondition)
         {
-            destroyCatalyst = true;
-            isActive = false;
+            ArchAction.Delay(() => {
+                destroyCatalyst = true;
+                isActive = false;
 
-            StopLoops();
-            transform.SetParent(CatalystManager.active.transform);
+                StopLoops();
+                transform.SetParent(CatalystManager.active.transform);
 
-            catalystInfo.OnCatalystDestroy -= OnCatalystDestroy;
-            HandleDestroy();
+                catalystInfo.OnCatalystDestroy -= OnCatalystDestroy;
+                HandleDestroy();
+            
+            }, .25f);
         }
 
         public void StopLoops()

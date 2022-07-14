@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Architome.Enums;
 
 namespace Architome
 {
@@ -35,6 +36,37 @@ namespace Architome
         public CombatEventData(EntityInfo source)
         {
             this.source = source;
+        }
+
+        public DamageType DataDamageType()
+        {
+            if (buff)
+            {
+                return buff.damageType;
+            }
+
+            if (catalyst)
+            {
+                return catalyst.damageType;
+            }
+
+            return DamageType.True;
+        }
+        public AbilityInfo SourceAbility()
+        {
+            if (ability) return ability;
+
+            if (buff && buff.sourceAbility)
+            {
+                return buff.sourceAbility;
+            }
+
+            if (catalyst && catalyst.abilityInfo)
+            {
+                return catalyst.abilityInfo;
+            }
+
+            return null;
         }
 
     }

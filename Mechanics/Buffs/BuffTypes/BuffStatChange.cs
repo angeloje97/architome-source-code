@@ -65,7 +65,7 @@ namespace Architome
 
             if (attributes.Count == 0) return result;
 
-            result += $"Stats provided from buff :\n";
+            result += $"Stats changed:\n";
 
             var percentageFields = Stats.PercentageFields;
 

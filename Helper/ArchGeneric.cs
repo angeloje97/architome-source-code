@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using Architome.Enums;
 
 
 namespace Architome
@@ -36,6 +37,30 @@ namespace Architome
             var randomIndex = UnityEngine.Random.Range(0, items.Count);
 
             return items[randomIndex];
+        }
+
+
+        public static void DestroyOnLoad(GameObject gameObject)
+        {
+            var tempObject = new GameObject("Destroy on Load");
+            gameObject.transform.SetParent(tempObject.transform);
+            gameObject.transform.SetParent(null);
+            UnityEngine.Object.Destroy(tempObject);
+        }
+
+        public static string StateDescription(EntityState state)
+        {
+            var stateDescription = new Dictionary<EntityState, string>() {
+                { EntityState.Stunned, "Renders a unit from being able to cast, move, or attack." },
+                { EntityState.Immobalized, "Renders a unit from being able to move." },
+                { EntityState.Silenced, "Renders a unit from being able to cast." },
+                { EntityState.Taunted, "Forces a unit to attack the unit that taunted them." },
+                { EntityState.MindControlled, "The unit controlled by another." },
+            };
+
+
+
+            return stateDescription[state];
         }
     }
 

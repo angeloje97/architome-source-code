@@ -44,7 +44,6 @@ public class InventoryManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        HandleUpdateTriggers();
     }
 
     public void OnNewPlayableEntity(EntityInfo entity, int index)
@@ -67,25 +66,8 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
-
-
     
 
-    void HandleUpdateTriggers()
-    {
-        //HandleEntityCountTrigger();
-        
-
-        //void HandleEntityCountTrigger()
-        //{
-        //    if(entityCount != playableEntities.Count)
-        //    {
-        //        entityCount = playableEntities.Count;
-        //        UpdatePortraits();
-        //        UpdateInventories();
-        //    }
-        //}
-    }
     void UpdatePortraits()
     {
         for (int i = 0; i < playableEntities.Count; i++)

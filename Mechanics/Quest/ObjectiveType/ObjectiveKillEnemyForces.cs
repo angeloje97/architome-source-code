@@ -44,6 +44,7 @@ namespace Architome
             entity.entityDescription = ArchString.NextLine(entity.entityDescription);
 
             totalHealthPool += entity.maxHealth;
+            Debugger.Environment(2951, $"{entity.entityName} contributed {entity.maxHealth} to a total of {totalHealthPool}");
 
             //UpdateSlainPercentPrompt();
         }
@@ -56,25 +57,26 @@ namespace Architome
 
             foreach (var entity in entities)
             {
-                entity.infoEvents.OnUpdateObjectives += OnUpdateObjectives;
+                entity.infoEvents.OnUpdateObjectives += OnEntityObjectiveCheck;
             }
 
             questInfo.rewards.experience += totalHealthPool * .25f;
+
+            requirement = (object o) => currentPercent > percentageNeeded;
+
             UpdateSlainPercentPrompt();
 
 
         }
 
-        public void UpdateSlainPercentPrompt(bool completed = false)
+        public void UpdateSlainPercentPrompt()
         {
-            if(completed)
+            var progress = currentPercent / percentageNeeded;
+            if (progress > 1)
             {
-
-                prompt = $"Enemy forces slain: (100%)";
-                return;
+                progress = 1;
             }
-
-            prompt = $"Enemy forces slain: ({Mathg.Round((currentPercent/percentageNeeded)*100, 2)}%)";
+            prompt = $"Enemy forces slain: ({Mathg.Round(progress*100, 2)}%)";
 
             UpdateCurrentEntities();
 
@@ -97,7 +99,7 @@ namespace Architome
             }
         }
 
-        public void OnUpdateObjectives(List<string> objectives)
+        public void OnEntityObjectiveCheck(List<string> objectives)
         {
             if (questInfo == null) GetDependencies(); 
             var prompt = $"{questInfo.questName}\n";
@@ -126,7 +128,7 @@ namespace Architome
                 {
                     remove = true;
                     ArchAction.Yield(() => {
-                        entity.infoEvents.OnUpdateObjectives -= OnUpdateObjectives;
+                        entity.infoEvents.OnUpdateObjectives -= OnEntityObjectiveCheck;
                     });
                 }
 
@@ -142,12 +144,6 @@ namespace Architome
             currentPercent = currentHealthSlain / totalHealthPool;
 
             UpdateSlainPercentPrompt();
-            if(currentPercent >= percentageNeeded)
-            {
-                UpdateSlainPercentPrompt(true);
-                CompleteObjective();
-            }
-
             HandleObjectiveChange();
         }
 

@@ -464,11 +464,11 @@ namespace Architome
                 GetComponent<CatalystBounce>().LookForNewTarget();
             }
         }
-        public List<GameObject> EntitiesWithinRadius(float radius = 0f)
+        public List<EntityInfo> EntitiesWithinRadius(float radius = 0f, bool requiresLineOfSight = true)
         {
             if (radius == 0) radius = range;
 
-            List<GameObject> entities = new List<GameObject>();
+            var entities = new List<EntityInfo>();
 
             var entitiesCasted = Physics.OverlapSphere(transform.position, radius, entityLayer)
                                             .OrderBy(entity => V3Helper.Distance(entity.transform.position, transform.position));
@@ -478,43 +478,43 @@ namespace Architome
                 var info = entity.GetComponent<EntityInfo>();
                 if (info == null) continue;
 
-                if (abilityInfo.requiresLineOfSight)
+                if (requiresLineOfSight)
                 {
                     var direction = V3Helper.Direction(entity.transform.position, transform.position);
                     var distance = V3Helper.Distance(entity.transform.position, transform.position);
                     if (Physics.Raycast(transform.position, direction, distance, structureLayer)) continue;
                 }
 
-                entities.Add(entity.gameObject);
+                entities.Add(info);
 
             }
 
             return entities;
         }
-        public List<GameObject> AlliesWithinRange()
+        public List<EntityInfo> AlliesWithinRange(float radius = 0f, bool requiresLineOfSight = true)
         {
-            var allies = new List<GameObject>();
+            var allies = new List<EntityInfo>();
 
-            foreach (GameObject ally in EntitiesWithinRadius())
+            foreach (var entity in EntitiesWithinRadius(radius, requiresLineOfSight))
             {
-                if (abilityInfo.entityInfo.CanHelp(ally))
+                if (abilityInfo.entityInfo.CanHelp(entity.gameObject))
                 {
-                    allies.Add(ally);
+                    allies.Add(entity);
                 }
             }
 
             return allies;
         }
-        public List<GameObject> EnemiesWithinRange()
+        public List<EntityInfo> EnemiesWithinRange(float radius = 0f, bool requiresLineOfSight = true)
         {
-            var enemies = new List<GameObject>();
+            var enemies = new List<EntityInfo>();
+            var catalystHit = GetComponent<CatalystHit>();
+            if (catalystHit == null) return enemies;
 
-            foreach (var i in EntitiesWithinRadius())
+            foreach (var i in EntitiesWithinRadius(radius, requiresLineOfSight))
             {
-                if (abilityInfo.entityInfo.CanAttack(i))
-                {
-                    enemies.Add(i);
-                }
+                if (!abilityInfo.entityInfo.CanAttack(i.gameObject)) continue;
+                enemies.Add(i);
             }
 
             return enemies;
@@ -557,6 +557,12 @@ namespace Architome
         public void ReduceTicks()
         {
             ticks--;
+            OnTickChange?.Invoke(this, ticks);
+        }
+
+        public void DepleteTicks()
+        {
+            ticks = 0;
             OnTickChange?.Invoke(this, ticks);
         }
         public void IncreaseTicks(bool triggerEvent = true)

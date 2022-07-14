@@ -34,7 +34,7 @@ namespace Architome
         void Start()
         {
             GetDependencies();
-            CheckBadSpawn();
+            //CheckBadSpawn();
         }
 
 

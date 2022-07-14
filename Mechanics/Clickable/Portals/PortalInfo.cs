@@ -14,13 +14,16 @@ namespace Architome
         public bool entryPortal;
 
         public List<PortalInfo> portalList;
-        public List<GameObject> entitiesInPortal = new();
+        public List<EntityInfo> entitiesInPortal = new();
         public Transform portalSpot;
         public Transform exitSpot;
         public Clickable clickable;
         public int partyCount;
         public int portalNum;
         public string setScene;
+
+
+        public static PortalInfo EntryPortal { get; set; }
 
         [Serializable]
         public struct Info
@@ -90,7 +93,12 @@ namespace Architome
         private void Awake()
         {
             if (portals == null) portals = new();
-            portals.Add(this);
+            if (entryPortal)
+            {
+                EntryPortal = this;
+            }
+            
+
         }
         private void OnValidate()
         {
@@ -125,18 +133,34 @@ namespace Architome
 
         public void IncreaseDungeonIndex()
         {
-            if (Core.currentDungeon == null) return;
-            if (Core.currentDungeon.Count == 0) return;
+            var setScene = "PostDungeonResults";
 
-            Core.dungeonIndex++;
+            HandleDungeonLevels();
 
-            if (Core.dungeonIndex < 0 || Core.dungeonIndex >= Core.currentDungeon.Count)
+            this.setScene = setScene;
+
+            //if (Core.currentDungeon == null) return;
+            //if (Core.currentDungeon.Count == 0) return;
+
+            //Core.dungeonIndex++;
+
+            //if (Core.dungeonIndex < 0 || Core.dungeonIndex >= Core.currentDungeon.Count)
+            //{
+            //    setScene = "PostDungeonResults";
+            //    return;
+            //}
+
+            //setScene = "Map Template Continue";
+
+            void HandleDungeonLevels()
             {
-                setScene = "PostDungeonResults";
-                return;
-            }
+                if (Core.currentDungeon == null) return;
+                if (Core.currentDungeon.Count == 0) return;
 
-            setScene = "Map Template Continue";
+                Core.dungeonIndex++;
+                if (Core.dungeonIndex >= Core.currentDungeon.Count) return;
+                setScene = "Map Template Continue";
+            }
         }
 
         public void TeleportToScene(string sceneName)
@@ -201,7 +225,9 @@ namespace Architome
     {
         public Action<PortalInfo, GameObject> OnPortalEnter;
         public Action<PortalInfo, GameObject> OnPortalExit;
-        public Action<PortalInfo, List<GameObject>> OnAllPartyMembersInPortal;
+        public Action<PortalInfo, EntityInfo> OnPlayerEnter;
+        public Action<PortalInfo, EntityInfo> OnPlayerExit;
+        public Action<PortalInfo, List<EntityInfo>> OnAllPartyMembersInPortal;
 
         public Action<PortalInfo, GameObject> OnHostilesStillInRoom;
 

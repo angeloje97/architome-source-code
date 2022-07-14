@@ -354,7 +354,7 @@ namespace Architome
         {
             if (targetSelf)
             {
-                MoveTo(entityObject.transform);
+                MoveTo(entityObject.transform, float.PositiveInfinity);
             }
 
             path.endReachedDistance = float.PositiveInfinity;

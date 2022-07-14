@@ -82,8 +82,13 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
 
         if (previousItemInfo != currentItemInfo)
         {
+            //if (currentItemInfo)
+            //{
+            //    item = currentItemInfo.item;
+            //}
+
             events.OnItemChange?.Invoke(this, previousItem, item);
-            itemSlotHandler?.OnChangeItem(new() {
+            itemSlotHandler.OnChangeItem?.Invoke(new() {
                 itemSlot = this,
                 newItem = currentItemInfo,
                 previousItem = previousItemInfo

@@ -62,12 +62,6 @@ namespace Architome
                     entities.Add(info);
                 }
             }
-
-            var destroyOnLoad = new GameObject("Destroy On Load");
-            manager.transform.SetParent(destroyOnLoad.transform);
-            manager.transform.SetParent(null);
-            Destroy(destroyOnLoad);
-
         }
         private void Awake()
         {

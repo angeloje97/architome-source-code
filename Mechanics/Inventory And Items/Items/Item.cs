@@ -26,13 +26,17 @@ namespace Architome
         public string itemName;
         public Sprite itemIcon;
         public Rarity rarity;
-        public bool playerObtainable;
         [Multiline]
         public string itemDescription;
         public ItemType itemType;
         public int maxStacks;
         public float goldValue = 1f;
         public GameObject itemObject;
+
+        public virtual void Use(UseData data)
+        {
+
+        }
 
         public virtual string Description()
         {
@@ -109,12 +113,40 @@ namespace Architome
         {
             return typeof(Equipment).IsAssignableFrom(item.GetType());
         }
+
+        public static bool Useable(Item item)
+        {
+            if (item.GetType() == typeof(Consumable)) return true;
+            return false;
+        }
     }
 
     [Serializable]
     public class ItemData
     {
+        public static ItemData Empty { get { return new ItemData() { item = null, amount = 0 }; } }
+
+        public ItemData(ItemInfo info)
+        {
+            if (info == null)
+            {
+                item = null;
+                amount = 0;
+                return;
+            }
+            this.item = info.item;
+            this.amount = info.currentStacks;
+        }
+
+        public ItemData() { }
+
         public Item item;
         public int amount;
+    }
+
+    public class UseData
+    {
+        public ItemInfo itemInfo;
+        public EntityInfo entityUsed;
     }
 }

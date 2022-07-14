@@ -55,6 +55,7 @@ namespace Architome
         public void GetDependencies()
         {
             questObjectives = new List<Objective>(GetComponentsInChildren<Objective>());
+
             questManager = GetComponentInParent<QuestManager>();
         }
 
@@ -112,14 +113,17 @@ namespace Architome
         public void CompleteObjective(Objective objective)
         {
             if (!questObjectives.Contains(objective)) return;
-
-            OnObjectiveComplete?.Invoke(objective);
+            if (info.state != QuestState.Active) return;
 
             HandleParallel();
             HandleLinear();
             HandleRadio();
             HandleCompleted();
             HandleFail();
+
+            OnObjectiveComplete?.Invoke(objective);
+
+
 
             void HandleParallel()
             {
@@ -153,9 +157,12 @@ namespace Architome
         {
             if (info.state != QuestState.Completed) return;
 
+            Debugger.Environment(2945, $"{questName} Completed");
+
             OnCompleted?.Invoke(this);
             OnQuestEnd?.Invoke(this);
             questManager.OnQuestEnd?.Invoke(this);
+            
         }
         public void ForceFail()
         {

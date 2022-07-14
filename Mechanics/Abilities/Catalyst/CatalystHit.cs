@@ -18,8 +18,9 @@ public class CatalystHit : MonoBehaviour
 
     public bool canSelfCast;
     public bool appliesBuff = true;
+    public bool splashing { get; set; }
 
-    public float value;
+    public float value { get { return catalystInfo.value; } }
 
     public float tankThreatMultiplier = 4;
     public void GetDependencies()
@@ -39,7 +40,7 @@ public class CatalystHit : MonoBehaviour
             isHarming = abilityInfo.isHarming;
             isAssisting = abilityInfo.isAssisting;
             canSelfCast = abilityInfo.canCastSelf;
-            value = catalystInfo.value;
+            //value = catalystInfo.value;
         }
 
     }
@@ -63,18 +64,20 @@ public class CatalystHit : MonoBehaviour
     public void OnTriggerEnter(Collider other)
     {
         //Debugger.InConsole(5123, $"Your projectile hit an object of {other}");
-        if (!other.CompareTag("Entity") || other.GetComponent<EntityInfo>() == null)
-        {
-            return;
-        }
+        //if (!other.CompareTag("Entity") || other.GetComponent<EntityInfo>() == null)
+        //{
+        //    return;
+        //}
+
+        var info = other.GetComponent<EntityInfo>();
+        if (info == null) return;
 
         if (!CorrectLockOn(other)) { return; }
 
-        EntityInfo targetHit = other.GetComponent<EntityInfo>();
 
         try
         {
-            HandleTargetHit(targetHit);
+            HandleTargetHit(info);
         }
         catch
         {
@@ -201,6 +204,7 @@ public class CatalystHit : MonoBehaviour
         }
         void HandleEvent()
         {
+            if (splashing) return;
             if (CanHit(targetHit))
             {
                 ArchAction.Yield(() => {
@@ -335,7 +339,7 @@ public class CatalystHit : MonoBehaviour
     }
     public bool CanHit(EntityInfo targetInfo)
     {
-        if (catalystInfo.Ticks() == 0) return false;
+        //if (catalystInfo.Ticks() == 0) return false; //Let's take this piece of code out of the way and see what happens :)
 
         if(targetInfo == catalystInfo.entityInfo && !canSelfCast)
         {

@@ -6,8 +6,10 @@ public class Debugger : MonoBehaviour
 {
     // Start is called before the first frame update
     static bool debugging = false;
-    static bool debugCombat = false;
-    static bool debugEnvironment = false;
+    static bool debugCombat = true;
+    static bool debugEnvironment = true;
+    static bool debugUI = true;
+    static bool debugSocial = true;
     void Start()
     {
         
@@ -37,6 +39,20 @@ public class Debugger : MonoBehaviour
     {
         if (!debugEnvironment) return;
         Debug.Log($"Environment {id}: {sentence}");
+    }
+
+    public static void UI(int id, string sentence)
+    {
+        if (!debugUI) return;
+
+        Debug.Log($"UI: {id} : {sentence}");
+    }
+    
+    public static void Social(int id, string sentence)
+    {
+        if (!debugSocial) return;
+
+        Debug.Log($"Social: {id} : {sentence}");
     }
 
 }

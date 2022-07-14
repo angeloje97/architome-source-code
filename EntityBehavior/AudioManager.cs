@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Audio;
 using System;
 using System.Threading.Tasks;
+using CafofoStudio;
 
 
 namespace Architome
@@ -46,7 +47,6 @@ namespace Architome
         // Update is called once per frame
         void Update()
         {
-
         }
 
         void CopyPresetFor(AudioSource source)
@@ -136,7 +136,7 @@ namespace Architome
             }
         }
 
-        public AudioSource PlaySound(AudioClip clip)
+        public AudioSource PlaySound(AudioClip clip, float volume = 1f)
         {
             if (audioSources == null) audioSources = new List<AudioSource>();
             if (audioSources.Count > 0)
@@ -161,6 +161,7 @@ namespace Architome
                 newAudioSource.outputAudioMixerGroup = mixerGroup;
             }
 
+            newAudioSource.volume = volume;
             newAudioSource.spatialBlend = .5f;
             var randomPitchOffset = UnityEngine.Random.Range(-pitchRandomRange, pitchRandomRange);
 

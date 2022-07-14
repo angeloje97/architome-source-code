@@ -1,3 +1,4 @@
+using Architome.Enums;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -36,68 +37,86 @@ namespace Architome
 
         }
 
-        async void CheckEntities()
+        void CheckEntities()
         {
             if (!portalInfo.entryPortal) return;
-            var position = transform.position;
+            var entityLayer = LayerMasksData.active.entityLayerMask;
+            var entities = Physics.OverlapSphere(transform.position, 3f, entityLayer);
 
-            while (transform.position != position + new Vector3(0, 10, 0))
+            portalInfo.entitiesInPortal = new();
+
+            foreach (var entity in entities)
             {
-                transform.position = Vector3.Lerp(transform.position, position + new Vector3(0, 10, 0), .25f);
-                await Task.Yield();
+                var info = entity.GetComponent<EntityInfo>();
+                if (info == null) continue;
+                portalInfo.entitiesInPortal.Add(info);
             }
 
-            while (transform.position != position )
-            {
-                transform.position = Vector3.Lerp(transform.position, position, .25f);
-                await Task.Yield();
-            }
         }
 
         private void OnTriggerEnter(Collider other)
         {
             if (other == null) return;
             if (portalInfo == null) return;
-            if (portalInfo.entitiesInPortal == null) return;
-
-            if (!Entity.IsPlayer(other.gameObject)) return;
-            if (portalInfo.entitiesInPortal.Contains(other.gameObject)) return;
+            if (portalInfo.entitiesInPortal == null) portalInfo.entitiesInPortal = new();
             var info = other.GetComponent<EntityInfo>();
+            if (info == null) return;
+            if (portalInfo.entitiesInPortal.Contains(info)) return;
 
-            portalInfo.entitiesInPortal.Add(other.gameObject);
+
+            portalInfo.entitiesInPortal.Add(info);
             portalInfo.events.OnPortalEnter?.Invoke(portalInfo, other.gameObject);
-
             info.portalEvents.OnPortalEnter?.Invoke(portalInfo, info.gameObject);
 
-            var playableEntitiesInPortal = new List<GameObject>();
 
-            foreach (var entity in portalInfo.entitiesInPortal)
+            
+
+
+            HandlePlayer();
+
+            void HandlePlayer()
             {
-                if (!Entity.IsPlayer(entity)) continue;
+                if (!Entity.IsPlayer(info.gameObject)) return;
+                portalInfo.events.OnPlayerEnter?.Invoke(portalInfo, info);
+                info.portalEvents.OnPlayerEnter?.Invoke(portalInfo, info);
 
-                playableEntitiesInPortal.Add(entity);
-            }
+                var playableEntities = new List<EntityInfo>();
+                foreach (var entity in portalInfo.entitiesInPortal)
+                {
+                    if (entity.rarity != Enums.EntityRarity.Player) continue;
+                    playableEntities.Add(entity);
+                }
 
-            Debugger.InConsole(91065, $"{playableEntitiesInPortal.Count == Entity.PlayableEntities().Count}");
+                if (playableEntities.Count == Entity.PlayableEntities().Count)
+                {
 
-            if (playableEntitiesInPortal.Count == Entity.PlayableEntities().Count)
-            {
-                portalInfo.events.OnAllPartyMembersInPortal?.Invoke(portalInfo, playableEntitiesInPortal);
-                portalInfo.events.OnAllMembersInPortal?.Invoke();
+                    portalInfo.events.OnAllPartyMembersInPortal?.Invoke(portalInfo, playableEntities);
+                    portalInfo.events.OnAllMembersInPortal?.Invoke();
+                }
             }
         }
 
         private void OnTriggerExit(Collider other)
         {
-            if (!Entity.IsPlayer(other.gameObject)) return;
-            if (!portalInfo.entitiesInPortal.Contains(other.gameObject)) return;
             var info = other.GetComponent<EntityInfo>();
-            portalInfo.entitiesInPortal.Remove(other.gameObject);
-
+            if (info == null) return;
+            if (!portalInfo.entitiesInPortal.Contains(info)) return;
+            
+            portalInfo.entitiesInPortal.Remove(info);
             portalInfo.events.OnPortalExit?.Invoke(portalInfo, other.gameObject);
 
 
             info.portalEvents.OnPortalExit?.Invoke(portalInfo, info.gameObject);
+
+            HandlePlayer();
+
+            void HandlePlayer()
+            {
+                if(info.rarity != EntityRarity.Player)return;
+
+                info.portalEvents.OnPlayerExit?.Invoke(portalInfo, info);
+                portalInfo.events.OnPlayerExit?.Invoke(portalInfo, info);
+            }
         }
     }
 }

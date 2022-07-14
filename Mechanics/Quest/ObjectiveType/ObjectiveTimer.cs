@@ -24,6 +24,8 @@ namespace Architome
             base.Activate();
 
             questInfo.OnObjectiveComplete += OnObjectiveComplete;
+            requirement = (object o) => OtherObjectivesComplete();
+
             StartTimer();
         }
 
@@ -55,15 +57,18 @@ namespace Architome
         public void OnObjectiveComplete(Objective obj)
         {
             if (obj == this) return;
+            HandleObjectiveChange();
+        }
 
-
+        public bool OtherObjectivesComplete()
+        {
             foreach (var objective in questInfo.ActiveObjectives())
             {
                 if (objective == this) continue;
-                if (objective.isActive) return;
+                if (!objective.isComplete) return false;
             }
-
-            CompleteObjective();
+            return true;
         }
+        
     }
 }

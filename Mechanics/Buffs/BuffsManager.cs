@@ -29,6 +29,7 @@ namespace Architome
                 entityInfo.OnLifeChange += OnLifeChange;
                 entityInfo.OnChangeNPCType += OnChangeNPCType;
                 entityInfo.OnCombatChange += OnCombatChange;
+                entityInfo.OnDamageTaken += OnDamageTaken;
             }
         }
         void Start()
@@ -45,14 +46,42 @@ namespace Architome
 
         public void OnCombatChange(bool isInCombat)
         {
-            if (isInCombat) return;
-
+            
             foreach (Transform child in transform)
             {
                 var buff = child.GetComponent<BuffInfo>();
-                if (!buff) continue;
+                if (buff == null) continue;
 
-                if (buff.properties.outOfCombatCleanse)
+                HandleExitCombat(buff);
+                HandleEnterCombat(buff);
+            }
+            
+
+            void HandleExitCombat(BuffInfo buff)
+            {
+                if (isInCombat) return;
+                if (!buff.cleanseConditions.exitCombat) return;
+
+                buff.Cleanse();
+
+            }
+
+            void HandleEnterCombat(BuffInfo buff)
+            {
+                if (!isInCombat) return;
+                if (!buff.cleanseConditions.enterCombat) return;
+                buff.Cleanse();
+            }
+        }
+
+        public void OnDamageTaken(CombatEventData eventData)
+        {
+            foreach (Transform child in transform)
+            {
+                var buff = child.GetComponent<BuffInfo>();
+                if (buff == null) continue;
+
+                if (buff.cleanseConditions.damageTaken)
                 {
                     buff.Cleanse();
                 }
@@ -148,6 +177,7 @@ namespace Architome
             var sourceAbility = data.sourceAbility;
             var sourceInfo = data.sourceInfo;
             var sourceCatalyst = data.sourceCatalyst;
+            var sourceItem = data.sourceItem;
 
             var buffInfo = data.buffInfo;
             var buffProperties = buffInfo.properties;
@@ -211,6 +241,7 @@ namespace Architome
                 newBuff.sourceObject = sourceInfo.gameObject;
                 newBuff.sourceAbility = sourceAbility;
                 newBuff.sourceCatalyst = sourceCatalyst;
+                newBuff.sourceItem = sourceItem;
 
                 if (sourceCatalyst && sourceCatalyst.target)
                 {
@@ -234,9 +265,11 @@ namespace Architome
 
                 var buffInfo = Instantiate(buffObject, transform).GetComponent<BuffInfo>();
 
+
+
+
                 buffObjects.Add(buffInfo.gameObject);
                 buffInfo.OnBuffEnd += OnBuffEnd;
-
                 entityInfo.OnBuffApply?.Invoke(buffInfo, sourceInfo);
             }
         }
@@ -291,6 +324,7 @@ namespace Architome
             public EntityInfo sourceInfo;
             public AbilityInfo sourceAbility;
             public CatalystInfo sourceCatalyst;
+            public Item sourceItem;
 
             public BuffData(GameObject buffData, CatalystInfo sourceCatalyst)
             {
@@ -311,6 +345,14 @@ namespace Architome
                 this.sourceAbility = sourceAbility;
                 sourceCatalyst = sourceAbility.catalystInfo;
                 sourceInfo = sourceAbility.entityInfo;
+            }
+
+            public BuffData(BuffInfo buff, Item sourceItem, EntityInfo sourceInfo)
+            {
+                buffObject = buff.gameObject;
+                buffInfo = buff;
+                this.sourceItem = sourceItem;
+                this.sourceInfo = sourceInfo;
             }
             
         }

@@ -73,6 +73,7 @@ namespace Architome
                 {
                     var item = inventory.inventoryItems[i];
 
+
                     if (item.item == null) continue;
 
                     var newItemData = new ItemData() { id = item.item._id, amount = item.amount, slotNumber = i };

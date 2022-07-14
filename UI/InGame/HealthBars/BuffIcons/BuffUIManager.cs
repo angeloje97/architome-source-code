@@ -36,9 +36,18 @@ namespace Architome
             void HandleNewEntity(EntityInfo newEntity)
             {
                 this.entity = newEntity;
+
+                if (entity == null) return;
+                var buffManager = entity.Buffs();
+                if (buffManager == null) return;
+
+
                 entity.OnNewBuff += OnNewBuff;
 
-                foreach (var buff in entity.Buffs().Buffs())
+
+                if(buffManager == null) return;
+
+                foreach (var buff in buffManager.Buffs())
                 {
                     CreateBuff(buff);
                 }

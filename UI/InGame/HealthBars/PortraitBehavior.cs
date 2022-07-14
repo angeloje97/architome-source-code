@@ -76,7 +76,7 @@ public class PortraitBehavior : MonoBehaviour
                 if (!showNormalHealth)
                 {
                     //healthText.text = $"{(int)health}{shieldText}/{(int)maxHealth}"; 
-                    healthText.text = $" ({Mathg.Round(health / maxHealth * 100, 2)})% HP";
+                    healthText.text = $" ({(int) ((health/maxHealth)*100)})% HP";
                 }
                 else
                 {
@@ -186,7 +186,7 @@ public class PortraitBehavior : MonoBehaviour
         
     }
 
-    private void OnNewHoverTarget(GameObject previous, GameObject newTarget)
+    public void OnNewHoverTarget(GameObject previous, GameObject newTarget)
     {
         if (entity == null) return;
         if (newTarget == null)
@@ -292,16 +292,23 @@ public class PortraitBehavior : MonoBehaviour
 
         void HandleEvents()
         {
-            if (this.entity != null)
+            if (this.entity == null) return;
+
+            var combatBehavior = this.entity.CombatBehavior();
+            var abilityManager = this.entity.AbilityManager();
+
+            if (combatBehavior)
             {
-                this.entity.CombatBehavior().CombatInfo().OnNewTargetedBy -= OnNewTargetedBy;
-                this.entity.CombatBehavior().CombatInfo().OnTargetedByRemove -= OnTargetedByRemove;
+                combatBehavior.CombatInfo().OnNewTargetedBy -= OnNewTargetedBy;
+                combatBehavior.CombatInfo().OnTargetedByRemove -= OnTargetedByRemove;
                 this.entity.OnExperienceGain -= OnExperienceGain;
+            }
 
-                this.entity.AbilityManager().OnAbilityStart -= OnAbilityStart;
-                this.entity.AbilityManager().OnAbilityEnd -= OnAbilityEnd;
-                this.entity.AbilityManager().WhileCasting -= WhileCasting;
-
+            if (abilityManager)
+            {
+                abilityManager.OnAbilityStart -= OnAbilityStart;
+                abilityManager.OnAbilityEnd -= OnAbilityEnd;
+                abilityManager.WhileCasting -= WhileCasting;
             }
         }
     }
@@ -340,26 +347,40 @@ public class PortraitBehavior : MonoBehaviour
 
         void HandleEvents()
         {
-            entity.CombatBehavior().CombatInfo().OnNewTargetedBy += OnNewTargetedBy;
-            entity.CombatBehavior().CombatInfo().OnTargetedByRemove += OnTargetedByRemove;
+            var combatBehavior = entity.CombatBehavior();
+
+
+            if (combatBehavior)
+            {
+                combatBehavior.CombatInfo().OnNewTargetedBy += OnNewTargetedBy;
+                combatBehavior.CombatInfo().OnTargetedByRemove += OnTargetedByRemove;
+
+            }
             entity.OnExperienceGain += OnExperienceGain;
 
-            entity.AbilityManager().OnAbilityStart += OnAbilityStart;
-            entity.AbilityManager().OnAbilityEnd += OnAbilityEnd;
-            entity.AbilityManager().WhileCasting += WhileCasting;
+            var abilityManager = entity.AbilityManager();
 
-
-            if (this.entity.AbilityManager().currentlyCasting)
+            if (abilityManager)
             {
-                if (this.entity.AbilityManager().currentlyCasting.vfx.showCastBar)
+                abilityManager.OnAbilityStart += OnAbilityStart;
+                abilityManager.OnAbilityEnd += OnAbilityEnd;
+                abilityManager.WhileCasting += WhileCasting;
+
+                if (this.entity.AbilityManager().currentlyCasting)
                 {
-                    OnAbilityStart(this.entity.AbilityManager().currentlyCasting);
+                    if (this.entity.AbilityManager().currentlyCasting.vfx.showCastBar)
+                    {
+                        OnAbilityStart(this.entity.AbilityManager().currentlyCasting);
+                        return;
+                    }
                 }
             }
-            else
-            {
-                SetCastBar(false);
-            }
+
+            SetCastBar(false);
+
+
+
+            
         }
     }
     public void OnAbilityStart(AbilityInfo ability)

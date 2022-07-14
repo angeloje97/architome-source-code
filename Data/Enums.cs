@@ -106,6 +106,10 @@ namespace Architome.Enums
         OnLevelUp,
         OnDamageTaken,
         OnDetectPlayer,
+        OnKillPlayer,
+        OnSpawned,
+        OnCastStart,
+        OnCastEnd,
     }
 
     public enum BuffEvents
@@ -114,7 +118,9 @@ namespace Architome.Enums
         OnInterval,
         OnCleanse,
         OnComplete,
-        OnEnd
+        OnEnd,
+        OnDamageTaken,
+        OnDamageImmune,
     }
 
     public enum AbilityEvent
@@ -139,6 +145,16 @@ namespace Architome.Enums
         BodyPart,
         BetweenBodyParts,
         Location
+    }
+
+    public enum ParticleTarget
+    {
+        Self,
+        Ground,
+        BodyPart,
+        BetweenBodyParts,
+        Location,
+        Target,
     }
 
     public enum AbilityType2
@@ -221,6 +237,7 @@ namespace Architome.Enums
         Taunted = 4,
         MindControlled = 5,
         Immune,
+        Invisible,
     }
 
     public enum MeterRecordingMode

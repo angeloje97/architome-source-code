@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using Architome.Enums;
+
 namespace Architome
 {
     public class Entity
@@ -152,17 +154,29 @@ namespace Architome
 
         public static bool IsPlayer(GameObject objectCheck)
         {
-            if (IsEntity(objectCheck))
-            {
-                var info = objectCheck.GetComponent<EntityInfo>();
+            var info = objectCheck.GetComponent<EntityInfo>();
 
-                if (GMHelper.GameManager().playableEntities.Contains(info))
+            if (info)
+            {
+                if (info.rarity == EntityRarity.Player)
                 {
                     return true;
                 }
             }
 
+
             return false;
+            //if (IsEntity(objectCheck))
+            //{
+            //    var info = objectCheck.GetComponent<EntityInfo>();
+
+            //    if (GMHelper.GameManager().playableEntities.Contains(info))
+            //    {
+            //        return true;
+            //    }
+            //}
+
+            //return false;
         }
 
         public static bool IsObstructed(GameObject endTarget, GameObject sourceTarget)

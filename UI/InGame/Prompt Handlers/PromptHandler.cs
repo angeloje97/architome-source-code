@@ -76,12 +76,12 @@ namespace Architome
             var prompt = ActivatePrompt(prefabs.allDeathPrompt, new Vector3(0, 270, 0));
         }
 
-        async public Task<int> GeneralPrompt(PromptInfoData promptData)
+        async public Task<PromptChoiceData> GeneralPrompt(PromptInfoData promptData)
         {
             Debugger.InConsole(3498, $"Opening general prompt");
             if (prefabs.generalPrompt == null)
             {
-                return -1;
+                return PromptChoiceData.defaultPrompt;
             }
 
             var prompt = ActivatePrompt(prefabs.generalPrompt, new(0, 270, 0));
@@ -90,14 +90,18 @@ namespace Architome
 
             prompt.choicePicked = -1;
 
-            while (prompt.choicePicked == -1)
+            var waiting = true;
+
+            prompt.OnPickChoice += (PromptInfo info) => { waiting = false; };
+
+            while (waiting)
             {
                 await Task.Yield();
 
                 if (!prompt.isActive) break;
             }
 
-            return prompt.choicePicked;
+            return prompt.choiceData;
         }
 
         async public Task<(int, string)> InputPrompt(PromptInfoData promptData)

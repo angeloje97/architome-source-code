@@ -22,10 +22,7 @@ namespace Architome
         //public List<GameObject> entities;
         public List<Transform> patrolPoints;
         public Transform trash;
-
-
-
-
+        public bool generationComplete;
 
         public void GetDependencies()
         {
@@ -37,6 +34,13 @@ namespace Architome
             }
 
             active = this;
+
+            var entityGenerator = EntityGenerator();
+
+            if (entityGenerator)
+            {
+                entityGenerator.OnEntitiesGenerated += (MapEntityGenerator generator) => { generationComplete = true; };
+            }
         }
 
         void Awake()

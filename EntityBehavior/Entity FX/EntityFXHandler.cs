@@ -18,9 +18,15 @@ namespace Architome
         EntityFXPack entityFX;
         CatalystManager catalystManager;
         CharacterBodyParts characterBodyPart;
+        AbilityManager abilityManager;
 
         public List<string> activeScenes;
         bool active;
+
+        bool damageTimerActive;
+        bool killEntityTimerActive;
+        bool startCastActive;
+        bool endCastActive;
 
         public Dictionary<EntityEvent, List<EntityFXPack.EntityEffect>> effectMap;
         new void GetDependencies()
@@ -55,6 +61,7 @@ namespace Architome
             if (entityInfo)
             {
                 entityFX = entityInfo.entityFX;
+                abilityManager = entityInfo.AbilityManager();
                 characterBodyPart = entityInfo.GetComponentInChildren<CharacterBodyParts>();
 
                 if (entityFX == null) return;
@@ -65,6 +72,7 @@ namespace Architome
                 entityInfo.OnLevelUp += OnLevelUp;
                 entityInfo.OnReviveThis += OnRevive;
                 entityInfo.OnDeath += OnDeath;
+                entityInfo.OnKill += OnEntityKill;
 
 
                 entityInfo.OnDamageTaken += OnDamageTaken;
@@ -76,6 +84,12 @@ namespace Architome
                     threatManager.OnFirstThreat += OnFirstThreat;
                 }
 
+            }
+
+            if (abilityManager)
+            {
+                abilityManager.OnCastStart += OnCastStart;
+                abilityManager.OnCastEnd += OnCastEnd;
             }
         }
 
@@ -114,6 +128,24 @@ namespace Architome
             GetDependencies();
             FillMap();
             DetermineActive();
+            HandleSpawn();
+        }
+
+        void HandleSpawn()
+        {
+            if (entityInfo == null) return;
+            if (!entityInfo.summon.isSummoned) return;
+            HandleEffect(EntityEvent.OnSpawned);
+        }
+
+        void OnCastStart(AbilityInfo ability)
+        {
+
+        }
+
+        void OnCastEnd(AbilityInfo ability)
+        {
+
         }
         void OnLoadScene(ArchSceneManager sceneManager)
         {
@@ -126,46 +158,46 @@ namespace Architome
                 HandleEffect(EntityEvent.OnDetectPlayer);
             }
 
-            if (entityInfo.entityFX == null) return;
-            try
-            {
-                var role = Random.Range(0, 100);
+            //if (entityInfo.entityFX == null) return;
+            //try
+            //{
+            //    var role = Random.Range(0, 100);
 
-                //if (role > 25) return;
+            //    //if (role > 25) return;
 
-                var phrases = entityInfo.entityFX.detectedPlayerPhrases;
+            //    var phrases = entityInfo.entityFX.detectedPlayerPhrases;
 
-                if (phrases.Count == 0) return;
-                var randomPhrase = phrases[Random.Range(0, phrases.Count)];
+            //    if (phrases.Count == 0) return;
+            //    var randomPhrase = phrases[Random.Range(0, phrases.Count)];
 
-                speech.Yell(randomPhrase);
-            }
-            catch
-            {
-                throw;
-            }
+            //    speech.Yell(randomPhrase);
+            //}
+            //catch
+            //{
+            //    throw;
+            //}
         }
         void OnDeath(CombatEventData eventData)
         {
             HandleEffect(EntityEvent.OnDeath);
-            try
-            {
-                if (!Entity.IsPlayer(eventData.source.gameObject)) return;
-                var role = Random.Range(0, 100);
-                //if (role > 25) return;
+            //try
+            //{
+            //    if (!Entity.IsPlayer(eventData.source.gameObject)) return;
+            //    var role = Random.Range(0, 100);
+            //    //if (role > 25) return;
 
-                var phrases = entityInfo.entityFX.deathPhrases;
+            //    var phrases = entityInfo.entityFX.deathPhrases;
 
 
-                if (phrases.Count == 0) return;
-                var randomPhrase = phrases[Random.Range(0, phrases.Count)];
+            //    if (phrases.Count == 0) return;
+            //    var randomPhrase = phrases[Random.Range(0, phrases.Count)];
 
-                speech.Yell(randomPhrase);
-            }
-            catch
-            {
+            //    speech.Yell(randomPhrase);
+            //}
+            //catch
+            //{
 
-            }
+            //}
         }
         void OnLevelUp(int level)
         {
@@ -200,20 +232,39 @@ namespace Architome
         }
         public void OnDamageTaken(CombatEventData eventData)
         {
-            if (entityInfo.entityFX == null) return;
-            if (entityInfo.entityFX.hurtSounds == null) return;
-            try
-            {
-                
-                var hurtSounds = entityInfo.entityFX.hurtSounds;
-                voiceFX.PlayRandomSound(hurtSounds);
+            if (damageTimerActive) return;
+            damageTimerActive = true;
 
-            }
-            catch
-            {
-                throw;
-            }
+            HandleEffect(EntityEvent.OnDamageTaken);
+
+            ArchAction.Delay(() => damageTimerActive = false, 4f);
+            //if (entityInfo.entityFX == null) return;
+            //if (entityInfo.entityFX.hurtSounds == null) return;
+            //try
+            //{
+                
+            //    var hurtSounds = entityInfo.entityFX.hurtSounds;
+            //    voiceFX.PlayRandomSound(hurtSounds);
+
+            //}
+            //catch
+            //{
+            //    throw;
+            //}
         }
+
+        public void OnEntityKill(CombatEventData eventData)
+        {
+            if (!Entity.IsPlayer(eventData.target.gameObject)) return;
+
+            if (killEntityTimerActive) return;
+            killEntityTimerActive = true;
+
+            HandleEffect(EntityEvent.OnKillPlayer);
+
+            ArchAction.Delay(() => killEntityTimerActive = false, 8f);
+        }
+
 
         public void HandleEffect(EntityEvent eventTrigger)
         {
@@ -292,18 +343,34 @@ namespace Architome
 
         public void HandleAudio(EntityFXPack.EntityEffect effect)
         {
-            if (soundFX == null) return;
-            if (effect.audioClip == null) return;
+            HandleMainSound();
+            HandleRandomSound();
+
+            void HandleRandomSound()
+            {
+                if (effect.randomClips == null) return;
+                if (effect.randomClips.Count <= 0) return;
+                var randomClip = ArchGeneric.RandomItem(effect.randomClips);
+                soundFX.PlaySound(randomClip);
+            }
+            void HandleMainSound()
+            {
+                if (soundFX == null) return;
+                if (effect.audioClip == null) return;
+
+                soundFX.PlaySound(effect.audioClip);
 
 
-            soundFX.PlaySound(effect.audioClip);
+            }
         }
 
         public void HandlePhrases(EntityFXPack.EntityEffect effect)
         {
             if (effect.phrases == null || effect.phrases.Count == 0) return;
             if (speech == null) return;
-            var randomPhrase = effect.phrases[Random.Range(0, effect.phrases.Count)];
+
+            var randomPhrase = ArchGeneric.RandomItem(effect.phrases);
+            //var randomPhrase = effect.phrases[Random.Range(0, effect.phrases.Count)];
 
             switch (effect.phraseType)
             {

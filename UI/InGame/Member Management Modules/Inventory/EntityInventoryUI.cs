@@ -96,9 +96,10 @@ namespace Architome
                 if (inventoryItems[i].item == null) { continue; }
                 if (inventorySlots[i].item != null) { continue; }
 
-                var clone = Instantiate(inventoryItems[i].item);
+                //var clone = Instantiate(inventoryItems[i].item);
 
-                CreateItem(clone, inventorySlots[i]);
+                var newItem = CreateItem(inventoryItems[i], inventorySlots[i]);
+                
 
             }
         }
@@ -143,22 +144,19 @@ namespace Architome
             HandleNewItem();
             var index = inventorySlots.IndexOf(eventData.itemSlot);
 
-            //items[index] = eventData.itemSlot.item;
-            inventoryItems[index].item = eventData.itemSlot.item;
+            Debugger.UI(5914, $"{eventData.itemSlot} in index {index}");
 
-            if (eventData.newItem)
-            {
-                inventoryItems[index].amount = eventData.newItem.currentStacks;
-            }
-            else
-            {
-                inventoryItems[index].amount = 0;
-            }
+            inventoryItems[index] = new(eventData.newItem);
+
+
+            
 
             void HandlePreviousItem()
             {
                 if (eventData.previousItem == null) return;
                 eventData.previousItem.OnItemAction -= OnItemAction;
+                eventData.previousItem.OnUpdate -= OnUpdateItem;
+
             }
 
             void HandleNewItem()
@@ -166,6 +164,8 @@ namespace Architome
                 if (eventData.newItem == null) return;
 
                 eventData.newItem.OnItemAction += OnItemAction;
+                eventData.newItem.OnUpdate += OnUpdateItem;
+
             }
         }
 
@@ -178,6 +178,11 @@ namespace Architome
                 if (inventorySlots[i].currentItemInfo)
                 {
                     inventoryItems[i].amount = inventorySlots[i].currentItemInfo.currentStacks;
+                }
+
+                if (inventorySlots[i].item == null)
+                {
+                    inventoryItems[i].amount = 0;
                 }
                 //items[i] = inventorySlots[i].item;
             }
@@ -195,24 +200,41 @@ namespace Architome
 
             return null;
         }
-        public GameObject CreateItem(Item item, InventorySlot slot)
+
+        public InventorySlot InventorySlot(int index)
         {
+            if (index < 0) return null;
+            if (index >= inventorySlots.Count) return null;
+            return inventorySlots[index];
+        }
+        public ItemInfo CreateItem(ItemData data, InventorySlot slot)
+        {
+            var newItem = module.CreateItem(data, true);
+            Debugger.UI(3914, $"{newItem.item} {newItem.currentStacks}");
+
+            newItem.HandleNewSlot(slot);
+
+            return newItem;
+
+            return null;
+            var item = data.item;
+            var amount = data.amount;
+
             var itemTemplate = module.prefabs.item;
 
             //var newItem = module.CreateItem(item, true);
 
             if (inventoryManager && inventoryManager.itemBin)
             {
-                var newItem = Instantiate(itemTemplate, inventoryManager.itemBin);
                 var itemInfo = newItem.GetComponent<ItemInfo>();
 
                 itemInfo.item = item;
                 itemInfo.UpdateItemInfo();
                 itemInfo.isInInventory = true;
-
+                itemInfo.currentStacks = amount;
 
                 itemInfo.HandleNewSlot(slot);
-                return itemInfo.gameObject;
+                return itemInfo;
             }
 
             return null;
@@ -243,6 +265,7 @@ namespace Architome
 
             HandleDestroy();
             HandleEquip();
+            HandleUse();
 
             void UpdateOptions()
             {
@@ -250,13 +273,18 @@ namespace Architome
                 {
                     options.Insert(0, "Equip");
                 }
+
+                if (Item.Useable(info.item))
+                {
+                    options.Insert(0, "Use");
+                }
             }
 
             async void HandleDestroy()
             {
                 if (options[choice] != "Destroy") return;
 
-                var optionPicked = await PromptHandler.active.GeneralPrompt(new() {
+                var userChoice = await PromptHandler.active.GeneralPrompt(new() {
                     icon = info.item.itemIcon,
                     title = $"{info.item.itemName}",
                     question = $"Are you sure you want to destroy {info.item.itemName}?",
@@ -264,9 +292,9 @@ namespace Architome
                     option2 = "Cancel"
                 });
 
-                if (optionPicked == 0)
+                if (userChoice.optionString == "Destroy")
                 {
-                    Destroy(info.gameObject);
+                    info.DestroySelf();
                 }
 
             }
@@ -278,6 +306,27 @@ namespace Architome
 
                 entityCharacter.modules.gearModule.EquipItem(info, entityInfo);
             }
+
+            void HandleUse()
+            {
+                if (options[choice] != "Use") return;
+                if (entityCharacter == null) return;
+                info.item.Use(new() {
+                    itemInfo = info,
+                    entityUsed = entityInfo
+                });
+            }
+        }
+
+        public void OnUpdateItem(ItemInfo info)
+        {
+            var slot = info.currentSlot;
+
+            if (!inventorySlots.Contains(slot)) return;
+
+            var index = inventorySlots.IndexOf(slot);
+
+            inventoryItems[index] = new() { item = info.item, amount = info.currentStacks };
         }
 
         public bool Contains(Item item)

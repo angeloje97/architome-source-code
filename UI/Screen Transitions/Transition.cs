@@ -32,6 +32,11 @@ namespace Architome
             UpdateHandler();
         }
 
+        public void SetActive(bool active)
+        {
+            info.animator.SetBool("IsPlaying", active);
+        }
+
         void UpdateHandler()
         {
 
@@ -107,6 +112,7 @@ namespace Architome
 
         async public Task SceneTransitionOut()
         {
+            
             transitioning = true;
 
             info.animator.SetBool("IsPlaying", true);
