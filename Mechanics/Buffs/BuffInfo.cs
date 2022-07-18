@@ -152,19 +152,18 @@ public class BuffInfo : MonoBehaviour
 
     public void GetVessel()
     {
-        if(GetComponentInParent<BuffsManager>())
+        buffsManager = GetComponentInParent<BuffsManager>();
+        hostInfo = GetComponentInParent<EntityInfo>();
+        if(buffsManager)
         {
-            buffsManager = GetComponentInParent<BuffsManager>();
             buffsManager.OnBuffStack += OnBuffStack;
             buffsManager.OnBuffTimerReset += OnBuffTimerReset;
             buffsManager.OnResetBuff += OnResetBuff;
         }
-        if (GetComponentInParent<EntityInfo>())
+        if (hostInfo)
         {
-            hostInfo = GetComponentInParent<EntityInfo>();
             hostObject = hostInfo.gameObject;
             hostInfo.OnNewBuff?.Invoke(this, sourceInfo);
-
         }   
     }
 
@@ -198,18 +197,13 @@ public class BuffInfo : MonoBehaviour
         buffTimeComplete = false;
         buffTimer = properties.time;
         progress = 1;
-        UpdateIcon();
+        buffIcon = Icon();
         GetVessel();
         UpdateValues();
         //Invoke("SpawnParticle", .125f);
         StartCoroutine(BuffIntervalHandler());
     }
 
-    void UpdateIcon()
-    {
-        if (buffIcon != null) return;
-        buffIcon = Icon();
-    }
 
     public void Start()
     {

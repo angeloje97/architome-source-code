@@ -11,6 +11,8 @@ namespace Architome
 {
     public class DungeoneerManager : MonoBehaviour
     {
+        public static DungeoneerManager active;
+
         [Serializable]
         public struct Entities
         {
@@ -32,8 +34,7 @@ namespace Architome
         [Serializable]
         public struct Prefabs
         {
-            public GameObject entityCard;
-            public GameObject itemTemplate;
+            public GameObject entityCard, itemTemplate, ability, entitySelector, entityIcon, inventorySlot;
         }
 
 
@@ -70,10 +71,16 @@ namespace Architome
             UpdatePartyInfo();
         }
 
+        private void Awake()
+        {
+            active = this;
+        }
+
         void GetDependencies()
         {
             saveSystem = SaveSystem.active;
             currentSave = Core.currentSave;
+
         }
 
         void SpawnPresetEntities()
@@ -81,6 +88,7 @@ namespace Architome
             if (entities.parent == null) return;
             entities.pool = new();
             var currentSave = Core.currentSave;
+
             foreach (var entity in entities.poolPrefabs)
             {
                 var newEntity = Instantiate(entity, entities.parent).GetComponent<EntityInfo>();
@@ -111,8 +119,6 @@ namespace Architome
             }
 
         }
-
-
         async void LoadEntities()
         {
             if (currentSave == null) return;
@@ -158,7 +164,6 @@ namespace Architome
             OnLoadSave?.Invoke(currentSave);
 
         }
-
         void OnNewBorn()
         {
             if (currentSave == null)
@@ -188,7 +193,7 @@ namespace Architome
 
                 info.entityIcons[i].SetIcon(new()
                 {
-                    sprite = selectedEntities[i].entityPortrait,
+                    sprite = selectedEntities[i].PortraitIcon(),
                     data = selectedEntities[i]
                 });
             }
@@ -196,7 +201,6 @@ namespace Architome
             info.partyLevel.text = partyLevel > 0 ? $"Party Level: {partyLevel}" : "";
 
         }
-
         void CheckCondition()
         {
             var newCondition = new List<bool>();
@@ -229,7 +233,6 @@ namespace Architome
                 info.startDungeonButton.SetButton(ready);
             }
         }
-
         public void SetSelectedEntities(List<EntityInfo> entities, float partyLevel = 0f)
         {
             selectedEntities = entities;
@@ -264,7 +267,7 @@ namespace Architome
                 info.entityIcons[i].SetIcon(new()
                 {
                     data = selectedEntities[i],
-                    sprite = selectedEntities[i].entityPortrait
+                    sprite = selectedEntities[i].PortraitIcon()
                 });
             }
 
@@ -274,7 +277,6 @@ namespace Architome
             UpdatePartyInfo();
             CheckCondition();
         }
-
 
         public void SetDungeon(Dungeon dungeon)
         {

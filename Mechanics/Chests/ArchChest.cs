@@ -154,10 +154,10 @@ namespace Architome
         {
             var itemBin = IGGUIInfo.active.CreateItemBin();
             currentModule = itemBin.GetComponent<ModuleInfo>();
-            itemBin.SetItemBin(new() {
+            itemBin.SetItemBin(new()
+            {
                 title = "Chest",
-                items = info.items,
-                maxSlots = info.maxChestSlots
+                items = info.items
             });
 
             currentModule.SetActive(false, false);
@@ -186,25 +186,28 @@ namespace Architome
                 eventData.newItem.OnItemAction += OnItemAction;
             }
 
-            if (!slots.Contains(eventData.itemSlot)) return;
+            //if (!slots.Contains(eventData.itemSlot)) return;
 
-            int index = slots.IndexOf(eventData.itemSlot);
+            //int index = slots.IndexOf(eventData.itemSlot);
 
-            if (eventData.newItem == null)
-            {
-                info.items[index].item = null;
-                info.items[index].amount = 0;
-            }
-            else
-            {
-                info.items[index].item = eventData.newItem.item;
-                info.items[index].amount = eventData.newItem.currentStacks;
-            }
+            //if (eventData.newItem == null)
+            //{
+            //    info.items[index].item = null;
+            //    info.items[index].amount = 0;
+            //}
+            //else
+            //{
+            //    info.items[index].item = eventData.newItem.item;
+            //    info.items[index].amount = eventData.newItem.currentStacks;
+            //}
         }
 
         void OnItemAction(ItemInfo item)
         {
+            var entity = info.entityOpened;
+            if (entity == null) return;
 
+            entity.LootItem(item);
         }
 
         public void Close()

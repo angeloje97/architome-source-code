@@ -13,7 +13,7 @@ namespace Architome
         public EntityInfo entityInfo;
         public GearModuleManager moduleManager;
         public ModuleInfo module;
-        public PartyManager partyManager;
+        public GuildManager guildManager;
 
         [Header("Gear Slot Manager Properties")]
         public Transform equipmentBin;
@@ -33,7 +33,7 @@ namespace Architome
         public void GetDependencies()
         {
             module = GetComponentInParent<ModuleInfo>();
-            partyManager = GetComponentInParent<PartyManager>();
+            guildManager = GetComponentInParent<GuildManager>();
 
             moduleManager = GetComponentInParent<GearModuleManager>();
 
@@ -47,9 +47,9 @@ namespace Architome
                 module.OnSelectEntity += OnSelectEntity;
             }
 
-            if (partyManager)
+            if (guildManager)
             {
-                partyManager.OnSelectEntity += OnSelectEntity;
+                guildManager.OnSelectEntity += OnSelectEntity;
             }
 
 
@@ -79,7 +79,7 @@ namespace Architome
         {
             if (entityInfo != entity)
             {
-                module.OnSelectEntity?.Invoke(entity);
+                module.SelectEntity(entity);
             }
 
             var equipment = (Equipment)info.item;
@@ -131,7 +131,9 @@ namespace Architome
 
         void DestroyItems()
         {
-            foreach (var itemInfo in module.GetComponentsInChildren<ItemInfo>())
+            module.ReturnAllItemsFromBin();
+
+            foreach (var itemInfo in GetComponentsInChildren<ItemInfo>())
             {
                 Destroy(itemInfo.gameObject);
             }
@@ -154,6 +156,56 @@ namespace Architome
             var gearSlot = (GearSlot)eventData.itemSlot;
 
             gearSlot.equipmentSlot.equipment = (Equipment)gearSlot.item ? (Equipment)gearSlot.item : null;
+
+            if (eventData.previousItem)
+            {
+                eventData.previousItem.OnItemAction -= OnItemAction;
+            }
+
+            if (eventData.newItem)
+            {
+                eventData.newItem.OnItemAction += OnItemAction;
+            }
+        }
+
+        async void OnItemAction(ItemInfo info)
+        {
+            var contextMenu = ContextMenu.current;
+            if (contextMenu == null) return;
+
+            var options = new List<string>()
+            {
+                "Unequip",
+                "Destroy"
+            };
+
+            
+
+            var response = await contextMenu.UserChoice(new()
+            {
+                title = info.item.itemName,
+                options = options
+            });
+
+            var choice = response.index;
+
+            if (choice == -1) return;
+
+            HandleUnequip();
+            HandleDestroy();
+
+            void HandleUnequip()
+            {
+                if (response.stringValue != "Unequip") return;
+                entityInfo.LootItem(info);
+            }
+
+            async void HandleDestroy()
+            {
+                if (response.stringValue != "Destroy") return;
+
+                await info.SafeDestroy();
+            }
         }
 
 

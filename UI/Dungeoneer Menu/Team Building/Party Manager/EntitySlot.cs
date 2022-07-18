@@ -103,7 +103,7 @@ namespace Architome
                 {
                     info.namePlate.text = after.entityName;
                 } 
-                info.iconTarget.sprite = after.entityPortrait;
+                info.iconTarget.sprite = after.PortraitIcon();
             }
         }
 

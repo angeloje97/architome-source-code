@@ -22,12 +22,18 @@ public class GearModuleManager : MonoBehaviour
         GameManager.active.OnNewPlayableEntity += OnNewPlayableEntity;
 
         module = GetComponentInParent<ModuleInfo>();
+        module.OnSelectEntity += (EntityInfo entity) => { SelectEntity(entity); };
 
     }
     void Start()
     {
         GetDependencies();
         
+    }
+
+    public void SelectEntity(EntityInfo entity)
+    {
+        OnSetEntity?.Invoke(entity);
     }
 
     public void OnNewPlayableEntity(EntityInfo newEntity, int index)
@@ -40,7 +46,7 @@ public class GearModuleManager : MonoBehaviour
         }
         if (index == 0)
         {
-            module.OnSelectEntity?.Invoke(newEntity);
+            module.SelectEntity(newEntity);
         }
     }
 

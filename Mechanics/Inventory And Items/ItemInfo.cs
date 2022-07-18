@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -78,8 +79,18 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         
     }
 
+    public void ManifestItem(ItemData data, bool cloned)
+    {
+        item = cloned ? Instantiate(data.item) : data.item;
+        currentStacks = data.amount;
+        UpdateItemInfo();
+        isInInventory = true;
+
+    }
+
     public void ReturnToSlot()
     {
+        if (currentSlot == null) return;
         if (isInInventory == false) { return; }
 
         transform.position = currentSlot.transform.position;
@@ -88,6 +99,8 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         {
             transform.SetParent(currentSlot.transform);
         }
+
+        
 
         GetComponent<RectTransform>().sizeDelta = currentSlot.GetComponent<RectTransform>().sizeDelta;
         transform.localScale = new(1, 1, 1);
@@ -201,9 +214,16 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
         var module = GetComponentInParent<ModuleInfo>();
 
+        var vault = GetComponentInParent<GuildVault>();
+
         if (module && module.itemBin)
         {
             transform.SetParent(module.itemBin);
+        }
+
+        if (vault)
+        {
+            transform.SetParent(vault.transform);
         }
         currentSlotHover = currentSlot;
         moduleHover = module;
@@ -244,6 +264,26 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         }
 
         ArchAction.Yield(() => { Destroy(gameObject); });
+    }
+
+    async public Task<bool> SafeDestroy()
+    {
+        var userChoice = await PromptHandler.active.GeneralPrompt(new()
+        {
+            icon = item.itemIcon,
+            title = $"{item.itemName}",
+            question = $"Are you sure you want to destroy {item.itemName}?",
+            option1 = "Destroy",
+            option2 = "Cancel"
+        });
+
+        if (userChoice.optionString == "Destroy")
+        {
+            DestroySelf();
+            return true;
+        }
+
+        return false;
     }
 
     public void UpdateItemInfo()

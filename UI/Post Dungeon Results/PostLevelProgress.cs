@@ -98,7 +98,7 @@ namespace Architome
 
             progressBar.fillAmount = startExperience / targetValue;
             entityName.text = entity.entityName;
-            portrait.sprite = entity.entityPortrait;
+            portrait.sprite = entity.PortraitIcon();
 
             active = true;
 

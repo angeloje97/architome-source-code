@@ -63,9 +63,9 @@ public class EquipmentSlot : MonoBehaviour
         if (equipment != null)
         {
             original = equipment;
-            
+
             //equipment = Instantiate(equipment);
-            weapon = (Weapon) equipment;
+            weapon = Item.IsWeapon(equipment) ? (Weapon)equipment : null;
         }
         
     }

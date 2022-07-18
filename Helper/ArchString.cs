@@ -74,7 +74,7 @@ namespace Architome
             {
                 if (i == 0)
                 {
-                    newText += $"{text[i]}".ToUpper();
+                    newText += $"{text[i]}".ToLower();
                     continue;
                 }
                 if (" "[0] == text[i])
@@ -163,18 +163,22 @@ namespace Architome
         {
             string text = "";
 
-            if (time > 3600)
+            if (time >= 3600)
             {
                 text += $"{(int)(time / 3600)}hr "; 
             }
 
-            if (time > 60)
+            if (time >= 60)
             {
                 var minutes = time % 3600;
                 text += $"{(int)(minutes / 60)}min ";
             }
 
-            text += $"{(int)(time % 60)}s";
+            if (time % 60 > 0)
+            {
+                text += $"{(int)(time % 60)}s";
+            }
+
 
             //switch(time)
             //{

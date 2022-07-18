@@ -26,7 +26,6 @@ namespace Architome
             movement = GetComponentInParent<Movement>();
 
 
-
         }
 
 

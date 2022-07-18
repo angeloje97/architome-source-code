@@ -46,14 +46,20 @@ namespace Architome
 
         public void OnCatalystDestroy(CatalystDeathCondition deathCondition)
         {
+            destroyCatalyst = true;
+            isActive = false;
+
+
+            transform.SetParent(CatalystManager.active.transform);
+            catalystInfo.OnCatalystDestroy -= OnCatalystDestroy;
+
             ArchAction.Delay(() => {
-                destroyCatalyst = true;
-                isActive = false;
+                //destroyCatalyst = true;
+                //isActive = false;
 
                 StopLoops();
-                transform.SetParent(CatalystManager.active.transform);
+                //transform.SetParent(CatalystManager.active.transform);
 
-                catalystInfo.OnCatalystDestroy -= OnCatalystDestroy;
                 HandleDestroy();
             
             }, .25f);
@@ -82,6 +88,7 @@ namespace Architome
         public void HandleDestroy()
         {
             if (!destroyCatalyst || audioManager.audioRoutineIsActive) { return; }
+            if (this == null) return;
 
 
             Destroy(gameObject);

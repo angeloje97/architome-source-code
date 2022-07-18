@@ -28,7 +28,6 @@ namespace Architome
             {
                 movement = entityInfo.Movement();
                 movement.OnNewPathTarget += OnNewPathTarget;
-                movement.OnArrival += OnArrival;
                 movement.OnEndMove += OnEndMove;
             }
 
@@ -59,26 +58,20 @@ namespace Architome
         }
         public void OnArrival(Movement movement, Transform target)
         {
-            if(target == null) { return; }
-            if(currentTask == null) { return; }
-            if(currentTask.properties.station == null) { return; }
-
-
-            //ArchAction.Delay(() => { WorkOn(currentTask); }, .45f);
         }
 
         public void OnEndMove(Movement movement)
         {
-            var target = movement.Target();
-            ArchAction.Delay(() => {
-                if (target == null) { return; }
-                if (currentTask == null) { return; }
-                if (currentTask.properties.station == null) { return; }
-                if (!movement.IsInRangeFromTarget()) { return; }
+            //var target = movement.Target();
+            //ArchAction.Delay(() => {
+            //    if (target == null) { return; }
+            //    if (currentTask == null) { return; }
+            //    if (currentTask.properties.station == null) { return; }
+            //    if (!movement.IsInRangeFromTarget()) { return; }
 
-                movement.StopMoving();
-                WorkOn(currentTask); 
-            }, .125f);
+            //    movement.StopMoving();
+            //    WorkOn(currentTask); 
+            //}, .125f);
             
             
 
@@ -104,9 +97,9 @@ namespace Architome
 
         public void OnNewPathTarget(Movement movement, Transform previousTarget, Transform currentTarget)
         {
-            if(currentTask == null) { return; }
+            if (currentTask == null) { return; }
 
-            if(!IsCurrentWorkStation(currentTarget))
+            if (!IsCurrentWorkStation(currentTarget))
             {
                 StopTask();
             }
@@ -115,7 +108,7 @@ namespace Architome
         public void OnDamageTaken(CombatEventData eventData)
         {
             if (currentTask == null) return;
-            if (currentTask.properties.damageCnacelsTask)
+            if (currentTask.properties.damageCancelsTask)
             {
                 StopTask();
             }
@@ -151,7 +144,7 @@ namespace Architome
             currentState = WorkerState.Working;
         }
 
-        public void StartWork(TaskInfo task)
+        async public void StartWork(TaskInfo task)
         {
             Debugger.InConsole(18964, $"{task}");
             if(task == null) { return; }
@@ -167,17 +160,27 @@ namespace Architome
             entityInfo.taskEvents.OnMoveToTask?.Invoke(newTaskEvent);
             currentState = WorkerState.MovingToWork;
 
+            var successful = true;
+
             if(hasWorkSpot)
             {
-                movement.MoveTo(currentStation.workSpot);
+                //movement.MoveTo(currentStation.workSpot);
+                successful = await movement.MoveToAsync(currentStation.workSpot);
             }
             else
             {
-                movement.MoveTo(currentStation.transform, 3f);
+                successful = await movement.MoveToAsync(currentStation.transform, 3f);
+                //movement.MoveTo(currentStation.transform, 3f);
             }
 
+            if (!successful)
+            {
+                StopTask();
+            }
 
-            
+            if (!successful) return;
+
+            WorkOn(task);
         }
 
     }

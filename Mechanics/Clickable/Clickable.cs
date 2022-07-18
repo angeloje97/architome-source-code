@@ -97,11 +97,13 @@ namespace Architome
         {
             List<string> options = this.options.Select(option => option.text).ToList();
 
-            int choice = await ContextMenu.current.UserChoice(new()
+            var response = await ContextMenu.current.UserChoice(new()
             {
                 title = clickedEntities.Count > 1 ? $"{clickedEntities[0].entityName} + {clickedEntities.Count - 1}" : $"{clickedEntities[0].entityName}",
                 options = options
             });
+
+            var choice = response.index;
 
             if (choice == -1) return;
 

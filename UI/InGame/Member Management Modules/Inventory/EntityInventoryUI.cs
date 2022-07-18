@@ -2,6 +2,7 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Architome.Enums;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,11 +16,15 @@ namespace Architome
         public Inventory entityInventory;
         public CharacterInfo entityCharacter;
         public InventoryManager inventoryManager;
+
+        public Transform inventorySlotParent;
         public List<InventorySlot> inventorySlots;
         public List<ItemData> inventoryItems;
         public ModuleInfo module;
 
         private EntityInfo currentEntity;
+
+        public bool dynamicInventory;
 
         //Update Handlers
         private int itemCount;
@@ -39,6 +44,13 @@ namespace Architome
                 GameManager.active.OnNewPlayableEntity += OnNewPlayableEntity;
             }
 
+            if (module)
+            {
+                if (dynamicInventory)
+                {
+                    module.OnSelectEntity += SetEntity;
+                }
+            }
 
             GetComponent<ItemSlotHandler>().OnChangeItem += OnChangeItem;
         }
@@ -51,7 +63,6 @@ namespace Architome
         // Update is called once per frame
         void Update()
         {
-            HandleUpdateTriggers();
         }
 
         public void SetEntity(EntityInfo entity)
@@ -62,31 +73,40 @@ namespace Architome
             entityInventory.entityInventoryUI = this;
             inventoryItems = entityInfo.Inventory().inventoryItems;
             entityCharacter = entity.GetComponentInChildren<CharacterInfo>();
-            entityInventory.OnLoadInventory += OnLoadInventory;
+            //entityInventory.OnLoadInventory += OnLoadInventory;
 
+            HandleInventorySlots();
             HandleExistingItems();
         }
-        void HandleUpdateTriggers()
+
+        void HandleInventorySlots()
         {
-            //HandleNewEntity();
+            if (!dynamicInventory) return;
+            if (inventorySlotParent == null) return;
+            if (module == null) return;
 
+            var slotPrefab = module.prefabs.inventorySlot;
 
+            if (slotPrefab == null) return;
 
-            void HandleNewEntity()
+            if (inventorySlots != null)
             {
-                if (currentEntity != entityInfo)
+                for (int i = 0; i < inventorySlots.Count; i++)
                 {
-                    //UpdateSlots();
-                    entityInfo.Inventory().entityInventoryUI = this;
-                    //items = entityInfo.Inventory().items;
-                    inventoryItems = entityInfo.Inventory().inventoryItems;
-                    currentEntity = entityInfo;
+                    Destroy(inventorySlots[i].gameObject);
+                    inventorySlots.RemoveAt(i);
+                    i--;
                 }
+            }
 
+            inventorySlots = new();
 
-
+            for (int i = 0; i < inventoryItems.Count; i++)
+            {
+                inventorySlots.Add(Instantiate(slotPrefab, inventorySlotParent).GetComponent<InventorySlot>());
             }
         }
+
         void HandleExistingItems()
         {
             if (entityInfo == null) return;
@@ -100,7 +120,6 @@ namespace Architome
 
                 var newItem = CreateItem(inventoryItems[i], inventorySlots[i]);
                 
-
             }
         }
 
@@ -214,6 +233,8 @@ namespace Architome
 
             newItem.HandleNewSlot(slot);
 
+            ArchAction.Yield(() => { newItem.ReturnToSlot(); });
+
             return newItem;
 
             return null;
@@ -243,8 +264,9 @@ namespace Architome
         async public void OnItemAction(ItemInfo info)
         {
             var contextMenu = ContextMenu.current;
-
             if (contextMenu == null) return;
+
+            var gameState = GameManager.active ? GameManager.active.GameState : GameState.Lobby;
 
             var options = new List<string>()
             {
@@ -254,11 +276,13 @@ namespace Architome
 
             var name = info.item.itemName;
 
-            var choice = await contextMenu.UserChoice(new()
+            var response = await contextMenu.UserChoice(new()
             {
                 options = options,
                 title = name,
             });
+
+            var choice = response.index;
 
             if (choice < 0 || choice >= options.Count) return;
 
@@ -274,7 +298,7 @@ namespace Architome
                     options.Insert(0, "Equip");
                 }
 
-                if (Item.Useable(info.item))
+                if (Item.Useable(info.item) && gameState == GameState.Play)
                 {
                     options.Insert(0, "Use");
                 }
@@ -282,20 +306,21 @@ namespace Architome
 
             async void HandleDestroy()
             {
-                if (options[choice] != "Destroy") return;
+                if (response.stringValue != "Destroy") return;
 
-                var userChoice = await PromptHandler.active.GeneralPrompt(new() {
-                    icon = info.item.itemIcon,
-                    title = $"{info.item.itemName}",
-                    question = $"Are you sure you want to destroy {info.item.itemName}?",
-                    option1 = "Destroy",
-                    option2 = "Cancel"
-                });
+                 await info.SafeDestroy();
+                //var userChoice = await PromptHandler.active.GeneralPrompt(new() {
+                //    icon = info.item.itemIcon,
+                //    title = $"{info.item.itemName}",
+                //    question = $"Are you sure you want to destroy {info.item.itemName}?",
+                //    option1 = "Destroy",
+                //    option2 = "Cancel"
+                //});
 
-                if (userChoice.optionString == "Destroy")
-                {
-                    info.DestroySelf();
-                }
+                //if (userChoice.optionString == "Destroy")
+                //{
+                //    info.DestroySelf();
+                //}
 
             }
 

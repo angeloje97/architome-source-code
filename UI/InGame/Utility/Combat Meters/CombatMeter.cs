@@ -84,9 +84,10 @@ namespace Architome
         {
             this.entity = entity;
 
-            if (entity.entityPortrait)
+            var portraitIcon = entity.PortraitIcon();
+            if (portraitIcon)
             {
-                info.entityIcon.sprite = entity.entityPortrait;
+                info.entityIcon.sprite = portraitIcon;
             }
 
             if (entity.archClass)

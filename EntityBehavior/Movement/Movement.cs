@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using Architome.Enums;
 using System.Threading.Tasks;
+
 using UnityEngine.Events;
 
 namespace Architome
@@ -112,7 +113,6 @@ namespace Architome
 
 
         }
-
         private void Awake()
         {
             GetDependencies();
@@ -128,12 +128,10 @@ namespace Architome
             UpdateMetrics();
             HandleEvents();
         }
-
         public void OnTransferScene(string sceneName)
         {
             StopMoving(true);
         }
-
         public void OnLifeCheck(bool isAlive)
         {
             if (isAlive)
@@ -214,26 +212,21 @@ namespace Architome
                 currentPathTarget = destinationSetter.target;
             }
         }
-
         void OnChangeStats(EntityInfo entity)
         {
             UpdateMovementSpeed();
         }
-
         void UpdateMovementSpeed()
         {
             var baseMovementSpeed = walking ? GMHelper.WorldSettings().baseWalkSpeed : GMHelper.WorldSettings().baseMovementSpeed;
 
             path.maxSpeed = entityInfo.stats.movementSpeed * baseMovementSpeed;
         }
-
         public void SetWalk(bool val)
         {
             walking = val;
             UpdateMovementSpeed();
         }
-
-
         public void UpdateMetrics()
         {
             if (path == null) { return; }
@@ -274,6 +267,27 @@ namespace Architome
             path.endReachedDistance = 0;
             OnChangePath?.Invoke(this);
         }
+        async public Task<bool> MoveToAsync(Transform locationTransform, float endReachDistance = 0f)
+        {
+            MoveTo(locationTransform, endReachDistance);
+            isMoving = true;
+            var target = locationTransform;
+
+            await Task.Delay(62);
+
+            while (isMoving || distanceFromTarget > endReachDistance + 2f)
+            {
+                await Task.Yield();
+                if (!Application.isPlaying) return false;
+                
+                Debugger.Environment(8104, $"Distance from target: {distanceFromTarget}m\n" +
+                    $"End Reach Distance: {endReachDistance}m");
+
+                if (destinationSetter.target != target) return false;
+            }
+
+            return true;
+        }
         public void MoveTo(Transform locationTransform, float endReachDistance = 0f)
         {
             if (!entityInfo.isAlive) { return; }
@@ -287,7 +301,6 @@ namespace Architome
                 destinationSetter.target = locationTransform;
             }
         }
-
         public void MoveTo(Vector3 location, float endReachDistance = 0f)
         {
             if(!entityInfo.isAlive) return;
@@ -301,13 +314,11 @@ namespace Architome
 
 
         }
-
         public void TriggerEvents()
         {
             hasArrivedCheck = !hasArrived;
             isMovingChange = !isMoving;
         }
-
         public bool IsInRangeFromTarget()
         {
             if (destinationSetter.target == null)
@@ -326,7 +337,6 @@ namespace Architome
 
             return false;
         }
-
         public float DistanceFromTarget()
         {
             if (destinationSetter.target == null) { return float.PositiveInfinity; }
@@ -354,6 +364,7 @@ namespace Architome
         {
             if (targetSelf)
             {
+                destinationSetter.target = entityObject.transform;
                 MoveTo(entityObject.transform, float.PositiveInfinity);
             }
 
@@ -395,9 +406,6 @@ namespace Architome
 
 
         }
-
-        
-
         void OnCastStart(AbilityInfo ability)
         {
             if (ability.cancelCastIfMoved)
@@ -405,12 +413,10 @@ namespace Architome
                 movement.StopMoving();
             }
         }
-
         void OnCastEnd(AbilityInfo ability)
         {
 
         }
-
         void OnChannelStart(AbilityInfo ability)
         {
             if (ability.channel.cancelChannelOnMove)
@@ -418,7 +424,6 @@ namespace Architome
                 movement.StopMoving();
             }
         }
-
         void OnChannelEnd(AbilityInfo ability)
         {
 

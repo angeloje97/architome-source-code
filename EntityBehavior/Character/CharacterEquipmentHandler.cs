@@ -11,6 +11,8 @@ namespace Architome
         CharacterInfo character;
         ArchitomeCharacter archiChar;
 
+        public float startingTimer = 1f;
+
         new void GetDependencies()
         {
             base.GetDependencies();
@@ -29,6 +31,19 @@ namespace Architome
             GetDependencies();
         }
 
+        private void Update()
+        {
+            if (startingTimer > 0)
+            {
+                startingTimer -= Time.deltaTime;
+            }
+
+            if (startingTimer < 0)
+            {
+                startingTimer = 0;
+            }
+        }
+
         // Update is called once per frame
 
         public void OnChangeEquipment(EquipmentSlot slot, Equipment previous, Equipment after)
@@ -37,6 +52,11 @@ namespace Architome
                 if (entityInfo == null) return;
                 entityInfo.UpdateCurrentStats(); });
             UpdateModel();
+
+            if (startingTimer > 0)
+            {
+                entityInfo.RestoreFull();
+            }
         }
 
         public void UpdateModel()
@@ -45,20 +65,22 @@ namespace Architome
             var originalValues = archiChar.originalParts;
             var equipments = GetComponentsInChildren<EquipmentSlot>().Where(slot => slot.equipment != null).Select(slot => slot.equipment).ToList();
 
+            var materialValue = archiChar.currentMaterial;
 
             //OriginalValues
             foreach (Vector2 current in originalValues)
             {
-                archiChar.SetPart((int)current.x, (int)current.y);
+                archiChar.SetPart((int)current.x, (int)current.y, materialValue);
             }
 
             foreach (var equipment in equipments)
             {
+                if (!Item.IsEquipment(equipment)) continue;
                 var values = equipment.equipmentOverRide;
 
                 foreach (var value in values)
                 {
-                    archiChar.SetPart((int)value.x, (int)value.y);
+                    archiChar.SetPart((int)value.x, (int)value.y, (int) value.z);
                 }
             }
         }

@@ -25,6 +25,7 @@ namespace Architome
 
         bool damageTimerActive;
         bool killEntityTimerActive;
+        bool attackActive;
         bool startCastActive;
         bool endCastActive;
 
@@ -90,6 +91,7 @@ namespace Architome
             {
                 abilityManager.OnCastStart += OnCastStart;
                 abilityManager.OnCastEnd += OnCastEnd;
+                abilityManager.OnCatalystRelease += OnCatalystRelease;
             }
         }
 
@@ -140,12 +142,31 @@ namespace Architome
 
         void OnCastStart(AbilityInfo ability)
         {
+            if (startCastActive) return;
+            startCastActive = true;
+            ArchAction.Delay(() => { startCastActive = false; }, .75f);
+
+            HandleEffect(EntityEvent.OnCastStart);
 
         }
 
         void OnCastEnd(AbilityInfo ability)
         {
+            if (endCastActive) return;
+            endCastActive = true;
+            ArchAction.Delay(() => { endCastActive = false; }, .75f);
 
+            HandleEffect(EntityEvent.OnCastEnd);
+        }
+
+        void OnCatalystRelease(AbilityInfo ability, CatalystInfo catalyst)
+        {
+            if (attackActive) return;
+            attackActive = true;
+            ArchAction.Delay(() => { attackActive = false; }, .75f);
+
+            if (ability.abilityType2 != AbilityType2.AutoAttack) return;
+            HandleEffect(EntityEvent.OnAttack);
         }
         void OnLoadScene(ArchSceneManager sceneManager)
         {
@@ -234,10 +255,10 @@ namespace Architome
         {
             if (damageTimerActive) return;
             damageTimerActive = true;
+            ArchAction.Delay(() => damageTimerActive = false, 1f);
 
             HandleEffect(EntityEvent.OnDamageTaken);
 
-            ArchAction.Delay(() => damageTimerActive = false, 4f);
             //if (entityInfo.entityFX == null) return;
             //if (entityInfo.entityFX.hurtSounds == null) return;
             //try

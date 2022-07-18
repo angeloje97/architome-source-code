@@ -12,6 +12,7 @@ namespace Architome
         {
             OnEnter,
             OnExit,
+            OnAllPartyMembersInPortal,
         }
 
         [Serializable]
@@ -82,8 +83,15 @@ namespace Architome
             ArchAction.Delay(() => {
                 portal.events.OnPortalEnter += OnPortalEnter;
                 portal.events.OnPortalExit += OnPortalExit;
+                portal.events.OnAllPartyMembersInPortal += OnAllPartyMembersInPortal;
             }, 3f);
         }
+
+        private void OnAllPartyMembersInPortal(PortalInfo portal, List<EntityInfo> members)
+        {
+            HandleEffects(PortalEvents.OnAllPartyMembersInPortal);
+        }
+
         void OnPortalEnter(PortalInfo portal, GameObject entity)
         {
             var info = entity.GetComponent<EntityInfo>();
@@ -100,6 +108,8 @@ namespace Architome
             ClearEntity(info);
              
         }
+
+
 
         void ClearEntity(EntityInfo entity)
         {

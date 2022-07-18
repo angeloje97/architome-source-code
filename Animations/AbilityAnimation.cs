@@ -14,12 +14,14 @@ public class AbilityAnimation
     public Animator animator;
     public Anim anim;
     public CatalystInfo currentCatalyst;
+    public CharacterInfo character;
 
     public void ProcessData(EntityInfo entity, Anim anim)
     {
         var abilityManager = entity.AbilityManager();
         this.entityInfo = entity;
         this.animator = anim.anim;
+        character = entity.CharacterInfo();
         abilityManager = entityInfo.AbilityManager();
         abilityManager.OnCastStart += OnCastStart;
         abilityManager.OnCastRelease += OnCastRelease;
@@ -150,8 +152,11 @@ public class AbilityAnimation
 
     public void Attack()
     {
-        var weapon = entityInfo.CharacterInfo().WeaponItem(EquipmentSlotType.MainHand);
         animator.SetFloat("AttackSpeed", entityInfo.stats.attackSpeed);
+
+        if (UsesFixedAttackAnimation()) return;
+
+        var weapon = entityInfo.CharacterInfo().WeaponItem(EquipmentSlotType.MainHand);
         if(weapon == null)
         {
             animator.SetInteger("AttackX", 1);
@@ -164,7 +169,21 @@ public class AbilityAnimation
         animator.SetInteger("AttackY", (int)weapon.weaponAttackStyle.y);
         animator.SetInteger("AttackZ", (int)weapon.weaponAttackStyle.z);
 
+        bool UsesFixedAttackAnimation()
+        {
+            if (character == null) return false;
+            if (!character.fixedAnimation.enabled) return false;
 
+            var fixedAttack = character.fixedAnimation.attackStyle;
+
+            animator.SetInteger("AttackX", (int)fixedAttack.x);
+            animator.SetInteger("AttackY", (int)fixedAttack.y);
+            animator.SetInteger("AttackZ", (int)fixedAttack.z);
+            
+
+
+            return true;
+        }
     }
 
     public void SetCast(bool val)

@@ -7,7 +7,9 @@ namespace Architome
 {
     public class ObjectiveTimer : Objective
     {
-        public float timer;
+        public float timer, deathTimerPenalty;
+        public int entityDeaths;
+        public bool enableMemberDeaths;
         void Start()
         {
         
@@ -26,12 +28,20 @@ namespace Architome
             questInfo.OnObjectiveComplete += OnObjectiveComplete;
             requirement = (object o) => OtherObjectivesComplete();
 
+            HandleEntityDeath();
             StartTimer();
+
         }
 
         public void UpdatePrompt()
         {
             prompt = $"Complete objectives before timer runs out.\n{ArchString.FloatToTimer(timer)} left";
+
+            var deadCount = DeadCount();
+            if (deadCount.Length > 0)
+            {
+                prompt += $"\n{deadCount}";
+            }
 
             if (isComplete)
             {
@@ -52,6 +62,33 @@ namespace Architome
             }
 
             questInfo.ForceFail();
+        }
+
+        public void HandleEntityDeath()
+        {
+            if (!enableMemberDeaths) return;
+            var deathHandler = EntityDeathHandler.active;
+
+            deathHandler.OnPlayableEntityDeath += (CombatEventData eventData) => { 
+                entityDeaths++;
+                timer -= deathTimerPenalty;
+                Debugger.Environment(1095, $"Timer: {timer} after taking off {deathTimerPenalty}");
+                UpdatePrompt();
+            };
+        }
+
+        public string DeadCount()
+        {
+            var result = "";
+
+            if (entityDeaths <= 0)
+            {
+                return result;
+            }
+
+            result += $"Deaths: {entityDeaths} (-{ArchString.FloatToTimer(entityDeaths*deathTimerPenalty)})";
+
+            return result;
         }
 
         public void OnObjectiveComplete(Objective obj)

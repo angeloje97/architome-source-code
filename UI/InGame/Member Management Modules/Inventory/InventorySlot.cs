@@ -15,6 +15,7 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
     public ModuleInfo module;
     public ItemSlotHandler itemSlotHandler;
 
+
     Transform parent;
     
     [Serializable]
@@ -43,12 +44,23 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
     {
         module = GetComponentInParent<ModuleInfo>();
         itemSlotHandler = GetComponentInParent<ItemSlotHandler>();
+
+
     }
     void Start()
     {
         GetDependencies();
     }
     
+    void OnDestroy()
+    {
+    }
+    void Update()
+    {
+
+        HandleEvents();
+    }
+
     public int Index()
     {
         if (parent == null)
@@ -70,16 +82,8 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
         return -1;
     }
 
-    void Update()
-    {
-        if (module == null) return;
-        if (!module.isActive) return;
-        HandleEvents();
-    }
-
     public void HandleEvents()
     {
-
         if (previousItemInfo != currentItemInfo)
         {
             //if (currentItemInfo)

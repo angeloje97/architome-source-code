@@ -123,6 +123,7 @@ public class ThreatManager : MonoBehaviour
     public event Action<ThreatManager> OnEmptyThreats;
     public event Action<ThreatManager> OnClearThreats;
 
+
     bool sortingThreats;
     bool combatActive;
     public void GetDependencies()
@@ -272,7 +273,7 @@ public class ThreatManager : MonoBehaviour
 
         var target = threatQueue[0];
         threatQueue.RemoveAt(0);
-        IncreaseThreat(target, 15f);
+        IncreaseThreat(target, 15f, true);
 
     }
 
@@ -395,7 +396,7 @@ public class ThreatManager : MonoBehaviour
 
         behavior.events.OnDetectedEnemy?.Invoke(target);
     }
-    public void IncreaseThreat(GameObject source, float value,  bool fromAlert = false)
+    public void IncreaseThreat(GameObject source, float value, bool fromAlert = false)
     {
         if (!entityInfo.isAlive) return;
         if (!entityInfo.CanAttack(source)) return;
@@ -404,12 +405,10 @@ public class ThreatManager : MonoBehaviour
 
         bool firstThreat = threats.Count == 0;
 
-
-        if (!source.GetComponent<EntityInfo>().isAlive) { return; }
         var sourceInfo = source.GetComponent<EntityInfo>();
-        var sourceThreat = source.GetComponentInChildren<ThreatManager>();
+        if (sourceInfo == null) return;
 
-        
+        var sourceThreat = source.GetComponentInChildren<ThreatManager>();
 
         var threatInfo = Threat(source);
 
@@ -450,7 +449,6 @@ public class ThreatManager : MonoBehaviour
 
         sortingThreats = false;
     }
-
     public void Bump()
     {
         foreach (var threat in threats)
@@ -549,8 +547,6 @@ public class ThreatManager : MonoBehaviour
             highestNonTargettingThreat = info.threatObject;
         }
     }
-
-
     public void HandleMaxThreatNonTargetting()
     {
         
@@ -587,12 +583,6 @@ public class ThreatManager : MonoBehaviour
 
 
     }
-
-        
-
-
-
-        
     public GameObject NearestHighestThreat(float range)
     {
 

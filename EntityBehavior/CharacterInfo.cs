@@ -17,7 +17,6 @@ public class CharacterInfo : EntityProp
         public bool combatSheath;
     }
 
-    public CharProperties properties;
 
 
     [Serializable]
@@ -26,6 +25,17 @@ public class CharacterInfo : EntityProp
         public GearModuleManager gearModule;
     }
 
+    [Serializable]
+    public struct FixedAnimation
+    {
+        public bool enabled;
+        public int movementStyle;
+        public Vector3 attackStyle;
+    }
+    public CharProperties properties;
+    public Modules modules;
+    public FixedAnimation fixedAnimation;
+
     // Start is called before the first frame update
     public GameObject entityObject;
     public Movement movement;
@@ -33,7 +43,6 @@ public class CharacterInfo : EntityProp
     public AbilityInfo currentCasting;
     public List<GameObject> characterProperties;
     public Stats totalEquipmentStats;
-    public Modules modules;
 
     public bool sheathed;
     public bool isCasting;
@@ -45,7 +54,7 @@ public class CharacterInfo : EntityProp
     CharacterTaskHandler taskHandler;
     CharacterAbilityHandler abilityHandler;
 
-    public Action<EquipmentSlot, Equipment, Equipment> OnChangeEquipment;
+    public Action<EquipmentSlot, Equipment, Equipment> OnChangeEquipment { get; set; }
     public Action<bool> OnChangeSheath;
 
     [Serializable]
@@ -84,9 +93,6 @@ public class CharacterInfo : EntityProp
         abilityHandler.SetCharacter(this);
 
     }
-
-    
-
     public void GetProperties()
     {
         equipment = new List<EquipmentSlot>();
@@ -100,7 +106,6 @@ public class CharacterInfo : EntityProp
         }
         
     }
-
     public Transform PetSpot()
     {
         var petSpot = GetComponentInChildren<ArchitomePetSpot>();

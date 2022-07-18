@@ -165,22 +165,25 @@ namespace Architome
 
                 inventory.ClearInventory();
 
-                foreach (var itemData in data.inventory.items)
-                {
-                    if (itemData.slotNumber >= inventory.inventoryItems.Count) continue;
-                    if (!_maps.items.ContainsKey(itemData.id)) continue;
 
-                    var item = Object.Instantiate(_maps.items[itemData.id]);
+                inventory.inventoryItems = data.inventory.ItemDatas(_maps);
 
-                    if (Item.Equipable(item))
-                    {
-                        var equipment = (Equipment)item;
-                        equipment.stats = itemData.stats;
-                    }
+                //foreach (var itemData in data.inventory.items)
+                //{
+                //    if (itemData.slotNumber >= inventory.inventoryItems.Count) continue;
+                //    if (!_maps.items.ContainsKey(itemData.id)) continue;
 
-                    inventory.inventoryItems[itemData.slotNumber] = new() { amount = itemData.amount, item = item };
+                //    var item = Object.Instantiate(_maps.items[itemData.id]);
+
+                //    if (Item.Equipable(item))
+                //    {
+                //        var equipment = (Equipment)item;
+                //        equipment.stats = itemData.stats;
+                //    }
+
+                //    inventory.inventoryItems[itemData.slotNumber] = new() { amount = itemData.amount, item = item };
                     
-                }
+                //}
 
 
                 //var items = new Dictionary<EntityData.InventoryData.ItemData, Item>();

@@ -12,13 +12,15 @@ namespace Architome
         public EquipmentSlotType equipmentSlotType;
         public EquipmentSlotType secondarySlotType;
         public ArmorType armorType;
-        public List<Vector2> equipmentOverRide;
+        public List<Vector3> equipmentOverRide;
 
         public int LevelRequired;
         public int itemLevel = 1;
 
         public Stats stats;
 
+
+        public bool useStatWeights;
         [Header("Stat Weights")]
         public float vitalityWeight;
         public float strengthWeight;
@@ -87,6 +89,7 @@ namespace Architome
 
         public void ProcessStatWeights()
         {
+            if (!useStatWeights) return;
             var total = vitalityWeight + strengthWeight + dexterityWeight + wisdomWeight;
             if (total == 0) { return; }
             var vContribution = vitalityWeight / total;
@@ -95,7 +98,7 @@ namespace Architome
             var wContribution = wisdomWeight / total;
 
             //Total Stats Per Level
-            var totalStats = itemLevel * 4;
+            var totalStats = itemLevel;
 
             stats.Vitality = (int)(vContribution * totalStats);
             stats.Strength = (int)(sContribution * totalStats);

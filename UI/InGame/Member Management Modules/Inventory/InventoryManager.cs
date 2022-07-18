@@ -55,7 +55,7 @@ public class InventoryManager : MonoBehaviour
         {
             if (entityInventories.Count < index) return;
 
-            entityIcons[index].sprite = playableEntities[index].entityPortrait;
+            entityIcons[index].sprite = playableEntities[index].PortraitIcon();
         }
 
         void UpdatePortrait()
@@ -74,9 +74,11 @@ public class InventoryManager : MonoBehaviour
         {
             if (i > entityIcons.Count) { break; }
 
-            if (playableEntities[i].entityPortrait != null)
+            var portraitIcon = playableEntities[i].PortraitIcon();
+
+            if (portraitIcon != null)
             {
-                entityIcons[i].sprite = playableEntities[i].entityPortrait;
+                entityIcons[i].sprite = portraitIcon;
             }
         }
     }

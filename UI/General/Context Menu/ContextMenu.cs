@@ -84,7 +84,7 @@ namespace Architome
             pickedOption = option;
         }
 
-        async public Task<int> UserChoice(ContextMenuData contextData)
+        async public Task<ContextMenuResponse> UserChoice(ContextMenuData contextData)
         {
             transform.SetAsLastSibling();
             if (isChoosing)
@@ -111,7 +111,20 @@ namespace Architome
 
             module.SetActive(false);
 
-            return pickedOption;
+            if (pickedOption == -1)
+            {
+                return new()
+                {
+                    stringValue = "",
+                    index = -1
+                };
+            }
+
+            return new()
+            {
+                stringValue = contextData.options[pickedOption],
+                index = pickedOption
+            };
         }
 
         void CreateOptions(List<string> options)
@@ -164,6 +177,12 @@ namespace Architome
         }
 
         
+    }
+
+    public struct ContextMenuResponse
+    {
+        public string stringValue;
+        public int index;
     }
 
     public struct ContextMenuData

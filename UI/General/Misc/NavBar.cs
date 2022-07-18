@@ -15,6 +15,7 @@ namespace Architome
         public float smoothening = 1f;
 
         public int index;
+        public bool update;
 
         private void Start()
         {
@@ -25,6 +26,8 @@ namespace Architome
 
         private void OnValidate()
         {
+            if (!update) return;
+            update = false;
             toggles = GetComponentsInChildren<Toggle>().ToList();
             UpdateFromIndex();
             OnValueChange();

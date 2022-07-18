@@ -187,7 +187,6 @@ namespace Architome
                 count++;
             }
         }
-
         public static async Task<KeyCode> NewKey()
         {
             while (true)

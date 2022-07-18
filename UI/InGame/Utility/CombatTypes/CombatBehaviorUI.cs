@@ -62,7 +62,7 @@ namespace Architome
 
 
 
-            info.entityIcon.sprite = entity.entityPortrait;
+            info.entityIcon.sprite = entity.PortraitIcon();
             info.classBorder.color = entity.archClass.classColor;
 
 

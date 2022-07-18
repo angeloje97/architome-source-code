@@ -72,13 +72,13 @@ namespace Architome
 
             await Task.Delay((int)(extraTime * 1000));
 
-            await Task.Delay(50);
+            //await Task.Delay(50);
 
 
             for (int i = 0; i < 3; i++)
             {
 
-                await Task.Delay(50);
+                await Task.Yield();
 
                 AdjustSize();
             }

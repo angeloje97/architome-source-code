@@ -1,9 +1,10 @@
+using System;
+using System.Linq;
 using System.Collections;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
-using System;
-using System.Linq;
 
 
 namespace Architome
@@ -19,18 +20,8 @@ namespace Architome
 
         public float baseMovementSpeed;
         public float baseWalkSpeed;
-        public float lengthOfDay;
 
-        public float currentTime, deltaTime;
-        public int timeScale = 1;
-        public int day;
-
-        public int week { get { return day % 7; } }
-        public float hour { get { return (currentTime / lengthOfDay) * 24; } }
-        public float minute { get { return (hour - (int)hour) * 60; } }
-
-        public float clockHour;
-        public float clockMinute;
+        
 
         [Serializable]
         public class RarityProperties
@@ -53,14 +44,40 @@ namespace Architome
 
         public Action<SpawnerInfo> OnNewSpawnBeacon;
 
+        public Time time;
 
 
         void Start()
         {
+            var gameManager = GameManager.active;
+            if (gameManager.GameState == GameState.Menu) return;
 
+            GetDependencies();
+            LoadTime();
+            StartTime();
+        }
+
+        void StartTime()
+        {
+            if (time == null) return;
+            time.HandleTimer();
         }
         
+        void GetDependencies()
+        {
+            var saveSystem = SaveSystem.active;
+            var archSceneManager = ArchSceneManager.active;
 
+            if (saveSystem)
+            {
+                saveSystem.BeforeSave += (SaveGame save) => { save.worldTime = time; };
+            }
+
+            if (archSceneManager)
+            {
+                archSceneManager.BeforeLoadScene += (ArchSceneManager sceneManager) => { SaveTime(); };
+            }
+        }
         private void Awake()
         {
             //if (active)
@@ -81,7 +98,6 @@ namespace Architome
         }
         void Update()
         {
-            HandleTimers();
         }
 
         public void SetSpawnBeacon(SpawnerInfo spawner)
@@ -90,25 +106,26 @@ namespace Architome
             OnNewSpawnBeacon?.Invoke(spawner);
         }
 
-        void HandleTimers()
-        {
-            var next = currentTime + Time.deltaTime * timeScale;
-            deltaTime = next - currentTime;
-            currentTime = next;
-            clockHour = hour;
-            clockMinute = minute;
-
-            if (currentTime > lengthOfDay)
-            {
-                day++;
-                currentTime = 0;
-
-            }
-        }
 
         private void OnValidate()
         {
             CreateProperties();
+        }
+
+        void SaveTime()
+        {
+            var currentSave = Core.currentSave;
+            if (currentSave == null) return;
+
+            currentSave.worldTime = time;
+        }
+
+        void LoadTime()
+        {
+            var currentSave = Core.currentSave;
+            if (currentSave == null) return;
+            if (currentSave.worldTime == null) return;
+            time = currentSave.worldTime;
         }
 
         void CreateProperties()
@@ -161,6 +178,43 @@ namespace Architome
             }
 
             return null;
+        }
+
+        [Serializable]
+        public class Time
+        {
+            public float currentTime, deltaTime, lengthOfDay;
+
+            public int timeScale = 1;
+            public int day;
+
+            public int week { get { return day % 7; } }
+            public float hour { get { return (currentTime / lengthOfDay) * 24; } }
+            public float minute { get { return (hour - (int)hour) * 60; } }
+
+            public float clockHour;
+            public float clockMinute;
+            async public void HandleTimer()
+            {
+
+                while (Application.isPlaying)
+                {
+                    var next = currentTime + UnityEngine.Time.deltaTime * timeScale;
+                    deltaTime = next - currentTime;
+                    currentTime = next;
+                    clockHour = hour;
+                    clockMinute = minute;
+
+                    if (currentTime > lengthOfDay)
+                    {
+                        day++;
+                        currentTime = 0;
+
+                    }
+
+                    await Task.Yield();
+                }
+            }
         }
     }
 

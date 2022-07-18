@@ -4,9 +4,8 @@ using UnityEngine;
 using System;
 namespace Architome
 {
-    public class Inventory : MonoBehaviour
+    public class Inventory : EntityProp
     {
-        // Start is called before the first frame update
         public EntityInventoryUI entityInventoryUI;
         public List<ItemData> inventoryItems;
         public int maxSlots = 5;
@@ -16,10 +15,19 @@ namespace Architome
 
         public Action<Inventory> OnLoadInventory;
 
+        new void GetDependencies()
+        {
+            base.GetDependencies();
+
+            if (entityInfo)
+            {
+                entityInfo.infoEvents.OnLootItem += OnLootItem;
+            }
+        }
 
         void Start()
         {
-
+            GetDependencies();
         }
 
         private void Update()
@@ -93,6 +101,11 @@ namespace Architome
 
                 if (inventoryItems[i] != null) { continue; }
             }
+        }
+
+        public void OnLootItem(LootEventData eventData)
+        {
+            eventData.succesful = LootItem(eventData.item);
         }
 
 
@@ -202,7 +215,12 @@ namespace Architome
             return true;
         }
 
-
+        public class LootEventData
+        {
+            public ItemInfo item;
+            public bool succesful;
+        }
     }
 
+    
 }

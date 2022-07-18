@@ -228,7 +228,7 @@ namespace Architome
 
                 if (nullPortrait)
                 {
-                    results = results.Where(entity => entity.entityPortrait == null).ToList();
+                    results = results.Where(entity => entity.PortraitIcon(false) == null).ToList();
                 }
 
                 if (character)

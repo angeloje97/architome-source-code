@@ -1062,7 +1062,7 @@ public class AbilityInfo : MonoBehaviour
         return false;
     }
 
-    bool IsInRange()
+    bool IsInRange(float offset = 0f)
     {
         if (range == -1)
         {
@@ -1072,7 +1072,7 @@ public class AbilityInfo : MonoBehaviour
 
         if (abilityType == AbilityType.LockOn && target == null) return false;
 
-        if (V3Helper.Distance(target.transform.position, entityObject.transform.position) > range)
+        if (V3Helper.Distance(target.transform.position, entityObject.transform.position) > range + offset)
         {
             movement.MoveTo(target.transform, range);
             ActivateWantsToCast("Target is out of range");
@@ -1151,7 +1151,8 @@ public class AbilityInfo : MonoBehaviour
     {
         if (abilityType == AbilityType.LockOn)
         {
-            if(!IsInRange() || !HasLineOfSight())
+            var offset = range * .25f;
+            if(!IsInRange(offset) || !HasLineOfSight())
             {
                 return false;
             }

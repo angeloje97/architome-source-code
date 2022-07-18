@@ -32,9 +32,11 @@ namespace Architome
         public void SetEntity(EntityInfo entity)
         {
             this.entity = entity;
-            if (entity.entityPortrait)
+
+            var icon = entity.PortraitIcon();
+            if (icon)
             {
-                info.entityIcon.sprite = entity.entityPortrait;
+                info.entityIcon.sprite = icon;
             }
         }
 
@@ -43,7 +45,7 @@ namespace Architome
             if (entity == null) return;
             if (module == null) return;
 
-            module.OnSelectEntity?.Invoke(entity);
+            module.SelectEntity(entity);
 
         }
     }

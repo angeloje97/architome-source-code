@@ -12,25 +12,6 @@ namespace Architome
     [Serializable]
     public class SaveGame
     {
-        //static SaveGame _current;
-        //public static SaveGame current
-        //{
-        //    get
-        //    {
-        //        if (_current == null)
-        //        {
-        //            _current = new();
-        //        }
-
-        //        return _current;
-        //    }
-
-        //    private set
-        //    {
-        //        _current = value;
-        //    }
-        //}
-
 
 
         public int saveId;
@@ -45,6 +26,9 @@ namespace Architome
 
 
         public GameSettingsData gameSettings;
+        public World.Time worldTime;
+
+        public GuildData guildData;
         public List<EntityData> savedEntities;
 
         public List<DungeonData> savedDungeons;

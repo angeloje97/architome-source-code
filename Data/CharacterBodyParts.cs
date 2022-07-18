@@ -15,6 +15,7 @@ public class CharacterBodyParts : MonoBehaviour
     }
 
     public List<VectorBodyPart> partPairs;
+    public Sprite characterIcon;
 
     //public GameObject rightHand;
     //public GameObject rightThumb;

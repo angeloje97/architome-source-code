@@ -33,7 +33,7 @@ namespace Architome
             public bool autoRepeat;
             public bool allowLinger;
             public bool resetOnCancel;
-            public bool damageCnacelsTask;
+            public bool damageCancelsTask;
             public bool hideFromPlayers;
 
             [Header("Effects")]

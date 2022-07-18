@@ -325,13 +325,15 @@ public class PortraitBehavior : MonoBehaviour
 
         UpdateIconColor();
 
-        if(entity.entityPortrait == null)
+        var portraitIcon = entity.PortraitIcon();
+
+        if(portraitIcon == null)
         {
             icon.gameObject.SetActive(false); 
         }
         else 
         {
-            icon.gameObject.SetActive(true); icon.sprite = entity.entityPortrait; 
+            icon.gameObject.SetActive(true); icon.sprite = portraitIcon; 
         }
 
         if (experienceBar)
@@ -339,7 +341,7 @@ public class PortraitBehavior : MonoBehaviour
             experienceBar.fillAmount = entity.entityStats.experience / entity.entityStats.experienceReq;
         }
 
-        icon.sprite = entity.entityPortrait;
+        icon.sprite = portraitIcon;
 
         mana = 1;
 

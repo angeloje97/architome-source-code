@@ -105,14 +105,18 @@ namespace Architome
             {
                 var weapon = character.WeaponItem(Enums.EquipmentSlotType.MainHand);
 
-                if (weapon)
+                animator.SetFloat("AttackSpeed", entityInfo.stats.attackSpeed);
+
+                if (character.fixedAnimation.enabled)
                 {
-                    animator.SetFloat("AttackSpeed", entityInfo.stats.attackSpeed);
+                    animator.SetInteger("AttackX", (int) character.fixedAnimation.attackStyle.x);
+                }
+                else if (weapon)
+                {
                     animator.SetInteger("AttackX", (int)weapon.weaponAttackStyle.x);
                 }
                 else
                 {
-                    animator.SetFloat("AttackSpeed", entityInfo.stats.attackSpeed);
                     animator.SetInteger("AttackX", 1);
                     
                     
@@ -121,7 +125,6 @@ namespace Architome
             else
             {
                 animator.SetInteger("AbilityX", (int)ability.catalystInfo.catalystStyle.x);
-
             }
         }
 

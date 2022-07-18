@@ -11,7 +11,7 @@ public class GearStatsUI : MonoBehaviour
     public GearModuleManager moduleManager;
     public ModuleInfo module;
     public EntityInfo entityInfo;
-    public PartyManager partyManager;
+    public GuildManager guildManager;
     public TextMeshProUGUI entityName;
     public Transform adjustLayoutTarget;
 
@@ -66,12 +66,12 @@ public class GearStatsUI : MonoBehaviour
         moduleManager = GetComponentInParent<GearModuleManager>();
         module = GetComponentInParent<ModuleInfo>();
 
-        partyManager = GetComponentInParent<PartyManager>();
+        guildManager = GetComponentInParent<GuildManager>();
 
 
-        if (partyManager)
+        if (guildManager)
         {
-            partyManager.OnSelectEntity += OnSelectEntity;
+            guildManager.OnSelectEntity += OnSelectEntity;
         }
 
 

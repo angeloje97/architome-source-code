@@ -50,7 +50,7 @@ namespace Architome
         [Multiline]
         public string entityDescription;
         public ArchClass archClass;
-        public Sprite entityPortrait;
+        [SerializeField] Sprite entityPortrait;
         public EntityFXPack entityFX;
 
         public EntityControlType entityControlType;
@@ -111,6 +111,7 @@ namespace Architome
         {
             public Action<List<string>> OnUpdateObjectives;
             public Action<Quest> OnQuestComplete;
+            public Action<Inventory.LootEventData> OnLootItem;
         }
 
         //Events
@@ -219,7 +220,7 @@ namespace Architome
                 presetStats = Instantiate(presetStats);
                 entityName = presetStats.name;
                 role = presetStats.Role;
-                entityStats += presetStats.Stats;
+                entityStats = presetStats.Stats;
                 //npcType = presetStats.npcType;
 
 
@@ -724,6 +725,34 @@ namespace Architome
             health = maxHealth;
             mana = maxMana;
         }
+
+        public Sprite PortraitIcon(bool fixPortrait = true)
+        {
+            return entityPortrait;
+
+            if (entityPortrait != null)
+            {
+                return entityPortrait;
+            }
+
+            var bodyPart = GetComponentInChildren<CharacterBodyParts>();
+            
+            if (bodyPart && bodyPart.characterIcon && fixPortrait)
+            {
+                entityPortrait = bodyPart.characterIcon;
+
+                return entityPortrait;
+            }
+
+            return null;
+        }
+        public bool LootItem(ItemInfo itemInfo)
+        {
+            var lootData = new Inventory.LootEventData() { item = itemInfo, succesful = true };
+            infoEvents.OnLootItem?.Invoke(lootData);
+
+            return lootData.succesful;
+        }
         public void Revive(CombatEventData combatData)
         {
             combatData.value = maxHealth * combatData.percentValue;
@@ -812,6 +841,8 @@ namespace Architome
 
             return true;
         }
+
+
 
         public void SetSummoned(SpawnerInfo.SummonData summonData)
         {

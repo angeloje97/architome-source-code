@@ -15,7 +15,7 @@ namespace Architome
         [SerializeField] bool update;
         [Header("Components")]
         public List<Icon> icons;
-        public TextMeshProUGUI title, experienceGained;
+        public TextMeshProUGUI title, experienceGained, goldGained;
         public CanvasGroup failedQuestGroup;
 
 
@@ -45,7 +45,8 @@ namespace Architome
         {
             this.quest = quest;
             title.text = quest.questName;
-            experienceGained.text = $"{quest.rewards.experience} experience.";
+            experienceGained.text = quest.rewards.experience > 0 ? $"Experience: {quest.rewards.experience}" : "";
+            goldGained.text = quest.rewards.gold > 0 ? $"Gold: {quest.rewards.gold}" : "";
 
 
             if (quest.info.state == QuestState.Failed)
@@ -54,6 +55,7 @@ namespace Architome
             }
 
             HandleExperienceGained();
+            HandleGoldGained();
             HandleItemIcons();
         }
 
@@ -67,6 +69,17 @@ namespace Architome
             {
                 entity.GainExperience(this, experienceAmount);
             }
+
+
+        }
+        
+        void HandleGoldGained()
+        {
+            if (quest.info.state != QuestState.Completed) return;
+            var currentSave = Core.currentSave;
+            if (currentSave == null) return;
+
+            currentSave.guildData.AddGold(quest.rewards.gold);
         }
 
         async public Task QuestProgress()

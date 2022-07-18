@@ -12,9 +12,10 @@ namespace Architome
         ModuleInfo module;
         SizeFitter sizeFitter;
         List<InventorySlot> slots;
+        List<ItemData> itemDatas;
 
 
-        [SerializeField]Transform slotParent;
+        [SerializeField] Transform slotParent;
         [SerializeField] bool update;
 
         [SerializeField] Image chestIcon;
@@ -46,8 +47,8 @@ namespace Architome
         public void SetItemBin(ItemBinData binData)
         {
 
-            var itemDatas = binData.items;
-            var maxItemSlots = binData.maxSlots;
+            itemDatas = binData.items;
+            var maxItemSlots = itemDatas.Count;
 
             if (module == null)
             {
@@ -71,6 +72,7 @@ namespace Architome
 
             CreateItemSlots();
             CreateItems();
+            HandleItemSlotHandler();
 
             ArchAction.Yield(() => sizeFitter.AdjustToSize());
             //sizeFitter.AdjustToSize();
@@ -100,6 +102,22 @@ namespace Architome
                 }
             }
         }
+
+        void HandleItemSlotHandler()
+        {
+            var itemSlotHandler = GetComponent<ItemSlotHandler>();
+            if (itemSlotHandler == null) return;
+
+            itemSlotHandler.OnChangeItem += OnChangeItem;
+
+            void OnChangeItem(ItemEventData eventData)
+            {
+                if (!slots.Contains(eventData.itemSlot)) return;
+                var index = slots.IndexOf(eventData.itemSlot);
+
+                itemDatas[index] = new(eventData.newItem);
+            }
+        }
         public List<InventorySlot> Slots()
         {
             return slots;
@@ -108,7 +126,6 @@ namespace Architome
         public struct ItemBinData
         {
             public List<ItemData> items;
-            public int maxSlots;
             public string title;
             public Sprite moduleIcon;
         }

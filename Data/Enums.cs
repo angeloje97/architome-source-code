@@ -110,6 +110,7 @@ namespace Architome.Enums
         OnSpawned,
         OnCastStart,
         OnCastEnd,
+        OnAttack,
     }
 
     public enum BuffEvents

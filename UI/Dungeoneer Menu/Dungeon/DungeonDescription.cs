@@ -115,7 +115,7 @@ namespace Architome
                     {
                         //components.bossIcons[i].SetIconImage(bosses[i].entityPortrait);
                         components.bossIcons[i].SetIcon(new() {
-                            sprite = bosses[i].entityPortrait,
+                            sprite = bosses[i].PortraitIcon(false),
                             data = bosses[i]
                         });
                         
@@ -193,7 +193,7 @@ namespace Architome
             Debugger.InConsole(3295, $"{entity} has {abilities.Length} abilities");
 
             //components.bossIcon.SetIconImage(entity.entityPortrait);
-            components.bossIcon.SetIcon(new() { sprite = entity.entityPortrait });
+            components.bossIcon.SetIcon(new() { sprite = entity.PortraitIcon(false) });
             components.bossName.text = entity.entityName;
 
             for (int i = 0; i < components.bossAbilityIcons.Count; i++)

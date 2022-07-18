@@ -35,9 +35,11 @@ public class SpellBookManager : MonoBehaviour
 
         playableEntities.Add(newEntity);
 
-        if(newEntity.entityPortrait)
+        var portraitIcon = newEntity.PortraitIcon();
+
+        if(portraitIcon)
         {
-            portraitIcons[index].sprite = newEntity.entityPortrait;
+            portraitIcons[index].sprite = portraitIcon;
         }
 
         if(index == 0)

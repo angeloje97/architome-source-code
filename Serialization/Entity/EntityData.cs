@@ -58,33 +58,82 @@ namespace Architome
                 public int slotNumber;
                 public Stats stats;
 
+                
             }
 
             public List<ItemData> items;
 
-            public InventoryData(Inventory inventory)
+            //public InventoryData(Inventory inventory)
+            //{
+            //    if (inventory == null) return;
+            //    maxSlots = inventory.maxSlots;
+
+            //    items = new();
+
+            //    for (int i = 0; i < inventory.inventoryItems.Count; i++)
+            //    {
+            //        var item = inventory.inventoryItems[i];
+
+
+            //        if (item.item == null) continue;
+
+            //        var newItemData = new ItemData() { id = item.item._id, amount = item.amount, slotNumber = i };
+
+            //        if (Item.Equipable(item.item))
+            //        {
+            //            var equipment = (Equipment)item.item;
+            //            newItemData.stats = equipment.stats;
+            //        }
+
+
+            //        items.Add(newItemData);
+            //    }
+            //}
+
+            public List<Architome.ItemData> ItemDatas(DataMap.Maps maps)
             {
-                if (inventory == null) return;
-                maxSlots = inventory.maxSlots;
 
-                items = new();
+                var itemDatas = new List<Architome.ItemData>();
 
-                for (int i = 0; i < inventory.inventoryItems.Count; i++)
+
+                for (int i = 0; i < maxSlots; i++)
                 {
-                    var item = inventory.inventoryItems[i];
+                    itemDatas.Add(new());
+                }
 
+                Debugger.UI(4330, $"Item Count : {items.Count}");
+                Debugger.UI(4331, $"Item Datas Count: {itemDatas.Count}");
 
-                    if (item.item == null) continue;
+                foreach (var item in items)
+                {
+                    if (item.slotNumber < 0 || item.slotNumber >= itemDatas.Count) continue;
+                    if(!maps.items.ContainsKey(item.id)) continue;
+                    var newItem = maps.items[item.id];
+                    itemDatas[item.slotNumber] = new() { amount = item.amount, item = newItem };
 
-                    var newItemData = new ItemData() { id = item.item._id, amount = item.amount, slotNumber = i };
+                    Debugger.UI(4329, $"{newItem.itemName} : {item.slotNumber}");
 
-                    if (Item.Equipable(item.item))
+                    if (Item.Equipable(itemDatas[item.slotNumber].item))
                     {
-                        var equipment = (Equipment)item.item;
-                        newItemData.stats = equipment.stats;
+                        var equipment = (Equipment) itemDatas[item.slotNumber].item;
+
+                        equipment.stats = item.stats;
                     }
+                }
 
+                return itemDatas;
+            }
 
+            public InventoryData(List<Architome.ItemData> itemDatas)
+            {
+                items = new();
+                maxSlots = itemDatas.Count;
+                for (int i = 0; i < itemDatas.Count; i++)
+                {
+                    var itemData = itemDatas[i];
+                    if (itemData.item == null) continue;
+
+                    var newItemData = new ItemData() { id = itemData.item._id, amount = itemData.amount, slotNumber = i };
                     items.Add(newItemData);
                 }
             }
@@ -151,7 +200,10 @@ namespace Architome
             name = entity.entityName;
             info = new(entity);
 
-            inventory = new(entity.GetComponentInChildren<Inventory>());
+            var entityInventory = entity.GetComponentInChildren<Inventory>();
+            inventory = new(entityInventory.inventoryItems);
+
+            //inventory = new(entity.GetComponentInChildren<Inventory>());
 
             var character = entity.GetComponentInChildren<CharacterInfo>();
 

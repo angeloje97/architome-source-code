@@ -34,7 +34,7 @@ namespace Architome
 
         public Action<bool> OnActiveChange;
 
-        public Action<EntityInfo> OnSelectEntity;
+        public event Action<EntityInfo> OnSelectEntity;
 
         [Serializable]
         public struct Prefabs
@@ -110,11 +110,14 @@ namespace Architome
             
         }
 
-
-
         public void OnPointerDown(PointerEventData eventData)
         {
             transform.SetAsLastSibling();
+        }
+
+        public void SelectEntity(EntityInfo entity)
+        {
+            OnSelectEntity?.Invoke(entity);
         }
 
         public void DestroyBin()
@@ -144,12 +147,12 @@ namespace Architome
             {
                 audioSource = GetComponent<AudioSource>();
             }
-            SetActive(isActive, false);
+            SetActive(isActive, false, true);
         }
 
-        public void SetActive(bool val, bool playSound = true)
+        public void SetActive(bool val, bool playSound = true, bool OnValidate = false)
         {
-            if (isActive == val) return;
+            if (isActive == val && !OnValidate) return;
 
             if (canvasGroup)
             {
@@ -177,7 +180,16 @@ namespace Architome
                 iggui.OnModuleEnableChange?.Invoke(this);
             }
 
-            
+            ReturnAllItemsFromBin();
+        }
+
+        public void ReturnAllItemsFromBin()
+        {
+            if (itemBin == null) return;
+            foreach (var item in itemBin.GetComponentsInChildren<ItemInfo>())
+            {
+                item.ReturnToSlot();
+            }
         }
 
         public ItemInfo CreateItem(ItemData data, bool cloned = false)
@@ -193,10 +205,7 @@ namespace Architome
             var newItem = Instantiate(prefabs.item, itemBin).GetComponent<ItemInfo>();
 
 
-            newItem.item = cloned ? Instantiate(item) : item;
-            newItem.currentStacks = data.amount;
-            newItem.UpdateItemInfo();
-            newItem.isInInventory = true;
+            newItem.ManifestItem(data, cloned);
 
             return newItem;
         }

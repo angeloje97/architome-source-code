@@ -218,8 +218,6 @@ namespace Architome
         }
     }
 
-    
-
     [Serializable]
     public struct PortalEvents
     {
@@ -228,9 +226,7 @@ namespace Architome
         public Action<PortalInfo, EntityInfo> OnPlayerEnter;
         public Action<PortalInfo, EntityInfo> OnPlayerExit;
         public Action<PortalInfo, List<EntityInfo>> OnAllPartyMembersInPortal;
-
         public Action<PortalInfo, GameObject> OnHostilesStillInRoom;
-
         public UnityEvent OnAllMembersInPortal;
     }
 }

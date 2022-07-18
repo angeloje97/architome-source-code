@@ -27,6 +27,7 @@ public class ArchitomeCharacter : MonoBehaviour
     public Shader highlightShader;
 
     public List<Vector2> originalParts;
+    public List<Vector3> augmentedParts; //This list is for checking what parts are gears
     public Sex originalSex;
 
     public List<List<GameObject>> bodyParts;
@@ -106,7 +107,7 @@ public class ArchitomeCharacter : MonoBehaviour
             }
         }
     }
-    public void SetOriginalParts()
+    public void SaveOriginalParts()
     {
         originalParts= new List<Vector2>();
         foreach(List<GameObject> bodyPart in bodyParts)
@@ -122,6 +123,83 @@ public class ArchitomeCharacter : MonoBehaviour
         originalSex = sex;
 
     }
+
+    public void SaveAugmentedParts()
+    {
+        augmentedParts = new();
+
+        var exclusions = new Dictionary<List<GameObject>, int>()
+        {
+            {head, 23},
+            {hair, -1},
+            {facialHair, -1},
+            {eyeBrows, -1},
+
+        };
+
+        foreach (var bodyPart in bodyParts)
+        {
+            var i = bodyParts.IndexOf(bodyPart);
+
+
+            if (bodyPart.Count > 0)
+            {
+                int j = ActivePartIndex(bodyPart[0]);
+
+                if (exclusions.ContainsKey(bodyPart))
+                {
+                    if (j < exclusions[bodyPart]) continue;
+                    if (exclusions[bodyPart] == -1) continue;
+                }
+
+                if (j == 0) continue;
+
+                var material = bodyPart[0].transform.GetChild(j).GetComponent<Renderer>().sharedMaterial;
+                //Debugger.UI(1230, $"Material for {bodyPart[0].transform.GetChild(j).gameObject} is {material}");
+                augmentedParts.Add(new(i, j, MaterialIndex(material)));
+            }
+        }
+    }
+
+    public void RemoveHairFromAugmentedParts()
+    {
+        if (augmentedParts == null) augmentedParts = new();
+
+        var hairIndex = -1;
+
+        for (int i = 0; i < bodyParts.Count; i++)
+        {
+            if (hair == bodyParts[i])
+            {
+                hairIndex = i;
+                break;
+            }
+        }
+
+        foreach (var augmentedPart in augmentedParts)
+        {
+            if (augmentedPart == new Vector3(hairIndex, 0, 0))
+            {
+                return;
+            }
+        }
+
+        augmentedParts.Insert(0, new(hairIndex, 0, 0));
+    }
+
+    public int MaterialIndex(Material sharedMaterial)
+    {
+        for (int i = 0; i < materials.Count; i++)
+        {
+            if (materials[i] == sharedMaterial)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
 
     private void OnValidate()
     {
@@ -160,7 +238,7 @@ public class ArchitomeCharacter : MonoBehaviour
 
         if (!basePartsSet)
         {
-            SetOriginalParts();
+            SaveOriginalParts();
             basePartsSet = true;
         }
 
@@ -319,7 +397,11 @@ public class ArchitomeCharacter : MonoBehaviour
         {
             if (part.transform.childCount > partNum)
             {
-                part.transform.GetChild(partNum).GetComponent<Renderer>().material = material;
+                var renderer = part.transform.GetChild(partNum).GetComponent<Renderer>();
+                if (renderer == null) continue;
+
+                renderer.material = material;
+                //part.transform.GetChild(partNum).GetComponent<Renderer>().material = material;
             }
         }
 

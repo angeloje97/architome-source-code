@@ -187,6 +187,8 @@ namespace Architome
 
                 timerObjective.transform.SetAsFirstSibling();
                 timerObjective.timer = 600f;
+                timerObjective.enableMemberDeaths = true;
+                timerObjective.deathTimerPenalty = 15f;
             }
 
             void HandleGenerateBoss()
