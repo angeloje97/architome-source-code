@@ -25,17 +25,35 @@ namespace Architome
         [Header("Item Info")]
         public string itemName;
         public Sprite itemIcon;
+        public ItemFX effects;
+        public bool usingDefaultFX;
         public Rarity rarity;
         [Multiline]
         public string itemDescription;
         public ItemType itemType;
-        public int maxStacks;
         public float goldValue = 1f;
         public GameObject itemObject;
+
+        public int MaxStacks { get { return maxStacks; } }
+
+        [SerializeField] protected int maxStacks;
+        [SerializeField] protected bool infiniteStacks;
+
+        private void OnValidate()
+        {
+            if (!infiniteStacks) return;
+            infiniteStacks = false;
+        }
 
         public virtual void Use(UseData data)
         {
 
+        }
+
+        public bool Equals(Item other)
+        {
+
+            return other._id == _id;
         }
 
         public virtual string Description()
@@ -46,6 +64,32 @@ namespace Architome
         public virtual string Attributes()
         {
             return "";
+        }
+
+        public virtual int NewStacks(int currentStacks, int stacksToAdd, out int leftover)
+        {
+            if (infiniteStacks)
+            {
+                leftover = 0;
+                return currentStacks + stacksToAdd;
+            }
+
+            if (currentStacks + stacksToAdd > maxStacks)
+            {
+                leftover = currentStacks + stacksToAdd - maxStacks;
+                return maxStacks;
+
+            }
+
+            leftover = 0;
+
+            return currentStacks + stacksToAdd;
+        }
+
+        public virtual bool ValidStacks(int countCheck)
+        {
+            if (infiniteStacks) return true;
+            return countCheck <= maxStacks;
         }
         
         public virtual string Requirements()
@@ -76,14 +120,17 @@ namespace Architome
             this.id = id;
         }
 
-        public virtual ToolTipData ToolTipData()
+        public virtual ToolTipData ToolTipData(int amount = 1)
         {
+            var name = amount > 1 ? $"{itemName} x{amount}" : itemName;
+
             return new()
             {
                 icon = itemIcon,
-                name = itemName,
+                name = name,
                 enableRarity = true,
-                type = rarity.ToString(),
+                rarity = rarity,
+                type = $"{rarity}",
                 subeHeadline = SubHeadline(),
                 attributes = Attributes(),
                 requirements = Requirements(),
@@ -92,6 +139,11 @@ namespace Architome
             };
         }
 
+
+        public virtual bool IsCurrency()
+        {
+            return false;
+        }
 
         public static bool IsEquipment(Item current)
         {
@@ -125,7 +177,6 @@ namespace Architome
     public class ItemData
     {
         public static ItemData Empty { get { return new ItemData() { item = null, amount = 0 }; } }
-
         public ItemData(ItemInfo info)
         {
             if (info == null)
@@ -137,7 +188,6 @@ namespace Architome
             this.item = info.item;
             this.amount = info.currentStacks;
         }
-
         public ItemData() { }
 
         public Item item;
@@ -148,5 +198,6 @@ namespace Architome
     {
         public ItemInfo itemInfo;
         public EntityInfo entityUsed;
+        public GuildManager guildManager;
     }
 }

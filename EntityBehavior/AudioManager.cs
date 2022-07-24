@@ -37,7 +37,7 @@ namespace Architome
 
         public void OnValidate()
         {
-            spatialBlend = .5f;
+            //spatialBlend = .5f;
             if (presetAudio == null)
             {
                 presetAudio = GetComponent<AudioSource>();
@@ -162,7 +162,7 @@ namespace Architome
             }
 
             newAudioSource.volume = volume;
-            newAudioSource.spatialBlend = .5f;
+            newAudioSource.spatialBlend = spatialBlend;
             var randomPitchOffset = UnityEngine.Random.Range(-pitchRandomRange, pitchRandomRange);
 
             newAudioSource.pitch += randomPitchOffset;

@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using TMPro;
+using UnityEngine.EventSystems;
 
 namespace Architome
 {
-    public class GearStatSingle : MonoBehaviour
+    public class GearStatSingle : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         [Serializable]
         public struct Info
@@ -16,6 +17,19 @@ namespace Architome
         }
 
         [SerializeField]Info info;
+
+        public Action<GearStatSingle, bool> OnMouseOver;
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            OnMouseOver?.Invoke(this, true);
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            OnMouseOver?.Invoke(this, false);
+        }
+
 
         public void UpdateSingle(string statValue)
         {

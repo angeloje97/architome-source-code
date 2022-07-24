@@ -53,10 +53,60 @@ namespace Architome
             [Serializable]
             public class ItemData
             {
-                public int id;
-                public int amount;
-                public int slotNumber;
+                public int id, amount, slotNumber, LevelRequired, itemLevel;
+                public Rarity rarity;
                 public Stats stats;
+                public List<int> buffsID;
+
+
+                public ItemData(Architome.ItemData itemData, int slotNumber = 0)
+                {
+                    id = itemData.item._id;
+                    amount = itemData.amount;
+                    rarity = itemData.item.rarity;
+                    this.slotNumber = slotNumber;
+
+                    if (Item.Equipable(itemData.item))
+                    {
+                        var equipment = (Equipment)itemData.item;
+
+                        stats = equipment.stats;
+                        itemLevel = equipment.itemLevel;
+                        LevelRequired = equipment.LevelRequired;
+                        buffsID = equipment.EquipmentEffectsData();
+                    }
+                }
+
+                public Architome.ItemData ArchItemData(DataMap.Maps maps)
+                {
+                    if (!maps.items.ContainsKey(id)) return null;
+                    var item = UnityEngine.Object.Instantiate(maps.items[id]);
+
+                    item.rarity = rarity;
+
+                    HandleEquipment();
+
+                    return new Architome.ItemData() { item = item, amount = amount };
+
+                    void HandleEquipment()
+                    {
+                        if (!Item.Equipable(item)) return;
+
+                        var equipment = (Equipment)item;
+
+                        equipment.stats = stats;
+                        equipment.itemLevel = itemLevel;
+                        equipment.LevelRequired = LevelRequired;
+
+                        equipment.equipmentEffects = new();
+                        foreach (var buffId in buffsID)
+                        {
+                            if (maps.buffs.ContainsKey(buffId)) continue;
+
+                            equipment.equipmentEffects.Add(maps.buffs[buffId].gameObject);
+                        }
+                    }
+                }
 
                 
             }
@@ -104,22 +154,30 @@ namespace Architome
                 Debugger.UI(4330, $"Item Count : {items.Count}");
                 Debugger.UI(4331, $"Item Datas Count: {itemDatas.Count}");
 
-                foreach (var item in items)
+                foreach (var savedItem in items)
                 {
-                    if (item.slotNumber < 0 || item.slotNumber >= itemDatas.Count) continue;
-                    if(!maps.items.ContainsKey(item.id)) continue;
-                    var newItem = maps.items[item.id];
-                    itemDatas[item.slotNumber] = new() { amount = item.amount, item = newItem };
+                    var itemData = savedItem.ArchItemData(maps);
+                    var slotNumber = savedItem.slotNumber;
 
-                    Debugger.UI(4329, $"{newItem.itemName} : {item.slotNumber}");
-
-                    if (Item.Equipable(itemDatas[item.slotNumber].item))
-                    {
-                        var equipment = (Equipment) itemDatas[item.slotNumber].item;
-
-                        equipment.stats = item.stats;
-                    }
+                    itemDatas[slotNumber] = itemData;
                 }
+
+                //foreach (var item in items)
+                //{
+                //    if (item.slotNumber < 0 || item.slotNumber >= itemDatas.Count) continue;
+                //    if(!maps.items.ContainsKey(item.id)) continue;
+                //    var newItem = maps.items[item.id];
+                //    itemDatas[item.slotNumber] = new() { amount = item.amount, item = newItem };
+
+                //    Debugger.UI(4329, $"{newItem.itemName} : {item.slotNumber}");
+
+                //    if (Item.Equipable(itemDatas[item.slotNumber].item))
+                //    {
+                //        var equipment = (Equipment) itemDatas[item.slotNumber].item;
+
+                //        equipment.stats = item.stats;
+                //    }
+                //}
 
                 return itemDatas;
             }
@@ -133,7 +191,7 @@ namespace Architome
                     var itemData = itemDatas[i];
                     if (itemData.item == null) continue;
 
-                    var newItemData = new ItemData() { id = itemData.item._id, amount = itemData.amount, slotNumber = i };
+                    var newItemData = new ItemData(itemDatas[i], i);
                     items.Add(newItemData);
                 }
             }
@@ -189,7 +247,8 @@ namespace Architome
 
         public Info info;
         public InventoryData inventory;
-        public EquipmentData equipment;
+        public InventoryData equipment;
+        //public EquipmentData equipment;
         public CharacterData characterData;
 
         public EntityData(EntityInfo entity, int dataIndex = -1)
@@ -207,9 +266,31 @@ namespace Architome
 
             var character = entity.GetComponentInChildren<CharacterInfo>();
 
-            equipment = new(character);
+            SetEquipment(character);
 
             characterData = new(character);
+        }
+
+        void SetEquipment(CharacterInfo character)
+        {
+            if (character == null)
+            {
+                equipment = new(new());
+                return;
+
+            }
+            var itemData = new List<ItemData>();
+            foreach (var equipmentSlot in character.GetComponentsInChildren<EquipmentSlot>())
+            {
+                if (equipmentSlot.equipment != null)
+                {
+                    itemData.Add(new() { item = null, amount = 0 });
+                    continue;
+                }
+                itemData.Add(new() { item = equipmentSlot.equipment, amount = 1 });
+            }
+
+            equipment = new(itemData);
         }
 
     }

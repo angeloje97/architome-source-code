@@ -14,6 +14,8 @@ namespace Architome
 
         public GameObject entityObject;
         public EntityInfo entityInfo;
+        public CharacterInfo character;
+        public Movement movement;
         public Stats stats;
 
         public Action<BuffData> OnBuffStack;
@@ -21,16 +23,32 @@ namespace Architome
         public Action<BuffData> OnResetBuff;
         public void GetDependencies()
         {
-            if (GetComponentInParent<EntityInfo>())
+            entityInfo = GetComponentInParent<EntityInfo>();
+            if (entityInfo)
             {
-                entityInfo = GetComponentInParent<EntityInfo>();
                 entityObject = entityInfo.gameObject;
+                movement = entityInfo.Movement();
+                character = entityInfo.CharacterInfo();
 
                 entityInfo.OnLifeChange += OnLifeChange;
                 entityInfo.OnChangeNPCType += OnChangeNPCType;
                 entityInfo.OnCombatChange += OnCombatChange;
                 entityInfo.OnDamageTaken += OnDamageTaken;
+
+                
             }
+
+            if (movement)
+            {
+                movement.OnStartMove += (Movement movement) => { OnMoveChange(true); };
+                movement.OnEndMove += (Movement movement) => { OnMoveChange(false); };
+            }
+
+            if (character)
+            {
+                character.OnChangeEquipment += OnChangeEquipment;
+            }
+
         }
         void Start()
         {
@@ -88,6 +106,27 @@ namespace Architome
             }
         }
 
+        public void OnChangeEquipment(EquipmentSlot slot, Equipment before, Equipment after)
+        {
+            if (before)
+            {
+                foreach (var buffObj in before.equipmentEffects)
+                {
+                    var info = buffObj.GetComponent<BuffInfo>();
+                    CleanseBuff(info);
+                }
+            }
+
+            if (after)
+            {
+                foreach (var buffObj in after.equipmentEffects)
+                {
+                    var info = buffObj.GetComponent<BuffInfo>();
+                    ApplyBuff(new(info, after, entityInfo));
+                }
+            }
+        }
+
         public void UpdateStats()
         {
             stats.ZeroOut();
@@ -108,6 +147,18 @@ namespace Architome
                 foreach (var buff in buffs)
                 {
                     buff.CompleteEarly();
+                }
+            }
+        }
+
+        public void OnMoveChange(bool isMoving)
+        {
+            if (isMoving)
+            {
+                foreach (var buff in GetComponentsInChildren<BuffInfo>())
+                {
+                    if (!buff.cleanseConditions.isMoving) continue;
+                    buff.Cleanse();
                 }
             }
         }
@@ -335,6 +386,17 @@ namespace Architome
                 this.sourceCatalyst = sourceCatalyst;
                 sourceAbility = sourceCatalyst.abilityInfo;
                 sourceInfo = sourceCatalyst.entityInfo;
+            }
+
+            public BuffData(GameObject buffObject, BuffInfo sourceBuff)
+            {
+                this.buffObject = buffObject;
+                buffInfo = buffObject.GetComponent<BuffInfo>();
+
+                sourceItem = sourceBuff.sourceItem;
+                sourceInfo = sourceBuff.sourceInfo;
+                sourceCatalyst = sourceBuff.sourceCatalyst;
+                sourceAbility = sourceBuff.sourceAbility;
             }
 
             public BuffData(GameObject buff, AbilityInfo sourceAbility)

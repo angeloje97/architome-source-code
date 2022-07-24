@@ -29,6 +29,16 @@ namespace Architome
             await Task.Yield();
             action();
         }
+
+        public static async void YieldFor(Action action, int amount = 1)
+        {
+            for (int i = 0; i < amount; i++)
+            {
+                await Task.Yield();
+            }
+
+            action();
+        }
         public static async void UpdateWhile(Action action, ArchCondition condition)
         {
             while (condition.isMet)

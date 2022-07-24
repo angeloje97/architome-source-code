@@ -64,6 +64,7 @@ public class ArchitomeCharacter : MonoBehaviour
     public List<GameObject> extraElfEars;               //27
 
 
+
     void GetDependencies()
     {
         bodyParts = new List<List<GameObject>>();
@@ -297,6 +298,44 @@ public class ArchitomeCharacter : MonoBehaviour
         }
         SetSex(Sex.Male);
     }
+    public void SetRandomBase()
+    {
+        randomizeSex = true;
+        RandomizeSex();
+        randomizeSex = false;
+
+        SetPart(0, Random.Range(0, 23)); //Random Head
+        SetPart(3, Random.Range(0, 19)); //Random Facial Hair
+        SetPart(17, Random.Range(0, 39)); //Random Hair
+        SetMaterial(Random.Range(0, materials.Count)); //Random Skin
+    }
+
+    public void RandomizeAll()
+    {
+        List<List<GameObject>> exclusions = new()
+        {
+            headCoveringBaseHair,
+            headCoveringNoFacialHair,
+            headCoveringNoHair
+        };
+
+
+        foreach (var bodyPart in bodyParts)
+        {
+            if (exclusions.Contains(bodyPart)) continue;
+            var i = bodyParts.IndexOf(bodyPart);
+            foreach (var part in bodyPart)
+            {
+                var childCount = part.transform.childCount;
+                var j = Random.Range(0, childCount);
+
+                SetPart(i, j);
+            }
+        }
+
+        SetMaterial(Random.Range(0, materials.Count));
+    }
+
     public void SetDefaultMaterial()
     {
         SetMaterial(0);
@@ -550,6 +589,4 @@ public class ArchitomeCharacter : MonoBehaviour
 
         SetMaterial(currentMaterial);
     }
-    
-
 }

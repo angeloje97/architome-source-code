@@ -114,7 +114,7 @@ namespace Architome
                 if (item.Length > 0)
                 {
 
-                    if (result.Length > 0 && item.Length > 0 && i != stringList.Count - 1)
+                    if (result.Length > 0 && item.Length > 0)
                     {
                         result += "\n";
                     }
@@ -136,25 +136,28 @@ namespace Architome
             return line;
         }
 
-        public static string FloatToSimple(float value)
+        public static string FloatToSimple(float value, int decimalPlaces = 2)
         {
-            var newText = $"{Mathg.Round(value, 2)}";
-
+            var newText = $"{Mathg.Round(value, decimalPlaces)}";
+            
 
             if (value > 100000f) //100 Thousand
             {
-                newText = $"{Mathg.Round(value / 1000f, 2)}k";
+                newText = $"{Mathg.Round(value / 1000f, decimalPlaces)}k";
             }
 
             if (value > 100000000f) //100 Millions
             {
-                newText = $"{Mathg.Round(value / 1000000f, 2)}m";
+                newText = $"{Mathg.Round(value / 1000000f, decimalPlaces)}m";
+
             }
 
             if (value > 100000000000f) //100 Billions.
             {
-                newText = $"{Mathg.Round(value / 1000000000, 2)}b";
+                newText = $"{Mathg.Round(value / 1000000000f, decimalPlaces)}b";
+
             }
+
 
             return newText;
         }

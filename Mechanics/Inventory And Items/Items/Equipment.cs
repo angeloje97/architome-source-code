@@ -10,6 +10,7 @@ namespace Architome
     {
         [Header("Equipment Info")]
         public EquipmentSlotType equipmentSlotType;
+        public bool usesSecondarySlot;
         public EquipmentSlotType secondarySlotType;
         public ArmorType armorType;
         public List<Vector3> equipmentOverRide;
@@ -19,20 +20,86 @@ namespace Architome
 
         public Stats stats;
 
+        public List<GameObject> equipmentEffects;
 
-        public bool useStatWeights;
+
         [Header("Stat Weights")]
         public float vitalityWeight;
         public float strengthWeight;
         public float dexterityWeight;
         public float wisdomWeight;
+        public float armorWeight;
+        public float magicResistWeight;
+
+        [SerializeField] bool updateBuffs;
+        [SerializeField] bool updateStateWeights;
+        [SerializeField] bool clearStats;
 
         public void OnValidate()
         {
-            ProcessStatWeights();
+            HandleStatWeights();
+            HandleClearStats();
+            HandleUpdateBuffs();
+
             itemType = ItemType.Equipment;
+
+            void HandleStatWeights()
+            {
+                if (!updateStateWeights) return;
+
+
+                updateStateWeights = false;
+                ProcessStatWeights();
+            }
+
+            void HandleClearStats()
+            {
+                if (!clearStats) return;
+                clearStats = false;
+
+                stats.ZeroOut();
+            }
+
+            void HandleUpdateBuffs()
+            {
+                if (!updateBuffs) return;
+                updateBuffs = false;
+
+                if (equipmentEffects == null) equipmentEffects = new();
+
+                for (int i = 0; i < equipmentEffects.Count; i++)
+                {
+                    var buffObject = equipmentEffects[i];
+                    if (buffObject == null)
+                    {
+                        equipmentEffects.RemoveAt(i);
+                        i--;
+                        continue;
+                    }
+
+                    var info = buffObject.GetComponent<BuffInfo>();
+
+                    if (info == null)
+                    {
+                        equipmentEffects.RemoveAt(i);
+                        i--;
+                    }
+                }
+            }
         }
 
+        public List<int> EquipmentEffectsData()
+        {
+            var data = new List<int>();
+
+            foreach (var effect in equipmentEffects)
+            {
+                var info = effect.GetComponent<BuffInfo>();
+                data.Add(info._id);
+            }
+
+            return data;
+        }
         public override string Description()
         {
             return base.Description();
@@ -40,7 +107,11 @@ namespace Architome
 
         public override string SubHeadline()
         {
-            return $"{armorType}, {equipmentSlotType}";
+
+            var result = $"{armorType}, {equipmentSlotType}\n";
+                
+            
+            return result;
         }
 
         public override string Attributes()
@@ -48,38 +119,29 @@ namespace Architome
             var result = base.Attributes();
             var attributes = stats.Attributes();
 
+            var attributeStrings = new List<string>();
+
+            result += $"Level Required: {LevelRequired}\nItem Level : {itemLevel}";
+
             foreach (var attribute in attributes)
             {
                 string value = attribute.Value;
-                //if (Stats.PercentageFields.Contains(attribute.Name))
-                //{
-                //    var floatValue = (float)attribute.Data;
+                if (Stats.PercentageFields.Contains(attribute.Name))
+                {
+                    var floatValue = (float)attribute.Data;
 
-                //    value = $"{ArchString.FloatToSimple(floatValue*100)}%";
-                //}
+                    value = $"{ArchString.FloatToSimple(floatValue * 100)}%";
+                }
 
-                result += $"{ArchString.CamelToTitle(attribute.Name)} {value}\n";
+                attributeStrings.Add($"{value} {ArchString.CamelToTitle(attribute.Name)}");
             }
 
-            return result;
-        }
-
-        public override string Requirements()
-        {
-            var requirements = "";
-
-            if (LevelRequired > 0)
+            if (attributes.Count > 0)
             {
-                requirements += $"Level: {LevelRequired}\n";
+                result += "\n\n";
             }
 
-            if (itemLevel > 0)
-            {
-                requirements += $"Item Level : {itemLevel}\n";
-            }
-
-
-            return requirements;
+            return result + ArchString.NextLineList(attributeStrings);
         }
         // Start is called before the first frame update
         public void UpdateEquipmentStats()
@@ -89,14 +151,14 @@ namespace Architome
 
         public void ProcessStatWeights()
         {
-            if (!useStatWeights) return;
-            var total = vitalityWeight + strengthWeight + dexterityWeight + wisdomWeight;
+            var total = vitalityWeight + strengthWeight + dexterityWeight + wisdomWeight + armorWeight + magicResistWeight;
             if (total == 0) { return; }
             var vContribution = vitalityWeight / total;
             var sContribution = strengthWeight / total;
             var dContribution = dexterityWeight / total;
             var wContribution = wisdomWeight / total;
-
+            var mrCondtribution = magicResistWeight / total;
+            var armContribution = armorWeight / total;
             //Total Stats Per Level
             var totalStats = itemLevel;
 
@@ -104,8 +166,17 @@ namespace Architome
             stats.Strength = (int)(sContribution * totalStats);
             stats.Dexterity = (int)(dContribution * totalStats);
             stats.Wisdom = (int)(wContribution * totalStats);
+            stats.magicResist = (int)(mrCondtribution * totalStats);
+            stats.armor = (int)(armContribution * totalStats);
+        }
+        
+        public void SetPower(int level, int itemLevel, Rarity rarity)
+        {
+            this.rarity = rarity;
+            LevelRequired = level;
+            this.itemLevel = itemLevel;
 
-
+            ProcessStatWeights();
         }
 
         // Update is called once per frame

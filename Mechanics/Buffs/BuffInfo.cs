@@ -80,7 +80,7 @@ public class BuffInfo : MonoBehaviour
 
     [Serializable]
     public struct CleanseConditions {
-        public bool enterCombat, exitCombat, damageTaken;
+        public bool enterCombat, exitCombat, damageTaken, isMoving;
     }
 
     [Header("Buff Properties")]
@@ -170,7 +170,7 @@ public class BuffInfo : MonoBehaviour
     void UpdateValues()
     {
         FromAbility();
-        FromConsumable();
+        FromItem();
 
         void FromAbility()
         {
@@ -180,15 +180,32 @@ public class BuffInfo : MonoBehaviour
 
         }
 
-        void FromConsumable()
+        //void FromConsumable()
+        //{
+        //    if (sourceItem == null) return;
+        //    if (sourceItem.GetType() != typeof(Consumable)) return;
+
+        //    var consumable = (Consumable)sourceItem;
+
+        //    properties.value = consumable.value * properties.valueContributionToBuff;
+        //}
+
+        void FromItem()
         {
             if (sourceItem == null) return;
-            if (sourceItem.GetType() != typeof(Consumable)) return;
+            
+            if (sourceItem.GetType() == typeof(Consumable))
+            {
+                var consumable = (Consumable)sourceItem;
+                properties.value = consumable.value * properties.valueContributionToBuff;
 
-            var consumable = (Consumable)sourceItem;
+            }
 
-            properties.value = consumable.value * properties.valueContributionToBuff;
-
+            if (Item.Equipable(sourceItem))
+            {
+                var equipment = (Equipment)sourceItem;
+                properties.value = equipment.itemLevel * properties.valueContributionToBuff;
+            }
         }
     }
 
@@ -420,7 +437,7 @@ public class BuffInfo : MonoBehaviour
         OnBuffDeplete?.Invoke(this);
         StartCoroutine(Expire());
     }
-    public void Cleanse()
+    public void Cleanse(string reason = "")
     {
         OnBuffCleanse?.Invoke(this);
         StartCoroutine(Expire());

@@ -2,11 +2,45 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using Architome.Enums;
 
 namespace Architome
 {
     public class ItemPool : ScriptableObject
     {
+
+        [System.Serializable]
+        public class EntityRarityPool
+        {
+            public string name
+            {
+                get
+                {
+                    return rarity.ToString();
+                }
+            }
+
+            public EntityRarity rarity;
+            public List<PossibleItem> possibleItems;
+            public List<PossibleItem> guaranteedItems;
+        }
+
+        [System.Serializable]
+        public class RarityPool
+        {
+            public string name
+            {
+                get
+                {
+                    return rarity.ToString();
+                }
+            }
+
+            public Rarity rarity;
+            public List<PossibleItem> possibleItems;
+            public List<PossibleItem> guaranteedItems;
+        }
+
         [System.Serializable]
         public class PossibleItem
         {
@@ -14,70 +48,150 @@ namespace Architome
 
             public int minAmount = 1;
             public int maxAmount = 100;
+            [Range(0f, 100f)]
             public float chance;
         }
 
-        public List<PossibleItem> possibleItems;
+        public List<EntityRarityPool> entityItems;
+        public List<RarityPool> rarityItems;
 
-        public List<ItemData> CreatePossibleItems(int items, bool uniqueItemsOnly = false)
+        public List<PossibleItem> possibleItems;
+        public List<PossibleItem> guaranteedItems;
+
+        EntityRarityPool EntityItems(EntityRarity rarity)
+        {
+            foreach (var entityItem in entityItems)
+            {
+                if (entityItem.rarity == rarity)
+                {
+                    return entityItem;
+                }
+            }
+
+            return null;
+        }
+
+        RarityPool RarityItems(Rarity rarity)
+        {
+            foreach (var rarityItem in rarityItems)
+            {
+                if (rarity == rarityItem.rarity)
+                {
+                    return rarityItem;
+                }
+            }
+
+            return null;
+        }
+
+        public List<ItemData> GeneratedItems(List<PossibleItem> possibleItems, List<PossibleItem> guaranteedItems, int items)
         {
             var itemDatas = new List<ItemData>();
-            var possibleDatas = new List<ItemData>();
 
-            foreach (var possibleItem in possibleItems)
-            {
-                var item = possibleItem.item;
-
-                for (int i = 0; i < possibleItem.chance * 100; i++)
-                {
-                    int amount = Random.Range(1, possibleItem.maxAmount);
-                    amount = Mathf.Clamp(amount, 1, item.maxStacks);
-
-                    possibleDatas.Add(new() { item = item, amount = amount });
-                }
-            }
-
-            var indeces = Enumerable.Range(0, possibleDatas.Count).ToList();
-
-            for (int i = 0; i < items; i++)
-            {
-
-                if (indeces.Count == 0) break;
-
-                var randomIndex = Random.Range(0, indeces.Count);
-
-                var index = indeces[randomIndex];
-
-                bool validItem = true;
-
-                if (uniqueItemsOnly)
-                {
-                    foreach (var itemData in itemDatas) //Check if an item already exists.
-                    {
-                        if (itemData.item != possibleDatas[i].item) continue;
-
-                        
-                        validItem = false;
-                        break;
-                    }
-
-                }
-
-                if (!validItem)
-                {
-                    indeces.RemoveAt(randomIndex);
-                    i--;
-                    continue;
-                }
-
-
-
-                itemDatas.Add(new() { item = possibleDatas[index].item, amount = possibleDatas[index].amount });
-
-                indeces.RemoveAt(randomIndex);
-            }
+            HandleGuaranteedItems();
+            HandlePossibleItems();
 
             return itemDatas;
+
+
+            void HandleGuaranteedItems()
+            {
+                foreach (var guaranteed in guaranteedItems)
+                {
+                    var randomAmount = Random.Range(guaranteed.minAmount, guaranteed.maxAmount);
+                    AddItem(new()
+                    {
+                        item = guaranteed.item,
+                        amount = randomAmount,
+                    });
+                }
+            }
+
+            void HandlePossibleItems()
+            {
+                foreach (var possible in possibleItems)
+                {
+                    var chanceRole = Random.Range(0f, 100f);
+                    if (chanceRole >= possible.chance) continue;
+
+                    var randomAmount = Random.Range(possible.minAmount, possible.maxAmount);
+
+                    AddItem(new()
+                    {
+                        item = possible.item,
+                        amount = randomAmount,
+                    });
+                }
+            }
+
+            void AddItem(ItemData data)
+            {
+                if (itemDatas.Count >= items) return;
+
+                var count = data.amount;
+
+                while (count != 0)
+                {
+                    var item = Application.isPlaying ? Instantiate(data.item) : data.item;
+
+                    itemDatas.Add(new() {
+                        item = item,
+                        amount = data.item.NewStacks(0, count, out count)
+                    });
+                    //if (itemDatas.Count >= items) return;
+                    //if (data.item.count >= data.item.maxStacks )
+                    //{
+                    //    itemDatas.Add(new() { item = data.item, amount = data.item.maxStacks });
+                    //    count -= data.item.maxStacks;
+                    //}
+                    //else
+                    //{
+                    //    itemDatas.Add(new() { item = data.item, amount = count });
+                    //    count = 0;
+                    //    break;
+                    //}
+                }
+
+            }
+        }
+
+        public List<ItemData> CreatePossibleItems(int items)
+        {
+            return GeneratedItems(possibleItems, guaranteedItems, items);
+        }
+
+        public List<ItemData> ItemsFromRarity(int max, Rarity rarity)
+        {
+
+            var rarityItems = RarityItems(rarity);
+
+            if (rarityItems != null)
+            {
+                return GeneratedItems(rarityItems.possibleItems, rarityItems.guaranteedItems, max);
+
+            }
+            else
+            {
+                return GeneratedItems(possibleItems, guaranteedItems, max);
+            }
+
+
+        }
+
+        public List<ItemData> ItemsFromEntityRarity(int max, EntityRarity rarity)
+        {
+
+            var entityRarityItems = EntityItems(rarity);
+
+            if (entityRarityItems != null)
+            {
+                return GeneratedItems(entityRarityItems.possibleItems, entityRarityItems.guaranteedItems, max);
+            }
+            else
+            {
+                return GeneratedItems(possibleItems, guaranteedItems, max);
+            }
+
         }
     }
 }

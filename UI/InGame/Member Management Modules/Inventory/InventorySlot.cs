@@ -92,7 +92,7 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
             //}
 
             events.OnItemChange?.Invoke(this, previousItem, item);
-            itemSlotHandler.OnChangeItem?.Invoke(new() {
+            itemSlotHandler.HandleChangeItem(new() {
                 itemSlot = this,
                 newItem = currentItemInfo,
                 previousItem = previousItemInfo
@@ -132,5 +132,10 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
         var draggingItem = eventData.pointerDrag.GetComponent<ItemInfo>();
 
         draggingItem.currentSlotHover = null;
+    }
+
+    public virtual bool CanInsert(ItemInfo item)
+    {
+        return true;
     }
 }

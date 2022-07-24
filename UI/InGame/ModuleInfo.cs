@@ -47,7 +47,7 @@ namespace Architome
         }
         public Prefabs prefabs;
 
-        
+        public EntityInfo currentEntitySelected;
 
         public void GetDependencies()
         {
@@ -67,12 +67,10 @@ namespace Architome
                 audioSource.playOnAwake = false;
             }
         }
-
         void Start()
         {
             GetDependencies();
         }
-
         public void OnPointerEnter(PointerEventData eventData)
         {
 
@@ -86,7 +84,6 @@ namespace Architome
             item.moduleHover = this;
             transform.SetAsLastSibling();
         }
-
         public void OnPointerExit(PointerEventData eventData)
         {
             isHovering = false;
@@ -109,17 +106,16 @@ namespace Architome
 
             
         }
-
         public void OnPointerDown(PointerEventData eventData)
         {
             transform.SetAsLastSibling();
         }
-
         public void SelectEntity(EntityInfo entity)
         {
+            //if (entity == currentEntitySelected) return;
+            //entity = currentEntitySelected;
             OnSelectEntity?.Invoke(entity);
         }
-
         public void DestroyBin()
         {
             if (itemBin)
@@ -130,12 +126,10 @@ namespace Architome
                 }
             }
         }
-
         public void Close()
         {
             SetActive(false);
         }
-
         public void OnValidate()
         {
             if (canvasGroup == null)
@@ -149,7 +143,6 @@ namespace Architome
             }
             SetActive(isActive, false, true);
         }
-
         public void SetActive(bool val, bool playSound = true, bool OnValidate = false)
         {
             if (isActive == val && !OnValidate) return;
@@ -182,7 +175,6 @@ namespace Architome
 
             ReturnAllItemsFromBin();
         }
-
         public void ReturnAllItemsFromBin()
         {
             if (itemBin == null) return;
@@ -191,7 +183,6 @@ namespace Architome
                 item.ReturnToSlot();
             }
         }
-
         public ItemInfo CreateItem(ItemData data, bool cloned = false)
         {
             var item = data.item;
@@ -209,8 +200,6 @@ namespace Architome
 
             return newItem;
         }
-
-
         public GameObject CreateEntityIcon(EntityInfo entity)
         {
             if (!prefabs.entityIcon) return null;

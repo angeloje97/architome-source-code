@@ -29,19 +29,23 @@ namespace Architome
 
         void OnItemChange(InventorySlot slot, Item previous, Item after)
         {
+
             var isTaken = after != null;
             var image = GetComponent<Image>();
-
             image.enabled = !isTaken;
+
         }
 
         void OnSetSlot(InventorySlot slot)
         {
-            var isTaken = slot.item != null;
 
-            var image = GetComponent<Image>();
+            ArchAction.Yield(() => {
+                var isTaken = slot.item != null;
 
-            image.enabled = !isTaken;
+                var image = GetComponent<Image>();
+
+                image.enabled = !isTaken;
+            });
         }
     }
 

@@ -227,7 +227,7 @@ namespace Architome
                 //var pathSeed = seedGenerator.Factor2(skeletonRooms.Count, availablePaths.Count);
                 Debugger.InConsole(9532, $"{pathSeed}");
 
-                var newRoom = availablePaths[pathSeed].SpawnRoom(skeletonRooms[0], roomList);
+                var newRoom = await availablePaths[pathSeed].SpawnRoom(skeletonRooms[0], roomList);
                 skeletonRooms.RemoveAt(0);
                 var badSpawn = await newRoom.CheckBadSpawn();
 
@@ -250,20 +250,23 @@ namespace Architome
 
                     var randomPath = availablePaths[UnityEngine.Random.Range(0, availablePaths.Count)];
 
-                    newRoom = randomPath.SpawnRoom(badRoom.gameObject, roomList);
+                    newRoom = await randomPath.SpawnRoom(badRoom.gameObject, roomList, true);
 
-                    badRoom.originPath.isUsed = false;
 
-                    foreach (var path in newRoom.paths)
-                    {
-                        if (path.isEntrance) continue;
-                        path.isUsed = false;
-                    }
+                    //foreach (var path in newRoom.paths)
+                    //{
+                    //    if (path.isEntrance) continue;
+                    //    path.isUsed = false;
+                    //}
 
-                    Destroy(badRoom.gameObject);
+                    //Destroy(badRoom.gameObject);
 
                     badSpawn = await newRoom.CheckBadSpawn();
 
+                    if (badSpawn)
+                    {
+                        badRoom.originPath.isUsed = false;
+                    }
                 }
 
                 roomsInUse.Add(newRoom.gameObject);
@@ -279,7 +282,8 @@ namespace Architome
                 if (!mapInfo.generateRooms) { break; }
                 roomsGenerated++;
                 await HandleAvailableRooms();
-                //await Task.Delay((int)(spawnDelay * 1000));
+                await Task.Delay((int)(spawnDelay * 1000));
+
             } while (availableRooms.Count > 0);
 
             generatingAvailable = false;
@@ -307,7 +311,7 @@ namespace Architome
                 var seedPathIndex = UnityEngine.Random.Range(0, availablePaths.Count);
                 var seedRoomIndex = UnityEngine.Random.Range(0, availableRooms.Count);
 
-                var newRoom = availablePaths[seedPathIndex].SpawnRoom(availableRooms[seedRoomIndex], roomList);
+                var newRoom = await availablePaths[seedPathIndex].SpawnRoom(availableRooms[seedRoomIndex], roomList);
 
                 availableRooms.Remove(availableRooms[seedRoomIndex]);
 
@@ -331,9 +335,9 @@ namespace Architome
 
                     var randomPath = ArchGeneric.RandomItem(availablePaths);
 
-                    newRoom = randomPath.SpawnRoom(badRoom.gameObject, roomList);
+                    newRoom = await randomPath.SpawnRoom(badRoom.gameObject, roomList, true);
 
-                    Destroy(badRoom.gameObject);
+                    //Destroy(badRoom.gameObject);
 
                     badSpawn = await newRoom.CheckBadSpawn();
                 }
@@ -424,103 +428,103 @@ namespace Architome
                 }
             }
         }
-        void HandleBadSpawnRooms()
-        {
-            if (badSpawnRooms.Count > 0)
-            {
-                ClearNullRooms();
-                ClearNullPaths();
+        //void HandleBadSpawnRooms()
+        //{
+        //    if (badSpawnRooms.Count > 0)
+        //    {
+        //        ClearNullRooms();
+        //        ClearNullPaths();
 
-                for (int i = 0; i < badSpawnRooms.Count; i++)
-                {
-                    var room = badSpawnRooms[i];
-
-
-                    foreach (PathInfo path in RoomPaths(room.GetComponent<RoomInfo>()))
-                    {
-                        path.isUsed = true;
-                    }
-
-                    if (!HandleBadSpawnSkeleton(room)) { Destroy(room); roomsDestroyed++; }
-                    else if (!HandleBadSpawnAvailable(room)) { Destroy(room); roomsDestroyed++; }
-
-                    badSpawnRooms.RemoveAt(i);
-                    i--;
-                }
-            }
-
-            bool HandleBadSpawnSkeleton(GameObject room)
-            {
-                if (!generatingSkeleton) { return true; }
-                var availablePaths = AvailablePaths(roomsInUse[roomsInUse.Count - 2].GetComponent<RoomInfo>());
-                ClearIncompatablePaths(room.GetComponent<RoomInfo>(), availablePaths);
-
-                if (availablePaths.Count == 0)
-                {
-                    availablePaths = PreviousPaths(roomsInUse.Count - 2);
-
-                    if (availablePaths.Count == 0)
-                    {
-                        return false;
-                    }
-                }
-
-                var pathIndexSeed = seedGenerator.Factor2(roomsInUse.Count, availablePaths.Count);
+        //        for (int i = 0; i < badSpawnRooms.Count; i++)
+        //        {
+        //            var room = badSpawnRooms[i];
 
 
-                var newRoom = availablePaths[pathIndexSeed].SpawnRoom(room, roomList);
+        //            foreach (PathInfo path in RoomPaths(room.GetComponent<RoomInfo>()))
+        //            {
+        //                path.isUsed = true;
+        //            }
 
-                if (room && room.GetComponent<RoomInfo>() && room.GetComponent<RoomInfo>().originPath)
-                {
-                    room.GetComponent<RoomInfo>().originPath.isUsed = false;
-                }
+        //            if (!HandleBadSpawnSkeleton(room)) { Destroy(room); roomsDestroyed++; }
+        //            else if (!HandleBadSpawnAvailable(room)) { Destroy(room); roomsDestroyed++; }
 
-                foreach (PathInfo path in newRoom.paths)
-                {
-                    if (!path.isEntrance)
-                    {
-                        path.isUsed = false;
-                    }
-                }
+        //            badSpawnRooms.RemoveAt(i);
+        //            i--;
+        //        }
+        //    }
 
-                Destroy(room);
+        //    bool HandleBadSpawnSkeleton(GameObject room)
+        //    {
+        //        if (!generatingSkeleton) { return true; }
+        //        var availablePaths = AvailablePaths(roomsInUse[roomsInUse.Count - 2].GetComponent<RoomInfo>());
+        //        ClearIncompatablePaths(room.GetComponent<RoomInfo>(), availablePaths);
 
-                return true;
+        //        if (availablePaths.Count == 0)
+        //        {
+        //            availablePaths = PreviousPaths(roomsInUse.Count - 2);
 
-            }
+        //            if (availablePaths.Count == 0)
+        //            {
+        //                return false;
+        //            }
+        //        }
 
-            bool HandleBadSpawnAvailable(GameObject room)
-            {
-                if (!generatingAvailable) { return true; }
-
-                var availablePaths = AvailablePaths(room.GetComponent<RoomInfo>().incompatablePaths);
-
-                if (availablePaths.Count == 0) { return false; }
-
-                //int randomPathIndex = seedGenerator.factors[availablePaths.Count];
-                int randomPathIndex = UnityEngine.Random.Range(0, availablePaths.Count);
+        //        var pathIndexSeed = seedGenerator.Factor2(roomsInUse.Count, availablePaths.Count);
 
 
-                var roomInfo = availablePaths[randomPathIndex].SpawnRoom(room, roomList);
+        //        var newRoom = await availablePaths[pathIndexSeed].SpawnRoom(room, roomList);
 
-                if (room && room.GetComponent<RoomInfo>() && room.GetComponent<RoomInfo>().originPath)
-                {
-                    room.GetComponent<RoomInfo>().originPath.isUsed = false;
-                }
+        //        if (room && room.GetComponent<RoomInfo>() && room.GetComponent<RoomInfo>().originPath)
+        //        {
+        //            room.GetComponent<RoomInfo>().originPath.isUsed = false;
+        //        }
 
-                foreach (PathInfo path in roomInfo.paths)
-                {
-                    if (!path.isEntrance)
-                    {
-                        path.isUsed = false;
-                    }
-                }
+        //        foreach (PathInfo path in newRoom.paths)
+        //        {
+        //            if (!path.isEntrance)
+        //            {
+        //                path.isUsed = false;
+        //            }
+        //        }
 
-                Destroy(room);
+        //        Destroy(room);
 
-                return true;
-            }
-        }
+        //        return true;
+
+        //    }
+
+        //    bool HandleBadSpawnAvailable(GameObject room)
+        //    {
+        //        if (!generatingAvailable) { return true; }
+
+        //        var availablePaths = AvailablePaths(room.GetComponent<RoomInfo>().incompatablePaths);
+
+        //        if (availablePaths.Count == 0) { return false; }
+
+        //        //int randomPathIndex = seedGenerator.factors[availablePaths.Count];
+        //        int randomPathIndex = UnityEngine.Random.Range(0, availablePaths.Count);
+
+
+        //        var roomInfo = availablePaths[randomPathIndex].SpawnRoom(room, roomList);
+
+        //        if (room && room.GetComponent<RoomInfo>() && room.GetComponent<RoomInfo>().originPath)
+        //        {
+        //            room.GetComponent<RoomInfo>().originPath.isUsed = false;
+        //        }
+
+        //        foreach (PathInfo path in roomInfo.paths)
+        //        {
+        //            if (!path.isEntrance)
+        //            {
+        //                path.isUsed = false;
+        //            }
+        //        }
+
+        //        Destroy(room);
+
+        //        return true;
+        //    }
+        ////}
         IEnumerator ClearNullsRoutine()
         {
             do
@@ -648,6 +652,7 @@ namespace Architome
         }
         public List<PathInfo> AvailablePaths(RoomInfo room)
         {
+            ClearNullPaths();
             var availablePaths = new List<PathInfo>();
 
             foreach (PathInfo path in room.paths)

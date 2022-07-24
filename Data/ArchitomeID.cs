@@ -112,12 +112,20 @@ namespace Architome
 
             public List<Item> results;
 
+            public ItemEffects defaultEffects;
+            public bool setDefaultEffects;
+            public bool clearDefaultEffects;
+
+
+
             public void Update()
             {
                 if (!search) return;
                 if (idDatabase == null) return;
 
                 UpdateId();
+                SetDefaultFX();
+                ClearDefaultEffects();
 
                 if (hasIcon && missingIcon)
                 {
@@ -166,6 +174,117 @@ namespace Architome
                 for (int i = 0; i < items.Count; i++)
                 {
                     items[i].SetId(i + 1, idDatabase.forceID);
+                }
+            }
+
+            public void SetDefaultFX()
+            {
+                if (!setDefaultEffects) return;
+                setDefaultEffects = false;
+
+                foreach (var item in idDatabase.Items)
+                {
+                    if (item.effects != null) continue;
+                    if (HandleEquipment(item)) continue;
+                    if (HandleWeapon(item)) continue;
+                    if (HandleCurrency(item)) continue;
+
+                    if (defaultEffects.defaultItemFX)
+                    {
+                        item.effects = defaultEffects.defaultItemFX;
+                        item.usingDefaultFX = true;
+                    }
+                }
+
+                bool HandleCurrency(Item item)
+                {
+                    if (item.GetType() != typeof(Currency)) return false;
+                    if (defaultEffects.defaultCurrencyFX == null) return false;
+
+                    item.usingDefaultFX = true;
+                    item.effects = defaultEffects.defaultCurrencyFX;
+
+
+                    return true;
+                }
+
+                bool HandleEquipment(Item item)
+                {
+                    if (!Item.IsEquipment(item)) return false;
+                    if (defaultEffects.equipmentFX == null) return false;
+
+                    var equipment = (Equipment)item;
+                    foreach (var effect in defaultEffects.equipmentFX)
+                    {
+                        if (effect.armorType != equipment.armorType) continue;
+                        if (effect.defaultFX == null) continue;
+
+                        equipment.effects = effect.defaultFX;
+                        item.usingDefaultFX = true;
+                        return true;
+
+                    }
+
+                    return false;
+                }
+
+                bool HandleWeapon(Item item)
+                {
+                    if (!Item.IsWeapon(item)) return false;
+                    if (defaultEffects.weaponFX == null) return false;
+
+                    var weapon = (Weapon)item;
+
+                    foreach (var effects in defaultEffects.weaponFX)
+                    {
+                        if (effects.weaponType != weapon.weaponType) continue;
+                        if (effects.defaultEffects == null) continue;
+
+                        weapon.effects = effects.defaultEffects;
+                        item.usingDefaultFX = true;
+
+                        return true;
+                    }
+
+
+                    return false;
+                }
+            }
+
+            public void ClearDefaultEffects()
+            {
+                if (!clearDefaultEffects) return;
+                clearDefaultEffects = false;
+                foreach (var item in idDatabase.Items)
+                {
+                    if (!item.usingDefaultFX) continue;
+                    item.usingDefaultFX = false;
+                    item.effects = null;
+
+                }
+            }
+
+            [Serializable]
+            public class ItemEffects
+            {
+                public ItemFX defaultItemFX;
+                public ItemFX defaultCurrencyFX;
+                public List<EquipmentItemFX> equipmentFX;
+                public List<WeaponFX> weaponFX;
+
+
+                [Serializable]
+                public class EquipmentItemFX
+                {
+                    public ArmorType armorType;
+                    public ItemFX defaultFX;
+                }
+
+                [Serializable]
+                public class WeaponFX
+                {
+                    public WeaponType weaponType;
+                    public ItemFX defaultEffects;
                 }
             }
         }

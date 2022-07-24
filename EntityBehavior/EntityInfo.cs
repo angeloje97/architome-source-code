@@ -112,9 +112,9 @@ namespace Architome
             public Action<List<string>> OnUpdateObjectives;
             public Action<Quest> OnQuestComplete;
             public Action<Inventory.LootEventData> OnLootItem;
+            public Action<Inventory.LootEventData> OnLootItemFromWorld;
         }
 
-        //Events
         public struct CombatEvents
         {
             public Action<CombatEventData, bool> OnFixate;
@@ -124,6 +124,9 @@ namespace Architome
             public Action<CombatEventData> OnImmuneDamage;
             public Action<EntityInfo> OnSummonEntity;
 
+
+            public Action<CombatEventData> BeforeDamageTaken { get; set; }
+            public Action<CombatEventData> BeforeDamageDone { get; set; }
         }
 
         public struct PartyEvents
@@ -170,7 +173,7 @@ namespace Architome
         public InfoEvents infoEvents;
         public TaskEvents taskEvents = new();
         public TargetableEvents targetableEvents = new();
-        public CombatEvents combatEvents;
+        public CombatEvents combatEvents = new();
         public PortalEvents portalEvents;
         public SceneEvents sceneEvents;
         public SocialEvents socialEvents;
@@ -432,9 +435,12 @@ namespace Architome
             var source = combatData.source;
             var damageType = combatData.DataDamageType();
 
+            var sourceLevel = combatData.source ? combatData.source.stats.Level : stats.Level;
+
 
             HandleValue();
             HandleDamage();
+
 
             void HandleValue()
             {
@@ -466,13 +472,21 @@ namespace Architome
 
                 combatData.value -= combatData.value * stats.damageReduction;
 
+
                 if (damageType == DamageType.Physical)
                 {
-                    combatData.value -= stats.armor;
+                    var reduction = ReductionPercent(stats.armor);
+
+                    combatData.value -= combatData.value * reduction;
+                    //combatData.value -= stats.armor;
+                    Debugger.Combat(5330, $"{entityName} : blocking {reduction} phyisical damage with {stats.armor} armor reducing damage to {combatData.value}");
                 }
                 else if (damageType == DamageType.Magical)
                 {
-                    combatData.value -= stats.magicResist;
+                    var reduction = ReductionPercent(stats.magicResist);
+                    //combatData.value -= stats.magicResist;
+                    combatData.value -= combatData.value * reduction;
+                    Debugger.Combat(5329, $"{entityName} : blocking {reduction} magic damage with {stats.magicResist} magic resist reducing damage to {combatData.value}");
                 }
 
                 if (combatData.value < 0)
@@ -493,12 +507,30 @@ namespace Architome
             }
             void HandleDamage()
             {
-                if (source != null) source.OnDamageDone?.Invoke(combatData);
+                bool lethalDamage = false;
+                if (combatData.value >= health + shield)
+                {
+                    lethalDamage = true;
+                }
 
-                OnDamageTaken?.Invoke(combatData);
+                if (source)
+                {
+                    source.combatEvents.BeforeDamageDone?.Invoke(combatData);
+                }
+                combatEvents.BeforeDamageTaken?.Invoke(combatData);
+
+
+                if (lethalDamage)
+                {
+                    Debugger.Combat(2893, $"Lethal damage is now {combatData.value}");
+                }
+
 
                 DamageShield();
                 DamageHealth();
+
+                if (source != null) source.OnDamageDone?.Invoke(combatData);
+                OnDamageTaken?.Invoke(combatData);
 
                 void DamageShield()
                 {
@@ -537,6 +569,15 @@ namespace Architome
                         health -= combatData.value;
                     }
                 }
+            }
+
+            float ReductionPercent(float reductionSource)
+            {
+                var reduction = (float) Math.Pow(.99, (reductionSource / sourceLevel));
+
+                var inverse = 1 - reduction;
+
+                return inverse;
             }
         }
         public void Heal(CombatEventData combatData)
@@ -728,7 +769,6 @@ namespace Architome
 
         public Sprite PortraitIcon(bool fixPortrait = true)
         {
-            return entityPortrait;
 
             if (entityPortrait != null)
             {
@@ -746,10 +786,15 @@ namespace Architome
 
             return null;
         }
-        public bool LootItem(ItemInfo itemInfo)
+        public bool LootItem(ItemInfo itemInfo, bool fromWorld = false)
         {
-            var lootData = new Inventory.LootEventData() { item = itemInfo, succesful = true };
+            var lootData = new Inventory.LootEventData() { item = itemInfo, succesful = true, fromWorld = fromWorld };
             infoEvents.OnLootItem?.Invoke(lootData);
+
+            if (fromWorld)
+            {
+                infoEvents.OnLootItemFromWorld?.Invoke(lootData);
+            }
 
             return lootData.succesful;
         }
@@ -787,12 +832,12 @@ namespace Architome
         public bool CanAttack(GameObject target)
         {
             if(target == null) { return false; }
-            if (target.GetComponent<EntityInfo>() == null) { return false; }
             var targetInfo = target.GetComponent<EntityInfo>();
+            if (targetInfo == null) return false;
 
             if(targetInfo.npcType == NPCType.Untargetable) { return false; }
 
-            if(this.npcType == NPCType.Neutral) { return true; }
+            if(npcType == NPCType.Neutral) { return true; }
 
 
             if (targetInfo.npcType != this.npcType) { return true; }
@@ -841,9 +886,6 @@ namespace Architome
 
             return true;
         }
-
-
-
         public void SetSummoned(SpawnerInfo.SummonData summonData)
         {
 

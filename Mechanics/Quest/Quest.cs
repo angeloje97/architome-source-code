@@ -26,7 +26,6 @@ namespace Architome
             public float experience;
             public ItemPool possibleItems;
             public List<ItemData> items;
-            public int gold;
         }
 
         [Serializable]

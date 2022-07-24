@@ -22,9 +22,12 @@ namespace Architome
 
         IGGUIInfo inGameUI;
 
+        public Transform foreground, background;
+
         [Header("Modules")]
         public List<PostLevelProgress> postLevelProgress;
         public List<PostQuestProgress> postQuestProgress;
+        public List<EntityInventoryUI> entityInventories;
         public Action<PostDungeonManager> OnLoadScene;
 
         void GetDependencies()
@@ -68,6 +71,7 @@ namespace Architome
             active = this;
             GetDependencies();
             HandleLevelProgress();
+            HandleEntityInventories();
             HandleQuestProgress();
         }
         private void Start()
@@ -81,6 +85,18 @@ namespace Architome
 
             postLevelProgress = GetComponentsInChildren<PostLevelProgress>().ToList();
             postQuestProgress = GetComponentsInChildren<PostQuestProgress>().ToList();
+            entityInventories = GetComponentsInChildren<EntityInventoryUI>().ToList();
+        }
+        public async Task ProgressLevels()
+        {
+            var tasks = new List<Task>();
+
+            foreach (var levelProgress in postLevelProgress)
+            {
+                tasks.Add(levelProgress.Progress());
+            }
+
+            await Task.WhenAll(tasks);
         }
         void HandleLevelProgress()
         {
@@ -97,17 +113,6 @@ namespace Architome
                 var entity = entities[i];
                 levelProgress.SetEntity(entity);
             }
-        }
-        public async Task ProgressLevels()
-        {
-            var tasks = new List<Task>();
-
-            foreach (var levelProgress in postLevelProgress)
-            {
-                tasks.Add(levelProgress.Progress());
-            }
-
-            await Task.WhenAll(tasks);
         }
         async void HandleQuestProgress()
         {
@@ -155,6 +160,22 @@ namespace Architome
                 {
                     questProgress.SetActive(false);
                 }
+            }
+        }
+
+        void HandleEntityInventories()
+        {
+            for (int i = 0; i < entityInventories.Count; i++)
+            {
+                if (i > entities.Count)
+                {
+                    entityInventories[i].gameObject.SetActive(false);
+                    continue;
+                }
+
+
+                Debugger.UI(1924, $"Setting {entityInventories} to {entities[i]}");
+                entityInventories[i].SetEntity(entities[i]);
             }
         }
         public void LoadScene(string sceneName)

@@ -86,9 +86,30 @@ public class V3Helper
         return width;
     }
 
+    public static bool EqualVector3(Vector3 a, Vector3 b, float offset = 0f)
+    {
+        if (a.x < b.x - offset) return false;
+        if (a.y < b.y - offset) return false;
+        if (a.z < b.z - offset) return false;
+
+        if (a.x > b.x + offset) return false;
+        if (a.y > b.y + offset) return false;
+        if (a.z > b.z + offset) return false;
+
+        return true;
+    }
+
     public static Vector3 Difference(Vector3 end, Vector3 start)
     {
         return end - start;
+    }
+
+    public static bool IsValidPosition(Vector3 end, Vector3 start, LayerMask structureLayer, LayerMask groundLayer)
+    {
+        if (IsObstructed(end, start, structureLayer)) return false;
+        if (!IsAboveGround(end, groundLayer, 0, 5f)) return false;
+
+        return true;
     }
 
     public static Transform ClosestObject(Transform source, List<Transform> listTransform)
@@ -258,7 +279,7 @@ public class V3Helper
         return source;
     }
 
-    public static bool IsAboveGround(Vector3 location, LayerMask groundLayer, float heightOffSet = 0f)
+    public static bool IsAboveGround(Vector3 location, LayerMask groundLayer, float heightOffSet = 0f, float maxDistance = 10f)
     {
 
         var position = location;
@@ -266,9 +287,8 @@ public class V3Helper
 
         var direction = Vector3.down;
 
-        var distance = 10f;
 
-        if (Physics.Raycast(position, direction, distance, groundLayer))
+        if (Physics.Raycast(position, direction, maxDistance, groundLayer))
         {
             return true;
         }

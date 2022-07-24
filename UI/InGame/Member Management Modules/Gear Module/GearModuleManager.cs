@@ -13,7 +13,7 @@ public class GearModuleManager : MonoBehaviour
     public GearStatsUI stats;
     public GearSlotManager gearSlotManager;
     public Action<EntityInfo> OnSetEntity;
-    public Action<ItemInfo, EntityInfo> OnEquipItem;
+    public Action<ItemInfo, EntityInfo> OnEquipItem { get; set; }
 
 
 
@@ -53,7 +53,7 @@ public class GearModuleManager : MonoBehaviour
     public void EquipItem(ItemInfo info, EntityInfo entity)
     {
         if (!Item.Equipable(info.item)) return;
-
+        
         OnEquipItem?.Invoke(info, entity);
     }
 

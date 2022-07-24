@@ -14,8 +14,8 @@ namespace Architome
         Quest quest;
         [SerializeField] bool update;
         [Header("Components")]
-        public List<Icon> icons;
-        public TextMeshProUGUI title, experienceGained, goldGained;
+        public List<InventorySlot> slots;
+        public TextMeshProUGUI title, experienceGained;
         public CanvasGroup failedQuestGroup;
 
 
@@ -26,13 +26,23 @@ namespace Architome
 
         void Start()
         {
-        
+            GetDependencies();
+        }
+
+        void GetDependencies()
+        {
+            var slotHandler = GetComponent<ItemSlotHandler>();
+
+            if (slotHandler)
+            {
+                slotHandler.OnChangeItem += OnChangeItem;
+            }
         }
 
         private void OnValidate()
         {
             if (!update) return; update = false;
-            icons = GetComponentsInChildren<Icon>().ToList();
+            slots = GetComponentsInChildren<InventorySlot>().ToList();
         }
 
         // Update is called once per frame
@@ -46,7 +56,6 @@ namespace Architome
             this.quest = quest;
             title.text = quest.questName;
             experienceGained.text = quest.rewards.experience > 0 ? $"Experience: {quest.rewards.experience}" : "";
-            goldGained.text = quest.rewards.gold > 0 ? $"Gold: {quest.rewards.gold}" : "";
 
 
             if (quest.info.state == QuestState.Failed)
@@ -55,8 +64,8 @@ namespace Architome
             }
 
             HandleExperienceGained();
-            HandleGoldGained();
-            HandleItemIcons();
+            //HandleItemIcons();
+            HandleItemRewards();
         }
 
         void HandleExperienceGained()
@@ -73,14 +82,6 @@ namespace Architome
 
         }
         
-        void HandleGoldGained()
-        {
-            if (quest.info.state != QuestState.Completed) return;
-            var currentSave = Core.currentSave;
-            if (currentSave == null) return;
-
-            currentSave.guildData.AddGold(quest.rewards.gold);
-        }
 
         async public Task QuestProgress()
         {
@@ -90,28 +91,85 @@ namespace Architome
             }
         }
 
+        void OnChangeItem(ItemEventData eventData)
+        {
+            
+            if (eventData.previousItem)
+            {
+                eventData.previousItem.OnItemAction -= OnItemAction;
+            }
+
+            if (eventData.newItem)
+            {
+                eventData.newItem.OnItemAction += OnItemAction;
+            }
+        }
+
+
+        public void OnItemAction(ItemInfo info)
+        {
+
+        }
 
         void HandleItemIcons()
         {
             var items = quest.rewards.items;
-            for (int i = 0; i < icons.Count; i++)
+            //for (int i = 0; i < icons.Count; i++)
+            //{
+            //    if (i >= items.Count)
+            //    {
+            //        icons[i].gameObject.SetActive(false);
+            //        continue;
+            //    }
+
+            //    icons[i].SetIcon(new()
+            //    {
+            //        sprite = items[i].item.itemIcon,
+            //        amount = items[i].amount > 1 ? $"{items[i].amount}" : "",
+            //        data=  items[i].item
+            //    });
+
+            //    icons[i].OnHoverIcon += OnHoverItemIcon;
+
+            //}
+        }
+
+        void HandleItemRewards()
+        {
+            var itemPrefab = World.active.prefabsUI.item;
+            if (itemPrefab == null) return;
+
+            var items = quest.rewards.items;
+            for (int i = 0; i < slots.Count; i++)
             {
                 if (i >= items.Count)
                 {
-                    icons[i].gameObject.SetActive(false);
+
                     continue;
                 }
 
-                icons[i].SetIcon(new()
-                {
-                    sprite = items[i].item.itemIcon,
-                    amount = items[i].amount > 1 ? $"{items[i].amount}" : "",
-                    data=  items[i].item
-                });
+                var slot = slots[i];
 
-                icons[i].OnHoverIcon += OnHoverItemIcon;
+                var newItem = Instantiate(itemPrefab, transform).GetComponent<ItemInfo>();
 
+                newItem.ManifestItem(items[i], true);
+
+                newItem.HandleNewSlot(slot);
+
+                ArchAction.Yield(() => newItem.ReturnToSlot());
             }
+
+            ArchAction.Delay(() => {
+                foreach (var slot in slots)
+                {
+                    slot.interactable = false;
+                }
+            }, .0625f);
+        }
+
+        public void LootAll()
+        {
+
         }
 
         ToolTipManager Manager()

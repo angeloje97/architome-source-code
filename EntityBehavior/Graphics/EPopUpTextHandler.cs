@@ -112,7 +112,7 @@ namespace Architome
 
             var damageType = eventData.DataDamageType();
 
-            popUpManager.DamagePopUp(transform, $" {ArchString.FloatToSimple(value)}", damageType);
+            popUpManager.DamagePopUp(transform, $" {ArchString.FloatToSimple(value,0)}", damageType);
         }
 
         void OnImmuneDamage(CombatEventData eventData)

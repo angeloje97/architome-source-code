@@ -7,103 +7,394 @@ using UnityEngine.EventSystems;
 using TMPro;
 using System;
 using Architome;
-
+using Architome.Enums;
 public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, IDropHandler, IPointerEnterHandler, IPointerExitHandler
 {
     // Start is called before the first frame update
     public Item item;
-    public int maxStacks
-    {
-        get
-        {
-            if (item == null) return -1;
-            return item.maxStacks;
-        }
-    }
-    public int currentStacks = 1;
+    //public int maxStacks
+    //{
+    //    get
+    //    {
+    //        if (item == null) return -1;
+    //        return item.MaxStacks;
+    //    }
+    //}
+    public int currentStacks { get; set; }
     
     [Header("UI Properties")]
     public InventorySlot currentSlot;
     public InventorySlot currentSlotHover;
     public ModuleInfo moduleHover;
     public Image itemIcon;
-    public bool isInInventory;
     public TextMeshProUGUI amountText;
+    public bool isUI;
+    bool manifested;
+    bool blockLooting;
+    bool pickedUp;
+    public bool thrown { get; private set; }
+
+    EntityInfo entityPickedUp;
+
+    [Serializable]
+    public struct WorldProperties
+    {
+        public bool enable;
+        public ParticleSystem ray;
+        public ParticleSystem glow;
+
+        public Collider trigger, worldCollider;
+    }
+
+    public WorldProperties worldProperties;
+
+    public ItemFXHandler fxHandler;
 
     ToolTip toolTip;
 
     public Action<InventorySlot> OnNewSlot { get; set; }
     public Action<ItemInfo> OnUpdate { get; set; }
+    public Action<ItemInfo> OnItemAction { get; set; }
+    public Action<ItemInfo> OnDepleted { get; set; }
+    public Action<ItemInfo> OnDestroy {get; set;}
+    public Action<ItemInfo, UseData> OnUse { get; set; }
+    public Action<ItemInfo, bool> OnDragChange {get; set;}
+    public Action<ItemInfo, bool> OnEquipChange {get; set;}
 
-    public Action<ItemInfo> OnItemAction;
+    public Action<ItemInfo, EntityInfo> OnPickUp;
 
-    public Action<ItemInfo> OnDepleted;
+    bool isDestroyed;
 
     //3d World Trigger
     private void OnTriggerEnter(Collider other)
     {
-        if(other.GetComponent<EntityInfo>() && GMHelper.GameManager().playableEntities.Contains(other.GetComponent<EntityInfo>()))
+        HandlePickUp(other.gameObject);
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        HandlePickUp(collision.gameObject);
+    }
+
+    void HandlePickUp(GameObject other)
+    {
+        if (isUI) return;
+        if (blockLooting) return;
+        var entity = other.GetComponent<EntityInfo>();
+        if (entity == null) return;
+        if (!Entity.IsPlayer(entity.gameObject)) return;
+
+        var success = entity.LootItem(this, true);
+
+        if (success)
         {
-            if(other.GetComponent<EntityInfo>().Inventory())
-            {
-                if(other.GetComponent<EntityInfo>().Inventory().PickUpItem(this))
-                {
-                    Destroy(gameObject);
-                }
-            }
+            entityPickedUp = entity;
+            pickedUp = true;
+            DestroySelf();
         }
     }
 
-    
-    async public void OnPointerUp(PointerEventData eventData)
+    private void OnMouseEnter()
     {
-        ArchAction.Yield(() => ReturnToSlot());
+        HandleToolTip(true);
+    }
 
-        if (moduleHover == null && currentSlotHover == null)
+    private void OnMouseExit()
+    {
+        HandleToolTip(false);
+    }
+
+
+    void Start()
+    {
+        var dragAndDrop = GetComponent<DragAndDrop>();
+
+        if (dragAndDrop)
         {
-
-            var choice = await PromptHandler.active.GeneralPrompt(new()
-            { 
-                icon = item.itemIcon,
-                title = $"{item.itemName}",
-                question = $"Are you sure you want to destroy {item.itemName}", 
-                option1 = "Destroy", 
-                option2 = "Cancel", 
-            });
-
-            if (choice.optionString == "Destroy")
-            {
-                DestroySelf();
-            }
+            dragAndDrop.OnDragChange += (DragAndDrop drag, bool isDragging) => { OnDragChange?.Invoke(this, isDragging); };
         }
+
+        if (item)
+        {
+            ManifestItem(new() { item = item, amount = currentStacks }, true);
+        }
+
+    }
+
+    async public void ThrowRandomly()
+    {
+        if (isUI) return;
+
+        var rigidBody = GetComponent<Rigidbody>();
+        if (rigidBody == null) return;
+
+        thrown = true;
+
+        var groundLayer = LayerMasksData.active.walkableLayer;                                              //This part of the code is to make sure that the item isn't dropped in a weird area
+        var structureLayer = LayerMasksData.active.structureLayerMask;
+        var randomPosition = transform.position + V3Helper.RandomVector3(new(-5, 0, -5), new(5, 0, 5));
+        int tries = 10;
+        while (!V3Helper.IsValidPosition(randomPosition, transform.position, structureLayer, groundLayer))
+        {
+            randomPosition = transform.position + V3Helper.RandomVector3(new(-5, 0, -5), new(5, 0, 5));
+
+
+            Debugger.Environment(8549, $"Looking for good spot. Tries:  {tries}");
+            tries--;
+
+            if (tries <= 0) return;
+        }
+
+        transform.rotation = V3Helper.LerpLookAt(transform, randomPosition, 1);
+
+        rigidBody.AddForce(transform.up * UnityEngine.Random.Range(5f, 10f), ForceMode.Impulse);
+        rigidBody.AddForce(transform.forward * 5f, ForceMode.Impulse);
+
+        worldProperties.worldCollider.isTrigger = true;
+
+        float timer = 1f;
+        float colliderTimer = .25f;
+        bool colliderFinished = false;
+
+        while (timer > 0)
+        {
+            if (this == null) return;
+            timer -= Time.deltaTime;
+            rigidBody.AddForce(20 * Vector3.down, ForceMode.Acceleration);
+
+
+            if (colliderTimer > 0)
+            {
+                colliderTimer -= Time.deltaTime;
+            }
+            else if(!colliderFinished)
+            {
+                colliderFinished = true;
+                worldProperties.worldCollider.isTrigger = false;
+            }
+
+
+            await Task.Yield();
+        }
+    }
+
+    void OnValidate()
+    {
+        if (item == null) { return; }
+
+        UpdateItemInfo();
+    }
+
+    void HandleEvents()
+    {
+        if (item.effects == null) return;
+        if (!isUI) return;
+        OnDepleted += (ItemInfo item) => { item.fxHandler.HandleItemFX(item, ItemEvent.OnDeplete); };
+        OnUse += (ItemInfo item, UseData data) => { item.fxHandler.HandleItemFX(item, ItemEvent.OnUse); };
+        OnDestroy += (ItemInfo item) => { item.fxHandler.HandleItemFX(item, ItemEvent.OnDestroy); };
+        OnDragChange += (ItemInfo item, bool isDragging) => {
+            if (isDragging)
+            {
+                item.fxHandler.HandleItemFX(item, ItemEvent.OnDragStart);
+            }
+            else
+            {
+                item.fxHandler.HandleItemFX(item, ItemEvent.OnDragEnd);
+            }
+        };
+        OnEquipChange += (ItemInfo item, bool equip) => {
+            if (item.fxHandler == null) return;
+            if (equip) item.fxHandler.HandleItemFX(item, ItemEvent.OnEquip);
+            else item.fxHandler.HandleItemFX(item, ItemEvent.OnUnequip);
+        };
+    }
+    public void OnPointerUp(PointerEventData eventData)
+    {
+        ReturnToSlot();
+        if (moduleHover != null || currentSlotHover != null) return;
+
+        if (currentSlot && currentSlot.itemSlotHandler)
+        {
+            currentSlot.itemSlotHandler.NullHover(this);
+        }
+
+
+        //var gameState = GameManager.active.GameState;
+        //ArchAction.Yield(() => ReturnToSlot());
+
+        //HandleWorld();
+        //HandleLobby();
+
+        //void HandleWorld()
+        //{
+        //    if (gameState != GameState.Play) return;
+            
+        //}
+
+        //async void HandleLobby()
+        //{
+        //    if (gameState != GameState.Lobby) return;
+
+        //    await SafeDestroy();
+        //}
+
         
+        
+    }
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        if(isUI == false) { return; }
+
+        var module = GetComponentInParent<ModuleInfo>();
+        var vault = GetComponentInParent<GuildVault>();
+        var postDungeon = GetComponentInParent<PostDungeonManager>();
+        
+
+
+        if (module && module.itemBin)
+        {
+            transform.SetParent(module.itemBin);
+        }
+        else if(vault)
+        {
+            transform.SetParent(vault.transform);
+        }
+        else if(postDungeon)
+        {
+            transform.SetParent(postDungeon.foreground);
+        }
+
+
+        currentSlotHover = currentSlot;
+        moduleHover = module;
+
     }
 
     public void ManifestItem(ItemData data, bool cloned)
     {
+        if (manifested) return;
+        manifested = true;
+
         item = cloned ? Instantiate(data.item) : data.item;
         currentStacks = data.amount;
-        UpdateItemInfo();
-        isInInventory = true;
 
+        if (currentStacks <= 0) currentStacks = 1;
+        if (currentStacks > item.MaxStacks && item.MaxStacks != -1) currentStacks = item.MaxStacks;
+
+        name = item.itemName;
+
+        currentStacks = item.NewStacks(0, data.amount, out int leftover);
+        UpdateItemInfo();
+        //this.isInInventory = isInInventory;
+
+        HandleEvents();
+    }
+    public void UpdateItemInfo()
+    {
+        if(item == null) { return; }
+
+        //currentStacks = Mathf.Clamp(currentStacks, 1, maxStacks);
+
+        UpdateStackText();
+        UpdateItemIcon();
+
+        UpdateParticles();
+
+
+        OnUpdate?.Invoke(this);
+
+        if (currentSlot)
+        {
+            currentSlot.previousItemInfo = null; //Forces the slot to trigger an event
+        }
+
+        void UpdateParticles()
+        {
+            if (!worldProperties.enable) return;
+            if (!Application.isPlaying) return;
+
+            var rarityInfo = World.active.RarityProperty(item.rarity);
+
+            var color = rarityInfo.color;
+
+            foreach (var particle in GetComponentsInChildren<ParticleSystem>())
+            {
+                var main = particle.main;
+                main.startColor = color;
+            }
+
+
+            var room = Entity.Room(transform.position);
+            if (room)
+            {
+                transform.SetParent(room.Misc);
+            }
+        }
+
+        void UpdateItemIcon()
+        {
+            if(itemIcon == null) { return; }
+            if(item && item.itemIcon == null) { return; }
+
+            itemIcon.sprite = item.itemIcon;
+        }
+
+        void UpdateStackText()
+        {
+            if(amountText == null) { return; }
+
+            amountText.gameObject.SetActive(item.MaxStacks > 1 || item.MaxStacks == -1);
+            //if (maxStacks == 1)
+            //{ 
+            //    amountText.gameObject.SetActive(false);
+            //    return;
+            //}
+            
+            amountText.text = $"{ArchString.FloatToSimple(currentStacks, 0)}";
+        }
     }
 
-    public void ReturnToSlot()
+    public bool OpenToStack()
+    {
+        return item.ValidStacks(currentStacks + 1);
+    }
+
+    async public void DelayLooting(float seconds = 1f)
+    {
+        blockLooting = true;
+
+        await Task.Delay((int)(seconds * 1000));
+
+        blockLooting = false;
+    }
+
+    async public void ReturnToSlot(int iterations = 1)
     {
         if (currentSlot == null) return;
-        if (isInInventory == false) { return; }
+        if (isUI == false) { return; }
+        if (this == null) return;
 
-        transform.position = currentSlot.transform.position;
+        //transform.position = currentSlot.transform.position;
 
         if (currentSlot)
         {
             transform.SetParent(currentSlot.transform);
+            transform.localPosition = new(0, 0, 0);
+        }
+
+        var itemRect = GetComponent<RectTransform>();
+        var slotRect = currentSlot.GetComponent<RectTransform>();
+
+        for (int i = 0; i < iterations; i++)
+        {
+            //GetComponent<RectTransform>().sizeDelta = currentSlot.GetComponent<RectTransform>().sizeDelta;
+            transform.localScale = new(1, 1, 1);
+            itemRect.sizeDelta = slotRect.sizeDelta;
+
+            await Task.Yield();
         }
 
         
-
-        GetComponent<RectTransform>().sizeDelta = currentSlot.GetComponent<RectTransform>().sizeDelta;
-        transform.localScale = new(1, 1, 1);
 
 
         //if (currentSlot.GetComponentInParent<ModuleInfo>() && currentSlot.GetComponentInParent<ModuleInfo>().itemBin)
@@ -134,7 +425,7 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
             var gearSlot = (GearSlot)slot;
 
-            if (!gearSlot.CanEquip(item))
+            if (!gearSlot.CanInsert(this))
             {
                 return;
             }
@@ -153,88 +444,116 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
         void HandleInventorySlot()
         {
+            if (!slot.CanInsert(this)) return;
+
+            //if (slot.GetType() == typeof(GearSlot))
+            //{
+            //    var gearSlot = (GearSlot)slot;
+
+            //    if (gearSlot.CanEquip(this))
+            //    {
+            //        slot.currentItemInfo = this;
+            //        currentSlot = slot;
+            //        changedSlot = true;
+            //    }
+
+            //    return;
+            //}
+
             if (slot.GetType() == typeof(GearSlot))
             {
-                var gearSlot = (GearSlot)slot;
-
-                if (gearSlot.CanEquip(item))
-                {
-                    slot.currentItemInfo = this;
-                    currentSlot = slot;
-                    changedSlot = true;
-                }
-
-                return;
+                OnEquipChange?.Invoke(this, true);
             }
+
             slot.currentItemInfo = this;
             currentSlot = slot;
             
             changedSlot = true;
+            OnNewSlot?.Invoke(slot);
         }
 
         void HandlePreviousSlot(bool val)
         {
             if (!val) { return; }
             if(previousSlot == null) { return; }
+            if (previousSlot.currentItemInfo != this) return;
+
+            if (previousSlot.GetType() == typeof(GearSlot))
+            {
+                OnEquipChange?.Invoke(this, false);
+            }
 
             previousSlot.currentItemInfo = null;
         }
     }
     public void HandleItem(ItemInfo item)
     {
-        if (SameItem())
+        if (item == this) return;
+        var sameItem = item.item._id == this.item._id;
+
+        if (sameItem)
         {
+            var leftOver = item.IncreaseStacks(currentStacks);
+            SetStacks(leftOver);
 
         }
         else
         {
+            var otherSlot = item.currentSlot;
+            var currentSlot = this.currentSlot;
 
-        }
+            if (!otherSlot.CanInsert(this)) return;
+            if (!currentSlot.CanInsert(item)) return;
 
-        bool SameItem()
-        {
-            if (item.item._id != this.item._id) return false;
-            return true;
+            HandleNewSlot(otherSlot);
+            item.HandleNewSlot(currentSlot);
         }
     }
 
     public void OnDrop(PointerEventData eventData)
     {
+
         var dragging = eventData.pointerDrag;
         if (dragging == null) return;
         var itemInfo = dragging.GetComponent<ItemInfo>();
         if (itemInfo == null) return;
 
-        HandleItem(itemInfo);
+        itemInfo.HandleItem(this);
+       
     }
-
-    public void OnPointerDown(PointerEventData eventData)
+    public int IncreaseStacks(int amount = 1)
     {
-        if(isInInventory == false) { return; }
+        currentStacks = item.NewStacks(currentStacks, amount, out int leftover);
+        //if (currentStacks + amount > maxStacks)
+        //{
+        //    var leftOver = currentStacks + amount - maxStacks;
+        //    currentStacks = maxStacks;
 
-        var module = GetComponentInParent<ModuleInfo>();
+        //    return leftOver;
+        //}
 
-        var vault = GetComponentInParent<GuildVault>();
-
-        if (module && module.itemBin)
-        {
-            transform.SetParent(module.itemBin);
-        }
-
-        if (vault)
-        {
-            transform.SetParent(vault.transform);
-        }
-        currentSlotHover = currentSlot;
-        moduleHover = module;
-
-    }
-
-    void OnValidate()
-    {
-        if (item == null) { return; }
+        //currentStacks += amount;
 
         UpdateItemInfo();
+
+        return leftover;
+    }
+
+    public bool SetStacks(int amount)
+    {
+        if (!item.ValidStacks(amount)) return false;
+        //if (amount > maxStacks || amount < 0) return false;
+
+        currentStacks = amount;
+
+        if (currentStacks <= 0)
+        {
+            DestroySelf();
+        }
+
+        UpdateItemInfo();
+
+        return true;
     }
 
     public bool ReduceStacks(int amount = 1)
@@ -247,7 +566,7 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         {
             OnDepleted?.Invoke(this);
 
-            DestroySelf();
+            DestroySelf(true);
         }
 
         
@@ -256,14 +575,34 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         return true;
     }
 
-    public void DestroySelf()
+    public void DestroySelf(bool triggerDestroyEffect = false)
     {
+        if (isDestroyed) return;
         if (currentSlot)
         {
             currentSlot.currentItemInfo = null;
         }
 
-        ArchAction.Yield(() => { Destroy(gameObject); });
+        isDestroyed = true;
+
+        if (pickedUp)
+        {
+            OnPickUp?.Invoke(this, entityPickedUp);
+        }
+
+        if (triggerDestroyEffect)
+        {
+            OnDestroy?.Invoke(this);
+        }
+
+        ArchAction.Yield(() => {
+
+            if (toolTip)
+            {
+                toolTip.DestroySelf();
+            }
+            Destroy(gameObject); 
+        });
     }
 
     async public Task<bool> SafeDestroy()
@@ -279,69 +618,137 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
         if (userChoice.optionString == "Destroy")
         {
-            DestroySelf();
+            DestroySelf(true);
             return true;
         }
 
         return false;
     }
-
-    public void UpdateItemInfo()
+    async public Task<ItemInfo> HandleSplit()
     {
-        if(item == null) { return; }
+        var promptHandler = PromptHandler.active;
+        if (promptHandler == null) return null;
 
-        currentStacks = Mathf.Clamp(currentStacks, 1, maxStacks);
-
-        UpdateStackText();
-        UpdateItemIcon();
-
-        OnUpdate?.Invoke(this);
-
-        void UpdateItemIcon()
+        var userChoice = await promptHandler.SliderPrompt(new()
         {
-            if(itemIcon == null) { return; }
-            if(item && item.itemIcon == null) { return; }
+            title = $"Split {item.itemName}",
+            amountMin = 1,
+            amountMax = currentStacks - 1,
+            icon = item.itemIcon,
+            option1 = "Split",
+            option2 = "Cancel",
+        });
 
-            itemIcon.sprite = item.itemIcon;
-        }
+        if (userChoice.optionString != "Split") return null;
 
-        void UpdateStackText()
-        {
-            if(amountText == null) { return; }
-
-            amountText.gameObject.SetActive(maxStacks > 1);
-            //if (maxStacks == 1)
-            //{ 
-            //    amountText.gameObject.SetActive(false);
-            //    return;
-            //}
-            
-            amountText.text = $"{currentStacks}";
-        }
+        return SeperateItemStack(userChoice.amount);
     }
+    public bool SameItem(ItemInfo otherItem)
+    {
+        if (otherItem.item == null) return false;
 
+        if (otherItem.item._id != item._id) return false;
+
+        return true;
+    }
+    public ItemInfo SplitHalf()
+    {
+        return SeperateItemStack(currentStacks / 2);
+    }
+    ItemInfo SeperateItemStack(int amount = 1)
+    {
+        if (amount > currentStacks) return null;
+
+        var itemPrefab = World.active.prefabsUI.item;
+
+        if (itemPrefab == null) return null;
+
+        var newItem = Instantiate(itemPrefab).GetComponent<ItemInfo>();
+
+        ReduceStacks(amount);
+        newItem.ManifestItem(new() { item = item, amount = amount }, true);
+
+        return newItem;
+    }
     public void ActivateAction()
     {
         OnItemAction?.Invoke(this);
-    }
 
+        if (currentSlot && currentSlot.itemSlotHandler)
+        {
+            currentSlot.itemSlotHandler.ItemAction(this);
+        }
+    }
+    public void Use(UseData data)
+    {
+        item.Use(data);
+        OnUse?.Invoke(this, data);
+    }
     public void OnPointerEnter(PointerEventData eventData)
     {
-        var toolTipManager = ToolTipManager.active;
+        HandleToolTip(true);
+        
+    }
+    void HandleToolTip(bool active)
+    {
+        if (active)
+        {
+            var toolTipManager = ToolTipManager.active;
 
-        if (toolTipManager == null) return;
+            if (toolTipManager == null) return;
 
-        toolTip = toolTipManager.GeneralHeader();
+            toolTip = toolTipManager.GeneralHeader();
 
-        toolTip.adjustToMouse = true;
+            toolTip.adjustToMouse = true;
 
-        toolTip.SetToolTip(item.ToolTipData());
+            toolTip.SetToolTip(item.ToolTipData(currentStacks));
+        }
+        else
+        {
+            if (toolTip == null) return;
+            toolTip.DestroySelf();
+        }
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (toolTip == null) return;
+        HandleToolTip(false);
+    }
 
-        toolTip.DestroySelf();
+    public bool InsertIntoSlots(List<InventorySlot> slots)
+    {
+        var items = new List<ItemInfo>();
+        var availableSlots = new List<InventorySlot>();
+
+        foreach (var slot in slots)
+        {
+            if (slot.currentItemInfo == null)
+            {
+                if (slot.CanInsert(this))
+                {
+                    availableSlots.Add(slot);
+                }
+                continue;
+            }
+            var amount = slot.currentItemInfo.currentStacks;
+            if (!slot.currentItemInfo.item.ValidStacks(amount + 1)) continue;
+            if (!slot.currentItemInfo.SameItem(this)) continue;
+
+            items.Add(slot.currentItemInfo);
+        }
+
+        foreach (var item in items)
+        {
+            HandleItem(item);
+            if (currentStacks == 0) return true;
+        }
+
+
+        if (currentStacks == 0) return true;
+        if (availableSlots.Count == 0) return false;
+
+        HandleNewSlot(availableSlots[0]);
+
+        return true;
     }
 }

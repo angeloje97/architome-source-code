@@ -99,6 +99,7 @@ public class GearStatsUI : MonoBehaviour
 
     void OnSelectEntity(EntityInfo entity)
     {
+        if (entity == null) return;
         HandleOldEntity();
         entityInfo = entity;
         entityName.text = entity.entityName;
@@ -176,6 +177,7 @@ public class GearStatsUI : MonoBehaviour
             }
 
             statMaps.Add(field.Name, newSingle);
+            newSingle.OnMouseOver += OnStatSingleMouseOver;
         }
     }
         
@@ -223,6 +225,11 @@ public class GearStatsUI : MonoBehaviour
 
         }
 
+
+    }
+
+    public void OnStatSingleMouseOver(GearStatSingle single, bool isHovering)
+    {
 
     }
 }

@@ -55,13 +55,26 @@ namespace Architome
 
         public void HandleInput()
         {
-            if (Input.GetKeyDown(KeyCode.Mouse0) || Input.GetKeyDown(KeyCode.Mouse1))
+            var cancelKeys = new List<KeyCode>()
             {
-                if (currentHover == null)
-                {
-                    CancelOptions();
-                }
+                KeyCode.Mouse0,
+                KeyCode.Mouse1,
+                KeyCode.Escape
+            };
+
+            foreach (var key in cancelKeys)
+            {
+                if (!Input.GetKeyDown(key)) continue;
+                CancelOptions();
             }
+
+            //if (Input.GetKeyDown(KeyCode.Mouse0) || Input.GetKeyDown(KeyCode.Mouse1) || Input.GetKeyDown(KeyCode.Escape)))
+            //{
+            //    if (currentHover == null)
+            //    {
+            //        CancelOptions();
+            //    }
+            //}
         }
 
         void OnActiveChange(bool isActive)
@@ -74,8 +87,10 @@ namespace Architome
 
         void CancelOptions()
         {
-            isChoosing = false;
-            pickedOption = -1;
+            ArchAction.Yield(() => {
+                isChoosing = false;
+                pickedOption = -1;
+            });
         }
 
         public void PickOption(int option)

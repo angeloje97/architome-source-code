@@ -109,6 +109,8 @@ namespace Architome
 
                 character.LoadValues();
             }
+
+
             void LoadEquipment()
             {
                 var equipmentSlots = characterInfo.GetComponentsInChildren<EquipmentSlot>();
@@ -118,43 +120,77 @@ namespace Architome
                     return;
                 }
 
-                var slotMap = data.equipment.slots.ToDictionary(x => x.slotType, x => x);
-
+                var itemDatas = data.equipment.ItemDatas(_maps);
 
                 var lastSlot = equipmentSlots[0];
 
-                foreach (var slot in equipmentSlots)
+                for (int i = 0; i < itemDatas.Count; i++)
                 {
-                    slot.equipment = null;
+                    if (itemDatas[i].item == null) continue;
+                    equipmentSlots[i].equipment = (Equipment)itemDatas[i].item;
 
-                    if (!slotMap.ContainsKey(slot.equipmentSlotType)) continue;
-
-                    var equipmentData = slotMap[slot.equipmentSlotType];
-
-                    var item = _maps.items[equipmentData.itemId];
-
-                    if (!Item.Equipable(item)) continue;
-
-                    slot.equipment = (Equipment)item;
-
-                    lastSlot = slot;
-
-                    //foreach (var equipmentData in data.equipment.slots)
-                    //{
-                    //    if (equipmentData.slotType != slot.equipmentSlotType) continue;
-                    //    var item = _maps.items[equipmentData.itemId];
-
-                    //    if (!Item.Equipable(item)) break;
-                    //    slot.equipment = (Equipment) item;
-
-                    //    lastSlot = slot;
-                    //    break;
-
-                    //}
+                    lastSlot = equipmentSlots[i];
                 }
 
-
                 lastSlot.OnLoadEquipment?.Invoke(lastSlot.equipment);
+
+                //foreach (var itemData in itemDatas)
+                //{
+                //    var equipment = (Equipment)itemData.item;
+
+                //    var lastSlot = itemDatas.IndexOf(itemData) == itemDatas.Count - 1;
+
+                //    foreach (var slot in equipmentSlots)
+                //    {
+                //        if (equipment.equipmentSlotType != slot.equipmentSlotType) continue;
+
+                //        slot.equipment = equipment;
+
+                //        if (lastSlot)
+                //        {
+                //            slot.OnLoadEquipment?.Invoke(equipment);
+                //        }
+                //    }
+
+                //}
+
+                //var slotMap = data.equipment.slots.ToDictionary(x => x.slotType, x => x);
+
+
+                //var lastSlot = equipmentSlots[0];
+
+                //foreach (var slot in equipmentSlots)
+                //{
+                //    slot.equipment = null;
+
+                //    if (!slotMap.ContainsKey(slot.equipmentSlotType)) continue;
+
+                //    var equipmentData = slotMap[slot.equipmentSlotType];
+
+                //    var item = _maps.items[equipmentData.itemId];
+
+                //    if (!Item.Equipable(item)) continue;
+
+                //    slot.equipment = (Equipment)item;
+
+                //    lastSlot = slot;
+
+                //    //foreach (var equipmentData in data.equipment.slots)
+                //    //{
+                //    //    if (equipmentData.slotType != slot.equipmentSlotType) continue;
+                //    //    var item = _maps.items[equipmentData.itemId];
+
+                //    //    if (!Item.Equipable(item)) break;
+                //    //    slot.equipment = (Equipment) item;
+
+                //    //    lastSlot = slot;
+                //    //    break;
+
+                //    //}
+                //}
+
+
+                //lastSlot.OnLoadEquipment?.Invoke(lastSlot.equipment);
 
             }
             void LoadInventory()

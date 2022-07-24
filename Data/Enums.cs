@@ -113,6 +113,19 @@ namespace Architome.Enums
         OnAttack,
     }
 
+    public enum ItemEvent
+    {
+        OnDragStart,
+        OnDragEnd,
+        OnEquip,
+        OnUnequip,
+        OnUse,
+        OnDestroy,
+        OnDeplete,
+        OnPickUp,
+        OnDrop
+    }
+
     public enum BuffEvents
     {
         OnStart,
@@ -333,10 +346,10 @@ namespace Architome.Enums
         Common = 1,
         Uncommon = 2,
         Rare = 3,
-        Epic = 4,
-        Legendary = 5,
-        Artifact = 6,
-        Heirloom = 7,
+        Epic = 6,
+        Legendary = 8,
+        Artifact = 10,
+        Heirloom = 5,
     }
 
     public enum ProjectileType
@@ -395,6 +408,7 @@ namespace Architome.Enums
         Consumable,
         QuestItem,
         Catalyst,
+        Currency,
         Misc
     }
 
@@ -456,6 +470,7 @@ namespace Architome.Enums
         Mail = 3,
         Leather = 2,
         Cloth = 1,
+        Gem = 0
     }
 
     public enum DamageType

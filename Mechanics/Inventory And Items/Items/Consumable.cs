@@ -31,6 +31,10 @@ namespace Architome
             }
         }
 
+        public override string SubHeadline()
+        {
+            return "Consumable";
+        }
         public override string Attributes()
         {
             var result = "";

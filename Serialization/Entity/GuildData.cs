@@ -9,31 +9,22 @@ namespace Architome
     public class GuildData
     {
         public EntityData.InventoryData inventory;
-        public int level, gold;
+        public EntityData.InventoryData currencies;
+        public int level;
 
         public GuildData(GuildManager guildManager)
         {
             var guildInfo = guildManager.guildInfo;
-            SaveItems(guildInfo.vault);
+            inventory = new(guildInfo.vault);
+            currencies = new(guildInfo.currencies);
             level = guildInfo.level;
-            gold = guildInfo.gold;
-        }
-        
-        public void SaveItems(List<ItemData> items)
-        {
-            inventory = new(items);
-        }
-
-        public void AddGold(int amount)
-        {
-            gold += amount;
         }
 
         public void LoadData(GuildManager.GuildInfo info)
         {
             info.level = level;
-            info.gold = gold;
             info.vault = VaultInvetory();
+            info.currencies = VaultCurrencies();
         }
 
         public List<ItemData> VaultInvetory()
@@ -42,6 +33,13 @@ namespace Architome
 
 
             return inventory.ItemDatas(database);
+        }
+
+        public List<ItemData> VaultCurrencies()
+        {
+            var database = DataMap.active._maps;
+
+            return currencies.ItemDatas(database);
         }
     }
 }

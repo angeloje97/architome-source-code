@@ -421,6 +421,7 @@ namespace Architome
         {
             var catalystPrefab = CatalystManager.active.CatalystAudioManager();
 
+
             if (catalystPrefab)
             {
                 catalystPrefab.GetComponent<CatalystAudio>().Activate(this);

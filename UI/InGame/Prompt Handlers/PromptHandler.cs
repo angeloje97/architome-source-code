@@ -19,6 +19,7 @@ namespace Architome
             public GameObject generalPrompt;
             public GameObject inputPrompt;
             public GameObject messagePrompt;
+            public GameObject sliderPrompt;
         }
 
         public Prefabs prefabs;
@@ -76,6 +77,24 @@ namespace Architome
             var prompt = ActivatePrompt(prefabs.allDeathPrompt, new Vector3(0, 270, 0));
         }
 
+        async Task<PromptChoiceData> UserChoice(PromptInfo prompt)
+        {
+            prompt.choicePicked = -1;
+            var waiting = true;
+
+            prompt.OnPickChoice += (PromptInfo info) => { waiting = false; };
+
+            while (waiting)
+            {
+                await Task.Yield();
+
+                if (!prompt) break;
+                if (!prompt.isActive) break;
+            }
+            
+            return prompt.choiceData;
+        }
+
         async public Task<PromptChoiceData> GeneralPrompt(PromptInfoData promptData)
         {
             Debugger.InConsole(3498, $"Opening general prompt");
@@ -88,20 +107,53 @@ namespace Architome
 
             prompt.SetPrompt(promptData);
 
-            prompt.choicePicked = -1;
 
-            var waiting = true;
+            return await UserChoice(prompt);
+            //prompt.choicePicked = -1;
 
-            prompt.OnPickChoice += (PromptInfo info) => { waiting = false; };
+            //var waiting = true;
 
-            while (waiting)
+            //prompt.OnPickChoice += (PromptInfo info) => { waiting = false; };
+
+            //while (waiting)
+            //{
+            //    await Task.Yield();
+
+            //    if (!prompt.isActive) break;
+            //    if (!prompt) break;
+            //}
+
+            //return prompt.choiceData;
+        }
+
+        async public Task<PromptChoiceData> SliderPrompt(PromptInfoData promptData)
+        {
+            if (!prefabs.sliderPrompt)
             {
-                await Task.Yield();
-
-                if (!prompt.isActive) break;
+                return PromptChoiceData.defaultPrompt;
             }
 
-            return prompt.choiceData;
+            var prompt = ActivatePrompt(prefabs.sliderPrompt, new Vector3(0, 270, 0));
+
+            prompt.sliderInfo.enable = true;
+
+            prompt.SetPrompt(promptData);
+
+            return await UserChoice(prompt);
+
+            //var waiting = true;
+
+            //prompt.OnPickChoice += (PromptInfo info) => { waiting = false; };
+
+            //while (waiting)
+            //{
+            //    await Task.Yield();
+
+            //    if (!prompt) break;
+            //    if (!prompt.isActive) break;
+            //}
+
+            //return prompt.choiceData;
         }
 
         async public Task<(int, string)> InputPrompt(PromptInfoData promptData)

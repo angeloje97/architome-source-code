@@ -40,6 +40,7 @@ namespace Architome
         public int frequency = 1;
         public bool badSpawn;
         public Transform roomCenter;
+        public Transform misc;
         public PathInfo originPath;
         public MapInfo mapInfo;
         public Transform prefab;
@@ -47,6 +48,8 @@ namespace Architome
         [Header("Path Properties")]
         public List<PathInfo> paths;
         public List<PathInfo> incompatablePaths;
+
+        //Fields that only the PathInfo class should be using
         //public Transform bin;
 
         [Serializable]
@@ -155,6 +158,19 @@ namespace Architome
         //Private properties
         private float percentReveal;
 
+        private void Awake()
+        {
+            GetDependencies();
+        }
+        async void Start()
+        {
+            var badSpawn = await CheckBadSpawn();
+            entities.room = this;
+        }
+        void Update()
+        {
+
+        }
         public float PercentReveal { get { return percentReveal; } set { percentReveal = value; } }
 
         protected virtual void GetDependencies()
@@ -274,15 +290,23 @@ namespace Architome
             return true;
         }
 
-        private void Awake()
+
+        public Transform Misc
         {
-            GetDependencies();
+            get
+            {
+                if (misc == null)
+                {
+                    var newObject = new GameObject("Misc");
+                    misc = newObject.transform;
+
+                    misc.transform.SetParent(transform);
+                }
+
+                return misc;
+            }
         }
-        async void Start()
-        {
-            var badSpawn = await CheckBadSpawn();
-            entities.room = this;
-        }
+
 
         public virtual async Task<bool> CheckBadSpawn()
         {
@@ -296,19 +320,28 @@ namespace Architome
 
             await Task.Yield();
 
-            if (!CheckRoomCollision())
+            if (!CheckAll())
             {
                 badSpawn = true;
             }
-            else if (!CheckRoomAbove())
-            {
-                badSpawn = true;
-            }
+
+            //if (!CheckRoomCollision())
+            //{
+            //    badSpawn = true;
+            //}
+            //else if (!CheckRoomAbove())
+            //{
+            //    badSpawn = true;
+            //}
             
 
             if (badSpawn)
             {
-                incompatablePaths.Add(originPath);
+                if (!incompatablePaths.Contains(originPath))
+                {
+                    incompatablePaths.Add(originPath);
+                }
+                //incompatablePaths.Add(originPath);
                 return true;
             }
 
@@ -347,11 +380,54 @@ namespace Architome
             
         }
 
-        // Update is called once per frame
-        void Update()
-        {
 
+        bool CheckAll()
+        {
+            if (roomCenter == null) return true;
+            if (isEntranceRoom) return true;
+            var groundLayer = LayerMasksData.active.walkableLayer;
+            foreach (Transform probe in roomCenter)
+            {
+                foreach (Transform child in allObjects)
+                {
+                    var direction1 = V3Helper.Direction(child.position, probe.position);
+                    var distance1 = V3Helper.Distance(child.position, probe.position);
+
+                    Ray ray1 = new Ray(probe.position, direction1);
+
+                    if (Physics.Raycast(ray1, out RaycastHit hit1, distance1))
+                    {
+                        if (allObjects.Contains(hit1.transform)) continue;
+                        return false;
+                    }
+                }
+
+                var direction2 = Vector3.up;
+                var distance2 = 35f;
+
+                Ray ray2 = new Ray(probe.position, direction2);
+
+                if (Physics.Raycast(ray2, out RaycastHit hit2, distance2))
+                {
+                    if (!allObjects.Contains(hit2.transform)) return false;
+                }
+
+                var direction3 = Vector3.up;
+                var groundPosition = V3Helper.GroundPosition(probe.position, groundLayer, 0, -1);
+                var distance3 = 20f;
+
+                var ray3 = new Ray(groundPosition, direction3);
+
+                if (Physics.Raycast(ray3, out RaycastHit hit3, distance3))
+                {
+                    if (!allObjects.Contains(hit3.transform)) return false;
+                }
+
+            }
+
+            return true;
         }
+        // Update is called once per frame
         bool CheckRoomCollision()
         {
             if (roomCenter == null) { return true; }
@@ -399,6 +475,7 @@ namespace Architome
             return true;
 
         }
+
 
         
 

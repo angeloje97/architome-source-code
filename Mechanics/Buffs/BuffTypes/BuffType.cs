@@ -47,7 +47,7 @@ namespace Architome
         public virtual string FaceDescription(float theoreticalValue)
         {
             buffInfo = GetComponent<BuffInfo>();
-            value = theoreticalValue * valueContributionToBuffType;
+            value = theoreticalValue * valueContributionToBuffType * buffInfo.properties.valueContributionToBuff;
             var selfCastValue = theoreticalValue * selfCastMultiplier;
             var description = Description();
             if (selfCastValue != value)

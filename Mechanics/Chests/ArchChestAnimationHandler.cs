@@ -17,6 +17,8 @@ namespace Architome
             public Animator animator;
         }
 
+        [SerializeField] bool stopEffectsOnOpen;
+
         public Info info;
 
         void GetDependencies()
@@ -42,8 +44,17 @@ namespace Architome
         public void OnOpen(ArchChest chest)
         {
             info.animator.SetBool("IsOpen", true);
+            HandleStopEffects();
         }
 
+        void HandleStopEffects()
+        {
+            if (!stopEffectsOnOpen) return;
+            foreach (var particle in info.archChest.GetComponentsInChildren<ParticleSystem>())
+            {
+                particle.Stop(true);
+            }
+        }
 
         public void OnClose(ArchChest chest)
         {

@@ -169,6 +169,35 @@ namespace Architome
             entityInfo.isAlive = false;
         }
 
+        public ItemInfo DropItem(ItemData data, Vector3 position, bool instantlyLootable = true, bool reveal = false)
+        {
+            var worldItem = World.active.prefabsUI.worldItem;
+
+            if (worldItem == null) return null;
+
+            var newItem = Instantiate(worldItem, position, new()).GetComponent<ItemInfo>();
+
+            newItem.ManifestItem(data, true);
+
+            if (!instantlyLootable)
+            {
+                newItem.DelayLooting(2f);
+            }
+
+            if (reveal)
+            {
+                var fx = newItem.GetComponent<ItemFXHandler>();
+                if (fx != null)
+                {
+                    fx.Reveal();
+                }
+            }
+
+            newItem.ThrowRandomly();
+
+            return newItem;
+        }
+
         public void ReviveAtSpawnBeacon(GameObject entity)
         {
             var entityInfo = entity.GetComponent<EntityInfo>();

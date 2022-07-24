@@ -37,8 +37,9 @@ namespace Architome
             HandleEvents();
         }
 
-        public bool CanEquip(Item item)
+        public override bool CanInsert(ItemInfo info)
         {
+            var item = info.item;
             if (!Item.Equipable(item))
             {
                 manager.IncorrectEquipmentType(this, "Not an equipable item.");

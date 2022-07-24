@@ -42,10 +42,21 @@ namespace Architome
         {
             active = this;
         }
+        
+        bool ContextMenuActive()
+        {
+            var contextMenu = ContextMenu.current;
+            if (contextMenu == null) return false;
+            if (!contextMenu.isChoosing) return false;
+
+            return true;
+        }
 
         public void PauseMenuBack()
         {
             pauseBlocked = false;
+
+            if (ContextMenuActive()) return;
 
             OnTryOpenPause?.Invoke(this);
 

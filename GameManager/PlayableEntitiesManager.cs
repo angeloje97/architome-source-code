@@ -242,6 +242,29 @@ namespace Architome
                 Core.currentSave.SaveEntity(entity);
             }
         }
+
+        public List<InventorySlot> AvailableInventorySlots()
+        {
+            var slots = new List<InventorySlot>();
+
+            var manager = GameManager.active;
+
+            foreach (var entity in manager.playableEntities)
+            {
+                var inventory = entity.GetComponentInChildren<Inventory>();
+
+                if (inventory == null) continue;
+                if (inventory.entityInventoryUI == null) continue;
+
+                foreach (var slot in inventory.entityInventoryUI.inventorySlots)
+                {
+                    if (slot.currentItemInfo != null) continue;
+                    slots.Add(slot);
+                }
+
+            }
+            return slots;
+        }
         
     }
 }

@@ -13,6 +13,13 @@ namespace Architome
     [RequireComponent(typeof(WorkInfo))]
     public class ArchChest : MonoBehaviour
     {
+        public enum InteractionType
+        {
+            DropItems,
+            ShowModule,
+        }
+
+        public InteractionType interactionType;
 
         [Serializable]
         public struct Info
@@ -25,6 +32,7 @@ namespace Architome
             public int maxChestSlots;
             public List<ItemData> items;
             public bool useItemPool;
+            public bool createItemPools; // OnValidateField
             public ItemPool itemPool;
 
             [Header("Interactions")]
@@ -82,13 +90,38 @@ namespace Architome
             CreateItemsFromItemPool();
         }
 
+        private void OnValidate()
+        {
+
+            if (!info.createItemPools) return; info.createItemPools = false;
+            if (info.itemPool == null) return;
+            info.items = info.itemPool.ItemsFromRarity(info.maxChestSlots, info.rarity);
+        }
+
         void CreateItemsFromItemPool()
         {
             if (!info.useItemPool) return;
             if (info.itemPool == null) return;
 
-            info.items = info.itemPool.CreatePossibleItems(info.maxChestSlots);
+            info.items = info.itemPool.ItemsFromRarity(info.maxChestSlots, info.rarity);
 
+            var world = World.active;
+
+            foreach (var itemData in info.items)
+            {
+                if (itemData.item == null) continue;
+                if (!Item.Equipable(itemData.item)) continue;
+
+                var equipment = (Equipment)itemData.item;
+
+                var rarityProperty = world.RarityRoll(info.rarity);
+
+                var itemLevel = (int) (info.level * rarityProperty.valueMultiplier);
+
+                if (itemLevel <= 0) itemLevel = 1;
+
+                equipment.SetPower(info.level, itemLevel, rarityProperty.name);
+            }
         }
         public void Open()
         {
@@ -100,10 +133,33 @@ namespace Architome
 
             events.OnOpen?.Invoke(this);
             isOpen = true;
-            //WorldModuleCore.active.HandleChest(this);
             OnOpen?.Invoke();
-            ChestRoutine();
 
+            
+            if (interactionType == InteractionType.ShowModule)
+            {
+
+                ChestRoutine();
+            }
+            else
+            {
+                DropItems();
+            }
+
+            //WorldModuleCore.active.HandleChest(this);
+
+        }
+
+        async void DropItems()
+        {
+            var world = WorldActions.active;
+            if (world == null) return;
+            foreach (var item in info.items)
+            {
+                world.DropItem(item, transform.position, false, true);
+
+                await Task.Delay(333);
+            }
         }
 
         

@@ -21,7 +21,18 @@ namespace Architome
         public float baseMovementSpeed;
         public float baseWalkSpeed;
 
-        
+        [Serializable]
+        public class UIPrefabs
+        {
+            public GameObject item;
+            public GameObject worldItem;
+            public GameObject ability;
+            public GameObject entitySelector;
+            public GameObject entityIcon;
+            public GameObject inventorySlot;
+        }
+
+        public UIPrefabs prefabsUI;
 
         [Serializable]
         public class RarityProperties
@@ -29,6 +40,11 @@ namespace Architome
             public Rarity name;
             public Color color;
             public float valueMultiplier;
+            [Range(0, 100)]
+            public float rarityChance;
+
+            public AudioClip revealAudio;
+            public AudioClip lingerSound;
         }
         public List<RarityProperties> rarities;
         [Serializable]
@@ -38,6 +54,17 @@ namespace Architome
             public Color color;
         }
 
+        [Serializable]
+        public class EntityRarityProperties
+        {
+            public EntityRarity rarity;
+            public Color color;
+            public int stars;
+            public float valueMultiplier;
+            [Range(0f, 100f)]
+            public float chance;
+        }
+        public List<EntityRarityProperties> entityProperties;
         public List<NPCProperty> npcProperties;
 
         public SpawnerInfo currentSpawnBeacon { get; private set; }
@@ -152,6 +179,52 @@ namespace Architome
 
                 return false;
             }
+        }
+
+        public RarityProperties RarityRoll(float chanceMultiplier = 1f)
+        {
+            var rarity = RarityProperty(Rarity.Poor);
+
+            foreach (var prop in rarities)
+            {
+                if (prop.rarityChance == 0) continue;
+                var roll = UnityEngine.Random.Range(0f, 100f);
+                if (roll > prop.rarityChance*chanceMultiplier) continue;
+
+                rarity = prop;
+            }
+
+            return rarity;
+        }
+
+        public RarityProperties RarityRoll(EntityRarity entityRarity)
+        {
+            var entityProperty = EntityRarityProperty(entityRarity);
+
+            var rarity = RarityRoll(entityProperty.valueMultiplier);
+
+            return rarity;
+        }
+
+        public RarityProperties RarityRoll(Rarity rarity)
+        {
+            var rarityProperty = RarityProperty(rarity);
+
+            var newRarity = RarityRoll(rarityProperty.valueMultiplier);
+
+            return newRarity;
+        }
+
+        public EntityRarityProperties EntityRarityProperty(EntityRarity rarity)
+        {
+            foreach (var entityRarity in entityProperties)
+            {
+                if (entityRarity.rarity != rarity) continue;
+
+                return entityRarity;
+            }
+
+            return null;
         }
 
         public RarityProperties RarityProperty(Rarity rarity)

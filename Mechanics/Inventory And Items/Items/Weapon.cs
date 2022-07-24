@@ -9,8 +9,21 @@ namespace Architome
     [CreateAssetMenu(fileName = "New Weapon", menuName = "Weapon")]
     public class Weapon : Equipment
     {
-        // Start is called before the first frame update
-        [Header("Weapon Info")]
+
+        public static List<WeaponType> TwoHanders
+        {
+            get
+            {
+                return new()
+                {
+                    WeaponType.Rifle,
+                    WeaponType.Staff,
+                    WeaponType.TwoHanded,
+                    WeaponType.Crossbow,
+                    WeaponType.Bow
+                };
+            }
+        }
         public WeaponType weaponType;
         public BodyPart sheathPart;
         public BodyPart drawPart;

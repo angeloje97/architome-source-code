@@ -8,13 +8,16 @@ namespace Architome
 {
 
     [RequireComponent(typeof(CanvasGroup))]
+    [RequireComponent(typeof(ItemFXHandler))]
     public class ItemSlotHandler : MonoBehaviour
     {
         // Start is called before the first frame update
         public CanvasGroup canvasGroup;
-        public Action<ItemEventData> OnChangeItem { get; set; }
+        public event Action<ItemEventData> OnChangeItem;
+        public ItemFXHandler fxHandler;
         public Action<bool> OnActiveChange;
-
+        public Action<ItemInfo> OnItemAction;
+        public Action<ItemInfo> OnNullHover;
         public Action UpdateActions;
 
         public bool active;
@@ -27,6 +30,15 @@ namespace Architome
         {
             GetDependencies();
             HandleNullModule();
+        }
+        void GetDependencies()
+        {
+            if (canvasGroup == null)
+            {
+                canvasGroup = GetComponent<CanvasGroup>();
+            }
+
+            fxHandler = GetComponent<ItemFXHandler>();
         }
 
         async void HandleNullModule()
@@ -61,16 +73,29 @@ namespace Architome
             }
         }
 
-        void GetDependencies()
+        public void ItemAction(ItemInfo item)
         {
-            if (canvasGroup == null)
-            {
-                canvasGroup = GetComponent<CanvasGroup>();
-            }
+            OnItemAction?.Invoke(item);
         }
+
+        public void NullHover(ItemInfo item)
+        {
+            OnNullHover?.Invoke(item);
+        }
+
         public bool SlotHandlerActive()
         {
             return canvasGroup.interactable;
+        }
+
+        public void HandleChangeItem(ItemEventData eventData)
+        {
+            if (eventData.newItem)
+            {
+                eventData.newItem.fxHandler = fxHandler;
+            }
+
+            OnChangeItem?.Invoke(eventData);
         }
         
     }

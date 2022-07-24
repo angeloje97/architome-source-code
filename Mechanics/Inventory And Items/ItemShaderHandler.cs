@@ -64,8 +64,8 @@ namespace Architome
 
         public void SetBorderRarityColor()
         {
-            var color = World.active.rarities.Find(rarity => rarity.name == info.itemInfo.item.rarity).color;
-            info.borderImage.color = color;
+            //var color = World.active.rarities.Find(rarity => rarity.name == info.itemInfo.item.rarity).color;
+            //info.borderImage.color = color;
         }
     }
 

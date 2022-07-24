@@ -115,6 +115,12 @@ namespace Architome
 
         bool SetExtra()
         {
+            var contextMenu = ContextMenu.current;
+            if (contextMenu.isChoosing)
+            {
+                return true;
+            }
+
             foreach (var extra in extraModules)
             {
                 if (extra == null) continue;

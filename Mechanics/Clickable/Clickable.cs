@@ -57,7 +57,7 @@ namespace Architome
                     }
                     else
                     {
-                        if (ClickableManager.active.currentClickableHover != null)
+                        if (ClickableManager.active.currentClickableHover == gameObject)
                         {
                             ClickableManager.active.currentClickableHover = null;
                         }

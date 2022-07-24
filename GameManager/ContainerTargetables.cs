@@ -48,7 +48,6 @@ namespace Architome
 
             input = ArchInput.active;
         }
-
         void Start()
         {
             hoverTargets = new List<GameObject>();

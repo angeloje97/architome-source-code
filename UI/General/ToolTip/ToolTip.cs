@@ -24,19 +24,31 @@ namespace Architome
             public CanvasGroup canvasGroup;
         }
 
+        public HashSet<string> rarityEffects
+        {
+            get
+            {
+                return new()
+                {
+                    "name",
+                    "type",
+                };
+            }
+        }
+
         [Serializable]
         public struct RarityInfo
         {
-            public Rarity rarity;
-            public Color backGroundColor, headerColor;
             public Sprite iconBackground;
+            public List<Image> rarityImageTarget;
+            public List<TextMeshProUGUI> textTargets;
         }
 
         public bool adjustToMouse;
         public bool adjustToSide;
         
         public Components components;
-        public List<RarityInfo> rarityInfos;
+        public RarityInfo rarityInfo;
 
         [Header("Adjustments")]
         public float widthOffset;
@@ -147,6 +159,7 @@ namespace Architome
 
             HandleNullTexts();
             HandleRarity();
+            HandleEntityRarity();
 
             void HandleRarity()
             {
@@ -155,8 +168,28 @@ namespace Architome
                 if (world == null) return;
 
                 var rarityProperties = world.RarityProperty(data.rarity);
+                var color = rarityProperties.color;
 
+                color.a = .65f;
                 components.type.color = rarityProperties.color;
+
+
+                foreach (var image in rarityInfo.rarityImageTarget)
+                {
+                    image.color = color;
+
+                }
+
+                foreach (var tmpro in rarityInfo.textTargets)
+                {
+                    tmpro.color = color;
+                }
+            }
+
+            void HandleEntityRarity()
+            {
+                if (!data.enableEntityRarity) return;
+                var world = World.active;
             }
         }
 
@@ -242,7 +275,9 @@ namespace Architome
         public string name, subeHeadline, type, description, attributes, requirements, value;
         public Sprite icon;
         public bool enableRarity;
+        public bool enableEntityRarity;
         public Rarity rarity;
+        public EntityRarity entityRarity;
         
     }
 }

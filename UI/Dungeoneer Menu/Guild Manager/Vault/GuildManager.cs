@@ -15,9 +15,10 @@ namespace Architome
         public class GuildInfo
         {
             public int maxSlots = 20;
+            public List<ItemData> currencies;
             public List<ItemData> vault = new(20);
+
             public int level = 1;
-            public int gold = 500;
         }
 
 
@@ -50,11 +51,13 @@ namespace Architome
         [Header("Modules")]
         public GuildVault guildVault;
         public ModuleInfo equipmentModule;
+
+        [SerializeField] bool updateVault;
         
 
         public Dictionary<EntityInfo, EntitySlot> slotMap;
         public Action<EntityInfo> OnSelectEntity;
-        public Action<int> OnChangeGold;
+        public Action<List<ItemData>> OnCurrenciesChange;
 
         private void Awake()
         {
@@ -69,6 +72,28 @@ namespace Architome
         private void Start()
         {
             InitiateModules();
+        }
+
+        private void OnValidate()
+        {
+            HandleUpdateVault();
+
+            void HandleUpdateVault()
+            {
+                if (!updateVault) return;
+                updateVault = false;
+
+                for (int i = 0; i < guildInfo.currencies.Count; i++)
+                {
+                    var currency = guildInfo.currencies[i];
+                    if (currency == null) continue;
+                    if (currency.item.IsCurrency()) continue;
+
+                    guildInfo.currencies.RemoveAt(i);
+                    i--;
+
+                }
+            }
         }
 
         void GetDependencies()
@@ -105,7 +130,6 @@ namespace Architome
         {
             guildVault.InitializeModule();
         }
-
         void LoadGuildData()
         {
             var currentSave = Core.currentSave;
@@ -165,27 +189,70 @@ namespace Architome
 
 
         }
-        public bool SpendGold(int amount)
+
+        public void GainCurrency(Currency currency, int amount)
         {
-            if (guildInfo.gold < amount) return false;
+            if (guildInfo.currencies == null) guildInfo.currencies = new();
 
-            guildInfo.gold -= amount;
+            HandleCurrency();
+            OnCurrenciesChange?.Invoke(guildInfo.currencies);
 
-            OnChangeGold?.Invoke(guildInfo.gold);
+            void HandleCurrency()
+            {
+                foreach (var guildCurrency in guildInfo.currencies)
+                {
+                    var isEqual = guildCurrency.item.Equals(currency);
 
-            return true;
+                    Debugger.UI(5349, $"{currency.itemName} == {guildCurrency.item.itemName} : {isEqual}");
+
+                    if (!isEqual) continue;
+                    guildCurrency.amount += amount;
+                    return;
+                }
+
+                guildInfo.currencies.Add(new() { item = currency, amount = amount });
+
+            }
+
         }
 
-        public bool GainGold(int amount)
+        public bool SpendCurrency(Currency currency, int amount)
         {
+            if (guildInfo.currencies == null) guildInfo.currencies = new();
+            var success = HandleCurrency();
 
-            guildInfo.gold += amount;
+            OnCurrenciesChange?.Invoke(guildInfo.currencies);
 
-            OnChangeGold?.Invoke(guildInfo.gold);
+            return success;
 
-            return true;
+            bool HandleCurrency()
+            {
+                foreach (var guildCurrency in guildInfo.currencies)
+                {
+                    if (!guildCurrency.item.Equals(currency)) continue;
+                    if (guildCurrency.amount < amount) continue;
+
+
+                    guildCurrency.amount -= amount;
+                    return true;
+                }
+
+                return false;
+
+            }
         }
+        public bool HasCurrency(Currency currency, int amount)
+        {
+            foreach (var guildCurrency in guildInfo.currencies)
+            {
+                if (!guildCurrency.item.Equals(currency)) continue;
+                if (guildCurrency.amount < amount) continue;
 
+                return true;
+            }
+
+            return false;
+        }
         void BeforeLoadScene(ArchSceneManager sceneManager)
         {
             SaveEntities();

@@ -438,7 +438,6 @@ public class AbilityInfo : MonoBehaviour
 
         return description;
     }
-
     public string PropertiesDescription()
     {
         string properties = "";
@@ -569,7 +568,6 @@ public class AbilityInfo : MonoBehaviour
 
         return properties;
     }
-
     public string ResourceDescription()
     {
         string resourceDescription = "";
@@ -633,7 +631,6 @@ public class AbilityInfo : MonoBehaviour
 
         return resourceDescription;
     }
-
     public string RestrictionDescription()
     {
         var properties = "";
@@ -668,7 +665,6 @@ public class AbilityInfo : MonoBehaviour
 
         }
     }
-
     public string BuffList()
     {
         var buffDescription = "";
@@ -746,7 +742,6 @@ public class AbilityInfo : MonoBehaviour
 
         return buffDescription;
     }
-
     public string BuffDescriptions()
     {
         var buffDescription = "";
@@ -782,7 +777,6 @@ public class AbilityInfo : MonoBehaviour
 
         return buffDescription;
     }
-
     public ToolTipData ToolTipData(bool showResources = true)
     {
         var propertiesDescription = PropertiesDescription();
@@ -808,7 +802,6 @@ public class AbilityInfo : MonoBehaviour
         };
 
     }
-
     async void OnGlobalCoolDown(AbilityInfo ability)
     {
         if (!coolDown.usesGlobal) return;
@@ -834,7 +827,6 @@ public class AbilityInfo : MonoBehaviour
         coolDown.globalCoolDownActive = false;
         
     }
-
     async public void Cast()
     {
         if (isAttack)
@@ -855,8 +847,6 @@ public class AbilityInfo : MonoBehaviour
             await Activate();
         }
     }
-
-
     public bool IsBusy()
     {
         if (isCasting) return true;
@@ -865,7 +855,6 @@ public class AbilityInfo : MonoBehaviour
 
         return false;
     }
-
     public void Recast()
     {
         if (!recastProperties.isActive) return;
@@ -882,7 +871,6 @@ public class AbilityInfo : MonoBehaviour
 
         recastProperties.OnRecast?.Invoke(this);
     }
-
     async void SetRecast()
     {
         if (!recastProperties.enabled) return;
@@ -910,7 +898,6 @@ public class AbilityInfo : MonoBehaviour
 
         return true;
     }
-
     public bool CanCast2()
     {
         if (!IsReady())
@@ -983,7 +970,6 @@ public class AbilityInfo : MonoBehaviour
             Debugger.InConsole(5329, $"{this} can't cast because {reason}");
         }
     }
-
     bool SpawnHasLineOfSight()
     {
         if (abilityType != AbilityType.Spawn) return true;
@@ -1027,7 +1013,6 @@ public class AbilityInfo : MonoBehaviour
 
         return true;
     }
-
     bool HandleRequiresTargetLocked()
     {
         if (location.x == 0 && location.z == 0)
@@ -1061,7 +1046,6 @@ public class AbilityInfo : MonoBehaviour
 
         return false;
     }
-
     bool IsInRange(float offset = 0f)
     {
         if (range == -1)

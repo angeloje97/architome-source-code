@@ -32,9 +32,14 @@ namespace Architome
         public Color classColor;
 
         public ClassType classType;
-        public List<ArmorType> equipableArmor;
+        public int equipableArmorLevel;
         public List<WeaponType> equipableWeapons;
         public List<Role> possibleRoles;
+
+        public List<AbilityInfo> generalAbilities;
+        public List<AbilityInfo> tankAbilities;
+        public List<AbilityInfo> healerAbilities;
+        public List<AbilityInfo> damageAbilities;
 
         public bool CanEquip(Item item, out string reason)
         {
@@ -60,11 +65,12 @@ namespace Architome
             {
                 var equipment = (Equipment)item;
 
-                if (!equipableArmor.Contains(equipment.armorType))
+                if (equipableArmorLevel < (int)equipment.armorType)
                 {
-                    reason = $"{className} can't equip {equipment.armorType} armor.";
+                    reason = $"{className} can't equipment {equipment.armorType}";
                     return false;
                 }
+
             }
 
 

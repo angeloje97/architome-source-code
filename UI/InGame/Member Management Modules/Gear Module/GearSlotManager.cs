@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using System.Collections;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
@@ -39,7 +41,7 @@ namespace Architome
 
             if (moduleManager)
             {
-                moduleManager.OnEquipItem += OnEquipItem;
+                moduleManager.OnEquipItem += OnTryEquip;
             }
 
             if (module)
@@ -75,7 +77,7 @@ namespace Architome
             CreateItems();
         }
 
-        void OnEquipItem(ItemInfo info, EntityInfo entity)
+        void OnTryEquip(ItemInfo info, EntityInfo entity)
         {
             if (entityInfo != entity)
             {
@@ -84,23 +86,41 @@ namespace Architome
 
             var equipment = (Equipment)info.item;
 
-            var previousSlot = info.currentSlot;
 
             var newSlot = Slot(equipment.equipmentSlotType);
+
+            if (!newSlot.CanInsert(info)) return;
+
             var currentlyEquipped = newSlot.currentItemInfo;
-            //if (newSlot.currentItemInfo != null)
-            //{
-            //    newSlot.currentItemInfo.HandleNewSlot(currentSlot);
-            //}
+
+            if (currentlyEquipped)
+            {
+                info.HandleItem(currentlyEquipped);
+                return;
+            }
 
             info.HandleNewSlot(newSlot);
+        }
 
-            bool success = info.currentSlot == newSlot;
+        void HandleWeaponTypeConflicts(GearSlot newSlot)
+        {
+            if (newSlot.slotType != EquipmentSlotType.OffHand && newSlot.slotType != EquipmentSlotType.MainHand) return;
 
-            if (success && currentlyEquipped)
+            var otherSlot = newSlot.slotType == EquipmentSlotType.MainHand ? Slot(EquipmentSlotType.OffHand) : Slot(EquipmentSlotType.MainHand);
+
+            if (otherSlot.item == null || newSlot.item == null) return;
+
+            var newWeapon = (Weapon)newSlot.item;
+            var otherWeapon = (Weapon)otherSlot.item;
+
+            var twoHanders = Weapon.TwoHanders;
+
+            if (twoHanders.Contains(newWeapon.weaponType) || twoHanders.Contains(otherWeapon.weaponType))
             {
-                currentlyEquipped.HandleNewSlot(previousSlot);
+                entityInfo.LootItem(otherSlot.currentItemInfo);
             }
+
+
         }
 
         void SetGearSlots()
@@ -156,6 +176,8 @@ namespace Architome
             var gearSlot = (GearSlot)eventData.itemSlot;
 
             gearSlot.equipmentSlot.equipment = (Equipment)gearSlot.item ? (Equipment)gearSlot.item : null;
+
+            HandleWeaponTypeConflicts(gearSlot);
 
             if (eventData.previousItem)
             {
@@ -232,9 +254,11 @@ namespace Architome
 
                 var itemInfo = newEquipment.GetComponent<ItemInfo>();
 
-                itemInfo.item = equipment;
-                itemInfo.UpdateItemInfo();
-                itemInfo.isInInventory = true;
+                itemInfo.ManifestItem(new() { item = equipment, amount = 1 }, true);
+
+                //itemInfo.item = equipment;
+                //itemInfo.UpdateItemInfo();
+                //itemInfo.isInInventory = true;
                 itemInfo.HandleNewSlot(slot);
 
                 return itemInfo.gameObject;

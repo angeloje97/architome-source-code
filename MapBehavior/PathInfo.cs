@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
@@ -24,6 +25,7 @@ namespace Architome
 
         public bool isUsed = false;
         public bool hasAnotherPath = false;
+        protected bool setPath;
 
 
         void GetDependencies()
@@ -79,23 +81,115 @@ namespace Architome
         //}
 
 
-        public RoomInfo SpawnRoom(GameObject room, Transform parent)
+        async public Task<RoomInfo> SpawnRoom(GameObject room, Transform parent, bool existingRoom = false)
         {
+            
             if (!room.GetComponent<RoomInfo>()) { return null; }
+            
 
 
-            otherRoom = Instantiate(room, roomAnchor.transform.position, roomAnchor.transform.rotation);
+
+            var otherRoom = Instantiate(room, roomAnchor.transform.position, roomAnchor.transform.rotation);
+
+            if (existingRoom)
+            {
+                Destroy(room);
+            }
+
             var info = otherRoom.GetComponent<RoomInfo>();
+            info.originPath = this;
+            bool badRoom;
+
+            var entrancePathIndex = 0;
+            var badPathIndex = new List<int>();
+
+            do
+            {
+                var paths = otherRoom.GetComponentsInChildren<PathInfo>().ToList();
+                var availablePaths = new List<PathInfo>();
+
+                for(int i = 0; i < paths.Count; i++)
+                {
+                    if (badPathIndex.Contains(i)) continue;
+                    availablePaths.Add(paths[i]);
+                }
+
+                if (availablePaths.Count == 0) break;
+                var randomPath = ArchGeneric.RandomItem(paths);
+                entrancePathIndex = paths.IndexOf(randomPath);
+                randomPath.setPath = true;
+                
+
+                var anchor = new GameObject("RoomAnchor");
+                anchor.transform.position = randomPath.transform.position;
+                anchor.transform.rotation = randomPath.transform.rotation;
+
+                otherRoom.transform.SetParent(anchor.transform);
+
+                anchor.transform.position = roomAnchor.transform.position;
+                anchor.transform.rotation = roomAnchor.transform.rotation;
+
+                otherRoom.transform.SetParent(parent);
+
+                Destroy(anchor);
+
+                badRoom = await info.CheckBadSpawn();
+
+
+                if (badRoom)
+                {
+                    var destroyThis = otherRoom;
+
+                    badPathIndex.Add(paths.IndexOf(randomPath));
+
+                    otherRoom = Instantiate(destroyThis, destroyThis.transform.position, destroyThis.transform.rotation);
+                    info = otherRoom.GetComponent<RoomInfo>();
+
+                    Destroy(destroyThis);
+
+                }
+
+
+            } while (badRoom);
+
+
+            var position = otherRoom.transform.position;
+            var rotation = otherRoom.transform.rotation;
+
+            var tempRoom = otherRoom;
+
+            otherRoom = Instantiate(tempRoom, position, rotation);
+            Destroy(tempRoom);
+
+            info = otherRoom.GetComponent<RoomInfo>();
+
+            var newRoomPaths = info.GetComponentsInChildren<PathInfo>();
+
+            for (int i = 0; i < newRoomPaths.Length; i++)
+            {
+                var entrancePath = i == entrancePathIndex;
+                newRoomPaths[i].isUsed = entrancePath;
+
+
+                if (!entrancePath) continue;
+
+                //newRoomPaths[i].isUsed = i == entrancePathIndex;
+
+
+            }
+
 
             info.spawnedByGenerator = true;
 
-            otherRoom.transform.parent = parent;
+            otherRoom.transform.SetParent(parent);
+            //otherRoom.transform.parent = parent;
             info.originPath = this;
 
             isUsed = true;
             return info;
 
         }
+
         public void CheckPath()
         {
             Collider[] paths = Physics.OverlapSphere(transform.position, 1f);
@@ -104,22 +198,21 @@ namespace Architome
 
             foreach (Collider path in pathList)
             {
-                if (!path.GetComponentInParent<PathInfo>()) { continue; }
+                var otherInfo = path.GetComponentInParent<PathInfo>();
 
-                if (path.GetComponentInParent<PathInfo>() && this != path.GetComponentInParent<PathInfo>())
-                {
+                if (otherInfo == null || otherInfo == this) continue;
+                //if (!path.GetComponentInParent<PathInfo>()) { continue; }
 
-                    var tempPath = path.GetComponentInParent<PathInfo>();
-                    if (tempPath.transform.position != roomAnchor.transform.position) { continue; }
+                if (!V3Helper.EqualVector3(roomAnchor.transform.position, otherInfo.transform.position, .125f)) continue;
+                //if (!V3Helper.EqualVector3(transform.position, otherInfo.transform.position, .25f)) continue;
 
-                    otherPath = tempPath;
-                    hasAnotherPath = true;
-                    path.GetComponentInParent<PathInfo>().otherPath = this;
-                    path.GetComponentInParent<PathInfo>().hasAnotherPath = true;
-                    SetOtherPath();
-                    otherPath.SetOtherPath();
-                    return;
-                }
+                otherPath = otherInfo;
+                hasAnotherPath = true;
+                otherInfo.otherPath = this;
+                otherInfo.hasAnotherPath = true;
+                SetOtherPath();
+                otherPath.SetOtherPath();
+                return;
             }
         }
 

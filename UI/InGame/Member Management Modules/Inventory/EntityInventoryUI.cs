@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
@@ -5,6 +6,7 @@ using System.Threading.Tasks;
 using Architome.Enums;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Architome
 {
@@ -22,9 +24,21 @@ namespace Architome
         public List<ItemData> inventoryItems;
         public ModuleInfo module;
 
+        [Serializable]
+        public struct Components
+        {
+            public Icon entityIcon;
+            public TextMeshProUGUI entityName;
+        }
+
+
+
+        public Components comps;
+
         private EntityInfo currentEntity;
 
         public bool dynamicInventory;
+        [SerializeField] bool update;
 
         //Update Handlers
         private int itemCount;
@@ -33,10 +47,9 @@ namespace Architome
         {
             inventorySlots = GetComponentsInChildren<InventorySlot>().ToList();
 
-            if (GetComponentInParent<InventoryManager>())
-            {
-                inventoryManager = GetComponentInParent<InventoryManager>();
-            }
+            inventoryManager = GetComponentInParent<InventoryManager>();
+
+            
             module = GetComponentInParent<ModuleInfo>();
 
             if (GameManager.active)
@@ -51,13 +64,26 @@ namespace Architome
                     module.OnSelectEntity += SetEntity;
                 }
             }
+            var itemSlotHandler = GetComponent<ItemSlotHandler>();
 
-            GetComponent<ItemSlotHandler>().OnChangeItem += OnChangeItem;
+            if (itemSlotHandler)
+            {
+                itemSlotHandler.OnChangeItem += OnChangeItem;
+                itemSlotHandler.OnItemAction += OnItemAction;
+                itemSlotHandler.OnNullHover += OnNullHover;
+            }
         }
 
         void Start()
         {
             GetDependencies();
+        }
+
+        private void OnValidate()
+        {
+            if (!update) return; update = false;
+
+            inventorySlots = GetComponentsInChildren<InventorySlot>().ToList();
         }
 
         // Update is called once per frame
@@ -76,7 +102,26 @@ namespace Architome
             //entityInventory.OnLoadInventory += OnLoadInventory;
 
             HandleInventorySlots();
+            UpdateComponents();
             HandleExistingItems();
+        }
+
+        public void UpdateComponents()
+        {
+            if (entityInfo == null) return;
+            
+            if (comps.entityIcon)
+            {
+                comps.entityIcon.SetIcon(new()
+                {
+                    sprite = entityInfo.PortraitIcon()
+                });
+            }
+
+            if (comps.entityName)
+            {
+                comps.entityName.text = entityInfo.entityName;
+            }
         }
 
         void HandleInventorySlots()
@@ -129,6 +174,35 @@ namespace Architome
             ArchAction.Yield(() => HandleExistingItems());
         }
 
+        public void OnNullHover(ItemInfo item)
+        {
+            var gameState = GameManager.active.GameState;
+
+            HandlePlay();
+            HandleLobby();
+
+            void HandlePlay()
+            {
+                if (gameState != GameState.Play) return;
+                var worldActions = WorldActions.active;
+                if (worldActions == null) return;
+
+                var newItem = worldActions.DropItem(new(item), entityInfo.transform.position, false);
+
+                if (newItem)
+                {
+                    item.DestroySelf();
+                }
+            }
+
+            async void HandleLobby()
+            {
+                if (gameState != GameState.Lobby) return;
+                await item.SafeDestroy();
+
+            }
+        }
+
         void OnLoadInventory(Inventory inventory)
         {
             ClearItems();
@@ -173,8 +247,6 @@ namespace Architome
             void HandlePreviousItem()
             {
                 if (eventData.previousItem == null) return;
-                eventData.previousItem.OnItemAction -= OnItemAction;
-                eventData.previousItem.OnUpdate -= OnUpdateItem;
 
             }
 
@@ -182,8 +254,6 @@ namespace Architome
             {
                 if (eventData.newItem == null) return;
 
-                eventData.newItem.OnItemAction += OnItemAction;
-                eventData.newItem.OnUpdate += OnUpdateItem;
 
             }
         }
@@ -220,6 +290,20 @@ namespace Architome
             return null;
         }
 
+        public ItemInfo StackableItem(ItemInfo info)
+        {
+            foreach (var slot in inventorySlots)
+            {
+                if (slot.currentItemInfo == null) continue;
+                if (!info.SameItem(slot.currentItemInfo)) continue;
+                if (!slot.currentItemInfo.OpenToStack()) continue;
+
+
+                return slot.currentItemInfo;
+            }
+            return null;
+        }
+
         public InventorySlot InventorySlot(int index)
         {
             if (index < 0) return null;
@@ -228,12 +312,18 @@ namespace Architome
         }
         public ItemInfo CreateItem(ItemData data, InventorySlot slot)
         {
-            var newItem = module.CreateItem(data, true);
-            Debugger.UI(3914, $"{newItem.item} {newItem.currentStacks}");
+            var itemPrefab = World.active.prefabsUI.item;
+
+            var newItem = Instantiate(itemPrefab, transform).GetComponent<ItemInfo>();
+            newItem.ManifestItem(data, true);
+
+            //var newItem = module.CreateItem(data, true);
+            //Debugger.UI(3914, $"{newItem.item} {newItem.currentStacks}");
 
             newItem.HandleNewSlot(slot);
 
-            ArchAction.Yield(() => { newItem.ReturnToSlot(); });
+
+            newItem.ReturnToSlot(3);
 
             return newItem;
 
@@ -251,7 +341,6 @@ namespace Architome
 
                 itemInfo.item = item;
                 itemInfo.UpdateItemInfo();
-                itemInfo.isInInventory = true;
                 itemInfo.currentStacks = amount;
 
                 itemInfo.HandleNewSlot(slot);
@@ -268,12 +357,10 @@ namespace Architome
 
             var gameState = GameManager.active ? GameManager.active.GameState : GameState.Lobby;
 
-            var options = new List<string>()
-            {
-                "Destroy"
-            };
+            var options = new List<string>();
+        
             UpdateOptions();
-
+            options.Add("Destroy");
             var name = info.item.itemName;
 
             var response = await contextMenu.UserChoice(new()
@@ -290,9 +377,18 @@ namespace Architome
             HandleDestroy();
             HandleEquip();
             HandleUse();
+            HandleSplit();
+            HandleSplitInHalf();
+            HandleVaultItem();
 
             void UpdateOptions()
             {
+                if (info.currentStacks > 1)
+                {
+                    options.Insert(0, "Split in Half");
+                    options.Insert(0, "Split");
+                }
+
                 if (Item.Equipable(info.item))
                 {
                     options.Insert(0, "Equip");
@@ -302,6 +398,12 @@ namespace Architome
                 {
                     options.Insert(0, "Use");
                 }
+
+                if (gameState == GameState.Lobby)
+                {
+                    options.Add("Store in Vault");
+                }
+
             }
 
             async void HandleDestroy()
@@ -309,19 +411,6 @@ namespace Architome
                 if (response.stringValue != "Destroy") return;
 
                  await info.SafeDestroy();
-                //var userChoice = await PromptHandler.active.GeneralPrompt(new() {
-                //    icon = info.item.itemIcon,
-                //    title = $"{info.item.itemName}",
-                //    question = $"Are you sure you want to destroy {info.item.itemName}?",
-                //    option1 = "Destroy",
-                //    option2 = "Cancel"
-                //});
-
-                //if (userChoice.optionString == "Destroy")
-                //{
-                //    info.DestroySelf();
-                //}
-
             }
 
             void HandleEquip()
@@ -329,17 +418,55 @@ namespace Architome
                 if (options[choice] != "Equip") return;
                 if (entityCharacter == null) return;
 
+                
+
                 entityCharacter.modules.gearModule.EquipItem(info, entityInfo);
+            }
+
+            async void  HandleSplit()
+            {
+                if (options[choice] != "Split") return;
+                var availableSlot = FirstAvailableSlot();
+
+                if(availableSlot == null) return;
+
+                var newItem =  await info.HandleSplit();
+
+                if (newItem == null) return;
+
+                newItem.HandleNewSlot(availableSlot);
+            }
+
+            void HandleSplitInHalf()
+            {
+                if (options[choice] != "Split in Half") return;
+                var availableSlot = FirstAvailableSlot();
+                if(availableSlot == null) return;
+
+                var newItem = info.SplitHalf();
+
+                if (newItem == null) return;
+
+                newItem.HandleNewSlot(availableSlot);
             }
 
             void HandleUse()
             {
                 if (options[choice] != "Use") return;
                 if (entityCharacter == null) return;
-                info.item.Use(new() {
+                info.Use(new() {
                     itemInfo = info,
                     entityUsed = entityInfo
                 });
+            }
+
+            void HandleVaultItem()
+            {
+                if (response.stringValue != "Store in Vault") return;
+
+                var guildVault = GuildVault.active;
+
+                guildVault.VaultItem(info);
             }
         }
 
