@@ -48,11 +48,11 @@ namespace Architome
         //public Action<AbilityInfo> OnCastChannelStart;
         //public Action<AbilityInfo> OnCastChannelInterval;
         //public Action<AbilityInfo> OnCastChannelEnd;
-        public Action<AbilityInfo> OnChannelStart;
-        public Action<AbilityInfo> OnChannelInterval;
-        public Action<AbilityInfo> OnChannelEnd;
+        public Action<AbilityInfo, AugmentChannel> OnChannelStart;
+        public Action<AbilityInfo, AugmentChannel> OnChannelInterval;
+        public Action<AbilityInfo, AugmentChannel> OnChannelEnd;
+        public Action<AbilityInfo, AugmentChannel> OnCancelChannel;
         public Action<AbilityInfo> OnCancelCast;
-        public Action<AbilityInfo> OnCancelChannel;
         public Action<AbilityInfo> OnNewAbility;
         public Action<AbilityInfo, CatalystInfo> OnCatalystRelease { get; set; }
         public Action<AbilityInfo> WhileCasting;
@@ -325,23 +325,44 @@ namespace Architome
             if (!entityInfo.isAlive) { return; }
             if (!abilities.Contains(ability)) return;
 
-            for (int i = 0; i < abilities.Count; i++)
+            if (!entityInfo.isAlive) { return; }
+
+            if (entityInfo && !entityInfo.states.Contains(EntityState.MindControlled))
             {
-                if (abilities[i] != ability) continue;
+                var playerController = entityInfo.PlayerController();
 
-                if (entityInfo && !entityInfo.states.Contains(EntityState.MindControlled))
+                if (playerController)
                 {
-                    var playerController = entityInfo.PlayerController();
-
-                    if (playerController)
-                    {
-                        playerController.HandlePlayerTargetting();
-                    }
+                    playerController.HandlePlayerTargetting();
                 }
-
-
-                Cast(i);
             }
+
+            Debugger.InConsole(1115, $"Your code made it this far");
+
+            if (target) { ability.target = target; }
+            else { ability.target = null; }
+
+            ability.location = location;
+            ability.Cast();
+
+            //for (int i = 0; i < abilities.Count; i++)
+            //{
+            //    if (abilities[i] != ability) continue;
+
+            //    if (entityInfo && !entityInfo.states.Contains(EntityState.MindControlled))
+            //    {
+            //        var playerController = entityInfo.PlayerController();
+
+            //        if (playerController)
+            //        {
+            //            playerController.HandlePlayerTargetting();
+            //        }
+            //    }
+
+
+            //    Cast(i);
+            //}
+
             //if (abilities.Contains(ability))
             //{
             //    Debugger.InConsole(7829, $"{ability}, {abilities.IndexOf(ability)}");

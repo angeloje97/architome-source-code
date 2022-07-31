@@ -133,7 +133,7 @@ namespace Architome
             animator.SetTrigger("ReleaseAbility");
         }
 
-        void OnChannelInterval(AbilityInfo ability)
+        void OnChannelInterval(AbilityInfo ability, AugmentChannel augment)
         {
 
             animator.SetTrigger("ReleaseAbility");

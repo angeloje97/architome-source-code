@@ -50,7 +50,8 @@ namespace Architome
             value = theoreticalValue * valueContributionToBuffType * buffInfo.properties.valueContributionToBuff;
             var selfCastValue = theoreticalValue * selfCastMultiplier;
             var description = Description();
-            if (selfCastValue != value)
+
+            if (valueContributionToBuffType != selfCastMultiplier)
             {
                 description += $"({selfCastValue} value if the host is the source.)\n";
             }

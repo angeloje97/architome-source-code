@@ -15,19 +15,57 @@ public class Targetable : EntityProp
     public GameObject graphicsSelected;
     public GameObject graphicsHolding;
 
+    public List<GameObject> hoverTargets;
+
     public new void GetDependencies()
     {
         base.GetDependencies();
 
+        targetManager = ContainerTargetables.active;
+
+        if (targetManager == null) return;
+
         entityInfo.targetableEvents.OnHold += OnHold;
         entityInfo.targetableEvents.OnHover += OnHover;
         entityInfo.targetableEvents.OnSelect += OnSelect;
+
+
+        //entityInfo.infoEvents.OnMouseHover += OnMouseHover;
     }
 
     void Start()
     {
         GetDependencies();
         SetValues(false);
+    }
+
+    void OnMouseHover(EntityInfo entity, bool isHovering, GameObject source)
+    {
+        if (hoverTargets == null) hoverTargets = new();
+
+        if (isHovering)
+        {
+            if (!hoverTargets.Contains(source))
+            {
+                hoverTargets.Add(source);
+            }
+        }
+        else
+        {
+            if (hoverTargets.Contains(source))
+            {
+                hoverTargets.Remove(source);
+            }
+        }
+
+        if (hoverTargets.Count > 0)
+        {
+            targetManager.AddMouseOver(entity);
+        }
+        else
+        {
+            targetManager.RemoveMouseOver(entity);
+        }
     }
 
     public void OnHover(bool val)

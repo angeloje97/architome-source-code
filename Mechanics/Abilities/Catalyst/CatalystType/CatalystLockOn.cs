@@ -73,7 +73,7 @@ public class CatalystLockOn : MonoBehaviour
 
     }
 
-    public void OnHit(GameObject target)
+    public void OnHit(CatalystInfo catalyst, EntityInfo target)
     {
         if (catalystInfo.metrics.inertia <= 0) return;
         smoothening = 300f;

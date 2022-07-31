@@ -10,7 +10,6 @@ namespace Architome
         // Start is called before the first frame update
         [Header("Boss Room")]
         public Transform bossPosition;
-        public Transform rewardChestPositions;
         public Transform bossPatrolSpots;
         public List<GameObject> possibleBosses;
         private void OnValidate()
@@ -56,7 +55,7 @@ namespace Architome
 
         public void OnBossCombatChange(bool isInCombat)
         {
-            SetPaths(isInCombat);
+            SetPaths(!isInCombat);
         }
 
         public void OnBossDeath(CombatEventData eventData)
@@ -65,13 +64,15 @@ namespace Architome
             if (pool == null) return;
             if (pool.chests == null) return;
 
-            foreach (Transform trans in chestPos)
-            {
-                var randomChest = ArchGeneric.RandomItem(pool.chests);
 
-                var newChest = Instantiate(randomChest, trans.position, trans.rotation);
-                newChest.transform.SetParent(transform);
-            }
+
+            //foreach (Transform trans in chestPos)
+            //{
+            //    var randomChest = ArchGeneric.RandomItem(pool.chests);
+
+            //    var newChest = Instantiate(randomChest, trans.position, trans.rotation);
+            //    newChest.transform.SetParent(transform);
+            //}
         }
 
         // Update is called once per frame

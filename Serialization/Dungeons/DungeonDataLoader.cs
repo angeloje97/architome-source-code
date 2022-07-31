@@ -76,6 +76,7 @@ namespace Architome
                     }
                 }
 
+                level.level = rooms.roomLevel;
                 level.random = random;
                 level.skeleton = skeleton;
                 levels.Add(level);

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Architome.Enums;
 using Architome;
 public class CatalystReturn : MonoBehaviour
 {
@@ -11,11 +12,14 @@ public class CatalystReturn : MonoBehaviour
     public CatalystInfo catalystInfo;
     public CatalystHit catalystHit;
 
+    public LayerMask structureLayer;
+
     public bool isReturning;
     public bool hasReturned;
 
     void GetDependencies()
     {
+        var layerMaskData = LayerMasksData.active;
         if(entityObject == null || entityInfo == null || catalystInfo == null)
         {
             if (GetComponent<CatalystInfo>())
@@ -24,6 +28,12 @@ public class CatalystReturn : MonoBehaviour
                 catalystInfo.OnCantFindEntity += OnCantFindEntity;
                 catalystInfo.OnTickChange += OnTickChange;
                 catalystInfo.OnCloseToTarget += OnCloseToTarget;
+
+
+                if (catalystInfo.abilityInfo.abilityType != AbilityType.LockOn)
+                {
+                    catalystInfo.OnStructureHit += OnCatalystStructureHit;
+                }
             }
 
             if(GetComponent<CatalystHit>())
@@ -36,6 +46,11 @@ public class CatalystReturn : MonoBehaviour
                 entityInfo = catalystInfo.entityInfo;
                 entityObject = entityInfo.gameObject;
             }
+        }
+
+        if (layerMaskData)
+        {
+            structureLayer = layerMaskData.structureLayerMask;
         }
     }
     void Start()
@@ -69,8 +84,36 @@ public class CatalystReturn : MonoBehaviour
     {
         isReturning = true;
         catalystInfo.target = entityObject;
+        catalystInfo.transform.LookAt(entityObject.transform);
     }
 
+    void OnCatalystStructureHit(CatalystInfo catalyst, Collider other)
+    {
+        if (catalyst.Ticks() != 0) return;
+
+        if (V3Helper.IsObstructed(entityObject.transform.position, catalyst.transform.position, structureLayer))
+        {
+            ArchAction.Yield(() => {
+                var ray = new Ray(catalyst.transform.position, catalyst.transform.forward);
+
+                if (Physics.Raycast(ray, out RaycastHit hit))
+                {
+                    var newDirection = Vector3.Reflect(catalyst.transform.forward, hit.normal);
+
+                    var newPosition = catalyst.transform.position + (newDirection * 5);
+                    newPosition.y = catalyst.transform.position.y;
+
+                    catalyst.transform.LookAt(newPosition);
+                }
+            });
+            
+
+        }
+        else
+        {
+            Return();
+        }
+    }
 
     public void OnTriggerEnter(Collider other)
     {

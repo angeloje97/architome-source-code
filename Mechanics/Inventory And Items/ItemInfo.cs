@@ -132,11 +132,16 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
         var groundLayer = LayerMasksData.active.walkableLayer;                                              //This part of the code is to make sure that the item isn't dropped in a weird area
         var structureLayer = LayerMasksData.active.structureLayerMask;
-        var randomPosition = transform.position + V3Helper.RandomVector3(new(-5, 0, -5), new(5, 0, 5));
-        int tries = 10;
+        //var randomPosition = transform.position + V3Helper.RandomVector3(new(-5, 0, -5), new(5, 0, 5));
+
+        transform.Rotate(Vector3.up * UnityEngine.Random.Range(0, 360f));
+        var randomPosition = transform.position + transform.forward * 5f;
+
+        int tries = 20;
         while (!V3Helper.IsValidPosition(randomPosition, transform.position, structureLayer, groundLayer))
         {
-            randomPosition = transform.position + V3Helper.RandomVector3(new(-5, 0, -5), new(5, 0, 5));
+            transform.Rotate(Vector3.up * UnityEngine.Random.Range(0, 360f));
+            randomPosition = transform.position + transform.forward * 5f;
 
 
             Debugger.Environment(8549, $"Looking for good spot. Tries:  {tries}");
@@ -145,9 +150,10 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
             if (tries <= 0) return;
         }
 
+
         transform.rotation = V3Helper.LerpLookAt(transform, randomPosition, 1);
 
-        rigidBody.AddForce(transform.up * UnityEngine.Random.Range(5f, 10f), ForceMode.Impulse);
+        rigidBody.AddForce(transform.up * 5f, ForceMode.Impulse);
         rigidBody.AddForce(transform.forward * 5f, ForceMode.Impulse);
 
         worldProperties.worldCollider.isTrigger = true;
@@ -287,7 +293,8 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         UpdateItemInfo();
         //this.isInInventory = isInInventory;
 
-        HandleEvents();
+        ArchAction.Yield(() => HandleEvents());
+        //HandleEvents();
     }
     public void UpdateItemInfo()
     {

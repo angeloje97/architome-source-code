@@ -7,7 +7,7 @@ using UnityEngine.EventSystems;
 using TMPro;
 using Architome;
 using Architome.Enums;
-public class PortraitBehavior : MonoBehaviour
+public class PortraitBehavior : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     // Start is called before the first frame update
     public ContainerTargetables targetManager;
@@ -269,6 +269,19 @@ public class PortraitBehavior : MonoBehaviour
         levelText.text = $"{level}";
     }
 
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        if (entity == null) return;
+
+        entity.infoEvents.OnMouseHover?.Invoke(entity, true, gameObject);
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        if (entity == null) return;
+        entity.infoEvents.OnMouseHover?.Invoke(entity, false, gameObject);
+
+    }
     public void OnNewTargetedBy(GameObject newTarget, List<GameObject> targetedBy)
     {
 

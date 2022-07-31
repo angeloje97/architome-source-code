@@ -67,7 +67,7 @@ public class AbilityAnimation
     public void OnCastReleasePercent(AbilityInfo ability)
     {
         if (ability.isAttack) return;
-        if (ability.channel.enabled) return;
+        if (ability.HasChannel()) return;
 
         animator.SetTrigger("ReleaseAbility");
         SetCast(false);
@@ -76,7 +76,7 @@ public class AbilityAnimation
     {
         if (ability.isAttack) { SetCast(false); }
     }
-    public void OnChannelStart(AbilityInfo ability)
+    public void OnChannelStart(AbilityInfo ability, AugmentChannel augment)
     {
         //SetAnimTrigger(currentCatalyst, 2, false);
 
@@ -84,11 +84,11 @@ public class AbilityAnimation
         animator.SetTrigger("ActivateAbility");
 
     }
-    public void OnChannelInterval(AbilityInfo ability)
+    public void OnChannelInterval(AbilityInfo ability, AugmentChannel augment)
     {
         animator.SetTrigger("Repeat");
     }
-    public void OnCastChannelEnd(AbilityInfo ability)
+    public void OnCastChannelEnd(AbilityInfo ability, AugmentChannel augment)
     {
         //SetAnimTrigger(currentCatalyst, 3, false);
     }
@@ -122,7 +122,7 @@ public class AbilityAnimation
         animator.SetTrigger("CancelAbility");
         animator.SetTrigger("CancelAttack");
     }
-    public void OnCancelChannel(AbilityInfo ability)
+    public void OnCancelChannel(AbilityInfo ability, AugmentChannel augment)
     {
         animator.SetTrigger("CancelAbility");
     }

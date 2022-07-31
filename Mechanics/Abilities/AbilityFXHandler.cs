@@ -125,12 +125,12 @@ namespace Architome
             HandleEffects(ability.catalystInfo, AbilityEvent.OnCast, true);
         }
 
-        private void OnChannelStart(AbilityInfo ability)
+        private void OnChannelStart(AbilityInfo ability, AugmentChannel augment)
         {
             HandleEffects(ability.catalystInfo, AbilityEvent.OnChannel, true);
         }
 
-        private void OnChannelEnd(AbilityInfo ability)
+        private void OnChannelEnd(AbilityInfo ability, AugmentChannel augment)
         {
 
             HandleEffects(ability.catalystInfo, AbilityEvent.OnChannel, false);
@@ -143,7 +143,7 @@ namespace Architome
             CancelAudios(ability.catalystInfo, AbilityEvent.OnCast);
         }
 
-        void OnCancelChannel(AbilityInfo ability)
+        void OnCancelChannel(AbilityInfo ability, AugmentChannel augment)
         {
             CancelAudios(ability.catalystInfo, AbilityEvent.OnChannel);
         }
@@ -347,12 +347,14 @@ namespace Architome
                 return false;
             }
 
+            
+
             if (!ability.currentlyCasting.isCasting && effect.trigger == AbilityEvent.OnCast)
             {
                 return false;
             }
 
-            if (!ability.currentlyCasting.channel.active && effect.trigger == AbilityEvent.OnChannel)
+            if (!ability.currentlyCasting.IsChanneling() && effect.trigger == AbilityEvent.OnChannel)
             {
                 return false;
             }

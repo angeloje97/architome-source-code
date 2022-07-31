@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -12,6 +14,7 @@ namespace Architome
         public bool showPatrolSpots;
         public bool showPatrolGroupSpots;
         public bool showChestSpots;
+        public bool updatePaths;
 
         public RoomInfo info;
         private void OnValidate()
@@ -25,6 +28,7 @@ namespace Architome
             ShowPatrolSpots(showPatrolSpots);
             ShowPatrolGroupSpots(showPatrolGroupSpots);
             ShowChestSpots(showChestSpots);
+            UpdatePaths();
         }
 
         private void Start()
@@ -34,6 +38,14 @@ namespace Architome
             showPatrolSpots = false;
 
             OnValidate();
+        }
+
+        void UpdatePaths()
+        {
+            if (!updatePaths) return;
+            updatePaths = false;
+
+            info.paths = GetComponentsInChildren<PathInfo>().ToList();
         }
 
         void ShowChestSpots(bool val)

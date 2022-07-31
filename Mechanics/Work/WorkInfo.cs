@@ -116,9 +116,10 @@ namespace Architome
 
             if(task == null) { return; }
 
-            var entities = eventData.clickedEntities;
+            var entities = eventData.clickedEntities.ToList();
 
             if (entities.Count == 0) return;
+
 
             foreach (var entity in entities)
             {

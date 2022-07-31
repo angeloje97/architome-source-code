@@ -52,17 +52,6 @@ namespace Architome
                 ArchUI.SetCanvas(info.canvasGroup, false);
             }
         }
-
-        public void SetActiveTransition(Transition trans)
-        {
-            foreach (var transition in transitions)
-            {
-                transition.SetTransition(transition == trans);
-            }
-
-            info.activeTransition = trans;
-        }
-
         void Start()
         {
             ArchUI.SetCanvas(info.canvasGroup, true);
@@ -83,7 +72,19 @@ namespace Architome
 
             HandleMapRoomGenerator();
         }
+        void Update()
+        {
 
+        }
+        public void SetActiveTransition(Transition trans)
+        {
+            foreach (var transition in transitions)
+            {
+                transition.SetTransition(transition == trans);
+            }
+
+            info.activeTransition = trans;
+        }
         void HandleMapRoomGenerator()
         {
             if (!waitForMapGeneration)
@@ -94,6 +95,7 @@ namespace Architome
 
             var mapRoomGenerator = MapRoomGenerator.active;
             var mapInfo = MapInfo.active;
+
             if (mapRoomGenerator == null)
             {
                 TransitionOut();
@@ -102,14 +104,22 @@ namespace Architome
             
 
             info.activeTransition.SetActive(false);
-            mapRoomGenerator.OnAllRoomsHidden += OnAllRoomsHidden;
+
+            mapRoomGenerator.OnAllRoomsHidden += (MapRoomGenerator roomGenerator) =>
+            {
+                if (roomGenerator.hideRooms)
+                {
+                    TransitionOut();
+                }
+                else
+                {
+                    ArchAction.Delay(() => TransitionOut(), 1f);
+                }
+                
+            };
 
         }
 
-        void OnAllRoomsHidden(MapRoomGenerator roomGenerator)
-        {
-            TransitionOut();
-        }
         public void TasksBeforeLoadScene(ArchSceneManager archSceneManager)
         {
             var tasks = archSceneManager.tasksBeforeLoad;
@@ -140,9 +150,6 @@ namespace Architome
             }, 2f);
         }
 
-        void Update()
-        {
         
-        }
     }
 }

@@ -65,6 +65,7 @@ namespace Architome
 
         public void CreateBuff(BuffInfo buff)
         {
+            if (buff.settings.hideBuff) return;
             Instantiate(buffIconPrefab, transform).GetComponent<BuffIconBehavior>()?.SetBuff(buff);
             SortBuffs();
         }

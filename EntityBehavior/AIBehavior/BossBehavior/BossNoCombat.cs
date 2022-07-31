@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -36,11 +37,11 @@ namespace Architome
                 roomInfo = behavior.BossRoom();
             }
 
-            if (movement)
-            {
-                movement.OnEndMove += OnEndMove;
-                movement.OnArrival += OnArrival;
-            }
+            //if (movement)
+            //{
+            //    movement.OnEndMove += OnEndMove;
+            //    movement.OnArrival += OnArrival;
+            //}
 
             if (entity)
             {
@@ -66,8 +67,9 @@ namespace Architome
             AcquireDependencies();
             Subscribe();
             OnCombatChange(false);
-            OnEndMove(movement);
-            OnArrival(movement, movement.Target());
+            //OnEndMove(movement);
+            //OnArrival(movement, movement.Target());
+            HandlePatrol();
         }
 
         private void OnValidate()
@@ -79,53 +81,71 @@ namespace Architome
 
         }
 
-        void OnArrival(Movement movement, Transform target)
-        {
-            if (entity.isInCombat) return;
-            if (!patroling) return;
-            if (patrolSpots == null) return;
-            if (patrolSpots.Count == 0) return;
-            ArchAction.Delay(() => {
+        //void OnArrival(Movement movement, Transform target)
+        //{
+        //    if (entity.isInCombat) return;
+        //    if (!patroling) return;
+        //    if (patrolSpots == null) return;
+        //    if (patrolSpots.Count == 0) return;
+        //    ArchAction.Delay(() => {
 
-                if (entity.isInCombat) return;
-                if (movement.isMoving) return;
+        //        if (entity.isInCombat) return;
+        //        if (movement.isMoving) return;
 
-                var currentSpot = currentPatrolSpot;
-
-
-                currentPatrolSpot = patrolSpots[Random.Range(0, patrolSpots.Count)];
-
-                movement.MoveTo(currentPatrolSpot);
+        //        var currentSpot = currentPatrolSpot;
 
 
-            }, 4f);
-        }
+        //        currentPatrolSpot = patrolSpots[Random.Range(0, patrolSpots.Count)];
 
-        void OnEndMove(Movement movement)
-        {
-            //if (entity.isInCombat) return;
-            //if (!patroling) return;
-            //if(patrolSpots == null) return;
-            //if (patrolSpots.Count == 0) return;
-            //ArchAction.Delay(() => {
+        //        movement.MoveTo(currentPatrolSpot);
 
-            //    if (entity.isInCombat) return;
-            //    if (movement.isMoving) return;
 
-            //    var currentSpot = currentPatrolSpot;
+        //    }, 4f);
+        //}
+
+        //void OnEndMove(Movement movement)
+        //{
+        //    //if (entity.isInCombat) return;
+        //    //if (!patroling) return;
+        //    //if(patrolSpots == null) return;
+        //    //if (patrolSpots.Count == 0) return;
+        //    //ArchAction.Delay(() => {
+
+        //    //    if (entity.isInCombat) return;
+        //    //    if (movement.isMoving) return;
+
+        //    //    var currentSpot = currentPatrolSpot;
                 
 
-            //    currentPatrolSpot = patrolSpots[Random.Range(0, patrolSpots.Count)];
+        //    //    currentPatrolSpot = patrolSpots[Random.Range(0, patrolSpots.Count)];
 
-            //    movement.MoveTo(currentPatrolSpot);
+        //    //    movement.MoveTo(currentPatrolSpot);
 
 
-            //}, 4f);
-        }
+        //    //}, 4f);
+        //}
 
         void OnCombatChange(bool val)
         {
-            patroling = !val;
+            //patroling = !val;
+            HandlePatrol();
+        }
+
+        async void HandlePatrol()
+        {
+            if (movement == null) return;
+            if (patrolSpots == null) return;
+            if (patrolSpots.Count == 0) return;
+            if (patroling) return;
+            patroling = true;
+            while (!entity.isInCombat)
+            {
+                var targetSpot = ArchGeneric.RandomItem(patrolSpots);
+                var arrived = await movement.MoveToAsync(targetSpot);
+
+                await Task.Delay(4000);
+            }
+            patroling = false;
         }
     }
 

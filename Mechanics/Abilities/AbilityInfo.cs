@@ -34,7 +34,6 @@ public class AbilityInfo : MonoBehaviour
     public GameObject catalyst;
     public Sprite abilityIcon;
     
-    public List<Augment> augments;
     public List<GameObject> buffs;
     //public BuffProperties buffProperties;
 
@@ -61,18 +60,14 @@ public class AbilityInfo : MonoBehaviour
     public float castTime = 1f;
 
 
-    public Augment.SummoningProperty summoning;
-    public Augment.Cataling cataling;
-    public Augment.SplashProperties splash;
-    public Augment.ChannelProperties channel;
-    public Augment.Restrictions originalRestrictions;
-    public Augment.Restrictions restrictions;
-    public Augment.DestroyConditions originalConditions;
-    public Augment.DestroyConditions destroyConditions;
-    public Augment.RecastProperties recastProperties;
-    public Augment.Tracking tracking;
-    public Augment.Bounce bounce;
-    public Augment.Threat threat;
+    public AugmentProp.SummoningProperty summoning;
+    public AugmentProp.Restrictions originalRestrictions;
+    public AugmentProp.Restrictions restrictions;
+    public AugmentProp.DestroyConditions originalConditions;
+    public AugmentProp.DestroyConditions destroyConditions;
+    public AugmentProp.RecastProperties recastProperties;
+    public AugmentProp.Tracking tracking;
+    public AugmentProp.Threat threat;
 
     [Serializable]
     public class StatsContribution
@@ -213,6 +208,16 @@ public class AbilityInfo : MonoBehaviour
     [Header("Lock On Behaviors")]
     [SerializeField] private bool wantsToCast;
     public bool isAutoAttacking;
+
+    public Action<CatalystInfo> OnCatalystRelease;
+    public Action<AbilityInfo> OnSuccessfulCast;
+    public Action<AbilityInfo> OnBusyCheck;
+    public List<Task> tasksBeforeEndAbility;
+    public List<bool> busyList;
+
+
+    //Augments
+    public AugmentChannel currentChannel { get; set; }
     public void GetDependencies()
     {
         entityInfo = GetComponentInParent<EntityInfo>();
@@ -262,6 +267,7 @@ public class AbilityInfo : MonoBehaviour
         GetDependencies();
         active = true;
     }
+
     void Update()
     {
         HandleTimers();
@@ -274,14 +280,6 @@ public class AbilityInfo : MonoBehaviour
         if (cancelCastIfMoved && isCasting)
         {
             CancelCast("Moved On Cast");
-        }
-
-        if (channel.enabled && channel.active)
-        {
-            if (channel.cancelChannelOnMove)
-            {
-                CancelChannel(true);
-            }
         }
     }
     public void OnEndMove(Movement movement)
@@ -368,19 +366,6 @@ public class AbilityInfo : MonoBehaviour
     public void HandleTimers()
     {
         SetCoolDownTimer();
-    }
-
-    public void UpdateAugments()
-    {
-        destroyConditions = originalConditions;
-        restrictions = originalRestrictions;
-
-
-
-        foreach (var augment in augments)
-        {
-            augment.ApplyAugment(this);
-        }
     }
 
     public string Name()
@@ -488,61 +473,32 @@ public class AbilityInfo : MonoBehaviour
             properties += $"({ArchString.StringList(listString)}).\n";
         }
 
-        if (splash.enable)
-        {
-            if(isHarming)
-            {
-                properties += "Does splash damage to enemies ";
+        //if (splash.enable)
+        //{
+        //    if(isHarming)
+        //    {
+        //        properties += "Does splash damage to enemies ";
                 
-                if (isHealing)
-                {
-                    properties += "and ";
-                }
-            }
+        //        if (isHealing)
+        //        {
+        //            properties += "and ";
+        //        }
+        //    }
 
-            if (isHealing)
-            {
-                properties += $"Does splash healing to allies ";
-            }
+        //    if (isHealing)
+        //    {
+        //        properties += $"Does splash healing to allies ";
+        //    }
 
-            properties += $"({ArchString.CamelToTitle(splash.trigger.ToString())}) in a {splash.radius} meter radius equal to " +
-                $"{ArchString.FloatToSimple(splash.valueContribution * 100)}% value of the ability's original value.\n";
+        //    properties += $"({ArchString.CamelToTitle(splash.trigger.ToString())}) in a {splash.radius} meter radius equal to " +
+        //        $"{ArchString.FloatToSimple(splash.valueContribution * 100)}% value of the ability's original value.\n";
+        //}
+
+        if (ticksOfDamage > 1)
+        {
+            properties += $"Catalyst Ticks: {ticksOfDamage}";
         }
 
-
-        if (bounce.enable)
-        {
-            properties += $"Bounces between targets that are {bounce.radius} meters between each other.\n";
-        }
-
-
-        if (cataling.enable)
-        {
-            properties += $"Releases {cataling.releasePerInterval} cataling(s) {ArchString.CamelToTitle(cataling.releaseCondition.ToString())} every {cataling.interval}";
-            properties += $" for {(int) (cataling.valueContribution * 100)}% of its original value";
-            if (cataling.catalingType == AbilityType.LockOn)
-            {
-                properties += $", finds targets in a {cataling.targetFinderRadius} meter radius";
-            }
-
-            properties += "\n";
-        }
-
-        var condition = new ArchCondition()
-        {
-            conditions = new()
-            {
-                abilityType == AbilityType.SkillShot,
-                splash.enable,
-                bounce.enable,
-                cataling.enable
-            }
-        };
-
-        if (ticksOfDamage > 1 && condition.OrIsMetConditions())
-        {
-            properties += $"Can hit up to {ticksOfDamage} targets.\n";
-        }
 
         if (summoning.enabled)
         {
@@ -559,11 +515,6 @@ public class AbilityInfo : MonoBehaviour
             var listString = ArchString.StringList(entityNames);
 
             properties += $"Summons {listString} for {summoning.liveTime} seconds\n";
-        }
-
-        if (channel.enabled)
-        {
-            properties += $"Channels for {channel.time} seconds repeating the same ability {channel.invokeAmount} times\n";
         }
 
         return properties;
@@ -777,17 +728,48 @@ public class AbilityInfo : MonoBehaviour
 
         return buffDescription;
     }
-    public ToolTipData ToolTipData(bool showResources = true)
-    {
-        var propertiesDescription = PropertiesDescription();
-        var buffDescriptions = BuffDescriptions();
 
-        if (propertiesDescription.Length > 0 && buffDescriptions.Length > 0)
+    public string AugmentDescriptions()
+    {
+        var result = "";
+
+        foreach (Transform child in transform)
         {
-            propertiesDescription += "\n";
+            var augment = child.GetComponent<Augment>();
+            if (augment == null) continue;
+
+            var description = augment.TypeDescription();
+
+            if (result.Length > 0 && description.Length > 0)
+            {
+                result += "\n";
+            }
+
+            result += description;
         }
 
-        var attributes = propertiesDescription + buffDescriptions;
+        return result;
+    }
+    public ToolTipData ToolTipData(bool showResources = true)
+    {
+        var attributesList = new List<string>()
+        {
+            PropertiesDescription(),
+            BuffDescriptions(),
+            AugmentDescriptions(),
+        };
+
+        var attributes = "";
+
+        foreach (var attribute in attributesList)
+        {
+            if (attributes.Length > 0 && attribute.Length > 0)
+            {
+                attributes += "\n";
+            }
+
+            attributes += $"{attribute}";
+        }
 
         var value = showResources ? ResourceDescription() : "";
 
@@ -849,11 +831,26 @@ public class AbilityInfo : MonoBehaviour
     }
     public bool IsBusy()
     {
+        OnBusyCheck?.Invoke(this);
         if (isCasting) return true;
 
-        if (channel.active) return true;
+
+        foreach (var busyItem in busyList)
+        {
+            if (busyItem)
+            {
+                return true;
+            }
+        }
 
         return false;
+    }
+
+    public bool IsChanneling()
+    {
+        if (currentChannel == null) return false;
+
+        return currentChannel.active;
     }
     public void Recast()
     {
@@ -1243,21 +1240,7 @@ public class AbilityInfo : MonoBehaviour
 
         canceledCast = true;
     }
-    public void CancelChannel(bool resetTarget = false)
-    {
-        if (!channel.active) return;
-        channel.cancel = true;
-        if (abilityManager)
-        {
-            
-            abilityManager.OnCancelChannel?.Invoke(this);
-        }
-
-        timerPercentActivated = false;
-
-        //EndChannel();
-    }
-    public void HandleAbilityType()
+    public void HandleAbilityType()                                 //This is where the magic happens.. IE where the catalyst gets released.
     {
         if(catalyst) { catalyst.GetComponent<CatalystInfo>().isCataling = false; }
         switch (abilityType)
@@ -1281,14 +1264,19 @@ public class AbilityInfo : MonoBehaviour
             var groundPos = V3Helper.GroundPosition(locationLocked, GMHelper.LayerMasks().walkableLayer);
             locationLocked.y = groundPos.y + heightFromGround;
 
-            catalyst.GetComponent<CatalystInfo>().abilityInfo = this;
+
+            catalystInfo.abilityInfo = this;
             var catalystClone = Instantiate(catalyst, locationLocked, transform.localRotation);
 
 
 
             catalystClone.transform.rotation = V3Helper.LerpLookAt(catalystClone.transform, locationLocked, 1f);
 
-            abilityManager.OnCatalystRelease?.Invoke(this, catalystClone.GetComponent<CatalystInfo>());
+            var newCatalyst = catalystClone.GetComponent<CatalystInfo>();
+            //newCatalyst.abilityInfo = this;
+
+            abilityManager.OnCatalystRelease?.Invoke(this, newCatalyst);
+            OnCatalystRelease?.Invoke(newCatalyst);
         }
 
         void FreeCast()
@@ -1298,8 +1286,7 @@ public class AbilityInfo : MonoBehaviour
                 return;
             }
             directionLocked = V3Helper.Direction(location, entityObject.transform.position);
-
-            catalyst.GetComponent<CatalystInfo>().abilityInfo = this;
+            catalystInfo.abilityInfo = this;
             var catalystClone = Instantiate(catalyst, entityObject.transform.position, transform.localRotation);
 
 
@@ -1307,10 +1294,13 @@ public class AbilityInfo : MonoBehaviour
             var groundPos = V3Helper.GroundPosition(locationLocked, GMHelper.LayerMasks().walkableLayer);
             locationLocked.y = groundPos.y + heightFromGround;
 
+            var newCatalyst = catalystClone.GetComponent<CatalystInfo>();
+            //newCatalyst.abilityInfo = this;
+
+            abilityManager.OnCatalystRelease?.Invoke(this, newCatalyst);
+            OnCatalystRelease?.Invoke(newCatalyst);
 
 
-
-            abilityManager.OnCatalystRelease?.Invoke(this, catalystClone.GetComponent<CatalystInfo>());
         }
         void LockOn()
         {
@@ -1319,26 +1309,27 @@ public class AbilityInfo : MonoBehaviour
                 return;
             }
 
-            catalyst.GetComponent<CatalystInfo>().abilityInfo = this;
+            catalystInfo.abilityInfo = this;
             var catalystClone = Instantiate(catalyst, entityObject.transform.position, transform.localRotation);
-            
 
-            if (!channel.enabled && !isAttack)
-            {
-                ClearTargets();
-            }
 
-            abilityManager.OnCatalystRelease?.Invoke(this, catalystClone.GetComponent<CatalystInfo>());
+            var newCatalyst = catalystClone.GetComponent<CatalystInfo>();
+            //newCatalyst.abilityInfo = this;
+            abilityManager.OnCatalystRelease?.Invoke(this, newCatalyst);
+            OnCatalystRelease?.Invoke(newCatalyst);
         }
         void Use()
         {
             if (!catalyst) { return; }
 
-            catalyst.GetComponent<CatalystInfo>().abilityInfo = this;
+            //catalyst.GetComponent<CatalystInfo>().abilityInfo = this;
+            catalystInfo.abilityInfo = this;
             var catalystClone = Instantiate(catalyst, entityObject.transform.position, transform.localRotation);
 
+            var newCatalyst = catalystClone.GetComponent<CatalystInfo>();
 
-            abilityManager.OnCatalystRelease?.Invoke(this, catalystClone.GetComponent<CatalystInfo>());
+            abilityManager.OnCatalystRelease?.Invoke(this, newCatalyst);
+            OnCatalystRelease?.Invoke(newCatalyst);
         }
     }
     public bool IsCorrectTarget(GameObject target)
@@ -1532,14 +1523,20 @@ public class AbilityInfo : MonoBehaviour
             return false;
         }
 
-        if (isCasting)
+        //if (isCasting)
+        //{
+        //    NotReadyReason("Already casting");
+        //    return false;
+        //}
+        //if (channel.active)
+        //{
+        //    NotReadyReason("Already channeling");
+        //    return false;
+        //}
+
+        if (IsBusy())
         {
-            NotReadyReason("Already casting");
-            return false;
-        }
-        if (channel.active)
-        {
-            NotReadyReason("Already channeling");
+            NotReadyReason("Already casting or already channeling");
             return false;
         }
         if (coolDown.globalCoolDownActive)
@@ -1604,8 +1601,8 @@ public class AbilityInfo : MonoBehaviour
                 if(!target.GetComponent<EntityInfo>().isAlive && !targetsDead)
                 {
                     CancelCast("Target Is Dead");
-                    CancelChannel();
-                    wantsToCast = false;
+                    //CancelChannel();
+                    DeactivateWantsToCast("Target is Dead", true);
                 }
             }
         }
@@ -1623,14 +1620,14 @@ public class AbilityInfo : MonoBehaviour
     }
     public void CastAt(Vector3 position)
     {
-        if (isCasting || channel.active) return;
+        if (IsBusy()) return;
         if (GetComponentInParent<AbilityManager>() == null) { return; }
         location = position;
         Cast();
     }
     public void CastAt(GameObject target)
     {
-        if (isCasting || channel.active) return;
+        if (IsBusy()) return;
         if(GetComponentInParent<AbilityManager>() == null) { return; }
         this.target = target;
         Cast();
@@ -1649,8 +1646,19 @@ public class AbilityInfo : MonoBehaviour
 
         if (success)
         {
+            tasksBeforeEndAbility = new();
+            OnSuccessfulCast?.Invoke(this);
+
             ActivateGlobalCoolDown();
-            await Channeling();
+
+            Debugger.Combat(2944, $"{this} has to wait for {tasksBeforeEndAbility.Count} tasks");
+
+            foreach (var task in tasksBeforeEndAbility)
+            {
+                await task;
+            }
+             
+            //await Channeling();
             SetRecast();
         }
 
@@ -1757,79 +1765,84 @@ public class AbilityInfo : MonoBehaviour
             }
         }
 
-        async Task Channeling()
-        {
-            if (!channel.enabled) return;
-            if (channel.active) return;
+        //async Task Channeling()
+        //{
+        //    if (!channel.enabled) return;
+        //    if (channel.active) return;
 
 
-            StartChannel();
+        //    StartChannel();
 
-            var timer = channel.time - channel.time * Haste();
-            var startTime = timer;
+        //    var timer = channel.time - channel.time * Haste();
+        //    var startTime = timer;
 
 
-            Debugger.InConsole(3245, $"Timer is {timer}");
+        //    Debugger.InConsole(3245, $"Timer is {timer}");
 
-            float progressPerInvoke = (1f / channel.invokeAmount);
-            float progressBlock = 1 - progressPerInvoke;
+        //    float progressPerInvoke = (1f / channel.invokeAmount);
+        //    float progressBlock = 1 - progressPerInvoke;
 
-            while (timer > 0)
-            {
-                await Task.Yield();
-                timer -= Time.deltaTime;
-                progress = (timer / startTime);
-                progressTimer = timer;
+        //    while (timer > 0)
+        //    {
+        //        await Task.Yield();
+        //        timer -= Time.deltaTime;
+        //        progress = (timer / startTime);
+        //        progressTimer = timer;
 
-                WhileChanneling();
+        //        WhileChanneling();
 
-                if (!CanContinue())
-                {
-                    break;
-                }
+        //        if (!CanContinue())
+        //        {
+        //            break;
+        //        }
 
-                if (progressBlock > progress)
-                {
-                    HandleAbilityType();
-                    abilityManager.OnChannelInterval?.Invoke(this);
-                    progressBlock -= progressPerInvoke;
-                }
+        //        if (progressBlock > progress)
+        //        {
+        //            HandleAbilityType();
+        //            abilityManager.OnChannelInterval?.Invoke(this);
+        //            progressBlock -= progressPerInvoke;
+        //        }
 
-            }
+        //    }
 
-            EndChannel();
+        //    EndChannel();
 
             
 
-            void StartChannel()
-            {
-                progress = 1;
-                channel.active = true;
-                abilityManager.OnChannelStart?.Invoke(this);
-            }
+        //    void StartChannel()
+        //    {
+        //        progress = 1;
+        //        channel.active = true;
+        //        abilityManager.OnChannelStart?.Invoke(this);
+        //    }
 
-            void WhileChanneling()
-            {
-                abilityManager.WhileCasting?.Invoke(this);
-                HandleTracking();
-                if (isAttack) return;
+        //    void WhileChanneling()
+        //    {
+        //        abilityManager.WhileCasting?.Invoke(this);
+        //        HandleTracking();
+        //        if (isAttack) return;
 
 
-                if (targetLocked != target)
-                {
-                    targetLocked = target;
-                }
-            }
+        //        if (targetLocked != target)
+        //        {
+        //            targetLocked = target;
+        //        }
+        //    }
 
-            void EndChannel()
-            {
-                progress = 0;
-                channel.active = false;
-                abilityManager.OnChannelEnd?.Invoke(this);
-            }
-        }
+        //    void EndChannel()
+        //    {
+        //        progress = 0;
+        //        channel.active = false;
+        //        abilityManager.OnChannelEnd?.Invoke(this);
+        //    }
+        //}
     }
-    float Haste()
+
+    public bool HasChannel()
+    {
+        return GetComponentInChildren<AugmentChannel>() != null;
+    }
+    public float Haste()
     {
         if (entityInfo)
         {
@@ -1847,12 +1860,12 @@ public class AbilityInfo : MonoBehaviour
             return false;
         }
 
-        if (channel.active && channel.cancel)
-        {
-            LogCancel("Canceled Channel");
-            channel.cancel = false;
-            return false;
-        }
+        //if (channel.active && channel.cancel)
+        //{
+        //    LogCancel("Canceled Channel");
+        //    channel.cancel = false;
+        //    return false;
+        //}
 
         if (abilityManager.currentlyCasting != this && isAttack)
         {
@@ -1884,7 +1897,7 @@ public class AbilityInfo : MonoBehaviour
     }
     void LogCancel(string reason)
     {
-        Debugger.InConsole(9536, $"{entityInfo} stopped casting {this} because {reason}");
+        Debugger.Combat(9536, $"{entityInfo} stopped casting {this} because {reason}");
     }
     async void SetCoolDownTimer()
     {
@@ -1971,10 +1984,7 @@ public class AbilityInfo : MonoBehaviour
         return type switch
         {
             RadiusType.Catalyst => catalystInfo.range,
-            RadiusType.Bounce => bounce.radius,
             RadiusType.Buff => BuffRadius(),
-            RadiusType.Splash => splash.radius,
-            RadiusType.Cataling => cataling.targetFinderRadius,
             RadiusType.Detection => lineOfSight != null ? lineOfSight.radius: 0f,
             _ => 0f,
         };

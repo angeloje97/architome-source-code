@@ -29,6 +29,8 @@ namespace Architome
         }
 
         public string dungeonSetName;
+        public int dungeonLevel = 1;
         public List<RoomInfo> rooms;
+
     }
 }

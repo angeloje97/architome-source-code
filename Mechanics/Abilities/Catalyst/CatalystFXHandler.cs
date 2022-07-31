@@ -154,15 +154,15 @@ namespace Architome
             HandleEffects(CatalystEvent.OnDestroy);
             HandleCollapse();
         }
-        private void OnHit(GameObject target)
+        private void OnHit(CatalystInfo catalyst, EntityInfo target)
         {
             HandleEffects(CatalystEvent.OnHit);
         }
-        public void OnDamage(GameObject target)
+        public void OnDamage(CatalystInfo catalyst, EntityInfo target)
         {
             HandleEffects(CatalystEvent.OnHarm);
         }
-        public void OnHeal(GameObject target)
+        public void OnHeal(CatalystInfo catalyst, EntityInfo target)
         {
             HandleEffects(CatalystEvent.OnHeal);
         }

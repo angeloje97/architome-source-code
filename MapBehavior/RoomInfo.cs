@@ -45,6 +45,7 @@ namespace Architome
         public MapInfo mapInfo;
         public Transform prefab;
 
+
         [Header("Path Properties")]
         public List<PathInfo> paths;
         public List<PathInfo> incompatablePaths;
@@ -160,11 +161,11 @@ namespace Architome
 
         private void Awake()
         {
-            GetDependencies();
         }
-        async void Start()
+        void Start()
         {
-            var badSpawn = await CheckBadSpawn();
+            //var badSpawn = await CheckBadSpawn();
+            GetDependencies();
             entities.room = this;
         }
         void Update()
@@ -176,12 +177,13 @@ namespace Architome
         protected virtual void GetDependencies()
         {
             mapInfo = MapInfo.active;
+
             if (mapInfo && !spawnedByGenerator)
             {
                 mapInfo.RoomGenerator().roomsInUse.Add(gameObject);
-                mapInfo.EntityGenerator().OnEntitiesGenerated += OnEntitiesGenerated;
             }
 
+            mapInfo.EntityGenerator().OnEntitiesGenerated += OnEntitiesGenerated;
             entities.room = this;
 
 
@@ -207,12 +209,12 @@ namespace Architome
             ShowRoomAsyncPoint(val, point, percentReveal);
         }
 
-        public void SetPaths(bool close)
+        public void SetPaths(bool open)
         {
             foreach (var path in GetComponentsInChildren<PathInfo>())
             {
                 if (path.otherRoom == null) continue;
-                path.SetPath(close);
+                path.UpdatePath(open);
             }
         }
 

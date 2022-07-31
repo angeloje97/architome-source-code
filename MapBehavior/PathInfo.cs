@@ -8,24 +8,34 @@ namespace Architome
 {
     public class PathInfo : MonoBehaviour
     {
-        // Start is called before the first frame update
+        public static PathInfo activePath;
         public bool isEntrance;
+
+        bool isChecked;
 
         public RoomInfo room;
         public PathInfo otherPath;
 
-        public GameObject pathBlock;
+        public Transform enableOnActive;
+        public Transform enableOnClose;
+
         public WalkThroughActivate pathActivator;
         public GameObject otherRoom;
         public GameObject screen;
 
         public Transform roomAnchor;
+        public Transform activeAnchor;
+        
 
         public MapInfo mapInfo;
 
         public bool isUsed = false;
         public bool hasAnotherPath = false;
+        [SerializeField] protected bool neverEntrance;
         protected bool setPath;
+
+        [SerializeField] bool isOpen;
+        [SerializeField] bool test;
 
 
         void GetDependencies()
@@ -33,7 +43,7 @@ namespace Architome
             if (MapHelper.MapInfo())
             {
                 mapInfo = MapHelper.MapInfo();
-                mapInfo.RoomGenerator().paths.Add(this);
+                //mapInfo.RoomGenerator().paths.Add(this);
             }
 
             if (pathActivator && !isUsed)
@@ -58,11 +68,14 @@ namespace Architome
 
         }
 
-        public void SetPath(bool close)
+        private void OnValidate()
         {
-            if (pathBlock == null) return;
-            pathBlock.SetActive(close);
+            if (!test) return;
+            test = false;
+            UpdatePath(isOpen);
         }
+
+
 
         //public void Close()
         //{
@@ -83,13 +96,22 @@ namespace Architome
 
         async public Task<RoomInfo> SpawnRoom(GameObject room, Transform parent, bool existingRoom = false)
         {
-            
             if (!room.GetComponent<RoomInfo>()) { return null; }
-            
+
+            while (activePath != null)
+            {
+                await Task.Yield();
+            }
+
+            activePath = this;
+
+            var mapRoomGenerator = MapRoomGenerator.active;
+            var anchor = mapRoomGenerator.RoomAnchor();
+            activeAnchor = anchor;
+            mapRoomGenerator.lastActivePath = transform;
 
 
-
-            var otherRoom = Instantiate(room, roomAnchor.transform.position, roomAnchor.transform.rotation);
+            otherRoom = Instantiate(room, roomAnchor.transform.position, roomAnchor.transform.rotation);
 
             if (existingRoom)
             {
@@ -97,6 +119,7 @@ namespace Architome
             }
 
             var info = otherRoom.GetComponent<RoomInfo>();
+            info.spawnedByGenerator = true;
             info.originPath = this;
             bool badRoom;
 
@@ -110,28 +133,33 @@ namespace Architome
 
                 for(int i = 0; i < paths.Count; i++)
                 {
-                    if (badPathIndex.Contains(i)) continue;
+                    var badPath = badPathIndex.Contains(i);
+                    var neverEntrance = paths[i].neverEntrance;
+
+                    if (badPath || neverEntrance) continue;
+
                     availablePaths.Add(paths[i]);
                 }
 
                 if (availablePaths.Count == 0) break;
-                var randomPath = ArchGeneric.RandomItem(paths);
+                var randomPath = ArchGeneric.RandomItem(availablePaths);
                 entrancePathIndex = paths.IndexOf(randomPath);
                 randomPath.setPath = true;
                 
 
-                var anchor = new GameObject("RoomAnchor");
-                anchor.transform.position = randomPath.transform.position;
-                anchor.transform.rotation = randomPath.transform.rotation;
+                //var anchor = new GameObject($"{otherRoom.name} Anchor");
+
+
+                anchor.transform.SetPositionAndRotation(randomPath.transform.position, randomPath.transform.rotation);
 
                 otherRoom.transform.SetParent(anchor.transform);
 
-                anchor.transform.position = roomAnchor.transform.position;
-                anchor.transform.rotation = roomAnchor.transform.rotation;
-
+                anchor.transform.SetPositionAndRotation(roomAnchor.transform.position, roomAnchor.transform.rotation);
+                
                 otherRoom.transform.SetParent(parent);
 
-                Destroy(anchor);
+                //Destroy(anchor);
+
 
                 badRoom = await info.CheckBadSpawn();
 
@@ -144,10 +172,12 @@ namespace Architome
 
                     otherRoom = Instantiate(destroyThis, destroyThis.transform.position, destroyThis.transform.rotation);
                     info = otherRoom.GetComponent<RoomInfo>();
+                    info.spawnedByGenerator = true;
 
                     Destroy(destroyThis);
 
                 }
+                await Task.Delay((int)(1000 * mapRoomGenerator.fixDelay));
 
 
             } while (badRoom);
@@ -172,19 +202,14 @@ namespace Architome
 
 
                 if (!entrancePath) continue;
-
-                //newRoomPaths[i].isUsed = i == entrancePathIndex;
-
-
             }
 
 
             info.spawnedByGenerator = true;
 
             otherRoom.transform.SetParent(parent);
-            //otherRoom.transform.parent = parent;
             info.originPath = this;
-
+            activePath = null;
             isUsed = true;
             return info;
 
@@ -192,6 +217,7 @@ namespace Architome
 
         public void CheckPath()
         {
+            if (isChecked) return;
             Collider[] paths = Physics.OverlapSphere(transform.position, 1f);
 
             List<Collider> pathList = new List<Collider>(paths);
@@ -203,7 +229,7 @@ namespace Architome
                 if (otherInfo == null || otherInfo == this) continue;
                 //if (!path.GetComponentInParent<PathInfo>()) { continue; }
 
-                if (!V3Helper.EqualVector3(roomAnchor.transform.position, otherInfo.transform.position, .125f)) continue;
+                if (!V3Helper.EqualVector3(roomAnchor.transform.position, otherInfo.transform.position, .25f)) continue;
                 //if (!V3Helper.EqualVector3(transform.position, otherInfo.transform.position, .25f)) continue;
 
                 otherPath = otherInfo;
@@ -212,13 +238,36 @@ namespace Architome
                 otherInfo.hasAnotherPath = true;
                 SetOtherPath();
                 otherPath.SetOtherPath();
+                
                 return;
+            }
+
+            UpdatePath(false);
+
+        }
+
+        public void UpdatePath(bool isOpen)
+        {
+            if (enableOnActive)
+            {
+                foreach (Transform child in enableOnActive)
+                {
+                    child.gameObject.SetActive(isOpen);
+                }
+            }
+
+            if (enableOnClose)
+            {
+                foreach (Transform child in enableOnClose)
+                {
+                    child.gameObject.SetActive(!isOpen);
+                }
             }
         }
 
         void SetOtherPath()
         {
-
+            isChecked = true;
             if (!otherPath)
             {
                 Debugger.InConsole(8942, $"There is no other path for {this}");
@@ -240,10 +289,7 @@ namespace Architome
                     pathActivator.activatedObjects.Add(otherPath.room.gameObject);
                 }
 
-                if (pathBlock)
-                {
-                    pathBlock.SetActive(false);
-                }
+                UpdatePath(true);
             }
         }
 

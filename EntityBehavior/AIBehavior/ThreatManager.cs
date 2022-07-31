@@ -56,6 +56,7 @@ public class ThreatManager : MonoBehaviour
         {
             while (isActive)
             {
+                if (!Application.isPlaying) return;
                 await Task.Delay(1000);
                 timeInCombat += 1;
                 try

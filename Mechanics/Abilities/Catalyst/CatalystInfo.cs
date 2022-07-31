@@ -41,7 +41,8 @@ namespace Architome
         public List<EntityInfo> enemiesHit;
         public List<EntityInfo> alliesHealed;
         public List<EntityInfo> alliesAssisted;
-        public EntityInfo lastTargetHit;
+        
+        public EntityInfo lastTargetHit { get; set; }
         LayerMask entityLayer { get; set; }
         LayerMask structureLayer { get; set; }
 
@@ -203,10 +204,12 @@ namespace Architome
         public bool isDestroyed;
 
         //Events
-        public Action<GameObject> OnDamage;
-        public Action<GameObject> OnAssist;
-        public Action<GameObject> OnHeal;
-        public Action<GameObject> OnHit { get; set; }
+        public Action<CatalystInfo, EntityInfo> OnDamage;
+        public Action<CatalystInfo, EntityInfo> OnAssist;
+        public Action<CatalystInfo, EntityInfo> OnHeal;
+
+        public Action<CatalystInfo, Collider> OnStructureHit;
+        public Action<CatalystInfo, EntityInfo> OnHit { get; set; }
         public Action<GameObject> OnWrongTarget;
         public Action<GameObject> OnDeadTarget { get; set; }
         public Action<GameObject, GameObject> OnNewTarget;
@@ -319,15 +322,6 @@ namespace Architome
                     catalystUse.catalystInfo = this;
                 }
 
-                if (abilityInfo.bounce.enable)
-                {
-                    gameObject.AddComponent<CatalystBounce>();
-                }
-
-                if (abilityInfo.splash.enable)
-                {
-                    gameObject.AddComponent<CatalystSplash>();
-                }
 
                 if (abilityInfo.returns)
                 {
@@ -350,7 +344,7 @@ namespace Architome
 
                 if (abilityInfo.summoning.enabled) gameObject.AddComponent<CatalystSummon>();
 
-                if (abilityInfo.cataling.enable && abilityInfo.cataling.catalyst) gameObject.AddComponent<CatalingHandler>();
+                //if (abilityInfo.cataling.enable && abilityInfo.cataling.catalyst) gameObject.AddComponent<CatalingHandler>();
 
                 requiresLockOnTarget = abilityInfo.requiresLockOnTarget;
                 ticks = abilityInfo.ticksOfDamage;
@@ -359,16 +353,6 @@ namespace Architome
             void HandleCatalyng()
             {
                 if (!isCataling) { return; }
-
-                var catalingType = abilityInfo.cataling.catalingType;
-
-                if (catalingType == AbilityType.LockOn)
-                {
-                    gameObject.AddComponent<CatalystLockOn>();
-
-                }
-
-                value = abilityInfo.value * abilityInfo.cataling.valueContribution;
 
                 ticks = 1;
             }
@@ -460,11 +444,15 @@ namespace Architome
 
             if (targetInfo.isAlive) { return; }
 
-            if (abilityInfo.bounce.enable)
-            {
-                GetComponent<CatalystBounce>().LookForNewTarget();
-            }
         }
+
+        public void AddTarget(EntityInfo target)
+        {
+            enemiesHit.Add(target);
+            alliesHealed.Add(target);
+            alliesAssisted.Add(target);
+        }
+
         public List<EntityInfo> EntitiesWithinRadius(float radius = 0f, bool requiresLineOfSight = true)
         {
             if (radius == 0) radius = range;

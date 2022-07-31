@@ -161,10 +161,10 @@ namespace Architome
         }
         void OnSelect()
         {
-            if (Mouse.IsMouseOverUI() && !IsOverPortraitOrHealthBar())
-            {
-                return;
-            }
+            //if (Mouse.IsMouseOverUI() && !IsOverPortraitOrHealthBar())
+            //{
+            //    return;
+            //}
 
 
             ClearSelected();
@@ -326,7 +326,7 @@ namespace Architome
 
             if (hoverTargets.Count > 0)
             {
-                AddMouseOver(hoverTargets[0].GetComponent<EntityInfo>());
+                ClearHovers();
             }
             else
             {
@@ -338,9 +338,9 @@ namespace Architome
 
     public struct TargetableEvents
     {
-        public Action<bool> OnHover;
-        public Action<bool> OnSelect;
-        public Action<bool> OnHold;
+        public Action<bool> OnHover { get; set; }
+        public Action<bool> OnSelect { get; set; }
+        public Action<bool> OnHold { get; set; }
     }
 
 }

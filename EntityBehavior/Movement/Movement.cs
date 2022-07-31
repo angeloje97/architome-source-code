@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using Architome.Enums;
 using System.Threading.Tasks;
+using Pathfinding.RVO;
 
 using UnityEngine.Events;
 
@@ -24,6 +25,7 @@ namespace Architome
         public RigidbodyConstraints originalConstraints;
         public AbilityManager abilityManager;
         public AIBehavior behavior;
+
 
         //public float baseMovementSpeed;
         //public float entityMovementSpeed;
@@ -66,6 +68,12 @@ namespace Architome
                 rigidBody = entityObject.GetComponent<Rigidbody>();
 
                 originalConstraints = rigidBody.constraints;
+
+
+                //if (rvoController == null)
+                //{
+                //    rvoController = entityInfo.gameObject.AddComponent<RVOController>();
+                //}
 
                 if (entityInfo.AIDestinationSetter())
                 {
@@ -288,6 +296,17 @@ namespace Architome
 
             return true;
         }
+        async public Task<Transform> NextPathTarget()
+        {
+            var currentTarget = destinationSetter.target;
+
+            while (destinationSetter.target == currentTarget)
+            {
+                await Task.Yield();
+            }
+
+            return destinationSetter.target;
+        }
         public void MoveTo(Transform locationTransform, float endReachDistance = 0f)
         {
             if (!entityInfo.isAlive) { return; }
@@ -417,14 +436,14 @@ namespace Architome
         {
 
         }
-        void OnChannelStart(AbilityInfo ability)
+        void OnChannelStart(AbilityInfo ability, AugmentChannel augment)
         {
-            if (ability.channel.cancelChannelOnMove)
+            if (augment.cancelChannelOnMove)
             {
                 movement.StopMoving();
             }
         }
-        void OnChannelEnd(AbilityInfo ability)
+        void OnChannelEnd(AbilityInfo ability, AugmentChannel augment)
         {
 
         }

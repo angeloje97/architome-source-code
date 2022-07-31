@@ -1,249 +1,150 @@
+using System;
+using System.Threading.Tasks;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
-using System;
 
 namespace Architome
 {
-    [Serializable]
-    public class Augment 
+    public class Augment : MonoBehaviour
     {
-        public int augmentId;
+        int id;
+
+
+        public new string name;
+        [Multiline]
+        public string description;
+        public CatalystTarget catalystTarget;
 
         [Serializable]
-        public struct DestroyConditions
+        public class Info
         {
-            public bool destroyOnCollisions;
-            public bool destroyOnStructure;
-            public bool destroyOnNoTickDamage;
-            public bool destroyOnReturn;
-            public bool destroyOnOutOfRange;
-            public bool destroyOnLiveTime;
-            public bool destroyOnDeadTarget;
-            public bool destroyOnCantFindTarget;
+            public float value;
+            public float valueContributionToAugment = 1f;
+            public float generalRadius;
 
-            public static DestroyConditions operator +(DestroyConditions condition1, DestroyConditions condition2)
+
+            public int ticks;
+        }
+
+        public Info info;
+
+        public AbilityInfo ability;
+        public AugmentCataling augmentCataling;
+        public EntityInfo entity;
+
+        public AugmentProp.DestroyConditions additiveDestroyConditions, subtractiveDestroyConditions;
+        public AugmentProp.Restrictions additiveRestrictions, subtractiveRestrictions;
+
+
+        public Action<CatalystInfo> OnNewCatalyst;
+        public Action<Augment> OnRemove;
+
+        public bool dependenciesAcquired;
+
+        async void Start()
+        {
+            
+            await GetDependencies();
+            AdjustAbility(true);
+        }
+
+        private void Awake()
+        {
+            
+        }
+
+        async Task GetDependencies()
+        {
+            ability = GetComponentInParent<AbilityInfo>();
+            augmentCataling = transform.parent.GetComponent<AugmentCataling>();
+            entity = GetComponentInParent<EntityInfo>();
+
+            while (ability.abilityManager == null)
             {
-                DestroyConditions newCondition = new();
+                await Task.Yield();
+            }
 
-                foreach (var field in newCondition.GetType().GetFields())
+            
+            if (augmentCataling)
+            {
+                Action<CatalystInfo, CatalystInfo> action = (CatalystInfo original, CatalystInfo cataling) => {
+                    OnNewCatalyst?.Invoke(cataling);
+                };
+
+                augmentCataling.OnCatalystRelease += action;
+                OnRemove += (Augment augment) => { augmentCataling.OnCatalystRelease -= action; };
+                catalystTarget = CatalystTarget.Cataling;
+                dependenciesAcquired = true;
+                return;
+            }
+
+            if (ability)
+            {
+                info.value = ability.value * info.valueContributionToAugment;
+
+                Action<CatalystInfo> action = (CatalystInfo catalyst) => {
+                    OnNewCatalyst?.Invoke(catalyst);
+                };
+
+                ability.OnCatalystRelease += action;
+
+                OnRemove += (Augment augment) => {
+                    ability.OnCatalystRelease -= action;
+                };
+                catalystTarget = CatalystTarget.Cataling;
+            }
+
+            dependenciesAcquired = true;
+        }
+
+        public void AdjustAbility(bool applying)
+        {
+            if (applying)
+            {
+                ability.ticksOfDamage += info.ticks;
+            }
+            else
+            {
+                ability.ticksOfDamage -= info.ticks;
+            }
+        }
+
+        public string Description()
+        {
+            var result = "";
+            
+
+            return result;
+        }
+
+        public string TypeDescription()
+        {
+            var result = "";
+
+            foreach (var type in GetComponents<AugmentType>())
+            {
+                var description = type.Description();
+                if (description.Length > 0 && result.Length > 0)
                 {
-                    var value = field.GetValue(newCondition);
-
-                    if (value.GetType() != typeof(bool)) continue;
-
-                    if ((bool)field.GetValue(condition1) || (bool)field.GetValue(condition2))
-                    {
-                        field.SetValue(newCondition, true);
-                    }
-                    else
-                    {
-                        field.SetValue(newCondition, false);
-                    }
-
-
+                    result += $"\n";
                 }
 
-                return newCondition;
+                result += $"{description}";
             }
+            return result;
         }
 
-        [Serializable]
-        public struct Restrictions
+        public void RemoveAugment()
         {
-            public bool activated;
-            public bool playerAiming;
-            public bool canCastSelf;
-            public bool onlyCastSelf;
-            public bool onlyCastOutOfCombat;
-            public bool isHealing;
-            public bool isAssisting;
-            public bool isHarming;
-            public bool destroysSummons;
-            public bool targetsDead;
-            public bool requiresLockOnTarget;
-            public bool requiresLineOfSight;
-            public bool canHitSameTarget;
-            public bool canAssistSameTarget;
-            public bool explosive;
-            public bool canBeIntercepted;
-            public bool nullifyDamage;
-            public bool interruptable;
-            public bool isAttack;
-            public bool usesWeaponCatalyst;
-            public bool usesWeaponAttackDamage;
-            public bool active;
+            OnRemove?.Invoke(this);
 
-            public static Restrictions operator +(Restrictions restriction1, Restrictions restrictions2)
-            {
-                Restrictions newRestriction = new();
+            AdjustAbility(false);
 
-                foreach (var field in newRestriction.GetType().GetFields())
-                {
-                    var value = field.GetValue(newRestriction);
-
-                    if (value.GetType() != typeof(bool)) continue;
-
-                    if ((bool)field.GetValue(restriction1) || (bool)field.GetValue(restrictions2))
-                    {
-                        field.SetValue(newRestriction, true);
-                    }
-                    else
-                    {
-                        field.SetValue(newRestriction, false);
-                    }
-
-
-                }
-
-                return newRestriction;
-            }
+            ArchAction.Yield(() => {
+                Destroy(gameObject);
+            });
         }
-        [Serializable]
-        public struct Cataling
-        {
-            public bool enable;
-            public GameObject catalyst;
-            public AbilityType catalingType;
-            public CatalystEvent releaseCondition;
-            public int releasePerInterval;
-            public float interval, targetFinderRadius, valueContribution, rotationPerInterval, startDelay;
-        }
-        [Serializable]
-        public struct Bounce
-        {
-            public bool enable, requireLOS;
-            public float radius;
-        }
-
-        [Serializable]
-        public struct RecastProperties
-        {
-            public bool enabled;
-            public bool isActive;
-            public int maxRecast;
-            public int currentRecast;
-            public float recastTimeFrame;
-            public Action<AbilityInfo> OnRecast;
-
-            public bool CanRecast()
-            {
-                if (currentRecast > 0 && isActive)
-                {
-                    return true;
-                }
-
-                return false;
-            }
-        }
-
-
-        [Serializable]
-        public struct Tracking
-        {
-            public bool tracksTarget;
-            public bool predictsTarget;
-            public bool predicting;
-
-            [Range(0, 1)]
-            public float trackingInterpolation;
-        }
-
-        [Serializable]
-        public struct ChannelProperties
-        {
-            public bool enabled;
-            public bool active;
-            public float time;
-            public int invokeAmount;
-            public bool cancel;
-
-            [Header("Restrictions")]
-            public bool canMove;
-            public bool cancelChannelOnMove;
-            public float deltaMovementSpeed;
-        }
-
-        [Serializable]
-        public struct SplashProperties
-        {
-            public bool enable;
-            public CatalystEvent trigger;
-            public bool requiresLOS;
-            public bool appliesBuffs;
-            public int maxSplashTargets;
-            public float valueContribution;
-            public float radius;
-            public float delay;
-
-        }
-
-        [Serializable]
-        public struct Threat
-        {
-            public bool enabled;
-            public float additiveThreatMultiplier;
-
-            public bool setsThreat;
-            public float threatSet;
-
-            public bool clearThreat;
-        }
-
-        [Serializable]
-        public struct SummoningProperty
-        {
-            public bool enabled;
-            public List<GameObject> summonableEntities;
-
-            [Header("Summoning Settings")]
-            public float radius;
-            public float liveTime;
-            public float valueContributionToStats;
-            public Stats additiveStats;
-
-            [Header("Death Settings")]
-            public bool masterDeath;
-            public bool masterCombatFalse;
-        }
-
-
-        public DestroyConditions additiveConditions;
-        public Restrictions additiveRestrictions;
-
-        public Bounce bounce;
-        public Cataling cataling;
-        public Tracking tracking;
-        public RecastProperties recast;
-        public ChannelProperties channel;
-        public SplashProperties splash;
-        public Threat threat;
-        public SummoningProperty summoning;
-
-
-        public void ApplyAugment(AbilityInfo ability)
-        {
-            ability.destroyConditions += additiveConditions;
-            ability.restrictions += additiveRestrictions;
-
-            if (cataling.enable)
-            {
-                ability.cataling = cataling;
-            }
-
-            if (bounce.enable)
-            {
-                ability.bounce = bounce;
-            }
-
-            if (tracking.tracksTarget)
-            {
-                ability.tracking = tracking;
-            }
-        }
-
-
-
     }
 }

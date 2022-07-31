@@ -46,9 +46,9 @@ namespace Architome
             var module = GetComponentInParent<ModuleInfo>();
             if (module != null) return;
 
-
             while (Application.isPlaying)
             {
+                if (canvasGroup == null) break;
                 if (alpha == canvasGroup.alpha)
                 {
                     await Task.Yield();

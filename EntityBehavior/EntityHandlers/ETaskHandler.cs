@@ -1,8 +1,9 @@
+using System;
 using System.Collections;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
-using System;
 
 namespace Architome
 {
@@ -27,8 +28,6 @@ namespace Architome
             if(entityInfo.Movement())
             {
                 movement = entityInfo.Movement();
-                movement.OnNewPathTarget += OnNewPathTarget;
-                movement.OnEndMove += OnEndMove;
             }
 
             entityInfo.taskEvents.OnNewTask += OnNewTask;
@@ -60,22 +59,6 @@ namespace Architome
         {
         }
 
-        public void OnEndMove(Movement movement)
-        {
-            //var target = movement.Target();
-            //ArchAction.Delay(() => {
-            //    if (target == null) { return; }
-            //    if (currentTask == null) { return; }
-            //    if (currentTask.properties.station == null) { return; }
-            //    if (!movement.IsInRangeFromTarget()) { return; }
-
-            //    movement.StopMoving();
-            //    WorkOn(currentTask); 
-            //}, .125f);
-            
-            
-
-        }
 
         public void OnNewTask(TaskInfo previous, TaskInfo current)
         {
@@ -92,17 +75,6 @@ namespace Architome
         public void OnTaskComplete(TaskEventData eventData)
         {
             StopTask();
-        }
-
-
-        public void OnNewPathTarget(Movement movement, Transform previousTarget, Transform currentTarget)
-        {
-            if (currentTask == null) { return; }
-
-            if (!IsCurrentWorkStation(currentTarget))
-            {
-                StopTask();
-            }
         }
 
         public void OnDamageTaken(CombatEventData eventData)
@@ -144,6 +116,34 @@ namespace Architome
             currentState = WorkerState.Working;
         }
 
+        async public Task<bool> StartWorkAsync(TaskInfo task)
+        {
+            if (task == null) return false;
+
+            StartWork(task);
+
+            if (currentTask != task) return false;
+
+            bool successful = false;
+
+            Action<TaskEventData> action = (TaskEventData eventData) =>
+            {
+                successful = true;
+            };
+
+            entityInfo.taskEvents.OnTaskComplete += action;
+
+            while (currentTask == task)
+            {
+                if (successful) break;
+                await Task.Yield();
+            }
+
+            entityInfo.taskEvents.OnTaskComplete -= action;
+
+            return successful;
+        }
+
         async public void StartWork(TaskInfo task)
         {
             Debugger.InConsole(18964, $"{task}");
@@ -160,18 +160,17 @@ namespace Architome
             entityInfo.taskEvents.OnMoveToTask?.Invoke(newTaskEvent);
             currentState = WorkerState.MovingToWork;
 
-            var successful = true;
 
-            if(hasWorkSpot)
+            var workSpot = currentStation.workSpot;
+            float distance = 0f;
+            if (workSpot == null)
             {
-                //movement.MoveTo(currentStation.workSpot);
-                successful = await movement.MoveToAsync(currentStation.workSpot);
+                workSpot = currentStation.transform;
+                distance = 3f;
             }
-            else
-            {
-                successful = await movement.MoveToAsync(currentStation.transform, 3f);
-                //movement.MoveTo(currentStation.transform, 3f);
-            }
+
+            var successful = await movement.MoveToAsync(workSpot, distance);
+
 
             if (!successful)
             {
@@ -181,6 +180,16 @@ namespace Architome
             if (!successful) return;
 
             WorkOn(task);
+
+
+
+            var newPathTarget = await movement.NextPathTarget();
+
+            if (currentTask != null)
+            {
+                StopTask();
+            }
+
         }
 
     }

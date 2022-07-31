@@ -100,7 +100,7 @@ namespace Architome
 
         
 
-        public static List<EntityInfo> EntitesWithinLOS(Vector3 position, float radius)
+        public static List<EntityInfo> EntitiesWithinLOS(Vector3 position, float radius)
         {
             var obstructionLayer = GMHelper.LayerMasks().structureLayerMask;
             var entityLayer = GMHelper.LayerMasks().entityLayerMask;

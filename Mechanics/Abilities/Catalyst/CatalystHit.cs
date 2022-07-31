@@ -146,7 +146,7 @@ public class CatalystHit : MonoBehaviour
             {
                 var combatData = new CombatEventData(catalystInfo, catalystInfo.entityInfo, value);
                 targetHit.Heal(combatData);
-                catalystInfo.OnHeal?.Invoke(targetHit.gameObject);
+                catalystInfo.OnHeal?.Invoke(catalystInfo ,targetHit);
                 AddAlliesHealed(targetHit);
                 if(isHealing && !isAssisting)
                 {
@@ -167,7 +167,7 @@ public class CatalystHit : MonoBehaviour
             {
                 var combatData = new CombatEventData(catalystInfo, catalystInfo.entityInfo, value);
                 targetHit.Damage(combatData);
-                catalystInfo.OnDamage?.Invoke(targetHit.gameObject);
+                catalystInfo.OnDamage?.Invoke(catalystInfo, targetHit);
                 ApplyBuff(targetHit, BuffTargetType.Harm);
                 AddEnemyHit(targetHit);
                 catalystInfo.ReduceTicks();
@@ -193,7 +193,7 @@ public class CatalystHit : MonoBehaviour
                 
                 //Change these instructions to that of assisting instead of healing
                 ApplyBuff(targetHit, BuffTargetType.Assist);
-                catalystInfo.OnAssist?.Invoke(targetHit.gameObject);
+                catalystInfo.OnAssist?.Invoke(catalystInfo, targetHit);
                 AddAlliesAssisted(targetHit);
                 AddAlliesHealed(targetHit);
 
@@ -209,7 +209,7 @@ public class CatalystHit : MonoBehaviour
             {
                 ArchAction.Yield(() => {
                     catalystInfo.lastTargetHit = targetHit;
-                    catalystInfo.OnHit?.Invoke(targetHit.gameObject);
+                    catalystInfo.OnHit?.Invoke(catalystInfo, targetHit);
                 });
                 
             }
@@ -222,7 +222,7 @@ public class CatalystHit : MonoBehaviour
 
             var combatData = new CombatEventData(catalystInfo, catalystInfo.entityInfo, targetHit.maxHealth);
             targetHit.Damage(combatData);
-            catalystInfo.OnDamage?.Invoke(targetHit.gameObject);
+            catalystInfo.OnDamage?.Invoke(catalystInfo, targetHit);
             AddEnemyHit(targetHit);
             catalystInfo.ReduceTicks();
             targetHit.Die();

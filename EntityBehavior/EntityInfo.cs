@@ -113,6 +113,7 @@ namespace Architome
             public Action<Quest> OnQuestComplete;
             public Action<Inventory.LootEventData> OnLootItem;
             public Action<Inventory.LootEventData> OnLootItemFromWorld;
+            public Action<EntityInfo, bool, GameObject> OnMouseHover;
         }
 
         public struct CombatEvents
@@ -265,6 +266,30 @@ namespace Architome
             }
         }
 
+        async void HandleFalling()
+        {
+            var height = transform.position.y;
+
+            var manager = GameManager.active;
+
+            if (manager.GameState != GameState.Play) return;
+
+            while (Application.isPlaying)
+            {
+                if (this == null) return;
+                if (height != transform.position.y)
+                {
+                    height = transform.position.y;
+                    
+                    if (height < -100)
+                    {
+                        Die();
+                    }
+                }
+                await Task.Delay(1000);
+            }
+        }
+
         public void UpdateObjectives(object sender)
         {
             objectives = new();
@@ -294,6 +319,7 @@ namespace Architome
         void Start()
         {
             EntityStart();
+            HandleFalling();
         }
 
         public virtual void EntityStart()
@@ -374,6 +400,16 @@ namespace Architome
             //infoEvents.OnObjectiveCheck?.Invoke(objectives);
             return ArchString.NextLineList(objectives);
         }
+        private void OnMouseEnter()
+        {
+            infoEvents.OnMouseHover?.Invoke(this, true, gameObject);
+        }
+
+        private void OnMouseExit()
+        {
+            infoEvents.OnMouseHover?.Invoke(this, false, gameObject);
+
+        }
         public void OnTriggerEnter(Collider other)
         {
             OnTriggerEvent?.Invoke(this, other, true);
@@ -436,6 +472,8 @@ namespace Architome
             var damageType = combatData.DataDamageType();
 
             var sourceLevel = combatData.source ? combatData.source.stats.Level : stats.Level;
+
+            if (sourceLevel <= 0) sourceLevel = 1;
 
 
             HandleValue();
@@ -767,6 +805,20 @@ namespace Architome
             mana = maxMana;
         }
 
+        public NPCType EnemyType()
+        {
+            if (npcType == NPCType.Hostile)
+            {
+                return NPCType.Friendly;
+            }
+
+            if (npcType == NPCType.Untargetable)
+            {
+                return NPCType.Untargetable;
+            }
+
+            return NPCType.Hostile;
+        }
         public Sprite PortraitIcon(bool fixPortrait = true)
         {
 

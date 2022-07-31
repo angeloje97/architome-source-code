@@ -11,9 +11,10 @@ namespace Architome
         // Start is called before the first frame update
         public static async void Delay(Action action, float seconds)
         {
+            
             int milliSeconds = (int)(seconds * 1000);
             await Task.Delay(milliSeconds);
-
+            if (!Application.isPlaying) return;
             action();
         }
         public static async Task DelayT(Action action, float seconds)
@@ -26,6 +27,7 @@ namespace Architome
         }
         public static async void Yield(Action action)
         {
+            if (!Application.isPlaying) return;
             await Task.Yield();
             action();
         }
@@ -43,6 +45,7 @@ namespace Architome
         {
             while (condition.isMet)
             {
+                if (!Application.isPlaying) return;
                 action();
                 await Task.Yield();
             }

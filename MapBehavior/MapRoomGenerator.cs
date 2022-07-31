@@ -29,6 +29,10 @@ namespace Architome
         public List<GameObject> roomsInUse;
         public List<PathInfo> paths;
 
+        public Transform roomAnchor;
+        public Transform lastActivePath;
+
+
         [Header("Room Generator Properties")]
 
         [Range(0, 1)]
@@ -40,6 +44,7 @@ namespace Architome
 
         public float spawnDelay = 1f;
         public float startDelay = 0f;
+        public float fixDelay = 0f;
         public float hideDelay;
         //public float fixTimer;
         //public float fixTimeFrame;
@@ -48,7 +53,7 @@ namespace Architome
         public Action<MapRoomGenerator> OnRoomsGenerated;
         public Action<MapRoomGenerator> OnAllRoomsHidden;
         public Action<MapRoomGenerator, RoomInfo> OnSpawnRoom;
-        public Action<MapRoomGenerator> BeforeEndGeneration;
+        public Action<MapRoomGenerator> BeforeEndGeneration { get; set; }
         public Action<MapRoomGenerator> AfterEndGeneration;
 
         public int roomsGenerated;
@@ -87,12 +92,19 @@ namespace Architome
         {
             if (mapInfo.generateRooms)
             {
+                await Task.Yield();
                 UpdateStartingRoom();
                 await Task.Delay((int) (startDelay * 1000));
+
                 await Task.Yield();
-                //StartCoroutine(ClearNullsRoutine());
-                await UpdateskeletonRooms();
-                await UpdateAvailableRooms();
+
+                if (roomsInUse.Count > 0)
+                {
+                    await UpdateskeletonRooms();
+                    await UpdateAvailableRooms();
+                    await Task.Yield();
+                }
+
                 await HandleEndGeneration();
 
                 generatedRooms = true;
@@ -160,6 +172,17 @@ namespace Architome
             GenerateRooms();
         }
 
+        public Transform RoomAnchor()
+        {
+            if (roomAnchor == null)
+            {
+                var anchorObject = new GameObject("RoomAnchor");
+                roomAnchor = anchorObject.transform;
+                roomAnchor.transform.SetParent(transform);
+            }
+
+            return roomAnchor;
+        }
 
         private void Awake()
         {
@@ -179,10 +202,26 @@ namespace Architome
 
         void UpdateStartingRoom()
         {
-            if (startingRoom == null) return;
-            Instantiate(startingRoom, roomList);
+            var room = startingRoom;
 
-            roomsGenerated++;
+            if (room == null)
+            {
+                if (skeletonRooms.Count > 0)
+                {
+                    room = skeletonRooms[0];
+                    skeletonRooms.RemoveAt(0);
+                }
+            }
+
+            if (room == null) return;
+
+            var newRoom = Instantiate(room, roomList);
+
+
+            var info = newRoom.GetComponent<RoomInfo>();
+            info.spawnedByGenerator = true;
+
+            AddRoom(info);
         }
         async Task UpdateskeletonRooms()
         {
@@ -193,7 +232,8 @@ namespace Architome
                 if (!mapInfo.generateRooms) { break; }
 
                 //generatingSkeleton = true;
-                roomsGenerated++;
+                
+
                 await HandleSekeletonRooms();
                 await Task.Delay((int) (spawnDelay * 1000));
 
@@ -206,7 +246,11 @@ namespace Architome
 
             async Task HandleSekeletonRooms()
             {
-                if  (roomsInUse.Count == 0 || seedGenerator == null || skeletonRooms.Count == 0) { return; }
+                if (roomsInUse.Count == 0 || seedGenerator == null || skeletonRooms.Count == 0)
+                {
+                    skeletonRooms.Clear();
+                    return;
+                }
 
                 ClearNullPaths();
                 ClearNullRooms();
@@ -216,10 +260,11 @@ namespace Architome
 
                 if (availablePaths.Count == 0)
                 {
-                    availablePaths = PreviousPaths(roomsInUse.Count - 1);
+                    availablePaths = PreviousPaths(roomsInUse.Count);
                     if (availablePaths.Count == 0)
                     {
                         skeletonRooms.Clear();
+                        return;
                     }
                 }
 
@@ -229,7 +274,7 @@ namespace Architome
 
                 var newRoom = await availablePaths[pathSeed].SpawnRoom(skeletonRooms[0], roomList);
                 skeletonRooms.RemoveAt(0);
-                var badSpawn = await newRoom.CheckBadSpawn();
+                var badSpawn = newRoom.badSpawn;
 
 
                 while (badSpawn)
@@ -246,12 +291,15 @@ namespace Architome
                         availablePaths = PreviousPaths(roomsInUse.Count - 2);
                     }
 
-                    if (availablePaths.Count == 0) return;
+                    if (availablePaths.Count == 0)
+                    {
+                        Destroy(badRoom);
+                        return;
+                    }
 
                     var randomPath = availablePaths[UnityEngine.Random.Range(0, availablePaths.Count)];
 
                     newRoom = await randomPath.SpawnRoom(badRoom.gameObject, roomList, true);
-
 
                     //foreach (var path in newRoom.paths)
                     //{
@@ -261,7 +309,7 @@ namespace Architome
 
                     //Destroy(badRoom.gameObject);
 
-                    badSpawn = await newRoom.CheckBadSpawn();
+                    badSpawn = newRoom.badSpawn;
 
                     if (badSpawn)
                     {
@@ -269,7 +317,7 @@ namespace Architome
                     }
                 }
 
-                roomsInUse.Add(newRoom.gameObject);
+                AddRoom(newRoom);
                 newRoom.PercentReveal = roomRevealPercent;
                 OnSpawnRoom?.Invoke(this, newRoom);
             }
@@ -280,7 +328,7 @@ namespace Architome
             do
             {
                 if (!mapInfo.generateRooms) { break; }
-                roomsGenerated++;
+                
                 await HandleAvailableRooms();
                 await Task.Delay((int)(spawnDelay * 1000));
 
@@ -312,11 +360,10 @@ namespace Architome
                 var seedRoomIndex = UnityEngine.Random.Range(0, availableRooms.Count);
 
                 var newRoom = await availablePaths[seedPathIndex].SpawnRoom(availableRooms[seedRoomIndex], roomList);
-
+                var badSpawn = newRoom.badSpawn;
                 availableRooms.Remove(availableRooms[seedRoomIndex]);
 
 
-                var badSpawn = await newRoom.CheckBadSpawn();
 
                 while (badSpawn)
                 {
@@ -336,14 +383,14 @@ namespace Architome
                     var randomPath = ArchGeneric.RandomItem(availablePaths);
 
                     newRoom = await randomPath.SpawnRoom(badRoom.gameObject, roomList, true);
-
+                    badSpawn = newRoom.badSpawn;
                     //Destroy(badRoom.gameObject);
 
-                    badSpawn = await newRoom.CheckBadSpawn();
+                    //badSpawn = await newRoom.CheckBadSpawn();
                 }
 
+                AddRoom(newRoom);
                 newRoom.PercentReveal = roomRevealPercent;
-                roomsInUse.Add(newRoom.gameObject);
                 OnSpawnRoom?.Invoke(this, newRoom);
 
             }
@@ -397,7 +444,6 @@ namespace Architome
         async Task HandleEndGeneration()
         {
             BeforeEndGeneration?.Invoke(this);
-            ClearNullPaths();
             ClearNullRooms();
             HandleCheckPaths();
             await HandleBackgroundAdjustment();
@@ -586,9 +632,31 @@ namespace Architome
             {
                 path.CheckPath();
             }
-
-
         }
+
+        public void AddRoom(RoomInfo room)
+        {
+            if (paths == null)
+            {
+                paths = new();
+            }
+
+            if (roomsInUse == null)
+            {
+                roomsInUse = new();
+            }
+
+            if (roomsInUse.Contains(room.gameObject)) return;
+            roomsInUse.Add(room.gameObject);
+
+            roomsGenerated = roomsInUse.Count;
+
+            foreach (var path in room.paths)
+            {
+                paths.Add(path);
+            }
+        }
+        
         public List<PathInfo> AvailablePaths()
         {
             ClearNullPaths();

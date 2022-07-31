@@ -30,9 +30,11 @@ namespace Architome
             [Range(0, 3)]
             public int stars;
             public int maxChestSlots;
-            public List<ItemData> items;
+            public int minItems;
+            public int maxItems;
             public bool useItemPool;
             public bool createItemPools; // OnValidateField
+            public List<ItemData> items;
             public ItemPool itemPool;
 
             [Header("Interactions")]
@@ -95,7 +97,10 @@ namespace Architome
 
             if (!info.createItemPools) return; info.createItemPools = false;
             if (info.itemPool == null) return;
-            info.items = info.itemPool.ItemsFromRarity(info.maxChestSlots, info.rarity);
+            info.items = info.itemPool.ItemsFromRarity(info.rarity, new() {
+                minItems = info.minItems,
+                maxItems = info.maxItems,
+            });
         }
 
         void CreateItemsFromItemPool()
@@ -103,9 +108,18 @@ namespace Architome
             if (!info.useItemPool) return;
             if (info.itemPool == null) return;
 
-            info.items = info.itemPool.ItemsFromRarity(info.maxChestSlots, info.rarity);
-
             var world = World.active;
+
+            var chestRarityProperty = world.RarityProperty(info.rarity);
+
+            info.items = info.itemPool.ItemsFromRarity(info.rarity, new() {
+                minItems = info.minItems,
+                maxItems = info.maxItems,
+                useMinMax = true,
+                replaceNull = true,
+                chanceMultiplier = chestRarityProperty.valueMultiplier });
+            //info.items = info.itemPool.ItemsFromRarity(info.maxChestSlots, info.rarity, chestRarityProperty.valueMultiplier);
+
 
             foreach (var itemData in info.items)
             {
@@ -156,7 +170,7 @@ namespace Architome
             if (world == null) return;
             foreach (var item in info.items)
             {
-                world.DropItem(item, transform.position, false, true);
+                world.DropItem(item, transform.position + new Vector3(0, 1.5F, 0), false, true);
 
                 await Task.Delay(333);
             }

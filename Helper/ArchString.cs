@@ -101,27 +101,38 @@ namespace Architome
         public static string NextLineList(List<string> stringList)
         {
             var result = "";
-            for (int i = 0; i < stringList.Count; i++)
+
+            foreach (var stringValue in stringList)
             {
-                var item = stringList[i];
-
-                if (i == 0)
+                if (result.Length > 0 && stringValue.Length > 0)
                 {
-                    result += item;
-                    continue;
+                    result += "\n";
                 }
 
-                if (item.Length > 0)
-                {
-
-                    if (result.Length > 0 && item.Length > 0)
-                    {
-                        result += "\n";
-                    }
-
-                    result += $"{item}";
-                }
+                result += stringValue;
             }
+
+            //for (int i = 0; i < stringList.Count; i++)
+            //{
+            //    var item = stringList[i];
+
+            //    if (i == 0)
+            //    {
+            //        result += item;
+            //        continue;
+            //    }
+
+            //    if (item.Length > 0)
+            //    {
+
+            //        if (result.Length > 0 && item.Length > 0)
+            //        {
+            //            result += "\n";
+            //        }
+
+            //        result += $"{item}";
+            //    }
+            //}
 
             return result;
         }

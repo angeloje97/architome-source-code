@@ -62,6 +62,13 @@ namespace Architome
 
             return stateDescription[state];
         }
+
+        public static bool RollSuccess(float roll = 50f)
+        {
+            var rollChance = UnityEngine.Random.Range(0f, 100f);
+
+            return rollChance < roll;
+        }
     }
 
 }

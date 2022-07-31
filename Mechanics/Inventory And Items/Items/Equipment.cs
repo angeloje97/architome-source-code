@@ -120,8 +120,18 @@ namespace Architome
             var attributes = stats.Attributes();
 
             var attributeStrings = new List<string>();
+            var levelStrings = new List<string>();
+            if (LevelRequired > 0)
+            {
+                levelStrings.Add($"Level Required: {LevelRequired}");
+            }
 
-            result += $"Level Required: {LevelRequired}\nItem Level : {itemLevel}";
+            if (itemLevel > 0)
+            {
+                levelStrings.Add($"Item Level {itemLevel}");
+            }
+
+            result += ArchString.NextLineList(levelStrings);
 
             foreach (var attribute in attributes)
             {

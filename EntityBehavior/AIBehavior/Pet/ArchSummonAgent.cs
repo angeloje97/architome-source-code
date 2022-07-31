@@ -13,7 +13,7 @@ namespace Architome
         public ThreatManager threatManager;
         public AIBehavior behavior;
         public AbilityManager ability;
-        public Augment.SummoningProperty summoning;
+        public AugmentProp.SummoningProperty summoning;
         public CombatBehavior combat;
         public CharacterInfo character;
 

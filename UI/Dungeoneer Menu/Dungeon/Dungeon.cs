@@ -28,6 +28,7 @@ namespace Architome
         [Serializable]
         public struct Rooms
         {
+            public int level;
             public string levelName;
             public EntityInfo selectedBoss;
             public List<RoomInfo> skeleton;
@@ -198,6 +199,7 @@ namespace Architome
 
             rooms.levelName = info.sets[setIndex].dungeonSetName;
             rooms.levelSeed = RandomGen.RandomString(10);
+            rooms.level = info.sets[setIndex].dungeonLevel;
 
 
             var (skeletonCount, availableCount) = (5, 5);
@@ -431,15 +433,27 @@ namespace Architome
 
             for (int i = 0; i < levels.Count; i++)
             {
-                var levelBoss = levels[i].selectedBoss;
-                if (levelBoss == null) continue;
-                var predictedLevel = (i * 2) + levelBoss.entityStats.Level;
+                var level = levels[i];
 
-                if (predictedLevel > recommendedLevel)
+                var adjustedLevel = level.level + (2 * i);
+
+                if (recommendedLevel < adjustedLevel)
                 {
-                    recommendedLevel = predictedLevel;
+                    recommendedLevel = adjustedLevel;
                 }
             }
+
+            //for (int i = 0; i < levels.Count; i++)
+            //{
+            //    var levelBoss = levels[i].selectedBoss;
+            //    if (levelBoss == null) continue;
+            //    var predictedLevel = (i * 2) + levelBoss.entityStats.Level;
+
+            //    if (predictedLevel > recommendedLevel)
+            //    {
+            //        recommendedLevel = predictedLevel;
+            //    }
+            //}
 
 
             return recommendedLevel;

@@ -84,18 +84,56 @@ namespace Architome
             return null;
         }
 
-        public List<ItemData> GeneratedItems(List<PossibleItem> possibleItems, List<PossibleItem> guaranteedItems, int items)
+        public List<ItemData> GeneratedItems(RequestData request)
         {
             var itemDatas = new List<ItemData>();
 
+            var guaranteedItems = request.guaranteedItems;
+            var possibleItems = request.possibleItems;
+
+            if (possibleItems == null && request.replaceNull)
+            {
+                possibleItems = this.possibleItems;
+            }
+
+            if (guaranteedItems == null && request.replaceNull)
+            {
+                guaranteedItems = this.possibleItems;
+            }
+
+
+
+            var targetCount = Random.Range(request.minItems, request.maxItems);
+
+            if (request.minItems > request.maxItems)
+            {
+                request.minItems = request.maxItems;
+                targetCount = request.minItems;
+            }
+
             HandleGuaranteedItems();
-            HandlePossibleItems();
+
+
+            if (request.useMinMax)
+            {
+                while (itemDatas.Count < targetCount)
+                {
+                    if (possibleItems.Count == 0) break;
+                    HandlePossibleItems();
+                }
+            }
+            else
+            {
+                HandlePossibleItems();
+            }
+            
 
             return itemDatas;
 
 
             void HandleGuaranteedItems()
             {
+                if (guaranteedItems == null) return;
                 foreach (var guaranteed in guaranteedItems)
                 {
                     var randomAmount = Random.Range(guaranteed.minAmount, guaranteed.maxAmount);
@@ -112,7 +150,14 @@ namespace Architome
                 foreach (var possible in possibleItems)
                 {
                     var chanceRole = Random.Range(0f, 100f);
-                    if (chanceRole >= possible.chance) continue;
+                    var chance = possible.chance;
+
+                    if (request.chanceMultiplier > 0f)
+                    {
+                        chance *= request.chanceMultiplier;
+                    }
+
+                    if (chanceRole >= chance) continue;
 
                     var randomAmount = Random.Range(possible.minAmount, possible.maxAmount);
 
@@ -126,7 +171,7 @@ namespace Architome
 
             void AddItem(ItemData data)
             {
-                if (itemDatas.Count >= items) return;
+                if (itemDatas.Count >= targetCount) return;
 
                 var count = data.amount;
 
@@ -138,6 +183,8 @@ namespace Architome
                         item = item,
                         amount = data.item.NewStacks(0, count, out count)
                     });
+
+                    if (itemDatas.Count >= targetCount) break;
                     //if (itemDatas.Count >= items) return;
                     //if (data.item.count >= data.item.maxStacks )
                     //{
@@ -157,41 +204,64 @@ namespace Architome
 
         public List<ItemData> CreatePossibleItems(int items)
         {
-            return GeneratedItems(possibleItems, guaranteedItems, items);
+            return GeneratedItems(new()
+            {
+                maxItems = items,
+                possibleItems = possibleItems,
+                guaranteedItems = guaranteedItems
+            });
         }
 
-        public List<ItemData> ItemsFromRarity(int max, Rarity rarity)
+        public List<ItemData> ItemsFromRarity(Rarity rarity, RequestData data)
         {
 
             var rarityItems = RarityItems(rarity);
 
             if (rarityItems != null)
             {
-                return GeneratedItems(rarityItems.possibleItems, rarityItems.guaranteedItems, max);
+                data.possibleItems = rarityItems.possibleItems;
+                data.guaranteedItems = rarityItems.guaranteedItems;
+                data.chanceMultiplier = 0f;
+                return GeneratedItems(data);
 
             }
             else
             {
-                return GeneratedItems(possibleItems, guaranteedItems, max);
+                return GeneratedItems(data);
             }
 
 
         }
 
-        public List<ItemData> ItemsFromEntityRarity(int max, EntityRarity rarity)
+        public List<ItemData> ItemsFromEntityRarity(EntityRarity rarity, RequestData request)
         {
 
             var entityRarityItems = EntityItems(rarity);
 
             if (entityRarityItems != null)
             {
-                return GeneratedItems(entityRarityItems.possibleItems, entityRarityItems.guaranteedItems, max);
+                request.possibleItems = entityRarityItems.possibleItems;
+                request.guaranteedItems = entityRarityItems.guaranteedItems;
+                request.chanceMultiplier = 0f;
+                
+                return GeneratedItems(request);
             }
             else
             {
-                return GeneratedItems(possibleItems, guaranteedItems, max);
+                return GeneratedItems(request);
             }
 
+        }
+
+        public class RequestData
+        {
+            public int maxItems;
+            public int minItems;
+            public float chanceMultiplier = 0f;
+            public bool useMinMax;
+            public bool replaceNull;
+            public List<PossibleItem> possibleItems;
+            public List<PossibleItem> guaranteedItems;
         }
     }
 }

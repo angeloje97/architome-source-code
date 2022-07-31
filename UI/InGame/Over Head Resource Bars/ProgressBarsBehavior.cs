@@ -4,7 +4,8 @@ using UnityEngine.UI;
 using Architome;
 using System;
 using System.Threading.Tasks;
-public class ProgressBarsBehavior : MonoBehaviour
+using UnityEngine.EventSystems;
+public class ProgressBarsBehavior : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     // Start is called before the first frame update
     public EntityInfo entityInfo;
@@ -94,18 +95,21 @@ public class ProgressBarsBehavior : MonoBehaviour
             }
         }
 
-        if(healthBarRect.gameObject.activeSelf)
+        if(healthBarRect.gameObject.activeInHierarchy)
         {
             originalHealthBarHeight = healthBarRect.localPosition.y;
             clusterAgentOffset += healthBarRect.rect.height;
         }
 
-        if(resourceBarRect.gameObject.activeSelf)
+        if(resourceBarRect.gameObject.activeInHierarchy)
         {
             originalResourceBarHeight = resourceBarRect.localPosition.y;
             clusterAgentOffset += resourceBarRect.rect.height;
         }
 
+
+        var rectTransform = GetComponent<RectTransform>();
+        rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, clusterAgentOffset);
         clusterAgentOffset += castBarRect.rect.height;
 
         canvasGroup = GetComponent<CanvasGroup>();
@@ -129,6 +133,17 @@ public class ProgressBarsBehavior : MonoBehaviour
 
     }
 
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        entityInfo.infoEvents.OnMouseHover?.Invoke(entityInfo, true, gameObject);
+
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        entityInfo.infoEvents.OnMouseHover?.Invoke(entityInfo, false, gameObject);
+
+    }
 
     void Update()
     {

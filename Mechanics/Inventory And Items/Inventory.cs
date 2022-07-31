@@ -89,7 +89,9 @@ namespace Architome
 
             var rarity = entityInfo != null ? entityInfo.rarity : EntityRarity.Common;
 
-            inventoryItems = itemPool.ItemsFromEntityRarity(maxSlots, rarity);
+            inventoryItems = itemPool.ItemsFromEntityRarity(rarity, new() {
+                maxItems = maxSlots 
+            });
 
             if (!variableItemValue) return;
             var world = World.active;

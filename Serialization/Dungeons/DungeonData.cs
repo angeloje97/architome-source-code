@@ -14,6 +14,7 @@ namespace Architome
         public class RoomData
         {
             public string levelName;
+            public int roomLevel;
             public int entranceRoomID = -1;
             public int bossRoomID = -1;
             public int bossId = -1;
@@ -27,6 +28,7 @@ namespace Architome
                 skeletonRoomsIDs = new();
                 randomRoomIDs = new();
                 seed = level.levelSeed;
+                roomLevel = level.level;
 
 
                 if (level.selectedBoss != null)

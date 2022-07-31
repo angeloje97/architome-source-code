@@ -161,6 +161,12 @@ namespace Architome.Enums
         Location
     }
 
+    public enum CatalystTarget
+    {
+        Catalyst,
+        Cataling,
+    }
+
     public enum ParticleTarget
     {
         Self,

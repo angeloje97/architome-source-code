@@ -12,7 +12,9 @@ namespace Architome
         public AbilityInfo abilityInfo;
         public CatalystInfo catalystInfo;
 
-        public Augment.DestroyConditions conditions;
+        public AugmentProp.DestroyConditions conditions;
+
+        public LayerMask structureLayer;
 
         public string destroyReason;
         public float destroyDelay = 0f;
@@ -20,6 +22,12 @@ namespace Architome
         public void GetDependencies()
         {
             catalystInfo = GetComponent<CatalystInfo>();
+            var layerMasksData = LayerMasksData.active;
+
+            if (layerMasksData)
+            {
+                structureLayer = layerMasksData.structureLayerMask;
+            }
 
             if (catalystInfo)
             {
@@ -60,15 +68,27 @@ namespace Architome
         }
         public void OnTriggerEnter(Collider other)
         {
-            if (conditions.destroyOnStructure)
+            if (structureLayer == (structureLayer | (1 << other.gameObject.layer)))
             {
-                var layermask = GMHelper.LayerMasks().structureLayerMask;
-                var layer = other.gameObject.layer;
-                if (layermask == (layermask | (1 << layer)))
+                catalystInfo.OnStructureHit?.Invoke(catalystInfo, other);
+
+                if (conditions.destroyOnStructure)
                 {
                     DestroySelf("Collided with structure");
                 }
+
             }
+
+
+            //if (conditions.destroyOnStructure)
+            //{
+            //    var layermask = GMHelper.LayerMasks().structureLayerMask;
+            //    var layer = other.gameObject.layer;
+            //    if (layermask == (layermask | (1 << layer)))
+            //    {
+            //        DestroySelf("Collided with structure");
+            //    }
+            //}
         }
 
         void OnDeadTarget(GameObject target)

@@ -37,6 +37,12 @@ public class MapEntityGenerator : MonoBehaviour
     public Action<MapEntityGenerator> OnEntitiesGenerated;
     public Action<MapEntityGenerator, EntityInfo> OnGenerateEntity;
 
+    LayerMask strucutreLayerMask, groundLayerMask;
+
+
+    DifficultyModifications difficulty;
+    List<Dungeon.Rooms> dungeons;
+    int dungeonIndex;
 
 
     void GetDependencies()
@@ -44,14 +50,28 @@ public class MapEntityGenerator : MonoBehaviour
         if(GetComponentInParent<MapInfo>())
         {
             mapInfo = GetComponentInParent<MapInfo>();
-
             if(mapInfo.RoomGenerator())
             {
-                mapInfo.RoomGenerator().OnRoomsGenerated += OnRoomsGenerated;
+                var roomGenerator = mapInfo.RoomGenerator();
+
+                if (roomGenerator)
+                {
+                    roomGenerator.OnRoomsGenerated += OnRoomsGenerated;
+                    roomGenerator.BeforeEndGeneration += BeforeRoomsGenerated;
+
+                }
             }
         }
 
         world = WorldActions.active;
+
+        var layerMasksData = LayerMasksData.active;
+
+        if (layerMasksData)
+        {
+            groundLayerMask = layerMasksData.walkableLayer;
+            strucutreLayerMask = layerMasksData.structureLayerMask;
+        }
     }
 
     void Awake()
@@ -64,9 +84,31 @@ public class MapEntityGenerator : MonoBehaviour
 
     }
 
+    public void BeforeRoomsGenerated(MapRoomGenerator generator)
+    {
+
+        foreach (var room in generator.roomsInUse)
+        {
+            var info = room.GetComponent<RoomInfo>();
+            if (info == null) continue;
+
+            var roomPool = info.pool;
+            if (roomPool == null) continue;
+
+            SpawnRandomChestInPosition(roomPool.chests, info.chestPos, info);
+        }
+    }
 
     public void OnRoomsGenerated(MapRoomGenerator roomGenerator)
     {
+        if (Core.currentDungeon != null)
+        {
+            dungeonIndex = Core.dungeonIndex;
+            dungeons = Core.currentDungeon;
+        }
+
+        difficulty = DifficultyModifications.active;
+
         if(mapInfo.generateEntities)
         {
             ArchAction.Delay(() => 
@@ -151,61 +193,12 @@ public class MapEntityGenerator : MonoBehaviour
                     var tier1Spawners = pool.tier1Spawners;
                     var tier2Spawners = pool.tier2Spawners;
                     var patrolGroups = pool.patrolGroups;
+                    var chests = pool.chests;
 
                     await SpawnRandomInPosition(tier1Entities, roomInfo.tier1EnemyPos);
                     await SpawnRandomInPosition(tier2Entities, roomInfo.tier2EnemyPos);
                     await SpawnRandomInPosition(tier1Spawners, roomInfo.tier1SpawnerPos);
                     await SpawnRandomInPosition(tier2Spawners, roomInfo.tier2SpawnerPos);
-
-
-                    //if (roomInfo.tier1EnemyPos && tier1Entities.Count > 0)
-                    //{
-                    //    foreach (Transform trans in roomInfo.tier1EnemyPos)
-                    //    {
-                    //        await SpawnEntity(tier1Entities[UnityEngine.Random.Range(0, tier1Entities.Count)], trans);
-                    //        //await Task.Yield();
-                    //    }
-                    //}
-
-                
-                    //if (roomInfo.tier2EnemyPos && tier2Entities.Count > 0)
-                    //{
-                    //    foreach (Transform trans in roomInfo.tier2EnemyPos)
-                    //    {
-                    //        await SpawnEntity (tier2Entities[0], trans);
-                    //        //await Task.Yield();
-                    //    }
-
-                        
-                    //}
-
-                    //if (roomInfo.tier1SpawnerPos)
-                    //{
-                    //    if (tier1Spawners != null && tier1Spawners.Count > 0)
-                    //    {
-                    //        foreach (Transform trans in roomInfo.tier1SpawnerPos)
-                    //        {
-                    //            var randomSpawner = ArchGeneric.RandomItem(tier1Spawners);
-
-                    //            await SpawnEntity(randomSpawner, trans);
-                    //        }
-                    //    }
-                    //}
-                    
-                    
-                    
-                    //if (roomInfo.tier2SpawnerPos)
-                    //{
-                    //    if (tier2Spawners != null && tier2Spawners.Count > 0)
-                    //    {
-                    //        foreach (Transform trans in roomInfo.tier2SpawnerPos)
-                    //        {
-                    //            var randomSpawner = ArchGeneric.RandomItem(tier2Spawners);
-
-                    //            await SpawnEntity(randomSpawner, trans);
-                    //        }
-                    //    }
-                    //}
                 
 
                     if (roomInfo.patrolGroups != null &&
@@ -260,7 +253,7 @@ public class MapEntityGenerator : MonoBehaviour
     }
 
 
-    async Task SpawnRandomInPosition(List<GameObject> randomEntities, Transform parent)
+    async Task SpawnRandomInPosition(List<GameObject> randomEntities, Transform parent, float chance = 85f)
     {
         if (randomEntities == null) return;
         if (randomEntities.Count == 0) return;
@@ -268,8 +261,9 @@ public class MapEntityGenerator : MonoBehaviour
 
         foreach (Transform trans in parent)
         {
-            var pickedEntity = ArchGeneric.RandomItem(randomEntities);
+            if (!ArchGeneric.RollSuccess(chance)) continue;
 
+            var pickedEntity = ArchGeneric.RandomItem(randomEntities);
             await SpawnEntity(pickedEntity, trans);
         }
     }
@@ -304,6 +298,43 @@ public class MapEntityGenerator : MonoBehaviour
         return true;
     }
 
+
+    public void SpawnRandomChestInPosition(List<GameObject> chests, Transform spots, RoomInfo room, float chance = 25f)
+    {
+        if (spots == null) return;
+        if (chests == null || chests.Count == 0) return;
+
+        foreach (Transform position in spots)
+        {
+            var roll = UnityEngine.Random.Range(0f, 100f);
+            if (roll > chance) continue;
+
+            var randomChest = ArchGeneric.RandomItem(chests);
+
+            SpawnChest(randomChest, position, room);
+        }
+    }
+
+    ArchChest SpawnChest(GameObject chestObject, Transform spot, RoomInfo room)
+    {
+        var groundPosition = V3Helper.GroundPosition(spot.transform.position, groundLayerMask, 1f);
+        var rotation = spot.transform.rotation;
+
+        var newChest = Instantiate(chestObject, groundPosition, rotation).GetComponent<ArchChest>();
+
+        newChest.transform.SetParent(room.transform);
+
+        HandleDungeonPreset();
+
+        return newChest;
+        
+        void HandleDungeonPreset()
+        {
+            if (dungeons == null) return;
+            var chestLevel = dungeons[dungeonIndex].level + (dungeonIndex * 2);
+            newChest.info.level = chestLevel;   
+        }
+    }
 
     async void SpawnPatrolEntity(GameObject entity, Transform spot)
     {
@@ -343,13 +374,14 @@ public class MapEntityGenerator : MonoBehaviour
 
         void HandleDungeonLevels()
         {
-            if (Core.currentDungeon == null) return;
-            var difficulty = DifficultyModifications.active;
+            if (dungeons == null) return;
+            var current = dungeons[dungeonIndex];
 
+            float multiplier = 1 + (dungeonIndex * difficulty.settings.dungeonCoreMultiplier);
 
-            float multiplier = 1 + (Core.dungeonIndex * difficulty.settings.dungeonCoreMultiplier);
+            //float multiplier = 1 + (Core.dungeonIndex * difficulty.settings.dungeonCoreMultiplier);
 
-            newEntity.entityStats.Level += (Core.dungeonIndex * 2);
+            newEntity.entityStats.Level = current.level + (Core.dungeonIndex * 2);
             newEntity.entityStats.MultiplyCoreStats(multiplier);
 
 

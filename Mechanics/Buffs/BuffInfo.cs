@@ -77,10 +77,17 @@ public class BuffInfo : MonoBehaviour
 
     public BuffProperties properties;
     public CleanseConditions cleanseConditions;
+    public UISettings settings;
 
     [Serializable]
     public struct CleanseConditions {
         public bool enterCombat, exitCombat, damageTaken, isMoving;
+    }
+
+    [SerializeField]
+    public struct UISettings
+    {
+        public bool hideBuff;
     }
 
     [Header("Buff Properties")]
