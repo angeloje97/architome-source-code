@@ -30,10 +30,6 @@ public class ProgressBarsBehavior : MonoBehaviour, IPointerEnterHandler, IPointe
     public Image castBar;
     public bool castBarActive;
 
-
-
-
-
     //Original Properties
     public float originalHealthBarHeight;
     public float originalResourceBarHeight;
@@ -133,6 +129,10 @@ public class ProgressBarsBehavior : MonoBehaviour, IPointerEnterHandler, IPointe
 
     }
 
+    void Update()
+    {
+        if (entityInfo == null) { return; }
+    }
     public void OnPointerEnter(PointerEventData eventData)
     {
         entityInfo.infoEvents.OnMouseHover?.Invoke(entityInfo, true, gameObject);
@@ -145,11 +145,6 @@ public class ProgressBarsBehavior : MonoBehaviour, IPointerEnterHandler, IPointe
 
     }
 
-    void Update()
-    {
-        if (entityInfo == null) { return; }
-        UpdateBars();
-    }
     public void OnClusterEnter(EntityCluster cluster, int index)
     {
         transform.localPosition = localPosition + new Vector3(0, index * 1, 0);
@@ -299,18 +294,18 @@ public class ProgressBarsBehavior : MonoBehaviour, IPointerEnterHandler, IPointe
 
         }
     }
-    void UpdateBars()
-    {
-        UpdateCastBar();
+    //void UpdateBars()
+    //{
+    //    UpdateCastBar();
 
-        void UpdateCastBar()
-        {
-            if (!castBarActive) return;
-            if (castBar == null) { return; }
+    //    void UpdateCastBar()
+    //    {
+    //        if (!castBarActive) return;
+    //        if (castBar == null) { return; }
 
-            castBar.fillAmount = currentAbility.castTimer / currentAbility.castTime;
-        }
-    }
+    //        castBar.fillAmount = currentAbility.castTimer / currentAbility.castTime;
+    //    }
+    //}
     public void UpdateCastBar()
     {
         castBar.transform.parent.gameObject.SetActive(castBarActive);
@@ -380,6 +375,7 @@ public struct TaskProgressBarHandler
         entityInfo.taskEvents.OnStartTask += OnStartTask;
         entityInfo.taskEvents.WhileWorkingOnTask += WhileWorkingOnTask;
         entityInfo.taskEvents.OnEndTask += OnEndTask;
+        entityInfo.taskEvents.OnTaskComplete += OnTaskComplete;
     }
 
     void OnStartTask(TaskEventData eventData)
@@ -393,6 +389,9 @@ public struct TaskProgressBarHandler
         progressBar.fillAmount = prop.workDone / prop.workAmount;
 
         progressBar.transform.parent.gameObject.SetActive(true);
+
+        behavior.castBarActive = true;
+        behavior.UpdateCastBar();
     }
 
     void WhileWorkingOnTask(TaskEventData eventData)
@@ -402,12 +401,23 @@ public struct TaskProgressBarHandler
         progressBar.fillAmount = prop.workDone / prop.workAmount;
         
     }
+
+    void OnTaskComplete(TaskEventData eventData)
+    {
+        behavior.castBarActive = false;
+        behavior.UpdateCastBar();
+    }
+
     void OnEndTask(TaskEventData eventData)
     {
         if (!entityInfo.isInCombat)
         {
             behavior.UpdateCanvas(false);
         }
+
+        behavior.castBarActive = false;
+        behavior.UpdateCastBar();
+
         progressBar.transform.parent.gameObject.SetActive(false);
     }
 

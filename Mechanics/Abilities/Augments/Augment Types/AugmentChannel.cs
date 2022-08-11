@@ -24,16 +24,19 @@ namespace Architome
         public float deltaMovementSpeed;
 
         bool canceledChannel;
+
+        float timer = 0f;
+
         void Start()
         {
             GetDependencies();
         }
-
         new async void GetDependencies()
         {
             if (this == null) return;
             await base.GetDependencies();
 
+            EnableAugmentAbility();
 
             if (augment.entity)
             {
@@ -42,12 +45,7 @@ namespace Architome
 
             abilityManager = ability.GetComponentInParent<AbilityManager>();
 
-
-            ability.OnSuccessfulCast += OnSuccessfulCast;
-
-
             augment.OnRemove += (Augment augment) => {
-                ability.OnSuccessfulCast -= OnSuccessfulCast;
 
                 if (entityMovement)
                 {
@@ -61,36 +59,18 @@ namespace Architome
             }
 
             HandleBusyCheck();
-
         }
-
-        void HandleBusyCheck()
-        {
-            Action<AbilityInfo> action = (AbilityInfo ability) => {
-                ability.busyList.Add(active);
-            };
-
-            ability.OnBusyCheck += action;
-
-            augment.OnRemove += (Augment augment) => {
-                ability.OnBusyCheck -= action;
-            };
-        }
-
-        public void OnSuccessfulCast(AbilityInfo ability)
-        {
-            ability.tasksBeforeEndAbility.Add(Channel());
-        }
-
-        async public Task Channel()
+        public override async Task<bool> Ability()
         {
             StartChannel();
 
-            var timer = time - time * ability.Haste();
+            timer = time - time * ability.Haste();
             var startTime = timer;
 
             float progressPerInvoke = (1f / invokeAmount);
             float progressBlock = 1 - progressPerInvoke;
+
+            var success = true;
 
             while (timer > 0)
             {
@@ -105,6 +85,7 @@ namespace Architome
                 if (!ability.CanContinue())
                 {
                     LogCancel("Ability Can't Continue");
+                    success = false;
                     break;
 
                 }
@@ -113,19 +94,23 @@ namespace Architome
                 {
                     LogCancel("Canceled Channel");
                     canceledChannel = false;
-                    break ;
+                    success = false;
+                    break;
                 }
 
                 if (progressBlock > ability.progress)
                 {
                     ability.HandleAbilityType();
                     abilityManager.OnChannelInterval?.Invoke(ability, this);
+                    augment.TriggerAugment(new(this));
                     progressBlock -= progressPerInvoke;
                 }
 
             }
 
             EndChannel();
+
+            return success;
 
             void StartChannel()
             {
@@ -138,10 +123,11 @@ namespace Architome
             void WhileChanneling()
             {
                 abilityManager.WhileCasting?.Invoke(ability);
-                ability.HandleTracking();
+                ability.WhileCasting?.Invoke(ability);
+                //ability.HandleTracking();
 
                 if (ability.isAttack) return;
-                
+
                 if (ability.targetLocked != ability.target)
                 {
                     ability.targetLocked = ability.target;
@@ -164,15 +150,26 @@ namespace Architome
                 abilityManager.OnChannelEnd?.Invoke(ability, this);
             }
         }
+        void HandleBusyCheck()
+        {
+            Action<AbilityInfo> action = (AbilityInfo ability) => {
+                ability.busyList.Add(active);
+            };
 
+            ability.OnBusyCheck += action;
+
+            augment.OnRemove += (Augment augment) => {
+                ability.OnBusyCheck -= action;
+            };
+        }
         public void OnStartMove(Movement movement)
         {
+            if (!active) return;
             if (cancelChannelOnMove)
             {
                 CancelChannel();
             }
         }
-
         public override string Description()
         {
             var result = "";
@@ -181,12 +178,10 @@ namespace Architome
 
             return result;
         }
-
         public void LogCancel(string reason)
         {
             Debugger.Combat(2946, $"{this} stopped channeling because {reason}");
         }
-
         public void CancelChannel()
         {
             if (!active) return;

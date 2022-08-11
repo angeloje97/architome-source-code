@@ -110,6 +110,7 @@ namespace Architome
             bool OnCatalingInterval(int position)
             {
                 if (HandleLockOn()) return true;
+                if (HandleUse()) return true;
                 if (HandleFreeCast()) return true;
 
                 return false;
@@ -158,7 +159,30 @@ namespace Architome
                         });
                     }
                 }
+                bool HandleUse()
+                {
+                    if (catalingType != AbilityType.Use) return false;
 
+                    var info = cataling.GetComponent<CatalystInfo>();
+                    info.abilityInfo = ability;
+                    info.isCataling = true;
+
+                    var newCataling = Instantiate(cataling, catalyst.transform.position, catalyst.transform.rotation);
+
+                    var newInfo = newCataling.GetComponent<CatalystInfo>();
+
+                    OnCatalystRelease?.Invoke(catalyst, newInfo);
+                    catalyst.OnCatalingRelease?.Invoke(catalyst, newInfo);
+
+                    ArchAction.Yield(() => {
+                        newInfo.value = value;
+                        newInfo.range = radius;
+                        newInfo.GetComponent<CatalystDeathCondition>().conditions = catalingDestroyConditions;
+                        newCataling.AddComponent<CatalystUse>();
+                    });
+
+                    return true;
+                }
                 bool HandleFreeCast()
                 {
                     if (catalingType != AbilityType.SkillShot) return false;

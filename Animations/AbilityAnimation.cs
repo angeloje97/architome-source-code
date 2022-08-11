@@ -67,10 +67,10 @@ public class AbilityAnimation
     public void OnCastReleasePercent(AbilityInfo ability)
     {
         if (ability.isAttack) return;
-        if (ability.HasChannel()) return;
+        //if (ability.HasChannel()) return;
 
         animator.SetTrigger("ReleaseAbility");
-        SetCast(false);
+        //SetCast(false);
     }
     public void OnCastRelease(AbilityInfo ability)
     {
@@ -79,14 +79,18 @@ public class AbilityAnimation
     public void OnChannelStart(AbilityInfo ability, AugmentChannel augment)
     {
         //SetAnimTrigger(currentCatalyst, 2, false);
+        //if (2 >= currentCatalyst.animationSequence.Count) return;
 
-        animator.SetInteger("AbilityIndex", currentCatalyst.animationSequence[2]);
-        animator.SetTrigger("ActivateAbility");
+
+
+        //animator.SetInteger("AbilityIndex", currentCatalyst.animationSequence[2]);
+        //animator.SetTrigger("ActivateAbility");
 
     }
     public void OnChannelInterval(AbilityInfo ability, AugmentChannel augment)
     {
-        animator.SetTrigger("Repeat");
+        //animator.SetTrigger("Repeat");
+        animator.SetTrigger("ReleaseAbility");
     }
     public void OnCastChannelEnd(AbilityInfo ability, AugmentChannel augment)
     {
@@ -103,6 +107,10 @@ public class AbilityAnimation
     {
         ZeroOut();
         SetCast(false);
+
+        ArchAction.Delay(() => {
+            animator.ResetTrigger("ReleaseAbility");
+        }, .25f);
     }
 
     void ZeroOut()

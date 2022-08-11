@@ -7,7 +7,6 @@ using Architome.Enums;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using TMPro;
 
 
 namespace Architome

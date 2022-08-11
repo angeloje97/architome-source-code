@@ -11,10 +11,10 @@ namespace Architome
     {
         int id;
 
-
         public new string name;
         [Multiline]
         public string description;
+        public Sprite icon;
         public CatalystTarget catalystTarget;
 
         [Serializable]
@@ -22,12 +22,9 @@ namespace Architome
         {
             public float value;
             public float valueContributionToAugment = 1f;
-            public float generalRadius;
-
-
-            public int ticks;
+            public float generalRadius;   
         }
-
+        public bool spawnedByItem;
         public Info info;
 
         public AbilityInfo ability;
@@ -35,11 +32,12 @@ namespace Architome
         public EntityInfo entity;
 
         public AugmentProp.DestroyConditions additiveDestroyConditions, subtractiveDestroyConditions;
-        public AugmentProp.Restrictions additiveRestrictions, subtractiveRestrictions;
+        public AugmentProp.Restrictions additiveRestrictions, subtractiveRestrictions, originalRestrictions;
 
 
         public Action<CatalystInfo> OnNewCatalyst;
         public Action<Augment> OnRemove;
+        public Action<AugmentEventData> OnAugmentTrigger;
 
         public bool dependenciesAcquired;
 
@@ -47,14 +45,13 @@ namespace Architome
         {
             
             await GetDependencies();
-            AdjustAbility(true);
+            HandleRestrictions();
         }
 
         private void Awake()
         {
             
         }
-
         async Task GetDependencies()
         {
             ability = GetComponentInParent<AbilityInfo>();
@@ -71,12 +68,16 @@ namespace Architome
             {
                 Action<CatalystInfo, CatalystInfo> action = (CatalystInfo original, CatalystInfo cataling) => {
                     OnNewCatalyst?.Invoke(cataling);
+
+                    UpdateDeathConditions(cataling);
                 };
 
                 augmentCataling.OnCatalystRelease += action;
                 OnRemove += (Augment augment) => { augmentCataling.OnCatalystRelease -= action; };
                 catalystTarget = CatalystTarget.Cataling;
                 dependenciesAcquired = true;
+
+                info.value = augmentCataling.value * info.valueContributionToAugment;
                 return;
             }
 
@@ -86,6 +87,7 @@ namespace Architome
 
                 Action<CatalystInfo> action = (CatalystInfo catalyst) => {
                     OnNewCatalyst?.Invoke(catalyst);
+                    UpdateDeathConditions(catalyst);
                 };
 
                 ability.OnCatalystRelease += action;
@@ -93,24 +95,68 @@ namespace Architome
                 OnRemove += (Augment augment) => {
                     ability.OnCatalystRelease -= action;
                 };
-                catalystTarget = CatalystTarget.Cataling;
+                catalystTarget = CatalystTarget.Catalyst;
             }
 
             dependenciesAcquired = true;
         }
-
-        public void AdjustAbility(bool applying)
+        public void HandleRestrictions()
         {
-            if (applying)
+            var firstAugment = FirstAugment;
+            if (firstAugment == this)
             {
-                ability.ticksOfDamage += info.ticks;
+                originalRestrictions = ability.restrictions.Copy();
             }
             else
             {
-                ability.ticksOfDamage -= info.ticks;
+                originalRestrictions = firstAugment.originalRestrictions.Copy();
+            }
+
+            ability.OnUpdateRestrictions += OnUpdateRestrictions;
+
+            OnRemove += (Augment augment) => {
+                ability.OnUpdateRestrictions -= OnUpdateRestrictions;
+                ability.OnUpdateRestrictions?.Invoke(ability);
+            };
+
+            ability.OnUpdateRestrictions?.Invoke(ability);
+
+            async void OnUpdateRestrictions(AbilityInfo ability)
+            {
+                if (FirstAugment == this)
+                {
+                    ability.restrictions = originalRestrictions.Copy();
+                }
+
+                await Task.Yield();
+
+                ability.restrictions.Add(additiveRestrictions);
+
+                await Task.Yield();
+
+                ability.restrictions.Subtract(subtractiveRestrictions);
             }
         }
+        Augment FirstAugment
+        {
+            get
+            {
+                var augments = ability.GetComponentsInChildren<Augment>();
 
+                return augments[0];
+            }
+        }
+        async void UpdateDeathConditions(CatalystInfo catalyst)
+        {
+            var deathCondition = catalyst.GetComponent<CatalystDeathCondition>();
+            await Task.Yield();
+
+            deathCondition.conditions.Add(additiveDestroyConditions);
+
+            await Task.Yield();
+
+            deathCondition.conditions.Subtract(subtractiveDestroyConditions);
+        }
         public string Description()
         {
             var result = "";
@@ -118,7 +164,6 @@ namespace Architome
 
             return result;
         }
-
         public string TypeDescription()
         {
             var result = "";
@@ -135,16 +180,34 @@ namespace Architome
             }
             return result;
         }
-
-        public void RemoveAugment()
+        public async void RemoveAugment()
         {
             OnRemove?.Invoke(this);
 
-            AdjustAbility(false);
 
-            ArchAction.Yield(() => {
-                Destroy(gameObject);
-            });
+            await Task.Yield();
+
+
+            Destroy(gameObject);
+            
+        }
+        public void TriggerAugment(AugmentEventData eventData)
+        {
+            OnAugmentTrigger?.Invoke(eventData);
+        }
+
+        public class AugmentEventData
+        {
+            public AugmentType augmentType;
+            public Augment augment;
+            public CatalystInfo activeCatalyst;
+
+            public AugmentEventData(AugmentType source)
+            {
+                augmentType = source;
+                augment = augmentType.augment;
+                activeCatalyst = source.activeCatalyst;
+            }
         }
     }
 }

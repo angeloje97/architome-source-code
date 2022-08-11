@@ -100,7 +100,7 @@ namespace Architome
             var originalValue = catalyst.value;
             var originalApply = hit.appliesBuff;
             hit.appliesBuff = appliesBuffs;
-            catalyst.value *= valueContribution;
+            catalyst.value = value;
             hit.splashing = true;
 
             //Start

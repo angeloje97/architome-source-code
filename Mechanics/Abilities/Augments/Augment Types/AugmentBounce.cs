@@ -98,6 +98,7 @@ namespace Architome
             if (!LookForNewTarget(null))
             {
                 ReflectCatalyst(catalyst);
+                augment.TriggerAugment(new(this));
             }
 
             SetCatalyst(catalyst, false);
@@ -183,7 +184,9 @@ namespace Architome
 
             if (FindEntity(priority))
             {
+                augment.TriggerAugment(new(this));
                 return true;
+                
             }
 
             foreach (NPCType type in Enum.GetValues(typeof(NPCType)))
@@ -191,6 +194,7 @@ namespace Architome
                 if (type == priority) continue;
                 if (FindEntity(type))
                 {
+                    augment.TriggerAugment(new(this));
                     return true;
                 }
             }

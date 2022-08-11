@@ -356,6 +356,21 @@ namespace Architome
             return attributes;
         }
 
+        public void IncreasePower(float amount)
+        {
+            foreach (var core in Cores)
+            {
+                var field = this.GetType().GetField(core.Name);
+
+                var value = (int)field.GetValue(this);
+
+                value += (int) (value * amount);
+
+                field.SetValue(this, value);
+            }
+        }
+
+
         public List<Attribute> Cores
         {
             get { return Attributes().Where(attribute => attribute.Type.Equals(typeof(int).ToString())).ToList(); }

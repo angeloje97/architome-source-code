@@ -164,6 +164,16 @@ namespace Architome
             return false;
         }
 
+        public Transform StationTarget()
+        {
+            if (workSpot == null)
+            {
+                return transform;
+            }
+
+            return workSpot;
+        }
+
         public void RemoveAllLingers()
         {
             foreach (var task in tasks)

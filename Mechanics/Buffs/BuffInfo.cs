@@ -23,7 +23,7 @@ public class BuffProperties
     public int maxStacks;
     public float valueStackMultiplier;
 
-    public bool selfBuffOnDestroy;
+    //public bool selfBuffOnDestroy;
     public bool reapplyResetsTimer;
     public bool reapplyResetsBuff;
     
@@ -391,7 +391,7 @@ public class BuffInfo : MonoBehaviour
     public void OnResetBuff(BuffsManager.BuffData data)
     {
         var buff = data.buffInfo;
-        if(buff != this) { return; }
+        if(buff._id != _id) { return; }
         Cleanse();
     }
 

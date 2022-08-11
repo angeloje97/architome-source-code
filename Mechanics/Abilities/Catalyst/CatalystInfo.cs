@@ -20,6 +20,8 @@ namespace Architome
         public GameObject entityObject;
         public Sprite catalystIcon;
 
+        
+
         [Header("Catalyst Animations")]
         public List<int> animationSequence;
         public Vector2 catalystStyle;
@@ -28,7 +30,6 @@ namespace Architome
 
 
         public bool isCataling;
-        public AbilityType catalyingAbilityType;
 
         public EntityInfo entityInfo;
         public AbilityInfo abilityInfo;
@@ -41,6 +42,8 @@ namespace Architome
         public List<EntityInfo> enemiesHit;
         public List<EntityInfo> alliesHealed;
         public List<EntityInfo> alliesAssisted;
+
+        public AugmentProp.Restrictions restrictions;
         
         public EntityInfo lastTargetHit { get; set; }
         LayerMask entityLayer { get; set; }
@@ -218,7 +221,7 @@ namespace Architome
         public Action<CatalystInfo, int> OnTickChange;
         public Action<CatalystInfo, GameObject> OnCloseToTarget;
         public Action<CatalystInfo, GameObject> OnWrongTargetHit { get; set; }
-        public Action<GameObject, bool> OnPhysicsInteraction;
+        public Action<CatalystInfo, Collider, bool> OnCatalystTrigger;
         public Action<CatalystKinematics> OnCatalystStop;
         public Action<CatalystKinematics> OnCatalystMaxSpeed;
         public Action<GameObject> OnIntercept;
@@ -238,6 +241,8 @@ namespace Architome
                     entityObject = abilityInfo.entityObject;
                     entityInfo = abilityInfo.entityInfo;
                 }
+
+                restrictions = abilityInfo.restrictions;
 
 
                 if (damageType != DamageType.True)
@@ -330,19 +335,7 @@ namespace Architome
                 }
 
 
-                foreach (var buffObject in abilityInfo.buffs)
-                {
-                    var buff = buffObject.GetComponent<BuffInfo>();
-                    if (buff.properties.selfBuffOnDestroy)
-                    {
-                        gameObject.AddComponent<CatalystBuffOnDestroy>();
-                        break;
-                    }
-                }
-
-                //if (abilityInfo.buffProperties.selfBuffOnDestroy) gameObject.AddComponent<CatalystBuffOnDestroy>();
-
-                if (abilityInfo.summoning.enabled) gameObject.AddComponent<CatalystSummon>();
+                //if (abilityInfo.summoning.enabled) gameObject.AddComponent<CatalystSummon>();
 
                 //if (abilityInfo.cataling.enable && abilityInfo.cataling.catalyst) gameObject.AddComponent<CatalingHandler>();
 
@@ -389,17 +382,21 @@ namespace Architome
             transform.LookAt(location);
         }
 
+        public void DisableKinematics()
+        {
+            kinematics.DisableKinematics();
+        }
         public Sprite Icon()
         {
             return catalystIcon;
         }
         public void OnTriggerEnter(Collider other)
         {
-            OnPhysicsInteraction?.Invoke(other.gameObject, true);
+            OnCatalystTrigger?.Invoke(this, other, true);
         }
         public void OnTriggerExit(Collider other)
         {
-            OnPhysicsInteraction?.Invoke(other.gameObject, false);
+            OnCatalystTrigger?.Invoke(this, other, false);
         }
         void SpawnCatalystAudio()
         {
@@ -554,9 +551,9 @@ namespace Architome
             ticks = 0;
             OnTickChange?.Invoke(this, ticks);
         }
-        public void IncreaseTicks(bool triggerEvent = true)
+        public void IncreaseTicks(bool triggerEvent = true, int amount = 1)
         {
-            ticks++;
+            ticks += amount;
             if (triggerEvent)
             {
                 OnTickChange?.Invoke(this, ticks);

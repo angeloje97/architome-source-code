@@ -1,93 +1,88 @@
 using System.Collections;
+using System.Threading.Tasks;
 using System.Collections.Generic;
-using Architome;
 using UnityEngine;
-using System;
-using UnityEngine.UI;
 
-public class SpellBookManager : MonoBehaviour
+namespace Architome
 {
-    // Start is called before the first frame update
-
-    public List<EntityInfo> playableEntities;
-    public List<Image> portraitIcons;
-    public List<GameObject> spellSlots;
-
-    public Transform bin;
-    public GameObject abilityTemplate;
-    //Events
-    public Action<EntityInfo> OnNewEntity;
-
-
-    void Start()
+    public class SpellBookManager : MonoBehaviour
     {
-        //Invoke("GetDependencies", .5f);
-        GameManager.active.OnNewPlayableEntity += OnNewPlayableEntity;
-    }
+        public EntitySpellBook spellBookTemplate;
+        public Transform entityPortraitsParent;
+        public ModuleInfo module;
 
+        public List<EntitySpellBook> spellBooks;
 
-    public void OnNewPlayableEntity(EntityInfo newEntity, int index)
-    {
-        if(index >= portraitIcons.Count)
+        void Start()
         {
-            return;
+            GetDependencies();
         }
 
-        playableEntities.Add(newEntity);
-
-        var portraitIcon = newEntity.PortraitIcon();
-
-        if(portraitIcon)
+        void GetDependencies()
         {
-            portraitIcons[index].sprite = portraitIcon;
+            var gameManager = GameManager.active;
+            gameManager.OnNewPlayableEntity += OnNewPlayableEntity;
+            gameManager.OnNewPlayableParty += OnNewPlayableParty;
+
+
+            module = GetComponentInParent<ModuleInfo>();
         }
 
-        if(index == 0)
+        public async void OnNewPlayableParty(PartyInfo party, int index)
         {
-            SetEntity(0);
-        }
-    }
+            await Task.Yield();
 
-
-
-    public void SetEntity(int num)
-    {
-        if(num >= playableEntities.Count) { return; }
-        OnNewEntity?.Invoke(playableEntities[num].GetComponent<EntityInfo>());
-
-        ClearBin();
-        CreateItems(playableEntities[num]);
-    }
-
-    public void ClearBin()
-    {
-        GetComponentInParent<ModuleInfo>()?.DestroyBin();
-
-        foreach(GameObject slot in spellSlots)
-        {
-            if(slot.GetComponentInChildren<AbilityInfoUI>())
+            foreach (Transform child in entityPortraitsParent)
             {
-                Destroy(slot.GetComponentInChildren<AbilityInfoUI>().gameObject);
+                var icon = child.GetComponent<Icon>();
+                if (icon == null) continue;
+
+                OnSelectEntityIcon(icon);
+                break;
             }
         }
-    }
 
-    public void CreateItems(EntityInfo entity)
-    {
-        var abilities = entity.GetComponentInChildren<AbilityManager>();
-
-        if(abilities == null) { return; }
-
-        foreach(GameObject spellSlot in spellSlots)
+        public void OnNewPlayableEntity(EntityInfo entity, int index)
         {
-            var slot = spellSlot.GetComponent<SpellBookSlot>();
-            var ability = abilities.Ability(slot.slotType);
+            var newSpellBook = Instantiate(spellBookTemplate.gameObject, transform).GetComponent<EntitySpellBook>();
+            var iconTemplate = World.active.prefabsUI.icon;
 
-            if(ability == null) { continue; }
-            var newUI = Instantiate(abilityTemplate);
-            newUI.GetComponent<AbilityInfoUI>().SetAbility(ability);
-            slot.SetAbilityUI(newUI);
+            var newIcon = Instantiate(iconTemplate, entityPortraitsParent).GetComponent<Icon>();
+
+            newSpellBook.SetEntity(entity);
+
+            if (spellBooks == null)
+            {
+                spellBooks = new();
+            }
+
+            spellBooks.Add(newSpellBook);
+
+            newIcon.SetIcon(new()
+            {
+                data = newSpellBook,
+                sprite = entity.PortraitIcon()
+            });
+
+            newIcon.OnSelectIcon += OnSelectEntityIcon;
         }
 
+        void OnSelectEntityIcon(Icon icon)
+        {
+            if (icon.data.GetType() != typeof(EntitySpellBook)) return;
+
+            foreach (var spellBook in spellBooks)
+            {
+                var canvas = spellBook.GetComponent<CanvasGroup>();
+
+                ArchUI.SetCanvas(canvas, (EntitySpellBook)icon.data == spellBook);
+            }
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+        
+        }
     }
 }

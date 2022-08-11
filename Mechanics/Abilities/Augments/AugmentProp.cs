@@ -12,7 +12,7 @@ namespace Architome
         public int augmentId;
 
         [Serializable]
-        public struct DestroyConditions
+        public class DestroyConditions
         {
             public bool destroyOnCollisions;
             public bool destroyOnStructure;
@@ -23,34 +23,54 @@ namespace Architome
             public bool destroyOnDeadTarget;
             public bool destroyOnCantFindTarget;
 
-            public static DestroyConditions operator +(DestroyConditions condition1, DestroyConditions condition2)
-            {
-                DestroyConditions newCondition = new();
 
-                foreach (var field in newCondition.GetType().GetFields())
+            public void Add(DestroyConditions other)
+            {
+                foreach (var field in this.GetType().GetFields())
                 {
-                    var value = field.GetValue(newCondition);
+                    var value = field.GetValue(this);
 
                     if (value.GetType() != typeof(bool)) continue;
 
-                    if ((bool)field.GetValue(condition1) || (bool)field.GetValue(condition2))
+                    if ((bool)field.GetValue(this) || (bool)field.GetValue(other))
                     {
-                        field.SetValue(newCondition, true);
+                        field.SetValue(this, true);
                     }
-                    else
-                    {
-                        field.SetValue(newCondition, false);
-                    }
-
 
                 }
+            }
 
-                return newCondition;
+            public DestroyConditions Copy()
+            {
+                var conditions = new DestroyConditions();
+
+                foreach (var field in GetType().GetFields())
+                {
+                    var value = field.GetValue(this);
+
+                    field.SetValue(conditions, value);
+                }
+
+                return conditions;
+            }
+
+            public void Subtract(DestroyConditions other)
+            {
+                foreach (var field in this.GetType().GetFields())
+                {
+                    var value = field.GetValue(other);
+
+                    if (value.GetType() != typeof(bool)) continue;
+
+                    if ((bool)value != true) continue;
+
+                    field.SetValue(this, false);
+                }
             }
         }
 
         [Serializable]
-        public struct Restrictions
+        public class Restrictions
         {
             public bool activated;
             public bool playerAiming;
@@ -99,17 +119,67 @@ namespace Architome
 
                 return newRestriction;
             }
+
+            public void Add(Restrictions other)
+            {
+                foreach (var field in this.GetType().GetFields())
+                {
+                    var value = field.GetValue(other);
+
+                    if (value.GetType() != typeof(bool)) continue;
+
+                    if ((bool)field.GetValue(this) || (bool)field.GetValue(other))
+                    {
+                        field.SetValue(this, true);
+                    }
+                    else
+                    {
+                        field.SetValue(this, false);
+                    }
+
+
+                }
+            }
+
+            public void Subtract(Restrictions other)
+            {
+                foreach (var field in this.GetType().GetFields())
+                {
+                    var value = field.GetValue(other);
+
+                    if (value.GetType() != typeof(bool)) continue;
+
+                    if ((bool)value != true) continue;
+
+                    field.SetValue(this, false);
+                }
+            }
+
+            public void UpdateSelf(AbilityInfo ability)
+            {
+                foreach (var field in this.GetType().GetFields())
+                {
+                    foreach (var abilityField in ability.GetType().GetFields())
+                    {
+                        if (field.Name != abilityField.Name) continue;
+
+                        field.SetValue(this, abilityField.GetValue(ability));
+                    }
+                }
+            }
+
+            public Restrictions Copy()
+            {
+                var restrictions = new Restrictions();
+
+                foreach (var field in this.GetType().GetFields())
+                {
+                    field.SetValue(restrictions, field.GetValue(this));
+                }
+
+                return restrictions;
+            }
         }
-        //[Serializable]
-        //public struct Cataling
-        //{
-        //    public bool enable;
-        //    public GameObject catalyst;
-        //    public AbilityType catalingType;
-        //    public CatalystEvent releaseCondition;
-        //    public int releasePerInterval;
-        //    public float interval, targetFinderRadius, valueContribution, rotationPerInterval, startDelay;
-        //}
         
 
         [Serializable]
@@ -145,62 +215,16 @@ namespace Architome
             public float trackingInterpolation;
         }
 
-        //[Serializable]
-        //public struct ChannelProperties
-        //{
-        //    public bool enabled;
-        //    public bool active;
-        //    public float time;
-        //    public int invokeAmount;
-        //    public bool cancel;
-
-        //    [Header("Restrictions")]
-        //    public bool canMove;
-        //    public bool cancelChannelOnMove;
-        //    public float deltaMovementSpeed;
-        //}
-
-        //[Serializable]
-        //public struct SplashProperties
-        //{
-        //    public bool enable;
-        //    public CatalystEvent trigger;
-        //    public bool requiresLOS;
-        //    public bool appliesBuffs;
-        //    public int maxSplashTargets;
-        //    public float valueContribution;
-        //    public float radius;
-        //    public float delay;
-
-        //}
-
         [Serializable]
         public struct Threat
         {
             public bool enabled;
             public float additiveThreatMultiplier;
 
-            public bool setsThreat;
-            public float threatSet;
+            public bool setsThreat { get; set; }
+            public float threatSet { get; set; }
+            public bool clearThreat { get; set; }
 
-            public bool clearThreat;
-        }
-
-        [Serializable]
-        public struct SummoningProperty
-        {
-            public bool enabled;
-            public List<GameObject> summonableEntities;
-
-            [Header("Summoning Settings")]
-            public float radius;
-            public float liveTime;
-            public float valueContributionToStats;
-            public Stats additiveStats;
-
-            [Header("Death Settings")]
-            public bool masterDeath;
-            public bool masterCombatFalse;
         }
 
 
@@ -210,9 +234,5 @@ namespace Architome
         public Tracking tracking;
         public RecastProperties recast;
         public Threat threat;
-        public SummoningProperty summoning;
-
-
-
     }
 }

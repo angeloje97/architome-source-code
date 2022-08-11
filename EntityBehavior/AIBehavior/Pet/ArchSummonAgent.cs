@@ -13,7 +13,7 @@ namespace Architome
         public ThreatManager threatManager;
         public AIBehavior behavior;
         public AbilityManager ability;
-        public AugmentProp.SummoningProperty summoning;
+        public EntityInfo.SummonedEntity summoning;
         public CombatBehavior combat;
         public CharacterInfo character;
 
@@ -26,7 +26,7 @@ namespace Architome
             master = entityInfo.summon.master;
             
             liveTime = entityInfo.summon.timeRemaining;
-            summoning = entityInfo.summon.sourceAbility.summoning;
+            summoning = entityInfo.summon;
             behavior = GetComponentInParent<AIBehavior>();
 
             character = entityInfo.CharacterInfo();
@@ -50,13 +50,13 @@ namespace Architome
         {
             if (enter)
             {
-                if (summoning.masterDeath)
+                if (summoning.diesOnMasterDeath)
                 {
                     master.OnLifeChange += OnMasterLifeChange;
                     if (!master.isAlive) liveTime = 0f;
                 }
 
-                if (summoning.masterCombatFalse)
+                if (summoning.diesOnMasterCombatFalse)
                 {
                     master.OnCombatChange += OnMasterCombatChange;
                     if (!master.isInCombat) liveTime = 0f;
@@ -64,12 +64,12 @@ namespace Architome
             }
             else
             {
-                if (summoning.masterDeath)
+                if (summoning.diesOnMasterDeath)
                 {
                     master.OnLifeChange -= OnMasterLifeChange;
                 }
 
-                if (summoning.masterCombatFalse)
+                if (summoning.diesOnMasterCombatFalse)
                 {
                     master.OnCombatChange -= OnMasterCombatChange;
                 }

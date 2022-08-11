@@ -63,6 +63,11 @@ namespace Architome
 
             public int Total()
             {
+                if (working == null) working = new();
+                if (onTheWay == null) onTheWay = new();
+                if (lingering == null) lingering = new();
+
+
                 return working.Count + onTheWay.Count + lingering.Count;
             }
         }
@@ -79,6 +84,8 @@ namespace Architome
         {
             public UnityEvent OnCompleted;
             public UnityEvent OnFailed;
+            public UnityEvent OnLingeringStart;
+            public UnityEvent OnLingeringEnd;
         }
 
         public TaskProperties properties;
@@ -223,19 +230,19 @@ namespace Architome
 
             void HandleLingering()
             {
-                if (!properties.allowLinger) return;
-                workers.lingering = workers.working.ToList();
+                //if (!properties.allowLinger) return;
+                //workers.lingering = workers.working.ToList();
 
-                ArchAction.Delay(() => {
+                //ArchAction.Delay(() => {
 
-                    foreach (var worker in workers.lingering)
-                    {
-                        worker.taskEvents.OnLingeringStart?.Invoke(eventData);
-                    }
+                //    foreach (var worker in workers.lingering)
+                //    {
+                //        worker.taskEvents.OnLingeringStart?.Invoke(eventData);
+                //    }
 
-                    WhileLingering();
+                //    WhileLingering();
 
-                }, .0625f);
+                //}, .0625f);
                 
             }
 
@@ -258,6 +265,7 @@ namespace Architome
 
         public async void WhileLingering()
         {
+            completionEvents.OnLingeringStart?.Invoke();
             while (workers.lingering.Count > 0)
             {
                 await Task.Yield();
@@ -283,7 +291,7 @@ namespace Architome
                     }
                 }
             }
-
+            completionEvents.OnLingeringEnd?.Invoke();
         }
 
         public bool CanStartWork(EntityInfo entity)
@@ -336,6 +344,15 @@ namespace Architome
             return false;
         }
 
+        public void AddLingering(EntityInfo entity)
+        {
+            if (workers.lingering == null) workers.lingering = new();
+
+            if (workers.lingering.Contains(entity)) return;
+
+            workers.lingering.Add(entity);
+        }
+
         public bool AddWorkerOnTheWay(EntityInfo entity)
         {
             if (workers.onTheWay == null)
@@ -375,18 +392,28 @@ namespace Architome
         public void RemoveWorker(EntityInfo entity)
         {
 
+            if (this == null) return;
+            if (entity == null) return;
+            
 
-            if(workers.onTheWay.Contains(entity))
+
+            if(workers.onTheWay != null && workers.onTheWay.Contains(entity))
             {
                 workers.onTheWay.Remove(entity);
                 entity.taskEvents.OnCancelMovingToTask?.Invoke(new TaskEventData(this));
             }
 
-            if(workers.working.Contains(entity))
+            if(workers.working != null &&  workers.working.Contains(entity))
             {
                 workers.working.Remove(entity);
                 entity.taskEvents.OnEndTask?.Invoke(new TaskEventData(this));
             }
+
+            if (workers.lingering != null && workers.lingering.Contains(entity))
+            {
+                workers.lingering.Remove(entity);
+            }
+
 
             UpdateState();
         }
@@ -421,10 +448,13 @@ namespace Architome
     public class TaskEventData
     {
         public TaskInfo task;
+        public WorkInfo workInfo;
 
         public TaskEventData(TaskInfo task)
         {
             this.task = task;
+            workInfo = task.properties.station;
+
         }
 
         public bool TaskComplete { 

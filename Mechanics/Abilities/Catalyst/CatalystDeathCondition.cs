@@ -42,7 +42,7 @@ namespace Architome
 
             if (abilityInfo)
             {
-                conditions = catalystInfo.abilityInfo.destroyConditions;
+                conditions = catalystInfo.abilityInfo.destroyConditions.Copy();
                 abilityInfo = catalystInfo.abilityInfo;
             }
 
@@ -150,14 +150,8 @@ namespace Architome
         public void OnReturn(CatalystInfo catalyst)
         {
             if (gameObject == null) { return; }
-            if (conditions.destroyOnReturn)
-            {
-
-                if (GetComponent<CatalystReturn>() && GetComponent<CatalystReturn>().hasReturned)
-                {
-                    DestroySelf("Returned");
-                }
-            }
+            if (!conditions.destroyOnReturn) return;
+            DestroySelf("Returned");
         }
         public void HandleRange()
         {

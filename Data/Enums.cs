@@ -415,6 +415,7 @@ namespace Architome.Enums
         QuestItem,
         Catalyst,
         Currency,
+        Augment,
         Misc
     }
 

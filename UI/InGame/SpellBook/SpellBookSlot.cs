@@ -10,6 +10,7 @@ namespace Architome
         // Start is called before the first frame update
         public AbilityType2 slotType;
         public Transform border;
+        public AbilityInfo ability;
 
         void Start()
         {
@@ -22,16 +23,32 @@ namespace Architome
 
         }
 
-        public void SetAbilityUI(GameObject abilityUI)
+        public void SetAbilityUI(AbilityInfoUI abilityUI)
         {
-            if (!abilityUI.GetComponent<AbilityInfoUI>()) { return; }
+            //if (!abilityUI.GetComponent<AbilityInfoUI>()) { return; }
 
 
-            abilityUI.GetComponent<AbilityInfoUI>().currentSlot = this;
+            ability = abilityUI.abilityInfo;
+
+            foreach (var augmentSlot in transform.parent.GetComponentsInChildren<AugmentSlot>())
+            {
+                augmentSlot.SetAbility(ability);
+            }
+
+
+            abilityUI.currentSlot = this;
             abilityUI.transform.position = transform.position;
             abilityUI.GetComponent<RectTransform>().sizeDelta = GetComponent<RectTransform>().sizeDelta * 1.25f;
+
             abilityUI.transform.SetParent(transform);
             border.SetAsLastSibling();
+
+
+            //abilityUI.GetComponent<AbilityInfoUI>().currentSlot = this;
+            //abilityUI.transform.position = transform.position;
+            //abilityUI.GetComponent<RectTransform>().sizeDelta = GetComponent<RectTransform>().sizeDelta * 1.25f;
+            //abilityUI.transform.SetParent(transform);
+            //border.SetAsLastSibling();
         }
     }
 }

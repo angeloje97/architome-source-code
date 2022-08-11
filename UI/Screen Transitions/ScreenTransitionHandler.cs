@@ -68,8 +68,6 @@ namespace Architome
                 }
             }
 
-
-
             HandleMapRoomGenerator();
         }
         void Update()

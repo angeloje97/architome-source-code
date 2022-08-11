@@ -68,6 +68,8 @@ namespace Architome
             if (questGenerated == null) return;
             if (questGenerated.info.state != QuestState.Active) return;
 
+            Debugger.UI(3290, $"Activing {gameObject} prompt");
+
             sceneManager.tasksBeforeConfirmLoad.Add(CheckCancelQuest());
 
             async Task<bool> CheckCancelQuest()

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -20,6 +21,12 @@ namespace Architome
         void Start()
         {
             GetDependencies();
+            previousTask = null;
+            currentTask = null;
+        }
+        void Update()
+        {
+            HandleEvents();
         }
         public new void GetDependencies()
         {
@@ -30,19 +37,35 @@ namespace Architome
                 movement = entityInfo.Movement();
             }
 
+            entityInfo.combatEvents.OnStatesChange += OnEntityStateChanged;
+
             entityInfo.taskEvents.OnNewTask += OnNewTask;
             entityInfo.taskEvents.OnTaskComplete += OnTaskComplete;
             entityInfo.OnDamageTaken += OnDamageTaken;
             
         }
 
-        // Update is called once per frame
-        void Update()
+        void OnEntityStateChanged(List<EntityState> previous, List<EntityState> current)
         {
-            HandleEvents();
+            if (currentTask == null) return;
+
+            var interruptionStates = new List<EntityState>()
+            {
+                EntityState.Stunned,
+                EntityState.MindControlled,
+                EntityState.Taunted
+            };
+
+            var intersection = current.Intersect(interruptionStates);
+
+            if (intersection.Count() > 0)
+            {
+                StopTask();
+            }
         }
         public void HandleEvents()
         {
+            if (previousTask == null && currentTask == null) return;
             if(previousTask != currentTask)
             {
                 entityInfo.taskEvents.OnNewTask?.Invoke(previousTask, currentTask);
@@ -55,13 +78,9 @@ namespace Architome
                 entityInfo.workerState = currentState;
             }
         }
-        public void OnArrival(Movement movement, Transform target)
-        {
-        }
-
-
         public void OnNewTask(TaskInfo previous, TaskInfo current)
         {
+            if (!Application.isPlaying) return;
             HandlePreviousTask();
 
             void HandlePreviousTask()
@@ -71,12 +90,35 @@ namespace Architome
                 previous.RemoveWorker(entityInfo);
             }
         }
-
-        public void OnTaskComplete(TaskEventData eventData)
+        public async void OnTaskComplete(TaskEventData eventData)
         {
-            StopTask();
-        }
 
+            await Lingering();
+            
+            StopTask();
+
+            async Task Lingering()
+            {
+                if (eventData.task.properties.allowLinger)
+                {
+                    var target = eventData.workInfo.StationTarget();
+
+                    eventData.task.RemoveWorker(entityInfo);
+
+                    currentState = WorkerState.Lingering;
+                    entityInfo.taskEvents.OnLingeringStart?.Invoke(eventData);
+                    eventData.task.AddLingering(entityInfo);
+
+                    while (entityInfo.Target() == target)
+                    {
+                        await Task.Yield();
+                    }
+
+                    entityInfo.taskEvents.OnLingeringEnd?.Invoke(eventData);
+                    currentState = WorkerState.Idle;
+                }
+            }
+        }
         public void OnDamageTaken(CombatEventData eventData)
         {
             if (currentTask == null) return;
@@ -85,7 +127,6 @@ namespace Architome
                 StopTask();
             }
         }
-
         public void StopTask()
         {
             if(currentTask == null) { return; }
@@ -94,8 +135,7 @@ namespace Architome
             currentStation = null;
             currentState = WorkerState.Idle;
         }
-
-        bool IsCurrentWorkStation(Transform targetCheck)
+        public bool IsCurrentWorkStation(Transform targetCheck)
         {
             if(currentStation == null) { return false; }
 
@@ -106,16 +146,12 @@ namespace Architome
 
             return false;
         }
-
         public void WorkOn(TaskInfo task)
         {
             if (!task.AddWorker(entityInfo)) { return; }
 
-
             entityInfo.taskEvents.OnStartTask?.Invoke(new TaskEventData(task));
-            currentState = WorkerState.Working;
         }
-
         async public Task<bool> StartWorkAsync(TaskInfo task)
         {
             if (task == null) return false;
@@ -143,7 +179,6 @@ namespace Architome
 
             return successful;
         }
-
         async public void StartWork(TaskInfo task)
         {
             Debugger.InConsole(18964, $"{task}");
@@ -181,6 +216,7 @@ namespace Architome
 
             WorkOn(task);
 
+            currentState = WorkerState.Working;
 
 
             var newPathTarget = await movement.NextPathTarget();
@@ -191,7 +227,6 @@ namespace Architome
             }
 
         }
-
     }
 
 }

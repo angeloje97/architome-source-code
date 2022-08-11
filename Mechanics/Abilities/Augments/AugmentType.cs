@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -7,20 +8,20 @@ namespace Architome
 {
     public class AugmentType : MonoBehaviour
     {
-        protected Augment augment;
+        public Augment augment;
         protected AbilityInfo ability;
 
         public float value;
         public float valueContribution = 1f;
 
-        protected CatalystInfo activeCatalyst;
+        public CatalystInfo activeCatalyst;
         protected CatalystHit activeHit;
+
 
         async void Start()
         {
             await GetDependencies();
         }
-
         protected async Task GetDependencies()
         {
             augment = GetComponent<Augment>();
@@ -36,14 +37,53 @@ namespace Architome
                 value = valueContribution * augment.info.value;
                 ability = augment.ability;
             }
-
         }
 
+        public virtual async Task<bool> Ability()
+        {
+            return true;
+        }
         protected void EnableCatalyst()
         {
             augment.OnNewCatalyst += HandleNewCatlyst;
-        }
 
+        }
+        protected void EnableAugmentAbility()
+        {
+            if (ability.augmentAbilities == null)
+            {
+                ability.augmentAbilities = new();
+            }
+
+            ability.augmentAbilities.Add(this);
+
+            augment.OnRemove += (Augment augment) =>
+            {
+                ability.augmentAbilities.Remove(this);
+            };
+        }
+        protected void EnableCasting()
+        {
+            augment.ability.WhileCasting += WhileCasting;
+            augment.OnRemove += (Augment augment) => {
+                ability.WhileCasting -= WhileCasting;
+            };
+        }
+        protected void EnableSuccesfulCast()
+        {
+            ability.OnSuccessfulCast += HandleSuccessfulCast;
+
+            augment.OnRemove += (Augment augment) =>
+            {
+                ability.OnSuccessfulCast -= HandleSuccessfulCast;
+            };
+        }
+        protected void EnableAbilityStartEnd()
+        {
+            ability.OnAbilityStartEnd += HandleAbility;
+
+            augment.OnRemove += (Augment augment) => { ability.OnAbilityStartEnd -= HandleAbility; };
+        }
         public virtual void SetCatalyst(CatalystInfo catalyst, bool active)
         {
             if (active)
@@ -61,8 +101,19 @@ namespace Architome
                 }
             }
         }
-
         public virtual void HandleNewCatlyst(CatalystInfo catalyst)
+        {
+
+        }
+        public virtual void WhileCasting(AbilityInfo ability)
+        {
+
+        }
+        public virtual void HandleSuccessfulCast(AbilityInfo ability)
+        {
+
+        }
+        public virtual void HandleAbility(AbilityInfo ability, bool start)
         {
 
         }
@@ -70,6 +121,11 @@ namespace Architome
         {
             var result = "";
             return result;
+        }
+
+        public void TriggerAugment()
+        {
+
         }
     }
 }

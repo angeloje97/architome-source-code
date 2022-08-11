@@ -18,8 +18,12 @@ namespace Architome
         [SerializeField] bool stopped;
         [SerializeField] bool maxSpeed;
 
+        bool disabled;
 
-
+        public void DisableKinematics()
+        {
+            disabled = true;
+        }
 
         public void SetKinematics(CatalystInfo catalyst)
         {
@@ -84,12 +88,14 @@ namespace Architome
 
             await Task.Delay(125);
 
-            ArchAction.UpdateWhile(() => {
-
-                condition.isMet = !catalyst.isDestroyed;
-
-
-                if (condition.isMet == false) return;
+            while (!catalyst.isDestroyed)
+            {
+                
+                if (disabled)
+                {
+                    await Task.Yield();
+                    continue;    
+                }
 
                 catalyst.metrics.currentPosition = catalyst.transform.position;
                 HandleStop();
@@ -97,8 +103,19 @@ namespace Architome
                 HandleMaxSpeed();
 
                 catalyst.transform.Translate(Vector3.forward * speed * Time.deltaTime);
+                await Task.Yield();
+            }
 
-            }, condition);
+            //ArchAction.UpdateWhile(() => {
+
+            //    condition.isMet = !catalyst.isDestroyed;
+
+
+            //    if (condition.isMet == false) return;
+
+                
+
+            //}, condition);
         }
 
         

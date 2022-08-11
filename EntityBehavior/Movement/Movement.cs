@@ -218,6 +218,7 @@ namespace Architome
             {
                 OnNewPathTarget?.Invoke(this, currentPathTarget, destinationSetter.target);
                 currentPathTarget = destinationSetter.target;
+                entityInfo.target = destinationSetter.target;
             }
         }
         void OnChangeStats(EntityInfo entity)

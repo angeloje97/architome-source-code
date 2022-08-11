@@ -65,6 +65,7 @@ namespace Architome
         public bool isRegening = false;
         public bool disappeared = false;
         public bool isHover = false;
+        public Transform target;
         public Role role;
         public RoomInfo currentRoom;
         public List<EntityState> states;
@@ -78,8 +79,19 @@ namespace Architome
             public AbilityInfo sourceAbility;
             public float timeRemaining;
 
+            public bool diesOnMasterDeath, diesOnMasterCombatFalse;
 
+            public void SetSummoned(SpawnerInfo.SummonData summonData)
+            {
+                isSummoned = true;
 
+                master = summonData.master;
+
+                timeRemaining = summonData.liveTime;
+
+                diesOnMasterDeath = summonData.masterDeath;
+                diesOnMasterCombatFalse = summonData.masterCombatFalse;
+            }
         }
         public SummonedEntity summon;
 
@@ -701,14 +713,15 @@ namespace Architome
         }
         public Transform Target()
         {
-            var movement = Movement();
+            return target;
+            //var movement = Movement();
 
-            if (movement != null)
-            {
-                return movement.Target();
-            }
+            //if (movement != null)
+            //{
+            //    return movement.Target();
+            //}
 
-            return null;
+            //return null;
         }
         public bool IsEnemy(GameObject target)
         {
@@ -940,10 +953,8 @@ namespace Architome
         }
         public void SetSummoned(SpawnerInfo.SummonData summonData)
         {
-
-            summon.isSummoned = true;
-            summon.timeRemaining = summonData.liveTime;
-            summon.master = summonData.master;
+            summon.SetSummoned(summonData);
+            
 
             ChangeNPCType(summonData.master.npcType);
             SetParent();

@@ -77,6 +77,8 @@ namespace Architome
             CreateItems();
         }
 
+        
+
         void OnTryEquip(ItemInfo info, EntityInfo entity)
         {
             if (entityInfo != entity)

@@ -124,6 +124,9 @@ namespace Architome
             public AbilityInfo sourceAbility;
             public EntityInfo master;
             public float liveTime;
+
+            //DeathSettings
+            public bool masterDeath, masterCombatFalse;
         }
     }
 }

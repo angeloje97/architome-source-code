@@ -30,6 +30,7 @@ namespace Architome
             public GameObject entitySelector;
             public GameObject entityIcon;
             public GameObject inventorySlot;
+            public GameObject icon;
         }
 
         public UIPrefabs prefabsUI;

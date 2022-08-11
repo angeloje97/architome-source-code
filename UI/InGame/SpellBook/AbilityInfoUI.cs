@@ -70,7 +70,7 @@ namespace Architome
                     Destroy(gameObject);
                 }
 
-                currentSlot.SetAbilityUI(gameObject);
+                currentSlot.SetAbilityUI(this);
             }
         }
 

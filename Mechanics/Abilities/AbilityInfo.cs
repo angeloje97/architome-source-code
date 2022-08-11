@@ -35,6 +35,8 @@ public class AbilityInfo : MonoBehaviour
     public Sprite abilityIcon;
     
     public List<GameObject> buffs;
+    public List<ItemData> augmentsData;
+    public Dictionary<AugmentItem, Augment> augments;
     //public BuffProperties buffProperties;
 
     public AbilityManager abilityManager;
@@ -60,10 +62,7 @@ public class AbilityInfo : MonoBehaviour
     public float castTime = 1f;
 
 
-    public AugmentProp.SummoningProperty summoning;
-    public AugmentProp.Restrictions originalRestrictions;
     public AugmentProp.Restrictions restrictions;
-    public AugmentProp.DestroyConditions originalConditions;
     public AugmentProp.DestroyConditions destroyConditions;
     public AugmentProp.RecastProperties recastProperties;
     public AugmentProp.Tracking tracking;
@@ -74,35 +73,10 @@ public class AbilityInfo : MonoBehaviour
     {
         public float strength, wisdom, dexterity = 1f;
     }
-    public void OnValidate()
-    {
-        //coreContribution.strength = strengthContribution;
-        //coreContribution.wisdom = wisdomContribution;
-        //coreContribution.dexterity = dexterityContribution;
-
-
-
-        //foreach (var buff in buffs)
-        //{
-        //    var info = buff.GetComponent<BuffInfo>();
-
-        //    if (info == null) continue;
-
-        //    info.properties = buffProperties;
-        //    UnityEditor.EditorUtility.SetDirty(buff);
-        //}
-
-    }
+    
 
 
     public StatsContribution coreContribution;
-
-    [Header("Stats Contribution")]
-    //public float strengthContribution = 1f;
-    //public float wisdomContribution = 1f;
-    //public float dexterityContribution = 1f;
-
-
 
     [Header("Ability Properties")]
 
@@ -175,6 +149,32 @@ public class AbilityInfo : MonoBehaviour
 
     //[Header("AbilityRestrictions")]
     public bool activated; //If the ability is casting or channeling.
+
+    [Header("Legacy Restrictions(Still in Use)")]
+    [SerializeField] bool validate;
+    public void OnValidate()
+    {
+
+        //restrictions.UpdateSelf(this);
+        //UnityEditor.EditorUtility.SetDirty(this);   
+        //var restrictionFields = restrictions.GetType().GetFields();
+        
+        //foreach (var field in this.GetType().GetFields())
+        //{
+        //    foreach (var restrictionField in restrictionFields)
+        //    {
+        //        if (field.Name != restrictionField.Name) continue;
+
+        //        var resValue = restrictionField.GetValue(restrictions);
+        //        var abilityValue = field.GetValue(this);
+
+        //        if (resValue.GetType() != typeof(bool)) continue;
+        //        if (abilityValue.GetType() != typeof(bool)) continue;
+
+        //        restrictionField.SetValue(restrictions, abilityValue);
+        //    }
+        //}
+    }
     public bool playerAiming;
     public bool canCastSelf;
     public bool onlyCastSelf;
@@ -212,7 +212,10 @@ public class AbilityInfo : MonoBehaviour
     public Action<CatalystInfo> OnCatalystRelease;
     public Action<AbilityInfo> OnSuccessfulCast;
     public Action<AbilityInfo> OnBusyCheck;
-    public List<Task> tasksBeforeEndAbility;
+    public Action<AbilityInfo, bool> OnAbilityStartEnd;
+    public Action<AbilityInfo> OnUpdateRestrictions;
+    public Action<AbilityInfo> WhileCasting;
+    public List<AugmentType> augmentAbilities;
     public List<bool> busyList;
 
 
@@ -221,15 +224,17 @@ public class AbilityInfo : MonoBehaviour
     public void GetDependencies()
     {
         entityInfo = GetComponentInParent<EntityInfo>();
-        if(abilityManager == null)
+
+
+        abilityManager = GetComponentInParent<AbilityManager>();
+        if (abilityManager)
         {
-            if(GetComponentInParent<AbilityManager>())
-            {
-                abilityManager = GetComponentInParent<AbilityManager>();
-                abilityManager.OnTryCast += OnTryCast;
-                abilityManager.OnGlobalCoolDown += OnGlobalCoolDown;
-            }
+            abilityManager = GetComponentInParent<AbilityManager>();
+            abilityManager.OnTryCast += OnTryCast;
+            abilityManager.OnGlobalCoolDown += OnGlobalCoolDown;
+            
         }
+
         if(entityInfo)
         {
             movement = entityInfo.Movement();
@@ -368,6 +373,39 @@ public class AbilityInfo : MonoBehaviour
         SetCoolDownTimer();
     }
 
+
+    // Augments
+    public async void AddAugment(AugmentItem augmentItem)
+    {
+        if (augments == null) augments = new();
+        if (augments.ContainsKey(augmentItem))
+        {
+
+            await Task.Yield();
+
+            if (augments.ContainsKey(augmentItem))
+            {
+                return;
+            }
+        }
+
+        var newAugment = Instantiate(augmentItem.augment, transform);
+
+        newAugment.spawnedByItem = true;        
+
+        newAugment.gameObject.name = augmentItem.itemName;
+        
+        augments.Add(augmentItem, newAugment);
+    }
+
+    public void RemoveAugment(AugmentItem augmentItem)
+    {
+        if (!augments.ContainsKey(augmentItem)) return;
+        augments[augmentItem].RemoveAugment();
+
+        augments.Remove(augmentItem);
+
+    }
     public string Name()
     {
         if (abilityName.Length == 0)
@@ -473,48 +511,9 @@ public class AbilityInfo : MonoBehaviour
             properties += $"({ArchString.StringList(listString)}).\n";
         }
 
-        //if (splash.enable)
-        //{
-        //    if(isHarming)
-        //    {
-        //        properties += "Does splash damage to enemies ";
-                
-        //        if (isHealing)
-        //        {
-        //            properties += "and ";
-        //        }
-        //    }
-
-        //    if (isHealing)
-        //    {
-        //        properties += $"Does splash healing to allies ";
-        //    }
-
-        //    properties += $"({ArchString.CamelToTitle(splash.trigger.ToString())}) in a {splash.radius} meter radius equal to " +
-        //        $"{ArchString.FloatToSimple(splash.valueContribution * 100)}% value of the ability's original value.\n";
-        //}
-
         if (ticksOfDamage > 1)
         {
-            properties += $"Catalyst Ticks: {ticksOfDamage}";
-        }
-
-
-        if (summoning.enabled)
-        {
-            var entityNames = new List<string>();
-
-            foreach (var entity in summoning.summonableEntities)
-            {
-                var info = entity.GetComponent<EntityInfo>();
-                if (info == null) continue;
-
-                entityNames.Add(info.entityName);
-            }
-
-            var listString = ArchString.StringList(entityNames);
-
-            properties += $"Summons {listString} for {summoning.liveTime} seconds\n";
+            properties += $"Base Ticks: {ticksOfDamage}";
         }
 
         return properties;
@@ -633,10 +632,6 @@ public class AbilityInfo : MonoBehaviour
 
                 var list = assistBuffs;
 
-                if (info.properties.selfBuffOnDestroy)
-                {
-                    list = selfBuffs;
-                }
 
                 if (info.buffTargetType == BuffTargetType.Harm)
                 {
@@ -737,8 +732,10 @@ public class AbilityInfo : MonoBehaviour
         {
             var augment = child.GetComponent<Augment>();
             if (augment == null) continue;
+            if (augment.spawnedByItem) continue;
 
-            var description = augment.TypeDescription();
+
+            var description = $"{augment.name} : {augment.TypeDescription()}";
 
             if (result.Length > 0 && description.Length > 0)
             {
@@ -1641,24 +1638,16 @@ public class AbilityInfo : MonoBehaviour
 
         abilityManager.OnAbilityStart?.Invoke(this);
         abilityManager.currentlyCasting = this;
+        OnAbilityStartEnd?.Invoke(this, true);
 
         bool success = await Casting();
 
         if (success)
         {
-            tasksBeforeEndAbility = new();
             OnSuccessfulCast?.Invoke(this);
 
             ActivateGlobalCoolDown();
-
-            Debugger.Combat(2944, $"{this} has to wait for {tasksBeforeEndAbility.Count} tasks");
-
-            foreach (var task in tasksBeforeEndAbility)
-            {
-                await task;
-            }
-             
-            //await Channeling();
+            await AugmentAbilities();
             SetRecast();
         }
 
@@ -1669,17 +1658,20 @@ public class AbilityInfo : MonoBehaviour
             abilityManager.currentlyCasting = null;
             abilityManager.OnAbilityEnd?.Invoke(this);
         }
+
+        OnAbilityStartEnd?.Invoke(this, true);
+
         SetCoolDownTimer();
         //SetCoolDownTimer();
         
-        activated = false;
-        
-
 
         if (!isAutoAttacking)
         {
             ClearTargets();
         }
+        
+
+        activated = false;
 
         return success;
 
@@ -1740,8 +1732,9 @@ public class AbilityInfo : MonoBehaviour
 
             void WhileCasting1()
             {
-                
+
                 abilityManager.WhileCasting?.Invoke(this);
+                WhileCasting?.Invoke(this);
                 if (isAttack) return;
                 if (targetLocked != target)
                 {
@@ -1762,6 +1755,16 @@ public class AbilityInfo : MonoBehaviour
 
                     abilityManager.OnCastReleasePercent?.Invoke(this);
                 }
+            }
+        }
+
+        async Task AugmentAbilities()
+        {
+            if (augmentAbilities == null) return;
+            foreach (var augment in augmentAbilities)
+            {
+                var success = await augment.Ability();
+                if (!success) break;
             }
         }
 
@@ -1838,6 +1841,15 @@ public class AbilityInfo : MonoBehaviour
         //}
     }
 
+    public async Task<AbilityInfo> EndActivation()
+    {
+        while (activated)
+        {
+            await Task.Yield();
+        }
+
+        return this;
+    }
     public bool HasChannel()
     {
         return GetComponentInChildren<AugmentChannel>() != null;

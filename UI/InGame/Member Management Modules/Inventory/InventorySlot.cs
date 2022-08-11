@@ -40,7 +40,7 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
     public ItemInfo previousItemInfo;
 
 
-    protected void GetDependencies()
+    protected virtual void GetDependencies()
     {
         module = GetComponentInParent<ModuleInfo>();
         itemSlotHandler = GetComponentInParent<ItemSlotHandler>();
