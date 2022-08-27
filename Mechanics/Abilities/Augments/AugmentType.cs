@@ -21,7 +21,6 @@ namespace Architome
         async void Start()
         {
             await GetDependencies();
-            Debugger.Environment(329, $"Test");
         }
         protected async Task GetDependencies()
         {
@@ -35,7 +34,6 @@ namespace Architome
             
             if (augment)
             {
-                var random = 3f;
                 value = valueContribution * augment.info.value;
                 ability = augment.ability;
             }
