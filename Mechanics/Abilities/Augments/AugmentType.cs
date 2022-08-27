@@ -21,6 +21,7 @@ namespace Architome
         async void Start()
         {
             await GetDependencies();
+            Debugger.Environment(329, $"Test");
         }
         protected async Task GetDependencies()
         {
