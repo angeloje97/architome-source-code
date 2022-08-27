@@ -34,6 +34,7 @@ namespace Architome
             
             if (augment)
             {
+                var random = 3f;
                 value = valueContribution * augment.info.value;
                 ability = augment.ability;
             }
