@@ -1,3 +1,4 @@
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -35,6 +36,8 @@ namespace Architome
 
         public RoomPool pool;
         public RoomType type;
+        public string seed;
+
         [Header("Room Properties")]
         public bool isEntranceRoom;
         public int frequency = 1;
@@ -79,7 +82,7 @@ namespace Architome
         [Header("RoomBehavior")]
         public Transform[] allObjects;
         public Renderer[] allRenderers;
-        public bool hideOnStart;
+        public bool ignoreHideOnStart;
         public bool ignoreCheckRoomCollison;
         public bool isRevealed = true;
         public bool spawnedByGenerator = false;
@@ -151,6 +154,18 @@ namespace Architome
                         room.ShowRoom(false, entity.transform.position);
                     }
                 }
+            }
+
+            public bool PlayerIsInRoom()
+            {
+                foreach (var entity in inRoom)
+                {
+                    if (!Entity.IsPlayer(entity.gameObject)) continue;
+                    return true;
+                }
+
+
+                return playerInRoom.Count > 0;
             }
 
         }

@@ -42,10 +42,6 @@ namespace Architome
             public AudioClip workingSound;
             public AudioClip completionSound;
 
-            
-
-
-            //Private variables
         }
 
         [Serializable]
@@ -78,7 +74,6 @@ namespace Architome
             public bool isBeingWorkedOn;
             public TaskState currentState;
         }
-
         [Serializable]
         struct TaskCompletionEvent
         {
@@ -91,14 +86,24 @@ namespace Architome
         public TaskProperties properties;
         [SerializeField]
         TaskWorkers workers;
+        
         [SerializeField]
         public TaskStates states;
         [SerializeField]
         TaskCompletionEvent completionEvents;
 
+
+
         //Private variables
         float previousWorkDone;
 
+        public List<EntityInfo> CurrentWorkers
+        {
+            get
+            {
+                return workers.working;
+            }
+        }
 
 
         public TaskInfo(WorkInfo station)
@@ -138,8 +143,8 @@ namespace Architome
 
             properties.station.taskEvents.OnStartTask?.Invoke(new TaskEventData(this));
             var success = await WhileWorking();
-
             properties.station.taskEvents.OnEndTask?.Invoke(new TaskEventData(this));
+
 
             properties.deltaWork = 0;
             
@@ -417,6 +422,7 @@ namespace Architome
 
             UpdateState();
         }
+
 
         public void RemoveAllLingerers()
         {

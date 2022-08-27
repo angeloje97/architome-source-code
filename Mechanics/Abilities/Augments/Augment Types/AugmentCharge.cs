@@ -9,6 +9,8 @@ namespace Architome
 {
     public class AugmentCharge : AugmentType
     {
+        [Header("Charge Properties")]
+        public GameObject pathfindingAgent;
         public float maxSpeed = 100;
         public float maxAcceleration = 5000000;
 
@@ -16,6 +18,8 @@ namespace Architome
         LayerMask groundLayer;
 
         public CatalystManager catalystManager;
+
+
         void Start()
         {
             GetDependencies();
@@ -34,20 +38,40 @@ namespace Architome
             groundLayer = layerMasksData.walkableLayer;
         }
 
-        public override async void HandleNewCatlyst(CatalystInfo catalyst)
+        public override void HandleNewCatlyst(CatalystInfo catalyst)
         {
-            var chargeComponent = new GameObject("Charge Component");
+            catalyst.OnCatalystDestroy += OnCatalystDestroy;
+            
+        }
+
+        public override string Description()
+        {
+            var result = "";
+
+            result += $"When the catalyst is destroyed, the caster charges to the target location.";
+
+            return result; 
+        }
+
+        public async void OnCatalystDestroy(CatalystDeathCondition condition)
+        {
+            if (pathfindingAgent == null) return;
+            var catalyst = condition.GetComponent<CatalystInfo>();
+
+            var chargeComponent = Instantiate(pathfindingAgent, catalystManager.transform);
             var chargeTarget = new GameObject("Charge Target");
 
             chargeComponent.transform.SetParent(catalystManager.transform);
             chargeTarget.transform.SetParent(catalystManager.transform);
-            chargeComponent.transform.position = catalyst.transform.position;
+            chargeTarget.transform.position = catalyst.transform.position;
+            chargeComponent.transform.position = augment.entity.transform.position;
+            chargeComponent.transform.LookAt(chargeTarget.transform);
 
 
-            var destinationSetter = chargeComponent.AddComponent<AIDestinationSetter>();
-            var seeker = chargeComponent.AddComponent<Seeker>();
-            var path = chargeComponent.AddComponent<AIPath>();
-            var offset = .5f;
+            var destinationSetter = chargeComponent.GetComponent<AIDestinationSetter>();
+            var seeker = chargeComponent.GetComponent<Seeker>();
+            var path = chargeComponent.GetComponent<AIPath>();
+            var offset = 2f;
 
             if (catalyst.target)
             {
@@ -64,14 +88,18 @@ namespace Architome
 
             path.maxSpeed = maxSpeed;
             path.maxAcceleration = maxAcceleration;
+            
             var endReachDistance = path.endReachedDistance;
 
-            Predicate<object> predicate = (object o) 
+            Debugger.Combat(3895, $"Distance between charge target is {V3Helper.Distance(chargeComponent.transform.position, chargeTarget.transform.position)}");
+
+            Predicate<object> predicate = (object o)
                 => V3Helper.Distance(chargeComponent.transform.position, chargeTarget.transform.position) <= offset + endReachDistance;
+
 
             while (!predicate.Invoke(null))
             {
-                var groundPosition = V3Helper.GroundPosition(chargeComponent.transform.position, groundLayer, 2f, heightOffSet);
+                var groundPosition = V3Helper.GroundPosition(chargeComponent.transform.position, groundLayer, 2f, heightOffSet + .2f);
                 augment.entity.transform.position = groundPosition;
                 await Task.Yield();
             }

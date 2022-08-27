@@ -37,14 +37,19 @@ namespace Architome
             catalystSpeed = augment.ability.catalystInfo.speed;
         }
 
-        public override void WhileCasting(AbilityInfo ability)
+        public override async void WhileCasting(AbilityInfo ability)
         {
             if (ability.targetLocked == null) return;
 
-            TrackTarget();
-            PredictTarget(ability.targetLocked);
+            var eventData = new Augment.AugmentEventData(this) { active = true };
+            augment.ActivateAugment(eventData);
 
-            async void TrackTarget()
+            await TrackTarget();
+            await PredictTarget(ability.targetLocked);
+
+            eventData.active = false;
+
+            async Task TrackTarget()
             {
                 if (trackingType != TrackingType.Track) return;
                 if (tracking) return;
@@ -61,7 +66,7 @@ namespace Architome
                 tracking = false;
             }
 
-            async void PredictTarget(GameObject target)
+            async Task PredictTarget(GameObject target)
             {
                 if (trackingType != TrackingType.Predict) return;
                 if (predicting) return;

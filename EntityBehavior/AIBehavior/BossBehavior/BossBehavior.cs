@@ -9,7 +9,7 @@ namespace Architome
     public class BossBehavior : EntityProp
     {
         // Start is called before the first frame update
-        [SerializeField] BossRoom bossRoom;
+        public BossRoom bossRoom;
 
         public CombatBehavior combatBehavior;
         public Transform originalPosition { get; private set; }
@@ -17,7 +17,6 @@ namespace Architome
         public List<Phase> phases;
 
         public Action<Phase> OnPhase;
-
 
 
         new void GetDependencies()
@@ -124,6 +123,7 @@ namespace Architome
             [Multiline]
             public string activationPhrase;
             public SpecialAbility phaseAbility;
+            public bool usesBossStation;
 
             public bool Activated(float percentHealth)
             {

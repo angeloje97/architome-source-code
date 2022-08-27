@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
@@ -24,6 +25,7 @@ namespace Architome
         public EntityInfo entityInfo;
 
         public List<AbilityInfo> abilities;
+        public HashSet<AbilityInfo> abilityMap;
         public List<AbilityInfo> usableItems;
         public CharacterInfo character;
 
@@ -96,6 +98,7 @@ namespace Architome
             }
 
             abilities.Clear();
+            abilityMap = new();
 
             foreach (Transform child in transform)
             {
@@ -110,6 +113,7 @@ namespace Architome
                 else
                 {
                     abilities.Add(ability);
+                    abilityMap.Add(ability);
                 }
 
                 ability.active = true;
@@ -181,7 +185,13 @@ namespace Architome
             SetAbilities(isAlive, isAlive);
         }
 
-
+        public async Task CastingEnd()
+        {
+            while (IsCasting())
+            {
+                await Task.Yield();
+            }
+        }
         public void OnStatesChange(List<EntityState> previous, List<EntityState> states)
         {
             if(!entityInfo.isAlive) { return; }
@@ -323,7 +333,8 @@ namespace Architome
         public void Cast(AbilityInfo ability)
         {
             if (!entityInfo.isAlive) { return; }
-            if (!abilities.Contains(ability)) return;
+            //if (!abilities.Contains(ability)) return;
+            if (!abilityMap.Contains(ability)) return;
 
             if (!entityInfo.isAlive) { return; }
 

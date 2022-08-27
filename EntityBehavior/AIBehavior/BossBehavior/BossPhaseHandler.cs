@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Architome
@@ -9,6 +10,13 @@ namespace Architome
 
         [SerializeField] BossBehavior behavior;
         [SerializeField] EntitySpeech speech;
+        [SerializeField] ETaskHandler taskHandler;
+        AbilityManager abilityManager;
+
+
+        bool doingTask;
+        int taskAmount;
+
 
         void GetDependenices()
         {
@@ -33,15 +41,48 @@ namespace Architome
 
         }
 
-        void OnPhase(BossBehavior.Phase phase)
+        async void OnPhase(BossBehavior.Phase phase)
         {
+
             HandleAbility();
             HandleSpeech();
+
+
 
             if (phase.refillsMana)
             {
                 behavior.entityInfo.GainResource(behavior.entityInfo.maxMana);
             }
+
+            await HandlePhaseWork();
+
+
+            async Task HandlePhaseWork()
+            {
+                if (!phase.usesBossStation) return;
+                var bossRoom = behavior.bossRoom;
+                if (bossRoom == null) return;
+                if (bossRoom.bossStation == null) return;
+                if (bossRoom.bossStation.tasks.Count == 0) return;
+
+                await Task.Delay(500);
+
+                taskAmount++;
+
+                if (doingTask) return;
+
+                doingTask = true;
+
+                await abilityManager.CastingEnd();
+
+                while (taskAmount > 0)
+                {
+                    taskAmount--;
+                    await taskHandler.StartWorkAsync(bossRoom.bossStation.tasks[0]);
+                }
+                doingTask = false;
+            }
+
             void HandleSpeech()
             {
                 if (!speech) return;
@@ -51,8 +92,7 @@ namespace Architome
 
             void HandleAbility()
             {
-                if (phase.phaseAbility.abilityIndex == -1) return;
-
+                if (phase.phaseAbility.ability == null) return;
                 behavior.combatBehavior.specialAbilities.Insert(0, phase.phaseAbility);
             }
         }

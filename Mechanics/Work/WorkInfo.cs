@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using Architome.Enums;
 using System.Linq;
 
 namespace Architome
@@ -35,7 +36,35 @@ namespace Architome
         void Start()
         {
             GetDependencies();
+            HandleCount();
 
+            taskEvents.OnTaskComplete += HandleTaskComplete;
+        }
+
+        void HandleTaskComplete(TaskEventData eventData)
+        {
+            ArchAction.Yield(() => {
+                UpdateTaskClickables();
+            });
+        }
+
+        void UpdateTaskClickables()
+        {
+            foreach (var task in tasks)
+            {
+                if (task.states.currentState == TaskState.Available) continue;
+                for (int i = 0; i < clickable.options.Count; i++)
+                {
+                    if (clickable.options[i].text == task.properties.workString)
+                    {
+                        clickable.options.RemoveAt(i);
+                    }
+                }
+            }
+        }
+
+        void HandleCount()
+        {
         }
 
         private void Awake()
@@ -147,6 +176,21 @@ namespace Architome
         public TaskInfo Task(string taskString)
         {
             return tasks.Find(task => task.properties.workString.Equals(taskString));
+        }
+
+        public List<EntityInfo> Workers()
+        {
+            var workers = new List<EntityInfo>();
+
+            foreach (var task in tasks)
+            {
+                foreach (var worker in task.CurrentWorkers)
+                {
+                    workers.Add(worker);
+                }
+            }
+
+            return workers;
         }
 
         public bool IsOfWorkStation(Transform tran)

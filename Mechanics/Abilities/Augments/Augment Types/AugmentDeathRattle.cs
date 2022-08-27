@@ -43,7 +43,7 @@ namespace Architome
         public override string Description()
         {
 
-            var result = "";
+            var result = "This ability will be activated when the caster dies";
 
             return result;
         }

@@ -211,12 +211,13 @@ public class AbilityInfo : MonoBehaviour
 
     public Action<CatalystInfo> OnCatalystRelease;
     public Action<AbilityInfo> OnSuccessfulCast;
-    public Action<AbilityInfo> OnBusyCheck;
     public Action<AbilityInfo, bool> OnAbilityStartEnd;
     public Action<AbilityInfo> OnUpdateRestrictions;
     public Action<AbilityInfo> WhileCasting;
+    public Action<AbilityInfo, List<bool>> OnReadyCheck;
+    public Action<AbilityInfo, List<bool>> OnBusyCheck;
     public List<AugmentType> augmentAbilities;
-    public List<bool> busyList;
+
 
 
     //Augments
@@ -253,16 +254,20 @@ public class AbilityInfo : MonoBehaviour
             movement.OnNewPathTarget += OnNewPathTarget;
         }
 
-        catalystInfo = catalyst.GetComponent<CatalystInfo>();
-
-        if (catalystInfo)
+        if (catalyst)
         {
-            abilityIcon = catalystInfo.catalystIcon ? catalystInfo.catalystIcon : abilityIcon;
-        }
+            catalystInfo = catalyst.GetComponent<CatalystInfo>();
 
-        if(coolDown.maxChargesOnStart)
-        {
-            coolDown.charges = coolDown.maxCharges;
+            if (catalystInfo)
+            {
+                abilityIcon = catalystInfo.catalystIcon ? catalystInfo.catalystIcon : abilityIcon;
+            }
+
+            if(coolDown.maxChargesOnStart)
+            {
+                coolDown.charges = coolDown.maxCharges;
+            }
+
         }
 
         UpdateAbility();
@@ -828,16 +833,16 @@ public class AbilityInfo : MonoBehaviour
     }
     public bool IsBusy()
     {
-        OnBusyCheck?.Invoke(this);
         if (isCasting) return true;
 
+        var busyList = new List<bool>();
 
-        foreach (var busyItem in busyList)
+        OnBusyCheck?.Invoke(this, busyList);
+
+
+        foreach (var busy in busyList)
         {
-            if (busyItem)
-            {
-                return true;
-            }
+            if (busy) return true;
         }
 
         return false;
@@ -1520,6 +1525,8 @@ public class AbilityInfo : MonoBehaviour
             return false;
         }
 
+
+
         //if (isCasting)
         //{
         //    NotReadyReason("Already casting");
@@ -1556,6 +1563,18 @@ public class AbilityInfo : MonoBehaviour
         {
             NotReadyReason("still on cooldown");
             return false;
+        }
+
+        var readyList = new List<bool>();
+
+        OnReadyCheck?.Invoke(this, readyList);
+
+        foreach (var ready in readyList)
+        {
+            if (!ready)
+            {
+                return false;
+            }
         }
 
         return true;
@@ -1659,7 +1678,7 @@ public class AbilityInfo : MonoBehaviour
             abilityManager.OnAbilityEnd?.Invoke(this);
         }
 
-        OnAbilityStartEnd?.Invoke(this, true);
+        OnAbilityStartEnd?.Invoke(this, false);
 
         SetCoolDownTimer();
         //SetCoolDownTimer();

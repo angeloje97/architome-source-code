@@ -24,14 +24,16 @@ namespace Architome
 
         public Info info;
 
+        void Start()
+        {
+            GetDependencies();
+            UpdateEventTriggers();
+        }
         void GetDependencies()
         {
             buffInfo = GetComponent<BuffInfo>();
             buffInfo.OnBuffStart += OnBuffStart;
             buffInfo.OnBuffEnd += OnBuffEnd;
-            buffInfo.OnBuffInterval += OnBuffInterval;
-            buffInfo.OnBuffCompletion += OnBuffCompletion;
-            buffInfo.OnBuffCleanse += OnBuffCleanse;
 
             audioManager = buffInfo.hostInfo.SoundEffect();
             particleManager = buffInfo.hostInfo.ParticleManager();
@@ -40,29 +42,13 @@ namespace Architome
             info.savedParticles = new();
             info.savedSources = new();
 
-            if (buffInfo.hostInfo)
-            {
-                buffInfo.hostInfo.OnDamageTaken += OnHostDamageTaken;
-                buffInfo.hostInfo.combatEvents.OnImmuneDamage += OnHostImmuneDamage;
-
-                buffInfo.OnBuffEnd += (BuffInfo buff) => {
-                    buffInfo.hostInfo.OnDamageTaken -= OnHostDamageTaken;
-                    buffInfo.hostInfo.combatEvents.OnImmuneDamage -= OnHostImmuneDamage;
-                };
-            }
 
 
-        }
-        void Start()
-        {
-            GetDependencies();
-            
-            
         }
         public void OnBuffStart(BuffInfo buff)
         {
             CalculateDelayTime(buff);
-            HandleEffect(buffInfo, BuffEvents.OnStart);
+            UpdateEventTriggers();
         }
 
 
@@ -73,14 +59,9 @@ namespace Architome
 
             buff.expireDelay = particles.Max(particle => particle.main.duration);
         }
-        public void OnBuffInterval(BuffInfo buff)
-        {
-            HandleEffect(buff, BuffEvents.OnInterval);
-        }
         
         public void OnBuffEnd(BuffInfo buff)
         {
-            HandleEffect(buff, BuffEvents.OnEnd);
             StopAllSaved();
             var lights = GetComponentsInChildren<Light>();
             ShrinkOnEnd();
@@ -122,34 +103,18 @@ namespace Architome
             }
         }
 
-        public void OnHostDamageTaken(CombatEventData eventData)
+        void UpdateEventTriggers()
         {
-            HandleEffect(buffInfo, BuffEvents.OnDamageTaken);
-        }
-
-        public void OnHostImmuneDamage(CombatEventData eventData)
-        {
-            HandleEffect(buffInfo, BuffEvents.OnDamageImmune);
-        }
-
-        public void OnBuffCompletion(BuffInfo buff)
-        {
-            HandleEffect(buff, BuffEvents.OnComplete);
-        }
-        public void OnBuffCleanse(BuffInfo buff)
-        {
-            HandleEffect(buff, BuffEvents.OnCleanse);
-        }
-        public void HandleEffect(BuffInfo buff, BuffEvents trigger)
-        {
-            if (buff == null) return;
-            foreach (var effect in buff.effects.effectsData)
+            foreach (var effect in buffInfo.effects.effectsData)
             {
-                if (effect.playTrigger != trigger) continue;
-                HandleAudio(effect);
-                HandleParticle(effect);
+                buffInfo.AddEventAction(effect.playTrigger, () => HandleEffect(effect));
             }
+        }
 
+        void HandleEffect(BuffInfo.BuffFX.EffectData effects)
+        {
+            HandleAudio(effects);
+            HandleParticle(effects);
         }
 
         public void HandleAudio(BuffInfo.BuffFX.EffectData effect)
@@ -169,9 +134,6 @@ namespace Architome
             }
                 
             return;
-            
-
-
         }
 
         public void HandleParticle(BuffInfo.BuffFX.EffectData effect)
@@ -179,7 +141,7 @@ namespace Architome
             if (effect.particle == null) return;
             if (particleManager == null) return;
 
-            if (!effect.playForDuration)
+            if (!effect.playForDuration && effect.playTrigger != BuffEvents.OnEnd)
             {
                 var newParticle = particleManager.Play(effect.particle, true);
                 HandleParticleTransform(effect, newParticle.gameObject);

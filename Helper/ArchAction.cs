@@ -266,5 +266,42 @@ namespace Architome
 
             return false;
         }
+
+        public bool OnlyOne()
+        {
+            if (conditions == null) return false;
+
+            var active = false;
+
+            foreach (var condition in conditions)
+            {
+                if (!condition) continue;
+
+                if (active)
+                {
+                    active = false;
+                    break;
+                }
+
+                active = true;
+            }
+
+            return active;
+        }
+
+        public bool EveryCon()
+        {
+            if (conditions == null) return false;
+
+            foreach (var condition in conditions)
+            {
+                if (!condition)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }

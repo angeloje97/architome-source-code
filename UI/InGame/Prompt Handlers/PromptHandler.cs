@@ -109,21 +109,6 @@ namespace Architome
 
 
             return await UserChoice(prompt);
-            //prompt.choicePicked = -1;
-
-            //var waiting = true;
-
-            //prompt.OnPickChoice += (PromptInfo info) => { waiting = false; };
-
-            //while (waiting)
-            //{
-            //    await Task.Yield();
-
-            //    if (!prompt.isActive) break;
-            //    if (!prompt) break;
-            //}
-
-            //return prompt.choiceData;
         }
 
         async public Task<PromptChoiceData> SliderPrompt(PromptInfoData promptData)
@@ -140,20 +125,6 @@ namespace Architome
             prompt.SetPrompt(promptData);
 
             return await UserChoice(prompt);
-
-            //var waiting = true;
-
-            //prompt.OnPickChoice += (PromptInfo info) => { waiting = false; };
-
-            //while (waiting)
-            //{
-            //    await Task.Yield();
-
-            //    if (!prompt) break;
-            //    if (!prompt.isActive) break;
-            //}
-
-            //return prompt.choiceData;
         }
 
         async public Task<(int, string)> InputPrompt(PromptInfoData promptData)

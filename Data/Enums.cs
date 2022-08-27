@@ -12,6 +12,8 @@ namespace Architome.Enums
         Untargetable
     }
 
+    
+
     public enum ArchInputMode
     {
         Inactive,
@@ -84,6 +86,12 @@ namespace Architome.Enums
         SkillShotPredict,
         Spawn,
         Use,
+    }
+
+    public enum AugmentEvent
+    {
+        OnAugmentTrigger,
+        OnAugmentActive,
     }
 
     public enum CatalystEvent
@@ -175,6 +183,7 @@ namespace Architome.Enums
         BetweenBodyParts,
         Location,
         Target,
+        Catalyst,
     }
 
     public enum AbilityType2
@@ -245,7 +254,27 @@ namespace Architome.Enums
         LeftHand,
         RightLeft,
         LeftRight,
+    }
 
+    public enum RoomObjectType
+    {
+        Structure,
+        Ground,
+        LightSource,
+        StructureLightSource,
+        Paths,
+        Stairs,
+        BosPos,
+        Prop,
+        Probe,
+        StructureProp,
+        Tier1EnemyPos,
+        Tier2EnemyPos,
+        Tier3EnemyPos,
+        Tier1NeutralPos,
+        Tier2NeutralPos,
+        Tier1ChestPos,
+        Tier2ChestPos,
     }
 
     public enum EntityState

@@ -20,8 +20,8 @@ namespace Architome
 
         public List<Option> options;
 
-        //public List<string> options;
-        
+        bool inactive;
+
         public List<EntityInfo> clickedEntities;
         public bool partyCanClick;
 
@@ -32,8 +32,17 @@ namespace Architome
         public int selectedIndex;
 
         public bool isOver;
+        ClickableManager manager;
         void Start()
         {
+            manager = ClickableManager.active;
+
+            ArchAction.Delay(() => {
+                if (options == null || options.Count == 0)
+                {
+                    enabled = false;
+                }
+            }, .35f);
         }
 
         // Update is called once per frame
@@ -70,7 +79,11 @@ namespace Architome
         private void OnMouseExit()
         {
             isOver = false;
-            ClickableManager.active.currentClickableHover = null;
+
+            if (manager.currentClickableHover == this)
+            {
+                ClickableManager.active.currentClickableHover = null;
+            }
         }
 
         public void CancelOption()
@@ -78,6 +91,11 @@ namespace Architome
             clickedEntities.Clear();
 
             OnCancelOption?.Invoke();
+        }
+
+        public void SetActive(bool active)
+        {
+            inactive = !active;
         }
 
         public void SelectOption(string option)
@@ -141,9 +159,6 @@ namespace Architome
             clickedEntities = entities;
             HandleOptions();
         }
-
-        
-
         public bool Interactable { get { return options.Count > 0; } }
     }
 

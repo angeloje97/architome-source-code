@@ -14,6 +14,8 @@ namespace Architome
         [SerializeField] EntityInfo entity;
         [SerializeField] BossBehavior behavior;
 
+
+
         public List<Transform> patrolSpots;
         public Transform currentPatrolSpot;
         bool patroling;
@@ -36,12 +38,6 @@ namespace Architome
             {
                 roomInfo = behavior.BossRoom();
             }
-
-            //if (movement)
-            //{
-            //    movement.OnEndMove += OnEndMove;
-            //    movement.OnArrival += OnArrival;
-            //}
 
             if (entity)
             {
@@ -67,8 +63,6 @@ namespace Architome
             AcquireDependencies();
             Subscribe();
             OnCombatChange(false);
-            //OnEndMove(movement);
-            //OnArrival(movement, movement.Target());
             HandlePatrol();
         }
 
@@ -81,53 +75,8 @@ namespace Architome
 
         }
 
-        //void OnArrival(Movement movement, Transform target)
-        //{
-        //    if (entity.isInCombat) return;
-        //    if (!patroling) return;
-        //    if (patrolSpots == null) return;
-        //    if (patrolSpots.Count == 0) return;
-        //    ArchAction.Delay(() => {
-
-        //        if (entity.isInCombat) return;
-        //        if (movement.isMoving) return;
-
-        //        var currentSpot = currentPatrolSpot;
-
-
-        //        currentPatrolSpot = patrolSpots[Random.Range(0, patrolSpots.Count)];
-
-        //        movement.MoveTo(currentPatrolSpot);
-
-
-        //    }, 4f);
-        //}
-
-        //void OnEndMove(Movement movement)
-        //{
-        //    //if (entity.isInCombat) return;
-        //    //if (!patroling) return;
-        //    //if(patrolSpots == null) return;
-        //    //if (patrolSpots.Count == 0) return;
-        //    //ArchAction.Delay(() => {
-
-        //    //    if (entity.isInCombat) return;
-        //    //    if (movement.isMoving) return;
-
-        //    //    var currentSpot = currentPatrolSpot;
-                
-
-        //    //    currentPatrolSpot = patrolSpots[Random.Range(0, patrolSpots.Count)];
-
-        //    //    movement.MoveTo(currentPatrolSpot);
-
-
-        //    //}, 4f);
-        //}
-
         void OnCombatChange(bool val)
         {
-            //patroling = !val;
             HandlePatrol();
         }
 
@@ -135,13 +84,23 @@ namespace Architome
         {
             if (movement == null) return;
             if (patrolSpots == null) return;
-            if (patrolSpots.Count == 0) return;
+            if (patrolSpots.Count <= 1) return;
+            
             if (patroling) return;
             patroling = true;
             while (!entity.isInCombat)
             {
-                var targetSpot = ArchGeneric.RandomItem(patrolSpots);
-                var arrived = await movement.MoveToAsync(targetSpot);
+                var newPatrolSpot = ArchGeneric.RandomItem(patrolSpots);
+
+                while (newPatrolSpot == currentPatrolSpot)
+                {
+                    newPatrolSpot = ArchGeneric.RandomItem(patrolSpots);
+                    await Task.Yield();
+                }
+
+                currentPatrolSpot = newPatrolSpot;
+
+                var arrived = await movement.MoveToAsync(currentPatrolSpot);
 
                 await Task.Delay(4000);
             }

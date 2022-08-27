@@ -97,7 +97,7 @@ namespace Architome
 
             if (buffInfo.hostInfo != buffInfo.sourceInfo)
             {
-                buffInfo.sourceInfo.OnDamagePreventedFromShields?.Invoke(new CombatEventData(buffInfo, buffInfo.sourceInfo, value) { target = buffInfo.sourceInfo });
+                buffInfo.sourceInfo.OnDamagePreventedFromShields?.Invoke(new CombatEventData(buffInfo, value) { target = buffInfo.hostInfo});
             }
 
             if (shieldAmount == 0)

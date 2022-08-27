@@ -63,20 +63,28 @@ namespace Architome
             //}
         }
 
-        public IEnumerator CheckAudioRoutine(float length = 1f)
+        public async void CheckAudioRoutine(float length = 1f)
         {
+            if (audioRoutineIsActive) return;
+            audioRoutineIsActive = true;
 
-            yield return new WaitForSeconds(length);
+            await Task.Delay((int)(length * 1000));
 
-            audioRoutineIsActive = IsPlaying();
+            audioRoutineIsActive = await IsPlaying();
+
+            int time = 0;
 
             while (audioRoutineIsActive)
             {
-                yield return new WaitForSeconds(1f);
-                audioRoutineIsActive = IsPlaying();
+                await Task.Delay(1000);
+
+                time++;
+
+                Debugger.Environment(5912, $"{gameObject} is active for {time} seconds");
+                audioRoutineIsActive = await IsPlaying();
             }
 
-            ClearAudios();
+            await ClearAudios();
             OnEmptyAudio?.Invoke(this);
 
         }
@@ -105,13 +113,12 @@ namespace Architome
         public AudioSource AudioSourceFromClip(AudioClip clip)
         {
             return audioSources.Find(source => source.clip == clip);
-            
         }
-
-        public bool IsPlaying()
+        public async Task<bool> IsPlaying()
         {
             foreach (var source in audioSources)
             {
+                await Task.Yield();
                 if (source.isPlaying)
                 {
                     return true;
@@ -120,11 +127,11 @@ namespace Architome
 
             return false;
         }
-
-        public void ClearAudios()
+        public async Task ClearAudios()
         {
             for (int i = 0; i < audioSources.Count; i++)
             {
+                await Task.Yield();
                 var source = audioSources[i];
 
                 if (!source.isPlaying)
@@ -135,7 +142,10 @@ namespace Architome
                 }
             }
         }
-
+        public void PlayAudioClip(AudioClip audioClip)
+        {
+            PlaySound(audioClip);
+        }
         public AudioSource PlaySound(AudioClip clip, float volume = 1f)
         {
             if (audioSources == null) audioSources = new List<AudioSource>();
@@ -147,6 +157,7 @@ namespace Architome
                     {
                         source.clip = clip;
                         source.loop = false;
+                        source.volume = volume;
                         source.Play();
                         //source.PlayOneShot(clip);
                         return source;
@@ -173,25 +184,22 @@ namespace Architome
             newAudioSource.Play();
             //newAudioSource.PlayOneShot(clip);
 
-            if (!audioRoutineIsActive)
-            {
-                audioRoutineIsActive = true;
-                var clipLength = clip.length;
-                StartCoroutine(CheckAudioRoutine(clipLength + .25f));
-            }
+            CheckAudioRoutine(clip.length + .25f);
+
+            //if (!audioRoutineIsActive)
+            //{
+            //    audioRoutineIsActive = true;
+            //    var clipLength = clip.length;
+            //    StartCoroutine(CheckAudioRoutine(clipLength + .25f));
+            //}
 
             return newAudioSource;
         }
-
         public AudioSource PlayRandomSound(List<AudioClip> clips)
         {
             if (clips.Count == 0) { return null; }
-
-            var random = UnityEngine.Random.Range(0, clips.Count);
-
-            return PlaySound(clips[random]);
+            return PlaySound(ArchGeneric.RandomItem(clips));
         }
-
         public AudioSource PlaySoundLoop(AudioClip clip, float maxLength = 0f)
         {
             var audioSource = PlaySound(clip);
@@ -207,14 +215,12 @@ namespace Architome
 
             return audioSource;
         }
-
         public AudioSource PlayRandomLoop(List<AudioClip> clips, float maxLength = 0f)
         {
             if (clips.Count == 0) return null;
 
-            return PlaySoundLoop(clips[UnityEngine.Random.Range(0, clips.Count)], maxLength);
+            return PlaySoundLoop(ArchGeneric.RandomItem(clips), maxLength);
         }
-
         public void StopLoops()
         {
             //foreach(var source in audioSources)
@@ -224,9 +230,11 @@ namespace Architome
             //        source.Stop();
             //    }
             //}
+            foreach (var source in audioSources)
+            {
 
+            }
         }
-
         public void StopAll()
         {
             foreach (var source in audioSources)
@@ -234,8 +242,6 @@ namespace Architome
                 source.Stop();
             }
         }
-
-
 
     }
 

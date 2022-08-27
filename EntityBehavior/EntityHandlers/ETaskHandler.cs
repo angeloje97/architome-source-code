@@ -18,6 +18,7 @@ namespace Architome
 
         //Event Event Triggers
         private TaskInfo previousTask;
+        BuffsManager buffManager;
         void Start()
         {
             GetDependencies();
@@ -38,6 +39,8 @@ namespace Architome
             }
 
             entityInfo.combatEvents.OnStatesChange += OnEntityStateChanged;
+
+            buffManager = entityInfo.Buffs();
 
             entityInfo.taskEvents.OnNewTask += OnNewTask;
             entityInfo.taskEvents.OnTaskComplete += OnTaskComplete;
@@ -92,7 +95,6 @@ namespace Architome
         }
         public async void OnTaskComplete(TaskEventData eventData)
         {
-
             await Lingering();
             
             StopTask();
@@ -152,6 +154,15 @@ namespace Architome
 
             entityInfo.taskEvents.OnStartTask?.Invoke(new TaskEventData(task));
         }
+
+        async public Task FinishWorking()
+        {
+            while (currentTask != null)
+            {
+                await Task.Yield();
+            }
+        }
+
         async public Task<bool> StartWorkAsync(TaskInfo task)
         {
             if (task == null) return false;

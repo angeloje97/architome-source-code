@@ -9,7 +9,6 @@ namespace Architome
 {
     public class CombatHalfControl : CombatType
     {
-        // Start is called before the first frame update
         new void GetDependencies()
         {
             base.GetDependencies();
@@ -24,6 +23,20 @@ namespace Architome
         public void Update()
         {
             HandleTimer();
+        }
+
+        async void HandleTimerAsync()
+        {
+            while (this)
+            {
+                await Task.Yield();
+                HandleTimer();
+
+                if (abilityManager.currentlyCasting && abilityManager.currentlyCasting.abilityType2 != AbilityType2.AutoAttack)
+                {
+                    await abilityManager.currentlyCasting.EndActivation();
+                }
+            }
         }
 
         void HandleTimer()
@@ -68,7 +81,8 @@ namespace Architome
             foreach (var special in combat.specialAbilities)
             {
 
-                var ability = abilityManager.Ability(special.abilityIndex);
+                //var ability = abilityManager.Ability(special.abilityIndex);
+                var ability = special.ability;
 
                 if (ability == null) continue;
                 if (ability.IsBusy()) return true;
@@ -82,7 +96,8 @@ namespace Architome
                     if (!ability.IsCorrectTarget(target)) continue;
 
                     abilityManager.target = target;
-                    abilityManager.Cast(special.abilityIndex);
+                    //abilityManager.Cast(special.abilityIndex);
+                    abilityManager.Cast(special.ability);
                     abilityManager.target = null;
 
                     return true;
@@ -91,7 +106,7 @@ namespace Architome
                 {
                     if (ability.abilityType != AbilityType.Use) continue;
 
-                    abilityManager.Cast(special.abilityIndex);
+                    abilityManager.Cast(special.ability);
                     abilityManager.target = null;
 
                     return true;
@@ -107,7 +122,8 @@ namespace Architome
 
             foreach (var specialAbility in combat.healSettings.specialHealingAbilities)
             {
-                var ability = abilityManager.Ability(specialAbility.abilityIndex);
+                //var ability = abilityManager.Ability(specialAbility.abilityIndex);
+                var ability = specialAbility.ability;
 
                 if (ability == null) continue;
                 if (ability.WantsToCast() || ability.isCasting) return true;
@@ -137,7 +153,7 @@ namespace Architome
 
                         abilityManager.target = ally.gameObject;
                         abilityManager.location = ally.gameObject.transform.position;
-                        abilityManager.Cast(healing.abilityIndex);
+                        abilityManager.Cast(healing.ability);
                         abilityManager.target = null;
 
                         return true;

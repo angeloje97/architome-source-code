@@ -37,7 +37,7 @@ namespace Architome
 
             if (buffInfo.hostInfo.AbilityManager().attackAbility)
             {
-                var combatEventData = new CombatEventData(buffInfo, buffInfo.sourceInfo, buffInfo.properties.value);
+                var combatEventData = new CombatEventData(buffInfo, buffInfo.properties.value);
                 buffInfo.targetInfo.combatEvents.OnFixate?.Invoke(combatEventData, true);
                 buffInfo.hostInfo.AbilityManager().target = buffInfo.targetObject;
                 buffInfo.hostInfo.AbilityManager().Attack();
@@ -70,7 +70,7 @@ namespace Architome
 
         void OnBuffEnd(BuffInfo buff)
         {
-            var eventData = new CombatEventData(buff, buff.sourceInfo, buff.properties.value);
+            var eventData = new CombatEventData(buff, buff.properties.value);
             buffInfo.targetInfo.combatEvents.OnFixate?.Invoke(eventData, false);
             isFixating = false;
             buffInfo.hostInfo.CombatBehavior().SetFocus(originalFocusTarget, $"Setting original focus target", this);

@@ -288,9 +288,7 @@ namespace Architome
             {
                 await Task.Yield();
                 if (!Application.isPlaying) return false;
-                
-                Debugger.Environment(8104, $"Distance from target: {distanceFromTarget}m\n" +
-                    $"End Reach Distance: {endReachDistance}m");
+            
 
                 if (destinationSetter.target != target) return false;
             }

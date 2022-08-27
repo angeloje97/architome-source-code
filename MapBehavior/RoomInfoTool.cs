@@ -8,7 +8,9 @@ namespace Architome
 {
     public class RoomInfoTool : MonoBehaviour
     {
-        // Start is called before the first frame update
+        public static RoomInfo activeRoom;
+        public RoomInfo activeStaticRoom;
+        public bool setActiveRoom;
 
         public bool showEnemyPositions;
         public bool showPatrolSpots;
@@ -17,12 +19,15 @@ namespace Architome
         public bool updatePaths;
 
         public RoomInfo info;
+
         private void OnValidate()
         {
             if (GetComponent<RoomInfo>())
             {
                 info = GetComponent<RoomInfo>();
             }
+
+            HandleSetActiveRoom();
 
             ShowEnemiesPos(showEnemyPositions);
             ShowPatrolSpots(showPatrolSpots);
@@ -37,7 +42,17 @@ namespace Architome
             showPatrolSpots = false;
             showPatrolSpots = false;
 
-            OnValidate();
+            //OnValidate();
+            
+        }
+
+        void HandleSetActiveRoom()
+        {
+            if (!setActiveRoom) return;
+            setActiveRoom = false;
+            activeRoom = info;
+
+            activeStaticRoom = activeRoom;
         }
 
         void UpdatePaths()
@@ -81,6 +96,16 @@ namespace Architome
                 foreach (Transform child in info.tier3EnemyPos)
                 {
                     child.gameObject.SetActive(val);
+                }
+            }
+
+            if (info.GetType() == typeof(BossRoom))
+            {
+                var bossInfo = (BossRoom)info;
+
+                if (bossInfo.bossPosition)
+                {
+                    bossInfo.bossPosition.gameObject.SetActive(val);
                 }
             }
         }

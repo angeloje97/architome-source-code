@@ -60,8 +60,6 @@ namespace Architome
         {
 
         }
-
-
         public void OnCombatChange(bool isInCombat)
         {
             
@@ -91,7 +89,6 @@ namespace Architome
                 buff.Cleanse();
             }
         }
-
         public void OnDamageTaken(CombatEventData eventData)
         {
             foreach (Transform child in transform)
@@ -105,7 +102,6 @@ namespace Architome
                 }
             }
         }
-
         public void OnChangeEquipment(EquipmentSlot slot, Equipment before, Equipment after)
         {
             if (before)
@@ -126,7 +122,6 @@ namespace Architome
                 }
             }
         }
-
         public void UpdateStats()
         {
             stats.ZeroOut();
@@ -138,7 +133,6 @@ namespace Architome
 
             entityInfo.UpdateCurrentStats();
         }
-
         public void OnLifeChange(bool isAlive)
         {
             var buffs = GetComponentsInChildren<BuffInfo>();
@@ -150,7 +144,6 @@ namespace Architome
                 }
             }
         }
-
         public void OnMoveChange(bool isMoving)
         {
             if (isMoving)
@@ -162,7 +155,6 @@ namespace Architome
                 }
             }
         }
-
         public void CleanseBuff(BuffInfo buff)
         {
             foreach (var buffInfo in Buffs())
@@ -171,7 +163,6 @@ namespace Architome
                 buffInfo.Cleanse();
             }
         }
-
         public void CleanseImmunity()
         {
             for (int i = 0; i < buffObjects.Count; i++)
@@ -220,10 +211,10 @@ namespace Architome
                 }
             }
         }
-        public void ApplyBuff(BuffData data)
+        public BuffInfo ApplyBuff(BuffData data)
         {
             var buffObject = data.buffObject;
-            if (!buffObject.GetComponent<BuffInfo>()) return;
+            if (!buffObject.GetComponent<BuffInfo>()) return null;
 
             var sourceAbility = data.sourceAbility;
             var sourceInfo = data.sourceInfo;
@@ -239,7 +230,7 @@ namespace Architome
 
 
             HandleExistingBuff();
-            HandleNewBuff();
+            return HandleNewBuff();
 
             void HandleExistingBuff()
             {
@@ -276,14 +267,14 @@ namespace Architome
 
             }
 
-            void HandleNewBuff()
+            BuffInfo HandleNewBuff()
             {
-                if (hasBuff) { return; }
-                ApplyBuffProperties();
+                if (hasBuff) { return null; }
+                return ApplyBuffProperties();
 
             }
 
-            void ApplyBuffProperties()
+            BuffInfo ApplyBuffProperties()
             {
                 var newBuff = buffObject.GetComponent<BuffInfo>();
 
@@ -301,27 +292,14 @@ namespace Architome
                     newBuff.targetInfo = sourceCatalyst.target.GetComponent<EntityInfo>();
                 }
 
-                //newBuff.properties = buffProperties;
-
-                //newBuff.buffRadius = sourceAbility.buffRadius;
-                //newBuff.buffRadius = sourceAbility.buffRadius;
-                //newBuff.value = sourceAbility.buffValue;
-                //newBuff.aoeValue = sourceAbility.buffAOEValue;
-                //newBuff.intervals = sourceAbility.buffIntervals;
-                //newBuff.buffTime = sourceAbility.buffTime;
-                //newBuff.buffTimer = sourceAbility.buffTime;
-                //newBuff.stacksPerApplication = sourceAbility.stacksPerApplication;
-                //newBuff.canStack = sourceAbility.canStack;
-                //newBuff.reapplyResetsTimer = sourceAbility.reapplyResetsTimer;
-
                 var buffInfo = Instantiate(buffObject, transform).GetComponent<BuffInfo>();
-
-
 
 
                 buffObjects.Add(buffInfo.gameObject);
                 buffInfo.OnBuffEnd += OnBuffEnd;
                 entityInfo.OnBuffApply?.Invoke(buffInfo, sourceInfo);
+                return buffInfo;
+
             }
         }
                 
@@ -415,6 +393,12 @@ namespace Architome
                 buffInfo = buff;
                 this.sourceItem = sourceItem;
                 this.sourceInfo = sourceInfo;
+            }
+
+            public BuffData(BuffInfo buff)
+            {
+                buffObject = buff.gameObject;
+                buffInfo = buff;
             }
             
         }

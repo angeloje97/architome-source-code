@@ -41,18 +41,17 @@ namespace Architome
 
         public override void HandleNewCatlyst(CatalystInfo catalyst)
         {
-            if (releaseCondition == CatalystEvent.OnAwake)
-            {
-                ActivateCataling(catalyst);
-                return;
-            }
+            if (releaseCondition == CatalystEvent.OnInterval) return;
+            if (releaseCondition == CatalystEvent.OnCatalingRelease) return;
 
-            if (releaseCondition == CatalystEvent.OnStop) catalyst.OnCatalystStop += (CatalystKinematics kinematics) => { ActivateCataling(catalyst); };
-            if (releaseCondition == CatalystEvent.OnAssist) catalyst.OnAssist += (CatalystInfo catalyst, EntityInfo target) => { ActivateCataling(catalyst); };
-            if (releaseCondition == CatalystEvent.OnHarm) catalyst.OnDamage += (CatalystInfo catalyst, EntityInfo target) => { ActivateCataling(catalyst); };
-            if (releaseCondition == CatalystEvent.OnHeal) catalyst.OnHeal += (CatalystInfo catalyst, EntityInfo target) => { ActivateCataling(catalyst); };
-            if (releaseCondition == CatalystEvent.OnHit) catalyst.OnHit += (CatalystInfo catalyst, EntityInfo target) => { ActivateCataling(catalyst); };
-            if (releaseCondition == CatalystEvent.OnDestroy) catalyst.OnCatalystDestroy += (CatalystDeathCondition condition) => { ActivateCataling(catalyst); };
+            catalyst.AddEventAction(releaseCondition, () => ActivateCataling(catalyst));
+
+            //if (releaseCondition == CatalystEvent.OnStop) catalyst.OnCatalystStop += (CatalystKinematics kinematics) => { ActivateCataling(catalyst); };
+            //if (releaseCondition == CatalystEvent.OnAssist) catalyst.OnAssist += (CatalystInfo catalyst, EntityInfo target) => { ActivateCataling(catalyst); };
+            //if (releaseCondition == CatalystEvent.OnHarm) catalyst.OnDamage += (CatalystInfo catalyst, EntityInfo target) => { ActivateCataling(catalyst); };
+            //if (releaseCondition == CatalystEvent.OnHeal) catalyst.OnHeal += (CatalystInfo catalyst, EntityInfo target) => { ActivateCataling(catalyst); };
+            //if (releaseCondition == CatalystEvent.OnHit) catalyst.OnHit += (CatalystInfo catalyst, EntityInfo target) => { ActivateCataling(catalyst); };
+            //if (releaseCondition == CatalystEvent.OnDestroy) catalyst.OnCatalystDestroy += (CatalystDeathCondition condition) => { ActivateCataling(catalyst); };
 
 
         }
@@ -83,6 +82,10 @@ namespace Architome
 
             FindTargets();
 
+            var eventData = new Augment.AugmentEventData(this) { active = true };
+            augment.ActivateAugment(eventData);
+
+
             do
             {
                 bool released = false;
@@ -92,6 +95,8 @@ namespace Architome
                     if (OnCatalingInterval(i))
                     {
                         released = true;
+                        SetCatalyst(catalyst, true);
+                        SetCatalyst(catalyst, false);
                     }
                 }
 
@@ -99,13 +104,14 @@ namespace Architome
                 {
                     catalingsReleased++;
                     currentAngle += rotationPerInterval;
+                    augment.TriggerAugment(eventData);
                     catalyst.ReduceTicks();
                 }
 
                 await Task.Delay((int)(1000 * interval));
             } while (!catalyst.isDestroyed);
 
-
+            eventData.active = false;
 
             bool OnCatalingInterval(int position)
             {

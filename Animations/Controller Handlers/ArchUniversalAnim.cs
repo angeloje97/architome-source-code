@@ -13,6 +13,10 @@ namespace Architome
         public AbilityManager abilityManager;
         public Movement movement;
 
+        [Header("Settings")]
+        [SerializeField] float walkSpeed = 1f;
+        [SerializeField] float runSpeed = 1f;
+
         new void GetDependencies()
         {
             base.GetDependencies();
@@ -46,7 +50,9 @@ namespace Architome
         void Start()
         {
             GetDependencies();
+            ApplySettings();
         }
+
 
         // Update is called once per frame
         void Update()
@@ -54,6 +60,13 @@ namespace Architome
             if (animator == null) return;
             
             UpdateMetrics();
+        }
+
+        void ApplySettings()
+        {
+
+            animator.SetFloat("WalkSpeed", walkSpeed);
+            animator.SetFloat("RunSpeed", runSpeed);
         }
 
         void UpdateMetrics()

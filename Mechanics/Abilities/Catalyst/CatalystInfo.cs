@@ -5,6 +5,7 @@ using Architome.Enums;
 using UnityEngine.UI;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 
 namespace Architome
@@ -72,7 +73,11 @@ namespace Architome
 
             public Vector3 location, startingLocation, startDirectionRange, currentPosition;
 
-            public float value, startingHeight, currentRange, liveTime, inertia, inertiaFallOff, intervals;
+            public float value, startingHeight, currentRange, liveTime, inertia, inertiaFallOff;
+
+            public CatalystEvent intervalTrigger;
+            
+            public float intervals;
 
 
             [Header("Growing Properties")]
@@ -362,6 +367,7 @@ namespace Architome
             SpawnCatalystAudio();
             SpawnBodyPart();
             kinematics.SetKinematics(this);
+            HandleIntervals();
 
         }
         void SpawnBodyPart()
@@ -562,6 +568,63 @@ namespace Architome
         public int Ticks()
         {
             return ticks;
+        }
+
+        public void AddEventAction(CatalystEvent eventTrigger, Action action)
+        {
+            switch (eventTrigger)
+            {
+                case CatalystEvent.OnAwake:
+                    action();
+                    break;
+                case CatalystEvent.OnStop:
+                    OnCatalystStop += (CatalystKinematics kinematics) => { action(); };
+                    break;
+                case CatalystEvent.OnAssist:
+                    OnAssist += (CatalystInfo catalyst, EntityInfo target) => { action();};
+                    break;
+                case CatalystEvent.OnHarm:
+                    OnDamage += (CatalystInfo catalyst, EntityInfo entity) => { action(); };
+                    break;
+                case CatalystEvent.OnHeal:
+                    OnHeal += (CatalystInfo catalyst, EntityInfo target) => { action(); };
+                    break;
+                case CatalystEvent.OnHit:
+                    OnHit += (CatalystInfo catalyst, EntityInfo target) => { action(); };
+                    break;
+                case CatalystEvent.OnInterval:
+                    OnInterval += (CatalystInfo catalyst) => { action(); };
+                    break;
+                case CatalystEvent.OnDestroy:
+                    OnCatalystDestroy += (CatalystDeathCondition condition) => { action(); };
+                    break;
+                case CatalystEvent.OnCatalingRelease:
+                    OnCatalingRelease += (CatalystInfo catalyst, CatalystInfo cataling) => { action(); };
+                    break;
+            }
+        }
+
+        public void HandleIntervals()
+        {
+            if (metrics.intervals <= 0f) return;
+            if (metrics.intervalTrigger == CatalystEvent.OnInterval) return;
+
+            bool intervalsActive = false;
+
+            AddEventAction(metrics.intervalTrigger, () => {
+                StartIntervals();
+            });
+
+            async void StartIntervals()
+            {
+                if (intervalsActive) return;
+                intervalsActive = true;
+                while (!isDestroyed)
+                {
+                    OnInterval?.Invoke(this);
+                    await Task.Delay((int)(1000 * metrics.intervals));
+                }
+            }
         }
     }
 

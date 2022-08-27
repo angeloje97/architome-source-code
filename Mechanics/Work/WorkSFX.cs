@@ -1,7 +1,9 @@
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Linq;
 
 namespace Architome
 {
@@ -26,7 +28,6 @@ namespace Architome
             if (!audioManager) Destroy(gameObject);
 
             station.taskEvents.OnStartTask += OnStartTask;
-            station.taskEvents.OnEndTask += OnEndTask;
             station.taskEvents.OnTaskComplete += OnTaskComplete;
         }
 
@@ -36,7 +37,7 @@ namespace Architome
 
         }
 
-        public void OnStartTask(TaskEventData eventData)
+        public async void OnStartTask(TaskEventData eventData)
         {
             var task = eventData.task;
 
@@ -44,23 +45,15 @@ namespace Architome
 
             if(workingClip == null) { return; }
 
-            audioManager.PlaySoundLoop(workingClip);
-
-        }
-
-        public void OnEndTask(TaskEventData eventData)
-        {
-            var workingClip = eventData.task.properties.workingSound;
-
-            if (workingClip == null) return;
-
-            var workingSource = audioManager.AudioSourceFromClip(workingClip);
-
-            if (workingSource == null) return;
+            var audioSource = audioManager.PlaySoundLoop(workingClip);
 
 
+            while (eventData.task.states.isBeingWorkedOn)
+            {
+                await Task.Yield();
+            }
 
-            workingSource.Stop();
+            audioSource.Stop();
         }
 
         public void OnTaskComplete(TaskEventData eventData)
@@ -71,10 +64,7 @@ namespace Architome
 
             if (completionSound == null) return;
 
-
             audioManager.PlaySound(completionSound);
-            
-
         }
 
 

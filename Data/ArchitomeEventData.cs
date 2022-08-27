@@ -25,10 +25,10 @@ namespace Architome
             this.value = value;
         }
 
-        public CombatEventData(BuffInfo buff, EntityInfo source, float value)
+        public CombatEventData(BuffInfo buff, float value)
         {
             this.buff = buff;
-            this.source = source;
+            this.source = buff.sourceInfo;
             this.ability = buff.sourceAbility;
             this.value = value;
         }

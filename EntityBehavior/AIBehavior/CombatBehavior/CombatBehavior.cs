@@ -7,12 +7,11 @@ using System;
 namespace Architome
 {
 
-
     [Serializable]
     public class SpecialAbility
     {
         public AbilityInfo ability;
-        public int abilityIndex;
+        //public int abilityIndex;
         //public bool targetsRandom;
         public SpecialTargeting targeting;
         public List<Role> randomTargetBlackList;
@@ -29,6 +28,8 @@ namespace Architome
 
     public class CombatBehavior : MonoBehaviour
     {
+
+
         // Start is called before the first frame update
         public GameObject entityObject;
         public EntityInfo entityInfo;
@@ -125,6 +126,7 @@ namespace Architome
             GetDependencies();
             if (threatManager) { StartCoroutine(CombatRoutine()); }
         }
+
         public void OnLifeChange(bool isAlive)
         {
             if (isAlive) { return; }

@@ -87,7 +87,8 @@ namespace Architome
         {
             foreach (var specialAbility in combat.specialAbilities)
             {
-                var ability = abilityManager.Ability(specialAbility.abilityIndex);
+                //var ability = abilityManager.Ability(specialAbility.abilityIndex);
+                var ability = specialAbility.ability;
 
                 if (ability == null) continue;
                 if (ability.WantsToCast() || ability.isCasting) return true;
@@ -112,7 +113,7 @@ namespace Architome
 
                 abilityManager.target = randomTarget;
                 abilityManager.location = randomTarget.transform.position;
-                abilityManager.Cast(special.abilityIndex);
+                abilityManager.Cast(ability);
 
                 return true;
             }
@@ -125,7 +126,7 @@ namespace Architome
 
                 abilityManager.location = this.target.transform.position;
                 abilityManager.target = this.target;
-                abilityManager.Cast(special.abilityIndex);
+                abilityManager.Cast(ability);
 
                 return true;
             }
@@ -135,7 +136,7 @@ namespace Architome
                 if (ability.abilityType != AbilityType.Use) return false;
                 if (special.targeting != SpecialTargeting.Use) return false;
 
-                abilityManager.Cast(special.abilityIndex);
+                abilityManager.Cast(ability);
 
                 return true;
             }
@@ -149,7 +150,7 @@ namespace Architome
                 var randomZ = Random.Range(-maxDistance, maxDistance);
 
                 abilityManager.location = abilityManager.transform.position + new Vector3(randomX, 0, randomZ);
-                abilityManager.Cast(special.abilityIndex);
+                abilityManager.Cast(ability);
 
 
                 return true;
@@ -166,7 +167,8 @@ namespace Architome
 
             foreach (var specialAbility in combat.healSettings.specialHealingAbilities)
             {
-                var ability = abilityManager.Ability(specialAbility.abilityIndex);
+                //var ability = abilityManager.Ability(specialAbility.abilityIndex);
+                var ability = specialAbility.ability;
                 if (ability == null) continue;
                 if (ability.WantsToCast() || ability.isCasting) return true;
                 if (!ability.isHealing || ability.isAssisting) continue;

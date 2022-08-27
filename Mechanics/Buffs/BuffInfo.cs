@@ -228,7 +228,10 @@ public class BuffInfo : MonoBehaviour
         StartCoroutine(BuffIntervalHandler());
     }
 
-
+    public void ApplyBaseValue(float value)
+    {
+        properties.value = value * properties.valueContributionToBuff;
+    }
     public void Start()
     {
         ArchAction.Delay(() => { if(!failed) OnBuffStart?.Invoke(this); }, .0625f);
@@ -498,6 +501,39 @@ public class BuffInfo : MonoBehaviour
 
         }
     }
+    public void AddEventAction(BuffEvents trigger, Action action)
+    {
+        Action<CombatEventData> combatAction = (CombatEventData eventData) => {
+            action();
+        };
+
+        switch (trigger)
+        {
+            case BuffEvents.OnInterval:
+                OnBuffInterval += (BuffInfo buff) => { action(); };
+                break;
+            case BuffEvents.OnCleanse:
+                OnBuffCleanse += (BuffInfo buff) => { action(); };
+                break;
+            case BuffEvents.OnComplete:
+                OnBuffCompletion += (BuffInfo buff) => { action(); };
+                break;
+            case BuffEvents.OnDamageTaken:
+                hostInfo.OnDamageTaken += combatAction;
+                OnBuffEnd += (BuffInfo buff) => { hostInfo.OnDamageTaken -= combatAction; };
+                break;
+            case BuffEvents.OnDamageImmune:
+                hostInfo.combatEvents.OnImmuneDamage += combatAction;
+                OnBuffEnd += (BuffInfo buff) => { hostInfo.combatEvents.OnImmuneDamage -= combatAction; };
+                break;
+            default:
+                action();
+                break;
+        }
+
+
+
+    }
     public List<EntityInfo> EnemiesWithinRange()
     {
 
@@ -541,7 +577,7 @@ public class BuffInfo : MonoBehaviour
     }
     public void HandleTargetHealth(EntityInfo target, float val, BuffTargetType targettingType)
     {
-        var combatData = new CombatEventData(this, sourceInfo, val);
+        var combatData = new CombatEventData(this, val);
         combatData.target = target;
 
         HandleNeutral();

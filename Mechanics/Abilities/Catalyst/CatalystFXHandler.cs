@@ -24,16 +24,16 @@ namespace Architome
 
             audioManager = GetComponentInChildren<AudioManager>();
 
-            if (catalyst)
-            {
-                catalyst.OnCatalystDestroy += OnCatalystDestroy;
-                catalyst.OnCatalystStop += OnCatalystStop;
-                catalyst.OnHit += OnHit;
-                catalyst.OnDamage += OnDamage;
-                catalyst.OnHeal += OnHeal;
-                catalyst.OnCatalingRelease += OnCatalingRelease;
-                catalyst.OnInterval += OnInterval;
-            }
+            //if (catalyst)
+            //{
+            //    catalyst.OnCatalystDestroy += OnCatalystDestroy;
+            //    catalyst.OnCatalystStop += OnCatalystStop;
+            //    catalyst.OnHit += OnHit;
+            //    catalyst.OnDamage += OnDamage;
+            //    catalyst.OnHeal += OnHeal;
+            //    catalyst.OnCatalingRelease += OnCatalingRelease;
+            //    catalyst.OnInterval += OnInterval;
+            //}
 
             particleManager = CatalystManager.active.GetComponent<ParticleManager>();
             lightManager = particleManager.GetComponent<ArchLightManager>();
@@ -41,29 +41,29 @@ namespace Architome
         void Start()
         {
             GetDependencies();
-            UpdateMap();
+            //UpdateMap();
             AdjustDestroyDelay();
             HandleLight();
             HandleGrow();
             HandleStartFromGround();
-            ActivateAwakeEffects();
+            HandleEventActions();
+            
+            //ActivateAwakeEffects();
         }
 
-        void UpdateMap()
+        void HandleEventActions()
         {
             if (catalyst == null) return;
-            effectMap = new();
-            foreach (var effect in catalyst.effects.catalystsEffects)
+            if (catalyst.effects.catalystsEffects == null) return;
+
+            foreach (var fx in catalyst.effects.catalystsEffects)
             {
-                if (effectMap.ContainsKey(effect.playTrigger))
-                {
-                    effectMap[effect.playTrigger].Add(effect);
-                }
-                else
-                {
-                    effectMap.Add(effect.playTrigger, new() { effect });
-                }
+                catalyst.AddEventAction(fx.playTrigger, () => { HandleEffects(fx); });
             }
+
+            catalyst.AddEventAction(CatalystEvent.OnDestroy, () => {
+                HandleCollapse();
+            });
         }
 
         void HandleLight()
@@ -124,7 +124,7 @@ namespace Architome
                 while (transform.localScale != new Vector3())
                 {
                     await Task.Yield();
-                    if (gameObject == null) break;
+                    if (this == null) break;
                     transform.localScale = Vector3.Lerp(transform.localScale, new Vector3(), .125f);
                 }
             }
@@ -133,38 +133,12 @@ namespace Architome
 
             }
         }
-        void OnInterval(CatalystInfo catalyst)
+
+
+        public void HandleEffects(CatalystInfo.CatalystEffects.Catalyst effects)
         {
-            HandleEffects(CatalystEvent.OnInterval);
-        }
-        void OnCatalingRelease(CatalystInfo catalyst, CatalystInfo cataling)
-        {
-            HandleEffects(CatalystEvent.OnCatalingRelease);
-        }
-        void ActivateAwakeEffects()
-        {
-            HandleEffects(CatalystEvent.OnAwake);
-        }
-        private void OnCatalystStop(CatalystKinematics kinematics)
-        {
-            HandleEffects(CatalystEvent.OnStop);
-        }
-        private void OnCatalystDestroy(CatalystDeathCondition condition)
-        {
-            HandleEffects(CatalystEvent.OnDestroy);
-            HandleCollapse();
-        }
-        private void OnHit(CatalystInfo catalyst, EntityInfo target)
-        {
-            HandleEffects(CatalystEvent.OnHit);
-        }
-        public void OnDamage(CatalystInfo catalyst, EntityInfo target)
-        {
-            HandleEffects(CatalystEvent.OnHarm);
-        }
-        public void OnHeal(CatalystInfo catalyst, EntityInfo target)
-        {
-            HandleEffects(CatalystEvent.OnHeal);
+            HandleAudio(effects);
+            HandleParticle(effects);
         }
         public void HandleEffects(CatalystEvent action)
         {
@@ -212,8 +186,6 @@ namespace Architome
             system.transform.position += effect.offsetPosition;
             system.transform.localScale += effect.offsetScale;
             system.transform.eulerAngles += effect.offsetRotation;
-
-
         }
 
         public void HandleParticleTransform(CatalystInfo.CatalystEffects.Catalyst effect, GameObject system)
@@ -248,12 +220,8 @@ namespace Architome
                 {
                     system.transform.rotation = V3Helper.LerpLookAt(system.transform, catalyst.location, 1f);
                 }
-
             }
-
         }
-
-        // Update is called once per frame
     }
 
 }

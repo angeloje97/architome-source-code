@@ -84,6 +84,16 @@ namespace Architome
 
             augment.OnRemove += (Augment augment) => { ability.OnAbilityStartEnd -= HandleAbility; };
         }
+
+        protected void EnableTasks()
+        {
+            augment.entity.taskEvents.OnTaskComplete += HandleTaskComplete;
+            augment.OnRemove += (Augment augment) => {
+                augment.entity.taskEvents.OnTaskComplete -= HandleTaskComplete;
+            };
+
+            augment.entity.taskEvents.OnStartTask += HandleStartTask;
+        }
         public virtual void SetCatalyst(CatalystInfo catalyst, bool active)
         {
             if (active)
@@ -114,6 +124,16 @@ namespace Architome
 
         }
         public virtual void HandleAbility(AbilityInfo ability, bool start)
+        {
+
+        }
+
+        public virtual void HandleTaskComplete(TaskEventData eventData)
+        {
+
+        }
+
+        public virtual void HandleStartTask(TaskEventData eventData)
         {
 
         }

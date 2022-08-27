@@ -339,6 +339,7 @@ public class CatalystHit : MonoBehaviour
     }
     public bool CanHit(EntityInfo targetInfo)
     {
+        if (targetInfo == null) return false;
         //if (catalystInfo.Ticks() == 0) return false; //Let's take this piece of code out of the way and see what happens :)
 
         if(targetInfo == catalystInfo.entityInfo && !canSelfCast)

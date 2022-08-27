@@ -38,6 +38,7 @@ namespace Architome
         public Action<CatalystInfo> OnNewCatalyst;
         public Action<Augment> OnRemove;
         public Action<AugmentEventData> OnAugmentTrigger;
+        public Action<AugmentEventData> OnAugmentActivate;
 
         public bool dependenciesAcquired;
 
@@ -193,7 +194,14 @@ namespace Architome
         }
         public void TriggerAugment(AugmentEventData eventData)
         {
+            eventData.eventTrigger = AugmentEvent.OnAugmentTrigger;
             OnAugmentTrigger?.Invoke(eventData);
+        }
+
+        public void ActivateAugment(AugmentEventData eventData)
+        {
+            eventData.eventTrigger = AugmentEvent.OnAugmentActive;
+            OnAugmentActivate?.Invoke(eventData);
         }
 
         public class AugmentEventData
@@ -201,6 +209,8 @@ namespace Architome
             public AugmentType augmentType;
             public Augment augment;
             public CatalystInfo activeCatalyst;
+            public bool active = true;
+            public AugmentEvent eventTrigger;
 
             public AugmentEventData(AugmentType source)
             {

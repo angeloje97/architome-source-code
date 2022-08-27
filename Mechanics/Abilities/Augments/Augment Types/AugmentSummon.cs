@@ -108,6 +108,7 @@ namespace Architome
             catalyst.OnCatalystDestroy += (CatalystDeathCondition deathCondition) =>
             {
                 SummonEntities(catalyst.transform.position);
+                augment.TriggerAugment(new(this));
             };
         }
 

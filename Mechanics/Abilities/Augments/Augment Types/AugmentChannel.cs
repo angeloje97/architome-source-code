@@ -64,6 +64,9 @@ namespace Architome
         {
             StartChannel();
 
+            var eventData = new Augment.AugmentEventData(this) { active = true };
+            augment.ActivateAugment(eventData);
+
             timer = time - time * ability.Haste();
             var startTime = timer;
 
@@ -102,13 +105,15 @@ namespace Architome
                 {
                     ability.HandleAbilityType();
                     abilityManager.OnChannelInterval?.Invoke(ability, this);
-                    augment.TriggerAugment(new(this));
+                    augment.TriggerAugment(eventData);
                     progressBlock -= progressPerInvoke;
                 }
 
             }
 
             EndChannel();
+
+            eventData.active = false;
 
             return success;
 
@@ -152,8 +157,10 @@ namespace Architome
         }
         void HandleBusyCheck()
         {
-            Action<AbilityInfo> action = (AbilityInfo ability) => {
-                ability.busyList.Add(active);
+            Action<AbilityInfo, List<bool>> action = (AbilityInfo ability, List<bool> busyList) => {
+                busyList.Add(active);
+
+                Debugger.Combat(4123, $"Busy List Count {busyList.Count}");
             };
 
             ability.OnBusyCheck += action;

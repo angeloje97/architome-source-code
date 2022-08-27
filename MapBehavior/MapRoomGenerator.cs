@@ -615,10 +615,13 @@ namespace Architome
                 ClearNullRooms();
                 foreach (GameObject room in roomsInUse)
                 {
-                    if (room.GetComponent<RoomInfo>() && room.GetComponent<RoomInfo>().hideOnStart)
-                    {
-                        room.GetComponent<RoomInfo>().ShowRoom(false);
-                    }
+                    var roomInfo = room.GetComponent<RoomInfo>();
+                    if (roomInfo == null) continue;
+                    if (roomInfo.ignoreHideOnStart) continue;
+                    if (roomInfo.entities.PlayerIsInRoom()) continue;
+
+                    roomInfo.ShowRoom(false);
+
                 }
 
                 yield return new WaitForSeconds(2f);
