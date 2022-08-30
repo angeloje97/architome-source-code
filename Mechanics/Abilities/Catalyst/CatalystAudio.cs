@@ -29,6 +29,7 @@ namespace Architome
         public void Activate(CatalystInfo catalystInfo)
         {
             this.catalystInfo = catalystInfo;
+            catalystInfo.catalystAudio = audioManager;
             transform.position = catalystInfo.transform.position;
             name = $"{catalystInfo} Audio";
 

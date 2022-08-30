@@ -39,7 +39,7 @@ namespace Architome
 
             result += increasesThreat ? "Increased " : "Decreased ";
 
-            result += $" threat that the target has on the caster by {value} threat.\n";
+            result += $" threat that the target has on the caster by {value} threat.";
 
             return result;
         }
@@ -49,7 +49,7 @@ namespace Architome
         {
             var result = increasesThreat ? "Increases " : "Decreases ";
 
-            result += $" threat that the target has on the caster.\n";
+            result += $" threat that the target has on the caster.";
 
             return result;
         }

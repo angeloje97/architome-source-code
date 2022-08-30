@@ -52,11 +52,6 @@ namespace Architome
             buffInfo.CompleteEarly();
         }
 
-        public override string Description()
-        {
-            return "Instantly kills the target";
-        }
-
         public override string GeneralDescription()
         {
             return "Instantly kills the target";

@@ -48,7 +48,7 @@ public class BuffAOEHealthOverTime : BuffType
             result += $"Damage all enemies ";
         }
 
-        result += $"for a base value of {ArchString.FloatToSimple(value)} that {ArchString.CamelToTitle(aoeType.ToString())} through all targets.\n";
+        result += $"for a base value of {ArchString.FloatToSimple(value)} that {ArchString.CamelToTitle(aoeType.ToString())} through all targets.";
         return result;
     }
 
@@ -57,7 +57,7 @@ public class BuffAOEHealthOverTime : BuffType
         var buffInfo = GetComponent<BuffInfo>();
         var result = buffInfo.buffTargetType == BuffTargetType.Assist ? "Heals allies " : "Damages enemies ";
 
-        result += $"in a {buffInfo.properties.radius} meter radius every {buffInfo.properties.intervals} seconds.\n";
+        result += $"in a {buffInfo.properties.radius} meter radius every {buffInfo.properties.intervals} seconds.";
 
         return result;
     }

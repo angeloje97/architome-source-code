@@ -65,7 +65,6 @@ public class AbilityInfo : MonoBehaviour
     public AugmentProp.Restrictions restrictions;
     public AugmentProp.DestroyConditions destroyConditions;
     public AugmentProp.RecastProperties recastProperties;
-    public AugmentProp.Tracking tracking;
     public AugmentProp.Threat threat;
 
     [Serializable]
@@ -105,6 +104,39 @@ public class AbilityInfo : MonoBehaviour
         public float requiredPercent;
         public float producedAmount;
         public float producedPercent;
+
+
+        public float ManaRequired(float maxMana)
+        {
+            return requiredAmount + (maxMana * requiredPercent);
+        }
+
+        public float ManaProduced(float maxMana)
+        {
+            return producedAmount + (producedPercent * maxMana);
+        }
+        public void Initiate(AbilityInfo ability)
+        {
+            ability.OnReadyCheck += OnReadyCheck;
+            ability.OnSuccessfulCast += OnSuccessfulCast;
+        }
+
+        void OnReadyCheck(AbilityInfo ability, List<(string, bool)> readyChecks)
+        {
+            var entity = ability.entityInfo;
+            if (entity == null) return;
+
+
+            readyChecks.Add(("Sufficient Resources", entity.mana >= ManaRequired(entity.maxMana)));
+        }
+
+        void OnSuccessfulCast(AbilityInfo ability)
+        {
+            var entity = ability.entityInfo;
+            if (entity == null) return;
+            entity.Use(ManaRequired(entity.maxMana));
+            entity.GainResource(ManaProduced(entity.maxMana));
+        }
     }
 
     public Resources resources;
@@ -119,8 +151,37 @@ public class AbilityInfo : MonoBehaviour
         public bool globalCoolDownActive;
         public bool usesGlobal;
         public bool maxChargesOnStart = true;
+        public bool interruptConsumesCharge;
         public int charges;
         public int maxCharges = 1;
+
+        public void Initiate(AbilityInfo ability)
+        {
+            if (interruptConsumesCharge)
+            {
+                ability.OnInterrupt += OnInterrupt;
+            }
+
+            ability.OnReadyCheck += OnReadyCheck;
+            ability.OnSuccessfulCast += OnSuccesfulCast;
+        }
+
+        void OnInterrupt(AbilityInfo ability)
+        {
+            if (charges > 0)
+            {
+                charges -= 1;
+            }
+        }
+        void OnReadyCheck(AbilityInfo ability, List<(string, bool)> andChecks)
+        {
+            andChecks.Add(("Sufficient charges", charges > 0));
+        }
+
+        void OnSuccesfulCast(AbilityInfo ability)
+        {
+            charges--;
+        }
     }
     public CoolDownProperties coolDown;
 
@@ -214,8 +275,10 @@ public class AbilityInfo : MonoBehaviour
     public Action<AbilityInfo, bool> OnAbilityStartEnd;
     public Action<AbilityInfo> OnUpdateRestrictions;
     public Action<AbilityInfo> WhileCasting;
-    public Action<AbilityInfo, List<bool>> OnReadyCheck;
+    public Action<AbilityInfo, List<(string, bool)>> OnReadyCheck { get; set; }
     public Action<AbilityInfo, List<bool>> OnBusyCheck;
+    public Action<AbilityInfo, GameObject, List<bool>, List<bool>> OnCorrectTargetCheck;
+    public Action<AbilityInfo> OnInterrupt;
     public List<AugmentType> augmentAbilities;
 
 
@@ -275,7 +338,15 @@ public class AbilityInfo : MonoBehaviour
     void Start()
     {
         GetDependencies();
+        HandleInitiates();
+        
         active = true;
+
+        void HandleInitiates()
+        {
+            coolDown.Initiate(this);
+            resources.Initiate(this);
+        }
     }
 
     void Update()
@@ -1154,60 +1225,20 @@ public class AbilityInfo : MonoBehaviour
         void HandleResources()
         {
             
-            coolDown.charges--;
+            //coolDown.charges--;
             timerPercentActivated = false;
-            UseMana();
-            HandleResourceProduction();
+            //UseMana();
+            //HandleResourceProduction();
 
-            void HandleResourceProduction()
-            {
-                entityInfo.GainResource(resources.producedAmount);
-                entityInfo.GainResource(resources.producedPercent * entityInfo.maxMana);
-            }
+            //void HandleResourceProduction()
+            //{
+            //    entityInfo.GainResource(resources.producedAmount);
+            //    entityInfo.GainResource(resources.producedPercent * entityInfo.maxMana);
+            //}
 
             
         }
-        //bool IsInRange()
-        //{
-        //    if (abilityType != AbilityType.LockOn) return true;
-        //    if(!requiresLockOnTarget)
-        //    {
-        //        return true;
-        //    }
 
-        //    if(targetLocked == null)
-        //    {
-        //        return false;
-        //    }
-
-        //    if (range == -1) return true;
-
-        //    if(V3Helper.Distance(entityObject.transform.position, targetLocked.transform.position) > range)
-        //    {
-        //        ActivateWantsToCast();
-        //        return false;
-        //    }
-        //    return true;
-        //}
-        //bool HasLineOfSight()
-        //{
-        //    if (abilityType != AbilityType.LockOn) return true;
-        //    if (!requiresLockOnTarget) { return true; }
-        //    if(range == -1) { return true; }
-        //    if(!requiresLineOfSight || lineOfSight == null)
-        //    {
-        //        return true;
-        //    }
-
-        //    if(lineOfSight.HasLineOfSight(targetLocked))
-        //    {
-        //        return true;
-        //    }
-
-        //    ActivateWantsToCast();
-        //    return false;
-        //}
-        //Handles auto healing if the target has full health
         void HandleFullHealth()
         {
             if (!target) return;
@@ -1337,51 +1368,55 @@ public class AbilityInfo : MonoBehaviour
     public bool IsCorrectTarget(GameObject target)
     {
         if(target == null) { return true; }
-        if(target.GetComponent<EntityInfo>())
+        var info = target.GetComponent<EntityInfo>();
+
+        if (info == null) return false;
+
+        if(!canCastSelf)
         {
-            if(!canCastSelf)
+            if (target == entityObject)
             {
-                if (target == entityObject)
-                {
-                    return false;    
-                }
-            }
-
-            EntityInfo targetInfo = target.GetComponent<EntityInfo>();
-            if(!targetInfo.isAlive && !targetsDead)
-            {
-                abilityManager.OnDeadTarget?.Invoke(this);
-                return false; 
-            }
-            if(targetInfo.isAlive && targetsDead) { return false; }
-
-            if((isHealing || isAssisting) && entityInfo.CanHelp(target))
-            {
-                return true;
-            }
-
-            if(isHarming && entityInfo.CanAttack(target))
-            {
-                return true;
-            }
-            
-            if(isHealing && isHarming && isAssisting)
-            {
-                return true;
+                return false;    
             }
         }
 
+        var orChecks = new List<bool>();
+        var andChecks = new List<bool>();
+        OnCorrectTargetCheck?.Invoke(this, target, orChecks, andChecks);
+        foreach(var check in orChecks) { if (check) return true; }
+        foreach(var check in andChecks) { if (!check) return false; }
 
+        if(!info.isAlive && !targetsDead)
+        {
+            abilityManager.OnDeadTarget?.Invoke(this);
+            return false; 
+        }
+        if(info.isAlive && targetsDead) { return false; }
+
+        if((isHealing || isAssisting) && entityInfo.CanHelp(target))
+        {
+            return true;
+        }
+
+        if(isHarming && entityInfo.CanAttack(target))
+        {
+            return true;
+        }
+            
+        if(isHealing && isHarming && isAssisting)
+        {
+            return true;
+        }
 
         return false;
     }
-    public void UseMana()
-    {
-        if(entityInfo)
-        {
-            entityInfo.Use(resources.requiredAmount + entityInfo.maxMana*resources.requiredPercent);
-        }
-    }
+    //public void UseMana()
+    //{
+    //    if(entityInfo)
+    //    {
+    //        entityInfo.Use(resources.requiredAmount + entityInfo.maxMana*resources.requiredPercent);
+    //    }
+    //}
     public void ActivateWantsToCast(string reason)
     {
         if (wantsToCast) return;
@@ -1508,6 +1543,7 @@ public class AbilityInfo : MonoBehaviour
 
         }
     }
+
     float AbilityValue()
     {
         var value = baseValue
@@ -1559,21 +1595,23 @@ public class AbilityInfo : MonoBehaviour
             return false;
         }
 
-        if (coolDown.charges <= 0)
-        {
-            NotReadyReason("still on cooldown");
-            return false;
-        }
+        //if (coolDown.charges <= 0)
+        //{
+        //    NotReadyReason("still on cooldown");
+        //    return false;
+        //}
 
-        var readyList = new List<bool>();
+        var readyList = new List<(string, bool)>();
 
         OnReadyCheck?.Invoke(this, readyList);
 
-        foreach (var ready in readyList)
+        foreach (var (reason, success) in readyList)
         {
-            if (!ready)
+            if (!success)
             {
+                NotReadyReason(reason);
                 return false;
+
             }
         }
 
@@ -1625,13 +1663,10 @@ public class AbilityInfo : MonoBehaviour
     }
     public void Use()
     {
-        if (entityInfo && entityInfo.PlayerController())
+        if(abilityManager)
         {
-            if(abilityManager)
-            {
-                abilityManager.Cast(this);
-                abilityManager.OnTryCast?.Invoke(this);
-            }
+            abilityManager.Cast(this, true);
+            abilityManager.OnTryCast?.Invoke(this);
         }
     }
     public void CastAt(Vector3 position)
@@ -1976,39 +2011,39 @@ public class AbilityInfo : MonoBehaviour
     }
     public void HandleTracking()
     {
-        if (targetLocked == null) return;
+        //if (targetLocked == null) return;
 
-        if (tracking.tracksTarget)
-        {
-            locationLocked = Vector3.Lerp(locationLocked, targetLocked.transform.position, tracking.trackingInterpolation);
-        }
+        //if (tracking.tracksTarget)
+        //{
+        //    locationLocked = Vector3.Lerp(locationLocked, targetLocked.transform.position, tracking.trackingInterpolation);
+        //}
 
-        if (tracking.predictsTarget)
-        {
-            PredictTarget(targetLocked);
-        }
+        //if (tracking.predictsTarget)
+        //{
+        //    PredictTarget(targetLocked);
+        //}
 
-        async void PredictTarget(GameObject target)
-        {
-            if (tracking.predicting) return;
+        //async void PredictTarget(GameObject target)
+        //{
+        //    if (tracking.predicting) return;
 
-            tracking.predicting = true;
-            var movement = target.GetComponentInChildren<Movement>();
-            while (isCasting)
-            {
-                var distance = V3Helper.Distance(target.transform.position, entityObject.transform.position);
+        //    tracking.predicting = true;
+        //    var movement = target.GetComponentInChildren<Movement>();
+        //    while (isCasting)
+        //    {
+        //        var distance = V3Helper.Distance(target.transform.position, entityObject.transform.position);
 
-                var travelTime = distance / catalystInfo.speed;
+        //        var travelTime = distance / catalystInfo.speed;
 
-                locationLocked = target.transform.position + (travelTime * movement.velocity);
+        //        locationLocked = target.transform.position + (travelTime * movement.velocity);
 
-                await Task.Yield();
-            }
+        //        await Task.Yield();
+        //    }
 
-            tracking.predicting = false;
+        //    tracking.predicting = false;
 
 
-        }
+        //}
     }
     public float Radius(RadiusType type)
     {

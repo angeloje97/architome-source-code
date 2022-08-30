@@ -63,6 +63,7 @@ namespace Architome
             LoadCharacter();
             LoadEquipment();
             LoadInventory();
+            LoadAbilities();
 
             void LoadInfo()
             {
@@ -110,6 +111,19 @@ namespace Architome
                 character.LoadValues();
             }
 
+            void LoadAbilities()
+            {
+                var abilityManager = entity.AbilityManager();
+                var abilities = abilityManager.GetComponentsInChildren<AbilityInfo>();
+                foreach (var abilityData in data.abilities.datas)
+                {
+                    var index = abilityData.index;
+                    if (index < 0) continue;
+                    if (index >= abilities.Length) continue;
+
+                    abilities[index].augmentsData = abilityData.abilityInventory.ItemDatas(_maps);
+                }
+            }
 
             void LoadEquipment()
             {

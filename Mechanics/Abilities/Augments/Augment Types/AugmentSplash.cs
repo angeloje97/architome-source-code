@@ -66,21 +66,23 @@ namespace Architome
 
             activeCatalysts.Add(catalyst, new(catalyst));
 
-            catalyst.OnCatalystDestroy += (CatalystDeathCondition condition) => ArchAction.Yield(() => activeCatalysts.Remove(catalyst));
+            catalyst.AddEventAction(splashTrigger, () => HandleSplash(catalyst));
 
-            if (splashTrigger == CatalystEvent.OnAwake)
-            {
-                HandleSplash(catalyst); return;
-            }
+            //catalyst.OnCatalystDestroy += (CatalystDeathCondition condition) => ArchAction.Yield(() => activeCatalysts.Remove(catalyst));
+
+            //if (splashTrigger == CatalystEvent.OnAwake)
+            //{
+            //    HandleSplash(catalyst); return;
+            //}
 
 
-            if (splashTrigger == CatalystEvent.OnDestroy) catalyst.OnCatalystDestroy += (CatalystDeathCondition condition) => HandleSplash(catalyst);
-            if (splashTrigger == CatalystEvent.OnHit) catalyst.OnHit += (CatalystInfo catalyst, EntityInfo target) => HandleSplash(catalyst, target);
-            if (splashTrigger == CatalystEvent.OnAssist) catalyst.OnAssist += (CatalystInfo catalyst, EntityInfo target) => HandleSplash(catalyst, target);
-            if (splashTrigger == CatalystEvent.OnHeal) catalyst.OnHeal += (CatalystInfo catalyst, EntityInfo target) => HandleSplash(catalyst, target);
-            if (splashTrigger == CatalystEvent.OnHarm) catalyst.OnDamage += (CatalystInfo catalyst, EntityInfo target) => HandleSplash(catalyst, target);
-            if (splashTrigger == CatalystEvent.OnStop) catalyst.OnCatalystStop += (CatalystKinematics kinematics) => HandleSplash(catalyst);
-            if (splashTrigger == CatalystEvent.OnCatalingRelease) catalyst.OnCatalingRelease += (CatalystInfo original, CatalystInfo cataling) => HandleSplash(catalyst);
+            //if (splashTrigger == CatalystEvent.OnDestroy) catalyst.OnCatalystDestroy += (CatalystDeathCondition condition) => HandleSplash(catalyst);
+            //if (splashTrigger == CatalystEvent.OnHit) catalyst.OnHit += (CatalystInfo catalyst, EntityInfo target) => HandleSplash(catalyst, target);
+            //if (splashTrigger == CatalystEvent.OnAssist) catalyst.OnAssist += (CatalystInfo catalyst, EntityInfo target) => HandleSplash(catalyst, target);
+            //if (splashTrigger == CatalystEvent.OnHeal) catalyst.OnHeal += (CatalystInfo catalyst, EntityInfo target) => HandleSplash(catalyst, target);
+            //if (splashTrigger == CatalystEvent.OnHarm) catalyst.OnDamage += (CatalystInfo catalyst, EntityInfo target) => HandleSplash(catalyst, target);
+            //if (splashTrigger == CatalystEvent.OnStop) catalyst.OnCatalystStop += (CatalystKinematics kinematics) => HandleSplash(catalyst);
+            //if (splashTrigger == CatalystEvent.OnCatalingRelease) catalyst.OnCatalingRelease += (CatalystInfo original, CatalystInfo cataling) => HandleSplash(catalyst);
 
 
         }

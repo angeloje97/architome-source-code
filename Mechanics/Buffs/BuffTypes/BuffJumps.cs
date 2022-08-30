@@ -29,7 +29,7 @@ public class BuffJumps : BuffType
     public override string Description()
     {
         var additive = buffInfo.buffTargetType == BuffTargetType.Assist ? "enemy" : "ally";
-        return $"Once the buff timer is complete, the buff will be applied to an {additive} that's within a {buffInfo.properties.radius} meter radius\n";
+        return $"Once the buff timer is complete, the buff will be applied to an {additive} that's within a {buffInfo.properties.radius} meter radius";
     }
 
     public override string GeneralDescription()

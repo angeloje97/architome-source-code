@@ -47,20 +47,24 @@ namespace Architome
         {
             buffInfo = GetComponent<BuffInfo>();
 
-            var description = $"Upon taking lethal damage, negate the amount and set the unit's health to {healthPercent * 100}%.\n";
+            var descriptions = new List<string>()
+            {
+                $"Upon taking lethal damage, negate the amount and set the unit's health to {healthPercent * 100}%."
+            };
 
             if (buffsToApply != null && buffsToApply.Count > 0)
             {
-                description += "Buffs applied once prevented damage: \n";
+                descriptions.Add("Buffs applied once prevented damage: ");
                 foreach (var buff in buffsToApply)
                 {
                     var info = buff.GetComponent<BuffInfo>();
                     
-                    description += $"{info.name}: {info.TypeDescriptionFace(theoreticalValue)}";
+
+                    descriptions.Add($"{info.name}: {info.TypeDescriptionFace(theoreticalValue)}");
                 }
             }
 
-            return description;
+            return ArchString.NextLineList(descriptions);
         }
 
         public override string GeneralDescription()

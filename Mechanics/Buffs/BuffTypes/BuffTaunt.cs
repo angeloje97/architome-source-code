@@ -40,18 +40,22 @@ namespace Architome
         // Update is called once per frame
         public override string Description()
         {
-            var description = "Forces unit to focus caster.\n";
+
+            var descriptions = new List<string>() {
+                "Forces unit to focus caster."
+            };
 
             if (buffInfo && buffInfo.sourceInfo)
             {
-                description += $"Currently focusing {buffInfo.sourceInfo.name}\n";
+                descriptions.Add($"Currently focusing {buffInfo.sourceInfo.name}");
             }
-            return description;
+
+            return ArchString.NextLineList(descriptions);
         }
 
         public override string GeneralDescription()
         {
-            return $"Forces a unit to focus the source of the buff.\n";
+            return $"Forces a unit to focus the source of the buff.";
         }
 
         void OnSuccessfulStateChange(BuffStateChanger stateChanger, EntityState state)

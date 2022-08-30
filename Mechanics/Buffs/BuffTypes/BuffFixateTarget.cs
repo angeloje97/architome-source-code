@@ -51,16 +51,19 @@ namespace Architome
 
         public override string Description()
         {
-            var result = "";
+            var description = new List<string>()
+            {
+                "Forces the caster to focus a target",
+            };
 
-            result += "Forces the caster to focus a target.\n";
 
             if (buffInfo.targetInfo)
             {
-                result += $"- Currently fixated on {buffInfo.targetInfo.entityName}.\n";
+                description.Add($"- Currently fixated on {buffInfo.targetInfo.entityName}.");
             }
 
-            return result;
+            return ArchString.NextLineList(description);
+
         }
 
         public override string GeneralDescription()

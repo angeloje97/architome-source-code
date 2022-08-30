@@ -1,8 +1,10 @@
 using System;
+using System.Linq;
 using System.Collections;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
+using Architome.Enums;
 
 namespace Architome
 {
@@ -16,6 +18,7 @@ namespace Architome
 
         public CatalystInfo activeCatalyst;
         protected CatalystHit activeHit;
+
 
 
         async void Start()
@@ -60,6 +63,27 @@ namespace Architome
             augment.OnRemove += (Augment augment) =>
             {
                 ability.augmentAbilities.Remove(this);
+            };
+        }
+
+        protected void AllowInterruptable()
+        {
+            var interruptableStates = new List<EntityState>() {
+                EntityState.Silenced,
+                EntityState.Stunned,
+            };
+
+            Action<List<EntityState>, List<EntityState>> action = (List<EntityState> beforeStates, List<EntityState> afterStates) => {
+                if (afterStates.Intersect(interruptableStates).ToList().Count > 0)
+                {
+                    HandleCancelAbility(this);
+                }
+            };
+
+            augment.entity.combatEvents.OnStatesChange += action;
+
+            augment.OnRemove += (Augment augment) => {
+                augment.entity.combatEvents.OnStatesChange -= action;
             };
         }
         protected void EnableCasting()
@@ -115,6 +139,12 @@ namespace Architome
         {
 
         }
+
+        public virtual void HandleCancelAbility(AugmentType augment)
+        {
+
+        }
+
         public virtual void WhileCasting(AbilityInfo ability)
         {
 

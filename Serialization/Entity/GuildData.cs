@@ -38,8 +38,16 @@ namespace Architome
         public List<ItemData> VaultCurrencies()
         {
             var database = DataMap.active._maps;
+            Debugger.UI(4333, $"Database != null ? {database != null}");
+            var itemDatas = new List<ItemData>();
+            if (currencies != null)
+            {
+                itemDatas = currencies.ItemDatas(database);
+            }
 
-            return currencies.ItemDatas(database);
+            Debugger.UI(4332, $"{itemDatas.Count}");
+
+            return itemDatas;
         }
     }
 }

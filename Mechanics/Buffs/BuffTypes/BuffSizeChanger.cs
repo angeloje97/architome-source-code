@@ -24,12 +24,12 @@ namespace Architome
 
         public override string Description()
         {
-            return $"Unit's size is {ArchString.FloatToSimple(sizeIncrease*100)}% of its original size.\n";
+            return $"Unit's size is {ArchString.FloatToSimple(sizeIncrease*100)}% of its original size.";
         }
 
         public override string GeneralDescription()
         {
-            return $"Change the unit's size to {ArchString.FloatToSimple(sizeIncrease * 100)}% of its original size.\n";
+            return $"Change the unit's size to {ArchString.FloatToSimple(sizeIncrease * 100)}% of its original size.";
         }
 
         async void OnBuffStart(BuffInfo buff)

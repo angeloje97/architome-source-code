@@ -149,7 +149,7 @@ namespace Architome
                 var randomX = Random.Range(-maxDistance, maxDistance);
                 var randomZ = Random.Range(-maxDistance, maxDistance);
 
-                abilityManager.location = abilityManager.transform.position + new Vector3(randomX, 0, randomZ);
+                abilityManager.location = V3Helper.NearestNodePosition(abilityManager.transform.position + new Vector3(randomX, 0, randomZ));
                 abilityManager.Cast(ability);
 
 

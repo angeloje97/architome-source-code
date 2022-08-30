@@ -121,7 +121,7 @@ namespace Architome
         public class CatalystEffects
         {
             [Serializable]
-            public struct Catalyst
+            public class Catalyst
             {
                 public CatalystEvent playTrigger;
                 public CatalystParticleTarget target;
@@ -130,12 +130,14 @@ namespace Architome
                 public Vector3 offsetPosition, offsetScale, offsetRotation;
                 public GameObject particleObj;
                 public AudioClip audioClip;
+                
                 public bool loops;
                 public bool looksAtTarget;
+
             }
 
             [Serializable]
-            public struct Ability
+            public class Ability
             {
                 public AbilityEvent trigger;
                 public GameObject particle;
@@ -149,6 +151,7 @@ namespace Architome
 
                 [Header("Audio")]
                 public AudioClip audioClip;
+                public float volume = 1f;
                 public bool loops;
             }
 
@@ -207,7 +210,7 @@ namespace Architome
         }
 
         public CatalystEffects effects;
-        public AudioSource audioSource;
+        public AudioManager catalystAudio;
         public Vector3 startPosition;
         public bool isDestroyed;
 
@@ -234,6 +237,8 @@ namespace Architome
 
         public Action<CatalystInfo, CatalystInfo> OnCatalingRelease { get; set; }
         public Action<CatalystDeathCondition> OnCatalystDestroy { get; set; }
+
+        public Action<CatalystHit, EntityInfo> OnCanHitCheck;
 
         private GameObject targetCheck;
 
@@ -266,16 +271,6 @@ namespace Architome
                 structureLayer = GMHelper.LayerMasks().structureLayerMask;
 
                 GetMetrics();
-            }
-
-            if (GetComponent<AudioSource>() == null)
-            {
-                gameObject.AddComponent<AudioSource>();
-                audioSource = GetComponent<AudioSource>();
-            }
-            else
-            {
-                audioSource = GetComponent<AudioSource>();
             }
 
             void GetMetrics()
@@ -407,7 +402,7 @@ namespace Architome
         void SpawnCatalystAudio()
         {
             var catalystPrefab = CatalystManager.active.CatalystAudioManager();
-
+            
 
             if (catalystPrefab)
             {
@@ -596,7 +591,13 @@ namespace Architome
                     OnInterval += (CatalystInfo catalyst) => { action(); };
                     break;
                 case CatalystEvent.OnDestroy:
-                    OnCatalystDestroy += (CatalystDeathCondition condition) => { action(); };
+                    if (isDestroyed) {
+                        action();
+                    }
+                    else
+                    {
+                        OnCatalystDestroy += (CatalystDeathCondition condition) => { action(); };
+                    }
                     break;
                 case CatalystEvent.OnCatalingRelease:
                     OnCatalingRelease += (CatalystInfo catalyst, CatalystInfo cataling) => { action(); };

@@ -40,7 +40,7 @@ public class BuffRevive : BuffType
     {
         var result = "";
 
-        result += $"Revives a friendly target for {ArchString.FloatToSimple(healthRevivePercent*100)}% health\n";
+        result += $"Revives a friendly target for {ArchString.FloatToSimple(healthRevivePercent*100)}% health.";
        
         return result;
     }

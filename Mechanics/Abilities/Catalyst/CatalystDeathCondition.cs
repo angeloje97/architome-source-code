@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
@@ -38,6 +39,8 @@ namespace Architome
                 catalystInfo.OnReturn += OnReturn;
                 catalystInfo.OnCantFindEntity += OnCantFindEntity;
                 catalystInfo.OnDeadTarget += OnDeadTarget;
+
+                
             }
 
             if (abilityInfo)
@@ -57,7 +60,31 @@ namespace Architome
         void Start()
         {
             GetDependencies();
+            HandleNoGround();
         }
+
+        async void HandleNoGround()
+        {
+            await Task.Delay(500);
+            if (catalystInfo == null) return;
+            if (!conditions.destroyOnNoGround) return;
+
+            var groundLayer = LayerMasksData.active.walkableLayer;
+
+            while (!catalystInfo.isDestroyed)
+            {
+                await Task.Delay(1000);
+                var currentPosition = transform.position;
+                var groundPosition = V3Helper.GroundPosition(currentPosition, groundLayer, 0, 0);
+
+                if (groundPosition == currentPosition)
+                {
+                    DestroySelf("No Ground below catalyst");
+                }
+            }
+
+        }
+
 
         // Update is called once per frame
         void Update()

@@ -119,7 +119,8 @@ namespace Architome
 
             Debugger.Combat(4912, $"{amount} positions");
             Debugger.Combat(4913, $"Center: {position}");
-            var positions = V3Helper.PointsAroundPosition(position, amount, radius, obstructionLayer);
+            var randomOffset = UnityEngine.Random.Range(0f, 360f);
+            var positions = V3Helper.PointsAroundPosition(position, amount, radius, obstructionLayer, randomOffset);
 
             
 
@@ -154,6 +155,7 @@ namespace Architome
             });
 
             UpdateStats(summoned, summonable.additiveStats);
+
         }
 
         public void UpdateStats(EntityInfo entity, Stats additiveStats)

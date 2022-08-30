@@ -17,27 +17,6 @@ namespace Architome
             {
                 buffInfo.OnBuffEnd += OnBuffEnd;
 
-                //if (buffInfo.hostInfo == buffInfo.sourceInfo)
-                //{
-
-                //}
-
-                //if (buffInfo && buffInfo.hostInfo && buffInfo.sourceInfo)
-                //{
-                //    if (buffInfo.hostInfo == buffInfo.sourceInfo)
-                //    {
-                //        if (buffInfo && buffInfo.sourceAbility)
-                //        {
-                //            shieldAmount = buffInfo.properties.value * buffInfo.sourceAbility.selfCastMultiplier;
-                //        }
-
-                //    }
-                //    else
-                //    {
-                //        shieldAmount = buffInfo.properties.value;
-                //    }
-                //}
-
                 shieldAmount = value;
 
                 ApplyBuff();
@@ -49,14 +28,14 @@ namespace Architome
         {
             string result = "";
 
-            result += $"Absorbs the next {ArchString.FloatToSimple(shieldAmount)} damage.\n";
+            result += $"Absorbs the next {ArchString.FloatToSimple(shieldAmount)} damage.";
 
             return result;
         }
 
         public override string GeneralDescription()
         {
-            return $"Prevents any type of damage from being taken\n";
+            return $"Prevents any type of damage from being taken.";
         }
 
         void Start()

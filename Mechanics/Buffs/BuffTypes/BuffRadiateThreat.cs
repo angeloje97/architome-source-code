@@ -28,14 +28,14 @@ namespace Architome
         {
             var result = "";
 
-            result += $"Every {ArchString.FloatToSimple(buffInfo.properties.intervals)} seconds, increase the threat of all enemies within a {buffInfo.properties.radius} meter radius by {ArchString.FloatToSimple(value)} threat value.\n";
+            result += $"Every {ArchString.FloatToSimple(buffInfo.properties.intervals)} seconds, increase the threat of all enemies within a {buffInfo.properties.radius} meter radius by {ArchString.FloatToSimple(value)} threat value.";
 
             return result;
         }
 
         public override string GeneralDescription()
         {
-            return $"Emit a force around a unit over time that will make enemies more likely to attack said unit.\n";
+            return $"Emit a force around a unit over time that will make enemies more likely to attack said unit.";
         }
 
         public void OnBuffInterval(BuffInfo buff)

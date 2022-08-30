@@ -40,6 +40,7 @@ namespace Architome
         public override async void WhileCasting(AbilityInfo ability)
         {
             if (ability.targetLocked == null) return;
+            if (predicting || tracking) return;
 
             var eventData = new Augment.AugmentEventData(this) { active = true };
             augment.ActivateAugment(eventData);

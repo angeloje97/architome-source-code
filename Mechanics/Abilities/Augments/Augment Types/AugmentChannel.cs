@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -37,11 +38,13 @@ namespace Architome
             await base.GetDependencies();
 
             EnableAugmentAbility();
+            AllowInterruptable();
 
             if (augment.entity)
             {
                 entityMovement = augment.entity.Movement();
             }
+
 
             abilityManager = ability.GetComponentInParent<AbilityManager>();
 
@@ -60,6 +63,8 @@ namespace Architome
 
             HandleBusyCheck();
         }
+
+        
         public override async Task<bool> Ability()
         {
             StartChannel();
@@ -154,6 +159,11 @@ namespace Architome
                 ability.progress = 0;
                 abilityManager.OnChannelEnd?.Invoke(ability, this);
             }
+        }
+        public override void HandleCancelAbility(AugmentType augment)
+        {
+            if (!active) return;
+            canceledChannel = true;
         }
         void HandleBusyCheck()
         {

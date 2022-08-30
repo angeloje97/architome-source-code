@@ -361,10 +361,7 @@ public class ThreatManager : MonoBehaviour
     }
     public void OnLifeChange(bool isAlive)
     {
-        if(!isAlive)
-        {
-            ClearThreats();
-        }
+        ClearThreats();
     }
     public void OnKill(CombatEventData eventData)
     {

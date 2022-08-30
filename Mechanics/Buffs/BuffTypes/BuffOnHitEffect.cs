@@ -51,14 +51,14 @@ namespace Architome
 
             if (buffInfo.hostInfo)
             {
-                buffInfo.hostInfo.OnDamageDone += OnDamageDone;
-                buffInfo.hostInfo.OnHealingDone += OnHealingDone;
+                buffInfo.hostInfo.OnDamageDone += OnHitEffect;
+                buffInfo.hostInfo.OnHealingDone += OnHitEffect;
 
 
                 buffInfo.OnBuffEnd += (BuffInfo) =>
                 {
-                    buffInfo.hostInfo.OnDamageDone -= OnDamageDone;
-                    buffInfo.hostInfo.OnHealingDone -= OnHealingDone;
+                    buffInfo.hostInfo.OnDamageDone -= OnHitEffect;
+                    buffInfo.hostInfo.OnHealingDone -= OnHitEffect;
                 };
             }
         }
@@ -77,7 +77,7 @@ namespace Architome
                     stringList.Add(info.name);
                 }
 
-                result += $"{ArchString.StringList(stringList)}.\n";
+                result += $"{ArchString.StringList(stringList)}.";
             }
 
             return result;
@@ -113,21 +113,28 @@ namespace Architome
                     stringList.Add(info.TypeDescriptionFace(theoreticalValue));
                 }
 
-                result += $"{ArchString.NextLineList(stringList)}.\n";
+                result += $"{ArchString.NextLineList(stringList)}.";
             }
 
             return result;
         }
 
 
-        void OnHealingDone(CombatEventData eventData)
-        {
-            if (eventData.ability == null) return;
-            if (eventData.ability.abilityType2 != AbilityType2.AutoAttack) return;
+        //void OnHealingDone(CombatEventData eventData)
+        //{
+        //    if (eventData.ability == null) return;
+        //    if (eventData.ability.abilityType2 != AbilityType2.AutoAttack) return;
 
-            ApplyOnHit(eventData.target);
-        }
-        void OnDamageDone(CombatEventData eventData)
+        //    ApplyOnHit(eventData.target);
+        //}
+        //void OnDamageDone(CombatEventData eventData)
+        //{
+        //    if (eventData.ability == null) return;
+        //    if (eventData.ability.abilityType2 != AbilityType2.AutoAttack) return;
+        //    ApplyOnHit(eventData.target);
+        //}
+
+        void OnHitEffect(CombatEventData eventData)
         {
             if (eventData.ability == null) return;
             if (eventData.ability.abilityType2 != AbilityType2.AutoAttack) return;

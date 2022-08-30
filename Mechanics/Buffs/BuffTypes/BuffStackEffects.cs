@@ -110,7 +110,7 @@ namespace Architome
 
             if (stacksDescription.Length > 0)
             {
-                result = $"Buff Effects on Stack: \n{stacksDescription}\n";
+                result = $"Buff Effects on Stack: \n{stacksDescription}";
             }
 
             return result;
@@ -145,7 +145,7 @@ namespace Architome
 
             if (stacksDescription.Length > 0)
             {
-                result = $"Buff Effects on Stack: \n{stacksDescription}\n";
+                result = $"Buff Effects on Stack: \n{stacksDescription}";
             }
 
             return result;

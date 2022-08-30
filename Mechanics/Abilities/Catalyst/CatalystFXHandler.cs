@@ -13,6 +13,17 @@ namespace Architome
     {
         // Start is called before the first frame update
         public AudioManager audioManager;
+        public AudioManager activeAudioManager
+        {
+            get
+            {
+                if (audioManager == null)
+                {
+                    audioManager = catalyst.catalystAudio;
+                }
+                return audioManager;
+            }
+        }
         public ParticleManager particleManager;
         public ArchLightManager lightManager;
 
@@ -22,7 +33,7 @@ namespace Architome
         {
             base.GetDependencies();
 
-            audioManager = GetComponentInChildren<AudioManager>();
+            audioManager = catalyst.catalystAudio;
 
             //if (catalyst)
             //{
@@ -158,7 +169,7 @@ namespace Architome
         void HandleAudio(CatalystInfo.CatalystEffects.Catalyst effect)
         {
             if (effect.audioClip == null) return;
-            if (audioManager == null) return;
+            if (activeAudioManager == null) return;
             if (effect.playTrigger == CatalystEvent.OnDestroy && effect.loops) return;
 
             if (effect.loops)

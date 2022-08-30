@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -15,7 +16,7 @@ public class PlayerController : MonoBehaviour
     public KeyBindings keyBindings;
     public AIBehavior behavior;
 
-
+    public Action<GameObject, AbilityInfo> OnPlayerTargetting;
     public void GetDependencies()
     {
         
@@ -110,7 +111,7 @@ public class PlayerController : MonoBehaviour
 
         abilityManager.Attack();
     }
-    public void HandlePlayerTargetting ()
+    public void HandlePlayerTargetting(AbilityInfo ability = null)
     {
         HandleTargetting();
         HandleDirection();
@@ -132,6 +133,7 @@ public class PlayerController : MonoBehaviour
                 else if(targetManager.selectedTargets.Count > 0)
                 {
                     target = targetManager.selectedTargets[0];
+                    OnPlayerTargetting?.Invoke(target, ability);
                 }
                 else
                 {

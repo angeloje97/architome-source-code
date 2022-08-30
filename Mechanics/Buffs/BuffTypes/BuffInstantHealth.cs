@@ -31,7 +31,7 @@ namespace Architome
 
             result += heals ? "heals " : "damages ";
 
-            result += $" {value} health.\n";
+            result += $" {value} health.";
 
             return result;
             
@@ -43,7 +43,7 @@ namespace Architome
 
             result += heals ? "heals " : "damages ";
 
-            result += "health at the beginning of the buff.\n";
+            result += "health at the beginning of the buff.";
 
             return result;
         }

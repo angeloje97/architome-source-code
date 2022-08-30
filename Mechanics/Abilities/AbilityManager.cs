@@ -13,11 +13,26 @@ namespace Architome
     {
 
         [Serializable]
+        public struct Debugging
+        {
+            [SerializeField] bool abilities;
+
+            public void Log(int id, string text)
+            {
+                if (!abilities) return;
+
+                Debugger.Combat(id, text);
+            }
+        }
+
+        [Serializable]
         public class ManagerSettings
         {
             public bool useWeaponAbility;
         }
         public ManagerSettings settings;
+
+        public Debugging debugger;
 
         [Header("In Game Properties")]
 
@@ -205,7 +220,11 @@ namespace Architome
 
             if (intersection.Count > 0)
             {
-                if (currentlyCasting != null) { currentlyCasting.CancelCast("State changed to interrupted state"); }
+                if (currentlyCasting != null) {
+                    currentlyCasting.CancelCast("State changed to interrupted state");
+
+
+                }
                 
                 if(states.Contains(EntityState.Silenced))
                 {
@@ -234,6 +253,11 @@ namespace Architome
                 {
                     ability.active = canAutoAttack;
                     continue;
+                }
+
+                if (ability == currentlyCasting)
+                {
+                    ability.OnInterrupt?.Invoke(ability);
                 }
                 ability.active = val;
             }
@@ -330,21 +354,22 @@ namespace Architome
             return abilities[num];
 
         }
-        public void Cast(AbilityInfo ability)
+        public void Cast(AbilityInfo ability, bool usePlayerController = false)
         {
+            debugger.Log(4352, $"{entityInfo.name} tries casting {ability}");
             if (!entityInfo.isAlive) { return; }
             //if (!abilities.Contains(ability)) return;
             if (!abilityMap.Contains(ability)) return;
 
             if (!entityInfo.isAlive) { return; }
 
-            if (entityInfo && !entityInfo.states.Contains(EntityState.MindControlled))
+            if (usePlayerController && entityInfo && !entityInfo.states.Contains(EntityState.MindControlled))
             {
                 var playerController = entityInfo.PlayerController();
 
                 if (playerController)
                 {
-                    playerController.HandlePlayerTargetting();
+                    playerController.HandlePlayerTargetting(ability);
                 }
             }
 

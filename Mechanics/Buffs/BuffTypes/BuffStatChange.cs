@@ -82,7 +82,6 @@ namespace Architome
                 }
 
 
-                result += "\n";
             }
 
             return result;

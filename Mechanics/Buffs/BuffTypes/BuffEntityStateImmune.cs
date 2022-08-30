@@ -53,7 +53,7 @@ namespace Architome
 
             var listString = ArchString.StringList(list);
 
-            result += $"{listString}.\n";
+            result += $"{listString}.";
 
             return result;
         }

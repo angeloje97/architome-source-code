@@ -112,28 +112,6 @@ namespace Architome
                 result += stringValue;
             }
 
-            //for (int i = 0; i < stringList.Count; i++)
-            //{
-            //    var item = stringList[i];
-
-            //    if (i == 0)
-            //    {
-            //        result += item;
-            //        continue;
-            //    }
-
-            //    if (item.Length > 0)
-            //    {
-
-            //        if (result.Length > 0 && item.Length > 0)
-            //        {
-            //            result += "\n";
-            //        }
-
-            //        result += $"{item}";
-            //    }
-            //}
-
             return result;
         }
 

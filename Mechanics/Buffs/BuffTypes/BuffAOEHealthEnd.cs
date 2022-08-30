@@ -36,7 +36,11 @@ namespace Architome
 
         public override string Description()
         {
+            if (!heals || !damages) return "";
+
             buffInfo = GetComponent<BuffInfo>();
+
+
 
             var result = $"At the end of the buff, all targets within a {buffInfo.properties.radius} meter radius will ";
 
@@ -55,7 +59,7 @@ namespace Architome
                 result += $"damage enemies for {value}";
             }
 
-            result += $" that will {ArchString.CamelToTitle(aoeType.ToString())} across all targets.\n";
+            result += $" that will {ArchString.CamelToTitle(aoeType.ToString())} across all targets.";
 
             return result;
         }

@@ -126,7 +126,6 @@ public class CatalystHit : MonoBehaviour
         HandleHeal();
         HandleDamage();
         HandleAssist();
-        HandleDestroySummons();
 
 
         
@@ -347,7 +346,7 @@ public class CatalystHit : MonoBehaviour
             return false;
         }
 
-        if (!targetInfo.isAlive && !abilityInfo.targetsDead)
+        if (!targetInfo.isAlive && abilityInfo && !abilityInfo.targetsDead)
         {
             return false;
         }

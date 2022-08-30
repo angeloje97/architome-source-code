@@ -36,7 +36,7 @@ namespace Architome
 
         public virtual string Description()
         {
-            return "";
+            return GeneralDescription();
         }
 
         public virtual string GeneralDescription()
@@ -53,7 +53,7 @@ namespace Architome
 
             if (valueContributionToBuffType != selfCastMultiplier)
             {
-                description += $"({selfCastValue} value if the host is the source.)\n";
+                description += $"({selfCastValue} value if the host is the source.)";
             }
 
             return description;

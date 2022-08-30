@@ -40,7 +40,7 @@ namespace Architome
 
         public override string GeneralDescription()
         {
-            return $"Apply status: {ArchString.CamelToTitle(stateToChange.ToString())} to the target.\n";
+            return $"Apply status: {ArchString.CamelToTitle(stateToChange.ToString())} to the target.";
         }
 
         void Start()

@@ -138,8 +138,6 @@ namespace Architome
             var guildData = currentSave.guildData;
             if (guildData == null)
             {
-
-                
                 currentSave.guildData = new(this);
                 currentSave.guildData.inventory.maxSlots = guildInfo.maxSlots;
                 return;
@@ -195,7 +193,8 @@ namespace Architome
             if (guildInfo.currencies == null) guildInfo.currencies = new();
 
             HandleCurrency();
-            OnCurrenciesChange?.Invoke(guildInfo.currencies);
+            //OnCurrenciesChange?.Invoke(guildInfo.currencies);
+            ArchAction.Yield(() => OnCurrenciesChange?.Invoke(guildInfo.currencies));
 
             void HandleCurrency()
             {
@@ -221,7 +220,7 @@ namespace Architome
             if (guildInfo.currencies == null) guildInfo.currencies = new();
             var success = HandleCurrency();
 
-            OnCurrenciesChange?.Invoke(guildInfo.currencies);
+            ArchAction.Yield(() => OnCurrenciesChange?.Invoke(guildInfo.currencies));
 
             return success;
 
@@ -491,6 +490,11 @@ namespace Architome
             }
 
             return totalEntityLevels / 5f;
+        }
+
+        void UnusedFunction()
+        {
+
         }
 
         

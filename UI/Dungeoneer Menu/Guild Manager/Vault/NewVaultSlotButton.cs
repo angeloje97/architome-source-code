@@ -43,7 +43,9 @@ namespace Architome
         }
         void GetDependencies()
         {
-            manager.OnCurrenciesChange += (List<ItemData> itemDatas) => { UpdateBuyButton(); };
+            manager.OnCurrenciesChange += (List<ItemData> itemDatas) => {
+                UpdateBuyButton();
+            };
         }
 
         // Update is called once per frame
@@ -55,6 +57,7 @@ namespace Architome
             if (!manager.SpendCurrency(currencyUsed, slotPrice)) return;
 
             vault.AddSlot();
+
         }
 
         public void UpdateBuyButton()

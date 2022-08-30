@@ -108,6 +108,8 @@ public class BuffInfo : MonoBehaviour
         [Serializable]
         public class EffectData
         {
+            [Header("Debugging")]
+            public int effectPlayed = 0;
             [Header("Behavior")]
             public BuffEvents playTrigger;
 
@@ -292,26 +294,32 @@ public class BuffInfo : MonoBehaviour
 
     public string TypesDescription()
     {
-        var result = "";
+
+        var descriptions = new List<string>();
 
         foreach (var buffType in GetComponents<BuffType>())
         {
-            result += $"{buffType.Description()}";
+            //result += $"{buffType.Description()}";
+            descriptions.Add(buffType.Description());
         }
 
-        return result;
+        return ArchString.NextLineList(descriptions);
+
     }
 
     public string TypesDescriptionGeneral()
     {
-        var result = "";
+
+        var descriptions = new List<string>();
 
         foreach (var buffType in GetComponents<BuffType>())
         {
-            result += $"{buffType.GeneralDescription()}";
+            //result += $"{buffType.Description()}";
+            descriptions.Add(buffType.GeneralDescription());
         }
 
-        return result;
+        return ArchString.NextLineList(descriptions);
+
     }
 
     public string TypeDescriptionFace(float theoreticalValue)
@@ -319,18 +327,17 @@ public class BuffInfo : MonoBehaviour
 
         var projectedValue = properties.valueContributionToBuff * theoreticalValue;
 
-
-        var result = $"{Description()}";
+        var description = new List<string>() {
+            Description()
+        };
 
         foreach (var buffType in GetComponents<BuffType>())
         {
-            var faceDescription = buffType.FaceDescription(projectedValue);
-            if (faceDescription.Length <= 0) continue;
 
-            result += $"{faceDescription}";
+            description.Add(buffType.FaceDescription(projectedValue));
         }
 
-        return result;
+        return ArchString.NextLineList(description);
     }
 
     public Sprite Icon()

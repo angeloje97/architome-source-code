@@ -113,40 +113,14 @@ namespace Architome
 
             public List<ItemData> items;
 
-            //public InventoryData(Inventory inventory)
-            //{
-            //    if (inventory == null) return;
-            //    maxSlots = inventory.maxSlots;
-
-            //    items = new();
-
-            //    for (int i = 0; i < inventory.inventoryItems.Count; i++)
-            //    {
-            //        var item = inventory.inventoryItems[i];
-
-
-            //        if (item.item == null) continue;
-
-            //        var newItemData = new ItemData() { id = item.item._id, amount = item.amount, slotNumber = i };
-
-            //        if (Item.Equipable(item.item))
-            //        {
-            //            var equipment = (Equipment)item.item;
-            //            newItemData.stats = equipment.stats;
-            //        }
-
-
-            //        items.Add(newItemData);
-            //    }
-            //}
-
             public List<Architome.ItemData> ItemDatas(DataMap.Maps maps)
             {
 
                 var itemDatas = new List<Architome.ItemData>();
 
 
-                for (int i = 0; i < maxSlots; i++)
+
+                while (itemDatas.Count < maxSlots)
                 {
                     itemDatas.Add(new());
                 }
@@ -159,25 +133,9 @@ namespace Architome
                     var itemData = savedItem.ArchItemData(maps);
                     var slotNumber = savedItem.slotNumber;
 
+
                     itemDatas[slotNumber] = itemData;
                 }
-
-                //foreach (var item in items)
-                //{
-                //    if (item.slotNumber < 0 || item.slotNumber >= itemDatas.Count) continue;
-                //    if(!maps.items.ContainsKey(item.id)) continue;
-                //    var newItem = maps.items[item.id];
-                //    itemDatas[item.slotNumber] = new() { amount = item.amount, item = newItem };
-
-                //    Debugger.UI(4329, $"{newItem.itemName} : {item.slotNumber}");
-
-                //    if (Item.Equipable(itemDatas[item.slotNumber].item))
-                //    {
-                //        var equipment = (Equipment) itemDatas[item.slotNumber].item;
-
-                //        equipment.stats = item.stats;
-                //    }
-                //}
 
                 return itemDatas;
             }
@@ -243,11 +201,49 @@ namespace Architome
 
         }
 
+        [Serializable]
+        public class Abilities
+        {
+            [Serializable]
+            public class Data
+            {
+                public int index;
+                public int abilityId;
+                public InventoryData abilityInventory;
+                
+                public Data(AbilityInfo ability)
+                {
+                    abilityId = ability._id;
+                    abilityInventory = new(ability.augmentsData);
+                }
+            }
+
+            public List<Data> datas;
+
+            public Abilities(EntityInfo entity)
+            {
+                datas = new();
+                var abilityManager = entity.AbilityManager();
+                if (abilityManager == null) return;
+
+                var abilities = abilityManager.GetComponentsInChildren<AbilityInfo>();
+
+                for (int i = 0; i < abilities.Length; i++)
+                {
+                    datas.Add(new(abilities[i])
+                    {
+                        index = i
+                    });
+                }
+            }
+        }
+
         public string name;
 
         public Info info;
         public InventoryData inventory;
         public InventoryData equipment;
+        public Abilities abilities;
         //public EquipmentData equipment;
         public CharacterData characterData;
 
@@ -261,10 +257,12 @@ namespace Architome
 
             var entityInventory = entity.GetComponentInChildren<Inventory>();
             inventory = new(entityInventory.inventoryItems);
+            abilities = new(entity);
 
             //inventory = new(entity.GetComponentInChildren<Inventory>());
 
             var character = entity.GetComponentInChildren<CharacterInfo>();
+
 
             SetEquipment(character);
 

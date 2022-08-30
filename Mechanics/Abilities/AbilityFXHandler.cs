@@ -168,8 +168,9 @@ namespace Architome
         void HandleEffects(CatalystInfo catalyst, AbilityEvent trigger, bool status)
         {
             if (catalyst == null) return;
+            if (info.effectMap == null) return;
             if (!info.effectMap.ContainsKey(trigger)) return;
-
+            if (info.effectMap[trigger] == null) return;
 
             foreach (var effect in info.effectMap[trigger]/*catalyst.effects.abilityEffects*/)
             {

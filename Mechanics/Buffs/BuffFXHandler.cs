@@ -48,7 +48,7 @@ namespace Architome
         public void OnBuffStart(BuffInfo buff)
         {
             CalculateDelayTime(buff);
-            UpdateEventTriggers();
+            //UpdateEventTriggers();
         }
 
 
@@ -113,8 +113,10 @@ namespace Architome
 
         void HandleEffect(BuffInfo.BuffFX.EffectData effects)
         {
+            effects.effectPlayed++;
             HandleAudio(effects);
             HandleParticle(effects);
+
         }
 
         public void HandleAudio(BuffInfo.BuffFX.EffectData effect)

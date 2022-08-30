@@ -109,10 +109,11 @@ namespace Architome
                 {
                     var value = threatManager.ThreatMultiplier(threat.threatObject.GetComponent<EntityInfo>());
                     
-                    threatManager.IncreaseThreat(threat.threatObject, value);
+                    //threatManager.IncreaseThreat(threat.threatObject, value);
+                    entityInfo.combatEvents.OnPingThreat?.Invoke(threat.threatInfo, value);
                 }
 
-                threatManager.Bump();
+                //threatManager.Bump();
             }, .50f);
         }
         async void DeathTimer()

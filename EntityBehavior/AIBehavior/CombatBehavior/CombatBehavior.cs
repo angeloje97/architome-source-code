@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
+using System.Threading.Tasks;
 using System;
 
 namespace Architome
@@ -89,19 +90,29 @@ namespace Architome
                 entityInfo.OnCombatChange += OnCombatChange;
                 entityInfo.OnHealingDone += OnHealingDone;
 
-                if (entityInfo.Movement())
+                movement = entityInfo.Movement();
+
+                if (movement)
                 {
-                    movement = entityInfo.Movement();
                     movement.OnTryMove += OnTryMove;
                     movement.OnChangePath += OnChangePath;
                 }
 
-                if (entityInfo.AbilityManager())
+                abilityManager = entityInfo.AbilityManager();
+
+                if (abilityManager)
                 {
-                    abilityManager = entityInfo.AbilityManager();
                     abilityManager.OnCastRelease += OnCastRelease;
                 }
 
+                var playerController = entityInfo.PlayerController();
+                if (playerController)
+                {
+                    playerController.OnPlayerTargetting += OnPlayerAbilityTargetting;
+                }
+
+
+                //OnCombatChange(entityInfo.isInCombat);
             }
 
             if (behavior)
@@ -119,12 +130,33 @@ namespace Architome
                 }
             }
 
+            
+
             UpdateAggressiveTank();
         }
         void Start()
         {
             GetDependencies();
             if (threatManager) { StartCoroutine(CombatRoutine()); }
+            HandleStartCombatStatus();
+            
+        }
+
+        async void HandleStartCombatStatus()
+        {
+            var timer = 3f;
+
+            while (timer > 0)
+            {
+                await Task.Delay(1000);
+                timer -= 1f;
+
+                if (entityInfo.isInCombat)
+                {
+                    OnCombatChange(entityInfo.isInCombat);
+                    break;
+                }
+            }
         }
 
         public void OnLifeChange(bool isAlive)
@@ -183,10 +215,24 @@ namespace Architome
             //InitCombatActions();
         }
 
+        public void OnPlayerAbilityTargetting(GameObject target, AbilityInfo ability)
+        {
+            if (target == null) return;
+            if (ability == null) return;
+            if (ability.isHarming && entityInfo.CanAttack(target))
+            {
+                SetFocus(target);
+            }
+
+            if (ability.isHealing && entityInfo.CanHelp(target))
+            {
+                SetFocus(target);
+            }
+        }
+
         public void OnCombatChange(bool isInCombat)
         {
             ClearCombatBehaviors();
-
             CreateBehavior();
         }
 

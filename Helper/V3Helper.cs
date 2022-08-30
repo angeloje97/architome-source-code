@@ -255,6 +255,11 @@ namespace Architome
             return new Vector3(position.x, 0, position.y);
         }
 
+        public static Vector3 NearestNodePosition(Vector3 position)
+        {
+            return (Vector3) AstarPath.active.GetNearest(position).node.position;
+        }
+
         public static Vector3 InterceptionPoint(Vector3 source, Vector3 target, LayerMask interceptionLayerMask, float near = 0f)
         {
             var (direction, distance) = DirectionDistance(target, source);
@@ -314,7 +319,7 @@ namespace Architome
             return false;
         }
 
-        public static List<Vector3> PointsAroundPosition(Vector3 position, int points, float radius, LayerMask obstructionLayer)
+        public static List<Vector3> PointsAroundPosition(Vector3 position, int points, float radius, LayerMask obstructionLayer, float startingOffset = 0f)
         {
             var positions = new List<Vector3>();
 
@@ -328,6 +333,8 @@ namespace Architome
             center.transform.SetPositionAndRotation(position, new());
 
             var percentPerPoint = 360f / points;
+
+            center.transform.Rotate(startingOffset * Vector3.up);
 
             for (int i = 0; i < points; i++)
             {

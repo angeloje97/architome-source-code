@@ -22,6 +22,7 @@ namespace Architome
             public bool destroyOnLiveTime;
             public bool destroyOnDeadTarget;
             public bool destroyOnCantFindTarget;
+            public bool destroyOnNoGround;
 
 
             public void Add(DestroyConditions other)
@@ -205,17 +206,6 @@ namespace Architome
 
 
         [Serializable]
-        public struct Tracking
-        {
-            public bool tracksTarget;
-            public bool predictsTarget;
-            public bool predicting;
-
-            [Range(0, 1)]
-            public float trackingInterpolation;
-        }
-
-        [Serializable]
         public struct Threat
         {
             public bool enabled;
@@ -231,7 +221,6 @@ namespace Architome
         public DestroyConditions additiveConditions;
         public Restrictions additiveRestrictions;
 
-        public Tracking tracking;
         public RecastProperties recast;
         public Threat threat;
     }
