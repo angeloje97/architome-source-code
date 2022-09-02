@@ -140,6 +140,8 @@ namespace Architome
 
             public Action<CombatEventData> BeforeDamageTaken { get; set; }
             public Action<CombatEventData> BeforeDamageDone { get; set; }
+            public Action<CombatEventData> BeforeHealingTaken { get; set; }
+            public Action<CombatEventData> BeforeHealingDone { get; set; }
         }
 
         public struct PartyEvents
@@ -635,6 +637,9 @@ namespace Architome
             if (!isAlive) { return; }
             combatData.target = this;
             var source = combatData.source;
+            combatEvents.BeforeHealingDone?.Invoke(combatData);
+            combatEvents.BeforeHealingTaken?.Invoke(combatData);
+
             HandleValue();
             HandleHealing();
 

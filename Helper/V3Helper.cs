@@ -21,6 +21,16 @@ namespace Architome
             return Abs(end - start);
         }
 
+        public static Vector3 NegativeInfinity()
+        {
+            return new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
+        }
+
+        public static Vector3 PositiveInfinity()
+        {
+            return new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
+        }
+
         public static (Vector3, float) DirectionDistance(Vector3 end, Vector3 start)
         {
             return (Vector3.Normalize(end - start), Abs(end - start));

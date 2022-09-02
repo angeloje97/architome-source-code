@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,6 +10,14 @@ namespace Architome
 {
     public class NavBar : MonoBehaviour
     {
+        [Serializable]
+        public struct Prefabs
+        {
+            public Toggle toggleButton;
+        }
+
+        [SerializeField] Prefabs prefabs;
+
         public List<GameObject> items = new();
         public List<Toggle> toggles = new();
 
@@ -31,6 +40,45 @@ namespace Architome
             toggles = GetComponentsInChildren<Toggle>().ToList();
             UpdateFromIndex();
             OnValueChange();
+        }
+
+        public void AddToggle(string toggleName, GameObject toggleTarget)
+        {
+            if (prefabs.toggleButton == null) return;
+
+            var newToggle = Instantiate(prefabs.toggleButton, transform).GetComponent<Toggle>();
+            toggles.Add(newToggle);
+
+            var archButton = newToggle.GetComponent<ArchButton>();
+            archButton.SetName(toggleName);
+
+            if (toggleTarget == null) return;
+
+            for (int i = 0; i < toggles.Count; i++)
+            {
+                if (i >= items.Count)
+                {
+                    items.Add(null);
+                }
+                
+
+                if (toggles[i] == newToggle)
+                {
+                    items[i] = toggleTarget;
+                }
+            }
+        }
+
+        public void ClearToggles()
+        {
+            foreach (var toggle in toggles)
+            {
+                Destroy(toggle.gameObject);
+            }
+
+
+            toggles = new();
+            items = new();
         }
 
         public void UpdateFromIndex()

@@ -5,6 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.Events;
 using System;
 using UnityEngine.UI;
+using TMPro;
 using System.Threading.Tasks;
 
 namespace Architome
@@ -13,6 +14,7 @@ namespace Architome
     public class ArchButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
     {
         public bool interactable = true;
+        public TextMeshProUGUI buttonName;
         public AudioClip rollOverSound;
         public AudioClip clickSound;
 
@@ -57,6 +59,12 @@ namespace Architome
         void Update()
         {
 
+        }
+
+        public void SetName(string name)
+        {
+            if (buttonName == null) return;
+            buttonName.text = name;
         }
 
         public void SetButton(bool val)

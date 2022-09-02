@@ -59,6 +59,8 @@ namespace Architome
         public int roomsGenerated;
         public int roomsToGenerate;
 
+        VectorCluster roomGeneratorVectorCluster;
+
         void GetDependencies()
         {
             if (GetComponentInParent<MapInfo>())
@@ -397,48 +399,25 @@ namespace Architome
         }
         async Task HandleBackgroundAdjustment()
         {
-            if (GetComponentInParent<MapAdjustments>() == null) { return; }
-
             var mapAdjustment = GetComponentInParent<MapAdjustments>();
+            if (mapAdjustment == null) return;
 
-            var midPoint = MapMidPoint();
-            var size = MapSize(1);
+            await mapAdjustment.AdjustBackground(Cluster());
 
-            await mapAdjustment.AdjustBackground(midPoint, size);
-
-
-            Vector3 MapMidPoint()
+            VectorCluster Cluster()
             {
                 var roomObjects = new List<Transform>();
-
-
                 foreach (var roomInfo in roomList.GetComponentsInChildren<RoomInfo>())
                 {
                     foreach (var roomObject in roomInfo.allObjects)
                     {
                         roomObjects.Add(roomObject);
                     }
-
                 }
 
-                return V3Helper.MidPoint(roomObjects);
-            }
-            Vector3 MapSize(int height)
-            {
-                var rooms = new List<Transform>();
+                roomGeneratorVectorCluster = new VectorCluster(roomObjects);
 
-
-                foreach (var room in roomList.GetComponentsInChildren<RoomInfo>())
-                {
-                    foreach (var roomObject in room.allObjects)
-                    {
-                        rooms.Add(roomObject);
-                    }
-                }
-
-                Debugger.InConsole(54892, $"The dimensions are {V3Helper.Dimensions(rooms)}");
-
-                return V3Helper.Dimensions(rooms);
+                return roomGeneratorVectorCluster;
             }
         }
         async Task HandleEndGeneration()

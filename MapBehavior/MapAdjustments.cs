@@ -41,17 +41,20 @@ namespace Architome
 
         }
 
-        async public Task AdjustBackground(Vector3 position, Vector3 size)
+        async public Task AdjustBackground(VectorCluster cluster)
         {
+            var position = cluster.midPoint;
+            var size = cluster.dimensions;
+
             if (background == null) { return; }
             position.y = background.transform.position.y;
-            background.transform.position = position;
+            background.transform.position = new Vector3(cluster.bottom.x, cluster.bottom.y - 1, cluster.bottom.z);
             background.transform.localScale = new Vector3(size.x * 5, 1, size.z * 5);
             Bounds bound = new Bounds(position, size);
 
             var layeredGraph = AstarPath.active.data.layerGridGraph;
 
-            layeredGraph.center = position;
+            layeredGraph.center = cluster.bottom;
 
             layeredGraph.SetDimensions((int)(size.x), (int)( size.z), 1);
 
