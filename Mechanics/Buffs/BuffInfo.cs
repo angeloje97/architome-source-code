@@ -151,6 +151,8 @@ public class BuffInfo : MonoBehaviour
 
     public static List<BuffInfo> buffs;
 
+    bool powerSet;
+
     public void SetId(int id, bool forceChange = false)
     {
         if (idSet && !forceChange) return;
@@ -178,6 +180,8 @@ public class BuffInfo : MonoBehaviour
 
     void UpdateValues()
     {
+        if (powerSet) return;
+
         FromAbility();
         FromItem();
 
@@ -215,6 +219,18 @@ public class BuffInfo : MonoBehaviour
                 var equipment = (Equipment)sourceItem;
                 properties.value = equipment.itemLevel * properties.valueContributionToBuff;
             }
+        }
+    }
+
+    public void SetPower(float basePower, bool ignoreValueContribution = false)
+    {
+        powerSet = true;
+        
+        properties.value = properties.valueContributionToBuff * basePower;
+
+        if (ignoreValueContribution)
+        {
+            properties.value = basePower;
         }
     }
 

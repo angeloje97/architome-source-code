@@ -133,6 +133,7 @@ namespace Architome
             {
                 await Task.Yield();
                 var source = audioSources[i];
+                if (source == null) continue;
 
                 if (!source.isPlaying)
                 {

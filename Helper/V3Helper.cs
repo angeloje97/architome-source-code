@@ -44,9 +44,30 @@ namespace Architome
         public static Vector3 MidPoint(Vector3 end, Vector3 start)
         {
             return (end + start) / 2;
-
-
         }
+
+        public static Vector3 MidPoint<T>(List<T> list) where T : Component
+        {
+            var min = PositiveInfinity();
+            var max = NegativeInfinity();
+
+            foreach (var item in list)
+            {
+                var pos = item.transform.position;
+
+                min.x = pos.x < min.x ? pos.x : min.x;
+                min.y = pos.y < min.y ? pos.y : min.y;
+                min.z = pos.z < min.z ? pos.z : min.z;
+
+                max.x = pos.x > max.x ? pos.x : max.x;
+                max.y = pos.y > max.y ? pos.y : max.y;
+                max.z = pos.z > max.z ? pos.z : max.z;
+                
+            }
+
+            return (max + min) / 2;
+        }
+
 
         public static float Height(Transform trans)
         {
@@ -422,6 +443,18 @@ namespace Architome
 
 
         public static Vector3 Sum(List<GameObject> list)
+        {
+            var sum = new Vector3();
+
+            foreach (var index in list)
+            {
+                sum += index.transform.position;
+            }
+
+            return sum;
+        }
+
+        public static Vector3 Sum<T>(List<T> list) where T : Component
         {
             var sum = new Vector3();
 

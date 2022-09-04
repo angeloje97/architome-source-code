@@ -487,7 +487,7 @@ namespace Architome
             {
                 if (keys.Contains(buff._id))
                 {
-                    throw new Exception($"Duplicated id of {buff._id}");
+                    throw new Exception($"Duplicated id of {buff._id} in buffs");
                 }
 
                 keys.Add(buff._id);

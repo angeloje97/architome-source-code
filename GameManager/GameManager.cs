@@ -113,6 +113,7 @@ namespace Architome
         public void AddPlayableCharacter(EntityInfo playableChar)
         {
             if (playableEntities == null) { playableEntities = new List<EntityInfo>(); }
+            if (playableEntities.Contains(playableChar)) return;
 
             playableEntities.Add(playableChar);
             OnNewPlayableEntity?.Invoke(playableChar, playableEntities.IndexOf(playableChar));

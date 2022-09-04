@@ -17,8 +17,8 @@ namespace Architome
         public CharacterInfo character;
 
         //public List<GameObject> entitiesDetected;
-        public List<GameObject> enemiesWithinLineOfSight;
-        public List<GameObject> entitiesWithinLineOfSight;
+        public List<EntityInfo> enemiesWithinLineOfSight;
+        public List<EntityInfo> entitiesWithinLineOfSight;
 
         public LayerMask targetLayer { get; set; }
         public LayerMask obstructionLayer { get; set; }
@@ -141,7 +141,7 @@ namespace Architome
 
                     if (scanner == null) continue;
 
-                    scanner.RemoveEntityFromLOS(entityObject);
+                    scanner.RemoveEntityFromLOS(entityInfo);
                 }
 
             }, .125f);
@@ -170,10 +170,10 @@ namespace Architome
 
                 if (Physics.Raycast(entityObject.transform.position, direction, distance, obstructionLayer)) continue;
 
-                if (!entitiesWithinLineOfSight.Contains(info.gameObject))
+                if (!entitiesWithinLineOfSight.Contains(info))
                 {
-                    behavior.events.OnSightedEntity?.Invoke(entity.gameObject);
-                    entitiesWithinLineOfSight.Add(info.gameObject);
+                    behavior.events.OnSightedEntity?.Invoke(info);
+                    entitiesWithinLineOfSight.Add(info);
                 }
 
                 //entitiesWithinLineOfSight.Add(entity.gameObject);
@@ -236,7 +236,7 @@ namespace Architome
 
 
 
-        void RemoveEntityFromLOS(GameObject target)
+        void RemoveEntityFromLOS(EntityInfo target)
         {
             if (!entitiesWithinLineOfSight.Contains(target)) return;
 
@@ -378,11 +378,10 @@ namespace Architome
             }
 
             bool canSeeTarget = false;
-            foreach (GameObject member in partyInfo.members)
+            foreach (var member in partyInfo.members)
             {
-                if (member.GetComponent<EntityInfo>().LineOfSight())
                 {
-                    var memberLineOfSight = member.GetComponent<EntityInfo>().LineOfSight();
+                    var memberLineOfSight = member.LineOfSight();
 
                     if (memberLineOfSight.HasLineOfSight(target))
                     {
@@ -396,12 +395,12 @@ namespace Architome
         {
             var entityList = new List<EntityInfo>();
 
-            foreach (GameObject entity in entitiesWithinLineOfSight)
+            foreach (var entity in entitiesWithinLineOfSight)
             {
-                if (entity.GetComponent<EntityInfo>() &&
-                    entity.GetComponent<EntityInfo>().npcType == npcType)
+                if (entity == null) continue;
+                if (entity.npcType == npcType)
                 {
-                    entityList.Add(entity.GetComponent<EntityInfo>());
+                    entityList.Add(entity);
                 }
             }
 

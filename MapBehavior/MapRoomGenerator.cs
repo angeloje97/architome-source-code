@@ -59,7 +59,7 @@ namespace Architome
         public int roomsGenerated;
         public int roomsToGenerate;
 
-        VectorCluster roomGeneratorVectorCluster;
+        VectorCluster<Transform> roomGeneratorVectorCluster;
 
         void GetDependencies()
         {
@@ -404,7 +404,7 @@ namespace Architome
 
             await mapAdjustment.AdjustBackground(Cluster());
 
-            VectorCluster Cluster()
+            VectorCluster<Transform> Cluster()
             {
                 var roomObjects = new List<Transform>();
                 foreach (var roomInfo in roomList.GetComponentsInChildren<RoomInfo>())
@@ -415,7 +415,7 @@ namespace Architome
                     }
                 }
 
-                roomGeneratorVectorCluster = new VectorCluster(roomObjects);
+                roomGeneratorVectorCluster = new VectorCluster<Transform>(roomObjects);
 
                 return roomGeneratorVectorCluster;
             }

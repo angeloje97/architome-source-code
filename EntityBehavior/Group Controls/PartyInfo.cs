@@ -12,8 +12,8 @@ namespace Architome
     {
         // Start is called before the first frame update
         public bool loadEntitiesFromSave;
-        public List<GameObject> members;
-        public List<GameObject> liveMembers;
+        public List<EntityInfo> members;
+        public List<EntityInfo> liveMembers;
         public GameObject raidObject;
         public GameObject center;
         public KeyBindings keyBindings { get; set; }
@@ -31,7 +31,10 @@ namespace Architome
         public struct PartyEvents
         {
             public Action<bool> OnCombatChange;
+            public Action<EntityInfo> OnAddMember;
+            public Action<EntityInfo> OnRemoveMember;
             public Action<string> OnTransferScene;
+            public Action<EntityInfo> OnPartyAttack;
         }
 
         public struct EventHandlers
@@ -42,22 +45,29 @@ namespace Architome
         public PartyEvents events;
         public EventHandlers eventHandlers;
 
-        public void GetDependencies()
+        void Start()
+        {
+            ArchAction.Delay(() =>
+            {
+                GetDependencies();
+                HandleStartingMembers();
+                AddSelfToGameManager();
+            }, .50f);
+            
+        }
+
+
+        void Update()
+        {
+            UpdateMidPoint();
+            HandleEvents();
+        }
+
+        void GetDependencies()
         {
             partyControl = EntityControlType.PartyControl;
 
             partyFormation = GetComponentInChildren<PartyFormation>();
-
-            var entities = GetComponentsInChildren<EntityInfo>();
-
-            members = new();
-
-            for (int i = 0; i < entities.Length; i++)
-            {
-                if (i >= 5) break;
-                members.Add(entities[i].gameObject);
-
-            }
             foreach (Transform child in transform)
             {
 
@@ -74,9 +84,9 @@ namespace Architome
                 raidObject = raidInfo.gameObject;
                 partyControl = raidObject.GetComponent<RaidInfo>().raidControl;
 
-                foreach (GameObject member in members)
+                foreach (var member in members)
                 {
-                    member.GetComponent<EntityInfo>().entityControlType = EntityControlType.RaidControl;
+                    member.entityControlType = EntityControlType.RaidControl;
                 }
             }
 
@@ -94,7 +104,7 @@ namespace Architome
             ArchInput.active.OnAlternateAction += OnAlternateAction;
             ArchInput.active.OnActionMultiple += OnActionMultiple;
         }
-        public void AddMembersToGameManager()
+        void AddSelfToGameManager()
         {
             var raidInfo = GetComponentInParent<RaidInfo>();
             var manager = GameManager.active;
@@ -110,69 +120,104 @@ namespace Architome
                 }
             }
 
-            foreach (GameObject member in members)
-            {
-                GMHelper.GameManager().AddPlayableCharacter(member.GetComponent<EntityInfo>());
-            }
-            GMHelper.GameManager().AddPlayableParty(this);
+            manager.AddPlayableParty(this);
             
         }
-        public void ProcessMembers()
-        {
-            foreach (GameObject member in members)
-            {
-                var info = member.GetComponent<EntityInfo>();
-                if (info == null) { return; }
 
-                info.OnDeath += OnEntityDeath;
-                info.OnReviveThis += OnEntityRevive;
-                info.OnLifeChange += OnEntityLifeChange;
-                info.OnCombatChange += OnEntityCombatChange;
+        void HandleStartingMembers()
+        {
+            var manager = GameManager.active;
+
+
+            foreach (var entity in GetComponentsInChildren<EntityInfo>())
+            {
+                AddMember(entity, manager);
             }
 
-            liveMembers = Entity.LiveEntityObjects(members);
         }
 
-        void Start()
+        void ProcessMember(EntityInfo info)
         {
-            ArchAction.Delay(() =>
+            info.OnDeath += OnEntityDeath;
+            info.OnReviveThis += OnEntityRevive;
+            info.OnLifeChange += OnEntityLifeChange;
+            info.OnCombatChange += OnEntityCombatChange;
+
+            events.OnRemoveMember += (EntityInfo member) => {
+                info.OnDeath -= OnEntityDeath;
+                info.OnReviveThis -= OnEntityRevive;
+                info.OnLifeChange -= OnEntityLifeChange;
+                info.OnCombatChange -= OnEntityCombatChange;
+            };
+
+            if (info.role == Role.Healer) return;
+
+            var abilityManager = info.AbilityManager();
+            var combatBehavior = info.CombatBehavior();
+
+
+            Action<EntityInfo> partyAttackAction = (EntityInfo target) =>
             {
-                GetDependencies();
-                ProcessMembers();
-                AddMembersToGameManager();
-            }, .50f);
-            
-            //ArchAction.Delay(() => {  }, .50f);
+                if (abilityManager)
+                {
+                    abilityManager.target = target.gameObject;
+                    abilityManager.Attack();
+                    abilityManager.target = null;
+                }
+
+                if (combatBehavior)
+                {
+                    combatBehavior.SetFocus(target.gameObject);
+                }
+            };
+
+            events.OnPartyAttack += partyAttackAction;
+
+            events.OnRemoveMember += (EntityInfo member) => {
+                events.OnPartyAttack -= partyAttackAction;
+            };
         }
 
-
-        void Update()
+        public void AddMember(EntityInfo entity, GameManager manager = null)
         {
-            UpdateMidPoint();
-            HandleEvents();
-        }
+            if (members == null) members = new();
+            if (members.Contains(entity)) return;
 
-
-        public void HandleTransferScene(string sceneName)
-        {
-            events.OnTransferScene?.Invoke(sceneName);
-
-            foreach (var member in GetComponentsInChildren<EntityInfo>())
+            if (entity.transform.parent != transform)
             {
-                member.sceneEvents.OnTransferScene?.Invoke(sceneName);
+                entity.transform.SetParent(transform);
             }
-            GetDependencies();
-            AddMembersToGameManager();
+
+            members.Add(entity);
+            ProcessMember(entity);
+
+            liveMembers = Entity.LiveEntities(members);
+
+            if (manager == null) manager = GameManager.active;
+
+            if (manager == null) return;
+            manager.AddPlayableCharacter(entity);
         }
+
+        public void RemoveMember(EntityInfo entity, Transform newParent = null)
+        {
+            if (!members.Contains(entity)) return;
+
+            events.OnRemoveMember?.Invoke(entity);
+
+            members.Remove(entity);
+            entity.transform.SetParent(newParent);
+        }
+
         //Player Input
-        public void OnAlternateAction(int index)
+        void OnAlternateAction(int index)
         {
             if (index >= members.Count) return;
             if (partyControl != EntityControlType.PartyControl) return;
 
             members[index].GetComponent<EntityInfo>().PlayerController().HandleActionButton(true);
         }
-        public void OnActionMultiple()
+        void OnActionMultiple()
         {
             if (partyControl != EntityControlType.PartyControl) return;
 
@@ -208,7 +253,7 @@ namespace Architome
                 events.OnCombatChange?.Invoke(partyIsInCombat);
             }
         }
-        public bool IsPartyMember(GameObject checkEntity) { return members.Contains(checkEntity); }
+        public bool IsPartyMember(EntityInfo checkEntity) { return members.Contains(checkEntity); }
         public void MoveParty()
         {
             for (int i = 0; i < members.Count; i++)
@@ -232,52 +277,29 @@ namespace Architome
             partyFormation.MoveFormation(position);
             MoveParty();
         }
-        public void Attack(GameObject target)
+        void Attack(GameObject target)
         {
-            for (int i = 0; i < members.Count; i++)
-            {
-                EntityInfo memberInfo = members[i].GetComponent<EntityInfo>();
-
-                if (memberInfo.PlayerController() && memberInfo.role != Role.Healer)
-                {
-                    if (memberInfo.AbilityManager())
-                    {
-                        memberInfo.AbilityManager().target = target;
-                        memberInfo.AbilityManager().Attack();
-                        memberInfo.AbilityManager().target = null;
-
-                    }
-
-                    if (memberInfo.CombatBehavior())
-                    {
-                        memberInfo.CombatBehavior().SetFocus(target);
-                    }
-                }
-
-            }
+            var targetInfo = target.GetComponent<EntityInfo>();
+            events.OnPartyAttack?.Invoke(targetInfo);
         }
-
-        public void UpdateMidPoint()
+        void UpdateMidPoint()
         {
             if (liveMembers.Count <= 0) { return; }
-            midPoint = V3Helper.Sum(liveMembers) / liveMembers.Count;
+            midPoint = V3Helper.MidPoint(liveMembers);
+            
             center.transform.position = midPoint;
         }
-
-        public void OnEntityDeath(CombatEventData eventData)
+        void OnEntityDeath(CombatEventData eventData)
         {
         }
-
-        public void OnEntityRevive(CombatEventData eventData)
+        void OnEntityRevive(CombatEventData eventData)
         {
         }
-
-        public void OnEntityLifeChange(bool isAlive)
+        void OnEntityLifeChange(bool isAlive)
         {
-            liveMembers = Entity.LiveEntityObjects(members);
+            liveMembers = Entity.LiveEntities(members);
         }
-
-        public void OnEntityCombatChange(bool isInCombat)
+        void OnEntityCombatChange(bool isInCombat)
         {
             if (isInCombat)
             {

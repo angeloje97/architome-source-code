@@ -117,7 +117,7 @@ namespace Architome
 
         public LayerMask walkableLayer;
 
-
+        ComponentManager components;
 
         public struct InfoEvents
         {
@@ -136,8 +136,6 @@ namespace Architome
             public Action<EntityInfo, float> OnPingThreat { get; set; }
             public Action<CombatEventData> OnImmuneDamage;
             public Action<EntityInfo> OnSummonEntity;
-
-
             public Action<CombatEventData> BeforeDamageTaken { get; set; }
             public Action<CombatEventData> BeforeDamageDone { get; set; }
             public Action<CombatEventData> BeforeHealingTaken { get; set; }
@@ -899,6 +897,37 @@ namespace Architome
             AIBehavior().behaviorType = behaviorType;
             
         }
+
+        public bool CanAttack(EntityInfo target)
+        {
+            if (target == null) return false;
+
+            if (target.npcType == NPCType.Untargetable) { return false; }
+
+            if (npcType == NPCType.Neutral) { return true; }
+
+
+            if (target.npcType != npcType) { return true; }
+
+            return false;
+        }
+
+        public bool CanHelp(EntityInfo target)
+        {
+            if (target == null) return false;
+
+            if (target.npcType == NPCType.Untargetable) { return false; }
+
+            if (npcType == NPCType.Neutral) { return true; }
+
+            if (target.npcType != npcType)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         public bool CanAttack(GameObject target)
         {
             if(target == null) { return false; }
@@ -923,7 +952,7 @@ namespace Architome
 
             if(npcType == NPCType.Neutral) { return true; }
 
-            if (targetInfo.npcType != this.npcType)
+            if (targetInfo.npcType != npcType)
             {
                 return false;
             }
@@ -1122,20 +1151,32 @@ namespace Architome
         }
         public ThreatManager ThreatManager()
         {
-            if (AIBehavior() && AIBehavior().ThreatManager())
+            var threatManager = components.Get<ThreatManager>();
+
+            if (threatManager == null)
             {
-                return AIBehavior().ThreatManager();
+                threatManager = components.Add(GetComponentInChildren<ThreatManager>());
             }
-            return null;
+
+            return threatManager;
+
+            //if (AIBehavior() && AIBehavior().ThreatManager())
+            //{
+            //    return AIBehavior().ThreatManager();
+            //}
+            //return null;
         }
         public LineOfSight LineOfSight()
         {
-            var behavior = AIBehavior();
+            //var lineOfSight = components.Get<LineOfSight>();
 
-            if (behavior == null) return null;
+            return EntityComponent<LineOfSight>();
+            //var behavior = AIBehavior();
 
-            var lineOfSight = behavior.LineOfSight();
-            return lineOfSight;
+            //if (behavior == null) return null;
+
+            //var lineOfSight = behavior.LineOfSight();
+            //return lineOfSight;
         }
         public PartyInfo PartyInfo()
         {
@@ -1158,7 +1199,7 @@ namespace Architome
         {
             if (gameObject == null) return null;
 
-            return GetComponentInChildren<BuffsManager>();
+            return EntityComponent<BuffsManager>();
 
             //foreach (Transform child in transform)
             //{
@@ -1194,26 +1235,24 @@ namespace Architome
         {
             return GetComponentsInChildren<AudioManager>().First(manager => manager.mixerGroup == GMHelper.Mixer().Voice);
         }
-        public EntitySpeech Speech { get { return GetComponentInChildren<EntitySpeech>(); } }
+        public EntitySpeech Speech()
+        {
+            return EntityComponent<EntitySpeech>();
+        }
         public Inventory Inventory()
         {
-            foreach (Transform child in transform)
-            {
-                if (child.GetComponent<Inventory>())
-                {
-                    return child.GetComponent<Inventory>();
-                }
-            }
 
-            return null;
+            return EntityComponent<Inventory>();
+            
         }
         public CombatBehavior CombatBehavior()
         {
-            if (AIBehavior() && AIBehavior().CombatBehavior())
-            {
-                return AIBehavior().CombatBehavior();
-            }
-            return null;
+            return EntityComponent<CombatBehavior>();
+            //if (AIBehavior() && AIBehavior().CombatBehavior())
+            //{
+            //    return AIBehavior().CombatBehavior();
+            //}
+            //return null;
         }
         public RoomInfo CurrentRoom()
         {
@@ -1231,7 +1270,7 @@ namespace Architome
         }
         public ETaskHandler TaskHandler()
         {
-            return GetComponentInChildren<ETaskHandler>();
+            return EntityComponent<ETaskHandler>();
         }
         public async void ShowEntity(bool val, bool hideLights = true, bool destroys = false)
         {
@@ -1261,6 +1300,52 @@ namespace Architome
                 }
                 light.enabled = val;
                 await Task.Yield();
+            }
+        }
+        
+        public T EntityComponent<T>() where T : Component
+        {
+            var component = components.Get<T>();
+
+            if (component == null)
+            {
+                component = components.Add(GetComponentInChildren<T>());
+            }
+
+            return component;
+        }
+
+        [Serializable]
+        public struct ComponentManager
+        {
+            public Dictionary<Type, object> components;
+            public List<string> activeComponents;
+            public bool showActiveComponents;
+            
+            public T Add<T>(T component) where T : Component
+            {
+                if (components == null) components = new();
+                
+                if (!components.ContainsKey(typeof(T)))
+                {
+                    components.Add(typeof(T), component);
+                }
+
+                if (showActiveComponents)
+                {
+                    if (activeComponents == null) activeComponents = new();
+                    activeComponents.Add(component.ToString());
+                }
+
+                return (T)components[typeof(T)];
+            }
+
+            public T Get<T>() where T : Component
+            {
+                if (components == null) components = new();
+                if (!components.ContainsKey(typeof(T))) return null;
+
+                return (T)components[typeof(T)];
             }
         }
     }

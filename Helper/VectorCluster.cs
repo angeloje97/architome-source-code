@@ -6,22 +6,23 @@ using UnityEngine;
 namespace Architome
 {
     [Serializable]
-    public class VectorCluster
+    public class VectorCluster<T> where T : Component
     {
-        public List<Transform> transforms;
+
+        public List<T> components;
         public Vector3 min, max;
         public Vector3 dimensions, midPoint, bottom, top, left, right, front, back;
         public float height, width, depth;
-        public Transform heighest, lowest, leftMost, rightMost, frontMost, backMost;
+        public T heighest, lowest, leftMost, rightMost, frontMost, backMost;
 
-        public VectorCluster(List<Transform> transforms, bool calculateImmediately = true)
+        public VectorCluster(List<T> components, bool calculateImmediately = true)
         {
-            this.transforms = transforms;
+            this.components = components;
             if (calculateImmediately)
             {
-
                 CalculateProperties();
             }
+
         }
 
         public void CalculateProperties()
@@ -29,39 +30,40 @@ namespace Architome
             min = V3Helper.PositiveInfinity();
             max = V3Helper.NegativeInfinity();
 
-            foreach (var trans in transforms)
+            foreach (var component in components)
             {
+                var position = component.transform.position;
 
-                if (trans.position.x < min.x)
+                if (position.x < min.x)
                 {
-                    min.x = trans.position.x;
-                    leftMost = trans;
+                    min.x = position.x;
+                    leftMost = component;
                 }
-                if(trans.position.y < min.y)
+                if(position.y < min.y)
                 {
-                    min.y = trans.position.y;
-                    lowest = trans;
+                    min.y = position.y;
+                    lowest = component;
                 }
-                if (trans.position.z < min.z)
+                if (position.z < min.z)
                 {
-                    min.z = trans.position.z;
-                    backMost = trans;
+                    min.z = position.z;
+                    backMost = component;
                 }
 
-                if (trans.position.x > max.x)
+                if (position.x > max.x)
                 {
-                    max.x = trans.position.x;
-                    rightMost = trans;
+                    max.x = position.x;
+                    rightMost = component;
                 }
-                if (trans.position.y > max.y)
+                if (position.y > max.y)
                 {
-                    max.y = trans.position.y;
-                    heighest = trans;
+                    max.y = position.y;
+                    heighest = component;
                 }
-                if (trans.position.z > max.z)
+                if (position.z > max.z)
                 {
-                    max.z = trans.position.z;
-                    frontMost = trans;
+                    max.z = position.z;
+                    frontMost = component;
                 }
             }
 

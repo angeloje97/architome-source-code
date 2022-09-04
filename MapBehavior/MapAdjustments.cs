@@ -41,7 +41,7 @@ namespace Architome
 
         }
 
-        async public Task AdjustBackground(VectorCluster cluster)
+        async public Task AdjustBackground<T>(VectorCluster<T> cluster) where T : Component
         {
             var position = cluster.midPoint;
             var size = cluster.dimensions;

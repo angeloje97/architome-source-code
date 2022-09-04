@@ -68,7 +68,7 @@ namespace Architome
                 if (entityFX == null) return;
 
                 bodyParts = entityInfo.GetComponentInChildren<CharacterBodyParts>();
-                speech = entityInfo.Speech;
+                speech = entityInfo.Speech();
 
                 entityInfo.OnLevelUp += OnLevelUp;
                 entityInfo.OnReviveThis += OnRevive;

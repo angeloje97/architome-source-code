@@ -276,6 +276,11 @@ namespace Architome
             path.endReachedDistance = 0;
             OnChangePath?.Invoke(this);
         }
+
+        public bool HasReachedTarget(float minimumDistance = 1f)
+        {
+            return distanceFromTarget <= minimumDistance + endReachDistance;
+        }
         async public Task<bool> MoveToAsync(Transform locationTransform, float endReachDistance = 0f)
         {
             MoveTo(locationTransform, endReachDistance);

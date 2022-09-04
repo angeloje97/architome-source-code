@@ -216,6 +216,25 @@ namespace Architome
                 entity.transform.position = portalSpot.transform.position;
             }
         }
+
+        public void MoveAllEntitiesOutOfPortal(float radius)
+        {
+            if (entitiesInPortal == null) return;
+            if (entitiesInPortal.Count == 0) return;
+            if (exitSpot == null) return;
+            var layerMasks = LayerMasksData.active;
+            var obstructionLayer = layerMasks.structureLayerMask;
+
+            var positions = V3Helper.PointsAroundPosition(exitSpot.transform.position, entitiesInPortal.Count, radius, obstructionLayer);
+
+            for (int i = 0; i < entitiesInPortal.Count; i++)
+            {
+                var movement = entitiesInPortal[i].Movement();
+                if (movement == null) continue;
+
+                movement.MoveTo(positions[i]);
+            }
+        }
     }
 
     [Serializable]

@@ -67,8 +67,8 @@ namespace Architome
 
             var threatManager = buffInfo.hostInfo.ThreatManager();
 
-            threatManager.IncreaseThreat(buffInfo.sourceObject, val);
-            threatManager.AlertAllies(buffInfo.sourceObject);
+            threatManager.IncreaseThreat(buffInfo.sourceInfo, val);
+            threatManager.AlertAllies(buffInfo.sourceInfo);
 
             return true;
         }

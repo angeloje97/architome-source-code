@@ -75,7 +75,8 @@ namespace Architome
             if (portal.exitSpot == null) return;
 
             entityGenerator.OnEntitiesGenerated += (MapEntityGenerator generator) => {
-                ArchAction.Delay(() => party.MovePartyTo(portal.exitSpot.position), 1.5f);
+                //ArchAction.Delay(() => party.MovePartyTo(portal.exitSpot.position), 1.5f);
+                portal.MoveAllEntitiesOutOfPortal(2);
             };
         }
 

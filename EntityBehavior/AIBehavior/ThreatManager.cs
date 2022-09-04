@@ -35,18 +35,18 @@ public class ThreatManager : MonoBehaviour
         {
             threatValue += val;
         }
-        public ThreatInfo(ThreatManager threatManager, GameObject source, GameObject threat, float val)
+        public ThreatInfo(ThreatManager threatManager, EntityInfo source, EntityInfo threat, float val)
         {
             this.threatManager = threatManager;
-            sourceObject = source;
-            threatObject = threat;
+            sourceObject = source.gameObject;
+            threatObject = threat.gameObject;
             threatValue = val;
-            threatInfo = threatObject.GetComponent<EntityInfo>();
+            threatInfo = threat;
             combatBehavior = threatObject.GetComponentInChildren<CombatBehavior>();
 
             threatManager.OnClearThreats += OnClearThreats;
-            sourceObject.GetComponent<EntityInfo>().OnDeath += OnSourceDeath;
-            threatObject.GetComponent<EntityInfo>().OnDeath += OnThreatDeath;
+            source.OnDeath += OnSourceDeath;
+            threat.OnDeath += OnThreatDeath;
             
 
             isActive = true;
@@ -97,7 +97,7 @@ public class ThreatManager : MonoBehaviour
         {
             try
             {
-                threatManager.RemoveThreat(threatObject);
+                threatManager.RemoveThreat(threatInfo);
                 Debugger.InConsole(3974, $"{threatObject} removes from {sourceObject}");
                 sourceObject.GetComponent<EntityInfo>().OnDeath -= OnSourceDeath;
                 threatObject.GetComponent<EntityInfo>().OnDeath -= OnThreatDeath;
@@ -113,8 +113,8 @@ public class ThreatManager : MonoBehaviour
     }
 
     public List<ThreatInfo> threats;
-    public Dictionary<GameObject, ThreatInfo> threatDict { get; set; }
-    public List<GameObject> threatQueue;
+    public Dictionary<EntityInfo, ThreatInfo> threatDict { get; set; }
+    public List<EntityInfo> threatQueue;
 
     public event Action<ThreatInfo> OnNewThreat;
     public event Action<ThreatInfo, float> OnIncreaseThreat;
@@ -179,9 +179,9 @@ public class ThreatManager : MonoBehaviour
     public void OnDamageDone(CombatEventData eventData)
     {
         var target = eventData.target;
-        if(Threat(target.gameObject) == null)
+        if(Threat(target) == null)
         {
-            IncreaseThreat(target.gameObject, 1);
+            IncreaseThreat(target, 1);
         }
     }
     public void OnDamageTaken(CombatEventData eventData)
@@ -206,8 +206,8 @@ public class ThreatManager : MonoBehaviour
 
         threatVal += ExtraThreat();
         
-        IncreaseThreat(source.gameObject, threatVal);
-        AlertAllies(source.gameObject);
+        IncreaseThreat(source, threatVal);
+        AlertAllies(source);
 
 
         float ExtraThreat()
@@ -246,12 +246,12 @@ public class ThreatManager : MonoBehaviour
     public void OnNewBuff(BuffInfo newBuff, EntityInfo source)
     {
         if (newBuff.buffTargetType != BuffTargetType.Harm) return;
-
+        if (!entityInfo.CanAttack(source)) return;
 
         var value = newBuff.properties.value;
         if(value <= 0) { value = 15; }
-        IncreaseThreat(source.gameObject, value);
-        AlertAllies(source.gameObject, .25f);
+        IncreaseThreat(source, value);
+        AlertAllies(source, .25f);
 
     }
     public void OnHealingTaken(CombatEventData eventData)
@@ -263,7 +263,7 @@ public class ThreatManager : MonoBehaviour
 
         val *= threatMultiplier;
 
-        TriggerEnemies(source.gameObject, val);
+        TriggerEnemies(source, val);
     }
     public void OnCombatChange(bool isInCombat)
     {
@@ -280,7 +280,7 @@ public class ThreatManager : MonoBehaviour
 
     public void OnPingThreat(EntityInfo source, float value)
     {
-        IncreaseThreat(source.gameObject, value);
+        IncreaseThreat(source, value);
     }
 
     public void ClearThreatQueue()
@@ -320,14 +320,14 @@ public class ThreatManager : MonoBehaviour
 
         threatQueue = threatQueue.OrderBy(threat => Vector3.Distance(threat.transform.position, entityObject.transform.position)).ToList();
     }
-    public void RemoveThreat(GameObject threatObject)
+    public void RemoveThreat(EntityInfo threatInfo)
     {
-        var threat = Threat(threatObject);
+        var threat = Threat(threatInfo);
         if(threat == null) { return; }
 
         if(!threats.Contains(threat)) { return; }
         threats.Remove(threat);
-        threatDict.Remove(threatObject);
+        threatDict.Remove(threatInfo);
         
         HandleMaxThreat();
         OnRemoveThreat?.Invoke(threat);
@@ -369,7 +369,7 @@ public class ThreatManager : MonoBehaviour
 
         //RemoveThreat(Threat(target.gameObject));
     }
-    public void OnSighted(GameObject target)
+    public void OnSighted(EntityInfo target)
     {
         if (behavior.combatType != CombatBehaviorType.Aggressive) return;
         if (!entityInfo.CanAttack(target)) return;
@@ -394,7 +394,7 @@ public class ThreatManager : MonoBehaviour
 
         behavior.events.OnDetectedEnemy?.Invoke(target);
     }
-    public void IncreaseThreat(GameObject source, float value, bool fromAlert = false)
+    public void IncreaseThreat(EntityInfo source, float value, bool fromAlert = false)
     {
         if (!entityInfo.isAlive) return;
         if (!entityInfo.CanAttack(source)) return;
@@ -412,7 +412,7 @@ public class ThreatManager : MonoBehaviour
 
         if(threatInfo == null)
         {
-            threatInfo = new ThreatInfo(this, entityObject, source, value);
+            threatInfo = new ThreatInfo(this, entityInfo, source, value);
             threats.Add(threatInfo);
             OnNewThreat?.Invoke(threatInfo);
             threatDict.Add(source, threatInfo);
@@ -451,7 +451,7 @@ public class ThreatManager : MonoBehaviour
     {
         foreach (var threat in threats)
         {
-            IncreaseThreat(threat.threatObject, 1);
+            IncreaseThreat(threat.threatInfo, 1);
         }
     }
     public GameObject RandomTargetBlackList(List<Role> blackListRole)
@@ -601,7 +601,7 @@ public class ThreatManager : MonoBehaviour
         }
         return target;
     }
-    async public void AlertAllies(GameObject target, float delay = 0f, float val = 0f)
+    async public void AlertAllies(EntityInfo target, float delay = 0f, float val = 0f)
     {
         if (!entityInfo.isAlive) return;
         await Task.Delay((int)(delay * 1000));
@@ -622,7 +622,7 @@ public class ThreatManager : MonoBehaviour
             threatManager.IncreaseThreat(target, val == 0f ? 15f : val, true);
         }
     }
-    public void TriggerEnemies(GameObject source, float value)
+    public void TriggerEnemies(EntityInfo source, float value)
     {
         try 
         {
@@ -640,7 +640,7 @@ public class ThreatManager : MonoBehaviour
         OnClearThreats?.Invoke(this);
         highestThreat = null;
     }
-    public ThreatInfo Threat(GameObject source)
+    public ThreatInfo Threat(EntityInfo source)
     {
         if(threats == null)
         {

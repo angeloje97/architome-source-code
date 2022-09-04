@@ -27,7 +27,7 @@ namespace Architome
 
             if (entityInfo)
             {
-                speech = entityInfo.Speech;
+                speech = entityInfo.Speech();
             }
         }
         void Start()

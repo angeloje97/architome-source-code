@@ -22,9 +22,9 @@ public class AIBehavior : MonoBehaviour
 
     public struct Events
     {
-        public Action<GameObject> OnDetecedEntity;
-        public Action<GameObject> OnDetectedEnemy;
-        public Action<GameObject> OnSightedEntity;
+        public Action<EntityInfo> OnDetecedEntity;
+        public Action<EntityInfo> OnDetectedEnemy;
+        public Action<EntityInfo> OnSightedEntity;
 
     }
 

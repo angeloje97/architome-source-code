@@ -202,6 +202,20 @@ namespace Architome
         {
             return entityObjects.FindAll(entityObject => entityObject.GetComponent<EntityInfo>().isAlive);
         }
+
+        public static List<EntityInfo> LiveEntities(List<EntityInfo> entities)
+        {
+            var liveEntities = new List<EntityInfo>();
+            foreach (var entity in entities)
+            {
+                if (entity.isAlive)
+                {
+                    liveEntities.Add(entity);
+                }
+            }
+
+            return liveEntities;
+        }
     }
 
 }
