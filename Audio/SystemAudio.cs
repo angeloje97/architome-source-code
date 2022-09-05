@@ -105,6 +105,7 @@ namespace Architome
             var randomClip = ArchGeneric.RandomItem(audioClips);
 
             audioManager.PlayAudioClip(randomClip);
+
         }
 
         void UpdateMaps()
