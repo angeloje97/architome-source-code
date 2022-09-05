@@ -19,6 +19,13 @@ namespace Architome
             entityInfo.OnRoomChange += OnRoomChange;
             entityInfo.sceneEvents.OnTransferScene += OnTransferScene;
 
+
+            entityInfo.infoEvents.OnSignificantMovementChange += OnSignificantMovementChange;
+        }
+
+        private void OnSignificantMovementChange(Vector3 newPosition)
+        {
+            entityInfo.currentRoom = Entity.Room(newPosition);
         }
 
         void Update()

@@ -45,6 +45,8 @@ namespace Architome
         public PartyEvents events;
         public EventHandlers eventHandlers;
 
+
+        GameManager manager;
         void Start()
         {
             ArchAction.Delay(() =>
@@ -101,8 +103,10 @@ namespace Architome
             }
 
             //Input Manager
-            ArchInput.active.OnAlternateAction += OnAlternateAction;
-            ArchInput.active.OnActionMultiple += OnActionMultiple;
+            var archInput = ArchInput.active;
+            archInput.OnAlternateAction += OnAlternateAction;
+            archInput.OnActionMultiple += OnActionMultiple;
+            archInput.OnAction += OnAction;
         }
         void AddSelfToGameManager()
         {
@@ -126,18 +130,21 @@ namespace Architome
 
         void HandleStartingMembers()
         {
-            var manager = GameManager.active;
+            manager = GameManager.active;
 
 
             foreach (var entity in GetComponentsInChildren<EntityInfo>())
             {
-                AddMember(entity, manager);
+                AddMember(entity);
             }
 
         }
 
         void ProcessMember(EntityInfo info)
         {
+            info.entityControlType = partyControl;
+
+
             info.OnDeath += OnEntityDeath;
             info.OnReviveThis += OnEntityRevive;
             info.OnLifeChange += OnEntityLifeChange;
@@ -178,7 +185,7 @@ namespace Architome
             };
         }
 
-        public void AddMember(EntityInfo entity, GameManager manager = null)
+        public void AddMember(EntityInfo entity)
         {
             if (members == null) members = new();
             if (members.Contains(entity)) return;
@@ -191,7 +198,12 @@ namespace Architome
             members.Add(entity);
             ProcessMember(entity);
 
+
             liveMembers = Entity.LiveEntities(members);
+            events.OnAddMember?.Invoke(entity);
+            entity.partyEvents.OnAddedToParty?.Invoke(this);
+            //entity.rarity = EntityRarity.Player;
+            entity.SetRarity(EntityRarity.Player);
 
             if (manager == null) manager = GameManager.active;
 
@@ -245,6 +257,17 @@ namespace Architome
                 }
             }
         }
+
+        void OnAction()
+        {
+            foreach (var entity in members)
+            {
+                if (!targetManager.selectedTargets.Contains(entity.gameObject)) continue;
+                entity.partyEvents.OnSelectedAction?.Invoke(this);
+            }
+        }
+
+
         void HandleEvents()
         {
             if (eventHandlers.previousCombat != partyIsInCombat)

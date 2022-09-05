@@ -19,7 +19,7 @@ namespace Architome.Tutorial
         public UnityEvent OnFailEventUnity;
 
         public bool listenOnStart;
-        bool initiated;
+        [SerializeField] protected bool initiated;
 
         protected void HandleStart()
         {
@@ -35,6 +35,8 @@ namespace Architome.Tutorial
             activated = true;
             OnSuccessfulEvent?.Invoke(this);
             OnSuccessfulEventUnity?.Invoke();
+
+            Debugger.Environment(4325, $"Completed event {title}");
         }
 
         protected void FailEventListeners()

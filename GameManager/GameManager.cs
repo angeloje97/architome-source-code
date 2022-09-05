@@ -14,6 +14,7 @@ namespace Architome
         public DataMap data;
 
         [SerializeField] GameState gameState;
+        [SerializeField] bool destroyOnLoad;
         public GameState GameState { get { return gameState; } }
         // Start is called before the first frame update
         public List<EntityInfo> playableEntities;
@@ -40,7 +41,6 @@ namespace Architome
 
         void Awake()
         {
-
 
             if (gameState == GameState.Play)
             {
@@ -77,11 +77,13 @@ namespace Architome
 
         private void Start()
         {
-            HandleDungeons();
+            HandleDungeoneer();
         }
 
-        void HandleDungeons()
+        void HandleDungeoneer()
         {
+            if (destroyOnLoad) return;
+
             if (gameState == GameState.Play)
             {
                 DontDestroyOnLoad(gameObject);

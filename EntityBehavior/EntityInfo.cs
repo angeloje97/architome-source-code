@@ -126,6 +126,8 @@ namespace Architome
             public Action<Inventory.LootEventData> OnLootItem;
             public Action<Inventory.LootEventData> OnLootItemFromWorld;
             public Action<EntityInfo, bool, GameObject> OnMouseHover;
+            public Action<Vector3> OnSignificantMovementChange;
+            public Action<EntityRarity, EntityRarity> OnRarityChange;
         }
 
         public struct CombatEvents
@@ -146,6 +148,8 @@ namespace Architome
         {
             public Action<GroupFormationBehavior> OnRotationFormationStart;
             public Action<GroupFormationBehavior> OnRotateFormationEnd;
+            public Action<PartyInfo> OnSelectedAction;
+            public Action<PartyInfo> OnAddedToParty;
         }
 
         public struct SceneEvents
@@ -183,6 +187,7 @@ namespace Architome
         public Action<EntityInfo, Collision, bool> OnCollisionEvent;
         public Action<EntityInfo, GameObject, bool> OnPhysicsEvent;
         public Action<EntityInfo> OnChangeStats;
+        public PartyEvents partyEvents;
         public InfoEvents infoEvents;
         public TaskEvents taskEvents = new();
         public TargetableEvents targetableEvents = new();
@@ -190,6 +195,7 @@ namespace Architome
         public PortalEvents portalEvents;
         public SceneEvents sceneEvents;
         public SocialEvents socialEvents;
+        public RoomInfo.Events roomEvents;
 
         //Non Player Events
         public Action<EntityInfo, PartyInfo> OnPlayerLineOfSight;
@@ -711,6 +717,16 @@ namespace Architome
             states.Remove(state);
 
             combatEvents.OnStatesChange?.Invoke(previousStates, states);
+
+            return true;
+        }
+
+        public bool SetRarity(EntityRarity rarity)
+        {
+            if (this.rarity == rarity) return false;
+            infoEvents.OnRarityChange?.Invoke(this.rarity, rarity);
+
+            this.rarity = rarity;
 
             return true;
         }

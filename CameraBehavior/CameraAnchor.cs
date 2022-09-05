@@ -42,6 +42,7 @@ namespace Architome
         void Start()
         {
             GetDependencies();
+            anchorYVal = transform.eulerAngles.y;
         }
 
         public void OnNewPlayableParty(PartyInfo party, int index)

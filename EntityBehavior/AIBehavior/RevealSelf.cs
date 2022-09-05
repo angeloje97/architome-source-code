@@ -44,6 +44,8 @@ public class RevealSelf : MonoBehaviour
             entityInfo.OnPlayerLOSBreak += OnplayerLOSBreak;
             entityInfo.OnCurrentShowRoom += OnCurrentShowRoom;
             entityInfo.OnRoomChange += OnRoomChange;
+
+            entityInfo.partyEvents.OnAddedToParty += OnAddedToParty;
         }
 
         if(GetComponentInParent<AIBehavior>())
@@ -65,6 +67,14 @@ public class RevealSelf : MonoBehaviour
         layerMasks = LayerMasksData.active;
     }
 
+    public void OnAddedToParty(PartyInfo party)
+    {
+        dynamicGraphics = false;
+        dynamicCharacter = false;
+
+        entityInfo.ShowEntity(true);
+    }
+
     void Start()
     {
         GetDependencies();
@@ -75,6 +85,8 @@ public class RevealSelf : MonoBehaviour
     {
         
     }
+
+
 
     public void OnPlayerLineOfSight(EntityInfo player, PartyInfo party)
     {

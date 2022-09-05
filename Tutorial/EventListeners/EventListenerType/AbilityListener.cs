@@ -22,6 +22,7 @@ namespace Architome.Tutorial
 
         public override void StartEventListener()
         {
+            //if (ability == null) return;
             base.StartEventListener();
             ability.OnSuccessfulCast += OnSuccesfulCast;
         }

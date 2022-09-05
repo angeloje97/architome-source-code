@@ -39,17 +39,49 @@ namespace Architome
 
                 }
 
+                entityInfo.infoEvents.OnRarityChange += OnRarityChange;
+
                 entityInfo.combatEvents.OnStateNegated += OnStateNegated;
                 entityInfo.combatEvents.OnStatesChange += OnStatesChange;
 
             }
         }
+
+
         void Start()
         {
             GetDependencies();
         }
 
         
+        void OnRarityChange(EntityRarity before, EntityRarity after)
+        {
+            if (before == EntityRarity.Player)
+            {
+                entityInfo.OnLifeChange -= OnLifeChange;
+                entityInfo.combatEvents.OnFixate -= OnFixate;
+                entityInfo.OnLevelUp -= OnLevelUp;
+                entityInfo.OnNewBuff -= OnNewBuff;
+
+                entityInfo.OnDamageTaken += OnDamageTaken;
+                entityInfo.combatEvents.OnImmuneDamage += OnImmuneDamage;
+            }
+
+            if (after == EntityRarity.Player)
+            {
+                entityInfo.OnLifeChange += OnLifeChange;
+                entityInfo.combatEvents.OnFixate += OnFixate;
+                entityInfo.OnLevelUp += OnLevelUp;
+                entityInfo.OnNewBuff += OnNewBuff;
+
+                entityInfo.OnDamageTaken -= OnDamageTaken;
+                entityInfo.combatEvents.OnImmuneDamage -= OnImmuneDamage;
+            }
+
+
+            
+        }
+
 
         async void OnStatesChange(List<EntityState> previous, List<EntityState> after)
         {

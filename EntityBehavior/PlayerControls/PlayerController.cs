@@ -30,6 +30,7 @@ public class PlayerController : MonoBehaviour
             behavior = entityInfo.AIBehavior();
 
             entityInfo.sceneEvents.OnTransferScene += OnTransferScene;
+            entityInfo.partyEvents.OnSelectedAction += OnPartyAction;
         }
 
         targetManager = ContainerTargetables.active;
@@ -39,12 +40,11 @@ public class PlayerController : MonoBehaviour
             keyBindings = GMHelper.KeyBindings();
         }
 
-        if (ArchInput.active)
-        {
-            ArchInput.active.OnAction += OnAction;
-        }
+        //if (ArchInput.active)
+        //{
+        //    ArchInput.active.OnAction += OnAction;
+        //}
 
-        
     }
     void Start()
     {
@@ -62,6 +62,11 @@ public class PlayerController : MonoBehaviour
     {
         targetManager = ContainerTargetables.active;
         keyBindings = GMHelper.KeyBindings();
+    }
+
+    void OnPartyAction(PartyInfo party)
+    {
+        OnAction();
     }
 
     public void OnAction()

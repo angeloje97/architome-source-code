@@ -7,6 +7,7 @@ public class WalkThroughActivate : MonoBehaviour
 {
     public List<GameObject> activatedObjects;
     public List<GameObject> deactivatedObjects;
+    
     public bool isActive = false;
 
     public AstarPath astarPath;
@@ -29,25 +30,25 @@ public class WalkThroughActivate : MonoBehaviour
     {
         return;   
         if(isActive) { return; }
-        
-        if (other.GetComponent<EntityInfo>())
-        {
-            if (GMHelper.GameManager() && !GMHelper.GameManager().playableEntities.Contains(other.GetComponent<EntityInfo>())) { return; }
-            isActive = true;
-            foreach (GameObject activatedObject in activatedObjects)
-            {
-                HandleActivatedParts(activatedObject);
-            }
 
-            foreach(GameObject deactivatedObject in deactivatedObjects)
+        var entityInfo = other.GetComponent<EntityInfo>();
+
+        if (entityInfo == null) return;
+        
+        if (GMHelper.GameManager() && !GMHelper.GameManager().playableEntities.Contains(other.GetComponent<EntityInfo>())) { return; }
+        isActive = true;
+        foreach (GameObject activatedObject in activatedObjects)
+        {
+            HandleActivatedParts(activatedObject);
+        }
+
+        foreach(GameObject deactivatedObject in deactivatedObjects)
+        {
+            if(deactivatedObject.GetComponent<BoxCollider>())
             {
-                if(deactivatedObject.GetComponent<BoxCollider>())
-                {
-                    deactivatedObject.GetComponent<BoxCollider>().enabled = false;
-                }
-                if (deactivatedObject) { deactivatedObject.SetActive(false); }
+                deactivatedObject.GetComponent<BoxCollider>().enabled = false;
             }
-            
+            if (deactivatedObject) { deactivatedObject.SetActive(false); }
         }
 
         void HandleActivatedParts(GameObject activatedObject)

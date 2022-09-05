@@ -289,6 +289,19 @@ namespace Architome.Enums
         Invisible,
     }
 
+    public enum Notification
+    {
+        Primary,
+        Secondary,
+        Success,
+        Danger,
+        Warning,
+        Info,
+        Light,
+        Dark,
+        Link
+    }
+
     public enum MeterRecordingMode
     {
         CurrentFight,

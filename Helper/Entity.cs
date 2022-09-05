@@ -179,6 +179,11 @@ namespace Architome
             //return false;
         }
 
+        public static bool IsPlayer(EntityInfo entity)
+        {
+            return entity.rarity == EntityRarity.Player;
+        }
+
         public static bool IsObstructed(GameObject endTarget, GameObject sourceTarget)
         {
             var distance = Vector3.Distance(endTarget.transform.position, sourceTarget.transform.position);

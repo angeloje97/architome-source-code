@@ -31,10 +31,19 @@ namespace Architome.Tutorial
 
             eventListeners = new();
 
+            int amount = 0;
+
             foreach (var listener in listenerTarget.GetComponents<EventListener>())
             {
+                if (amount == 0)
+                {
+                    listener.StartEventListener();
+                }
+
                 eventListeners.Add(listener);
                 listener.OnSuccessfulEvent += HandleSuccesfulEvent;
+
+                amount++;
             }
         }
 

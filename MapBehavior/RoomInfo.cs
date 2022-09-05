@@ -91,6 +91,9 @@ namespace Architome
         public struct Events
         {
             public Action<RoomInfo, bool> OnShowRoom;
+
+            //Entity Events
+            public Action<RoomInfo> OnEnterRoom;
         }
 
         public Events events;

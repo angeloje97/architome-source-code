@@ -5,12 +5,10 @@ using Architome.Enums;
 using Architome;
 using System;
 using System.Linq;
-public class AIBehavior : MonoBehaviour
+public class AIBehavior : EntityProp
 {
     // Start is called before the first frame update
     public GameObject entityObject;
-    
-    public EntityInfo entityInfo;
     //public AbilityManager abilityManager;
     public Movement movement;
 
@@ -39,34 +37,35 @@ public class AIBehavior : MonoBehaviour
     private AIBehaviorType behaviorTypeCheck;
     private BehaviorState behaviorStateCheck;
     private CombatBehaviorType combatTypeCheck;
-    public void GetDependencies()
+    new public void GetDependencies()
     {
-        if(GetComponentInParent<EntityInfo>())
+        base.GetDependencies();
+        if (entityInfo)
         {
-            entityInfo = GetComponentInParent<EntityInfo>();
             entityObject = entityInfo.gameObject;
 
-            if(entityInfo.Movement())
+            movement = entityInfo.Movement();
+
+            if (entityInfo.Movement())
             {
                 movement = entityInfo.Movement();
             }
 
-            if(entityInfo.AbilityManager())
+            if (entityInfo.AbilityManager())
             {
                 var abilityManager = entityInfo.AbilityManager();
             }
 
             entityInfo.combatEvents.OnStatesChange += OnStatesChange;
 
-            if(entityInfo.npcType == NPCType.Hostile)
+            if (entityInfo.npcType == NPCType.Hostile)
             {
                 combatType = CombatBehaviorType.Aggressive;
             }
 
-            //if (entityInfo.summon.isSummoned)
-            //{
-            //    CreateBehavior<ArchSummonAgent>("Summon Behavior");
-            //}
+            entityInfo.partyEvents.OnAddedToParty += (PartyInfo party) => {
+                behaviorType = AIBehaviorType.HalfPlayerControl;
+            };
         }
 
         StartCoroutine(DependenciesLate());
