@@ -151,8 +151,8 @@ namespace Architome
                     if ((ally.health / ally.maxHealth) <= healing.minimumHealth)
                     {
 
-                        abilityManager.target = ally.gameObject;
-                        abilityManager.location = ally.gameObject.transform.position;
+                        abilityManager.target = ally;
+                        abilityManager.location = ally.transform.position;
                         abilityManager.Cast(healing.ability);
                         abilityManager.target = null;
 
@@ -172,7 +172,7 @@ namespace Architome
 
             return true;
         }
-        void HandleHarm(GameObject target)
+        void HandleHarm(EntityInfo target)
         {
             if (abilityManager.attackAbility == null) return;
             if (!entity.CanAttack(target)) return;
@@ -201,11 +201,11 @@ namespace Architome
 
             AttackProactive(target);
         }
-        bool AttackReactive(GameObject target)
+        bool AttackReactive(EntityInfo target)
         {
             if (behavior.combatType != CombatBehaviorType.Reactive) return false;
-            if (!los.HasLineOfSight(target)) return false;
-            if (!abilityManager.attackAbility.AbilityIsInRange(target)) { return false; }
+            if (!los.HasLineOfSight(target.gameObject)) return false;
+            if (!abilityManager.attackAbility.AbilityIsInRange(target.gameObject)) { return false; }
 
             abilityManager.target = target;
             abilityManager.Attack();
@@ -218,14 +218,14 @@ namespace Architome
 
             var newThreat = threatManager.NearestHighestThreat(abilityManager.attackAbility.range);
 
-            if (!los.HasLineOfSight(newThreat) || !abilityManager.attackAbility.AbilityIsInRange(newThreat)) return;
+            if (!los.HasLineOfSight(newThreat.gameObject) || !abilityManager.attackAbility.AbilityIsInRange(newThreat.gameObject)) return;
 
             abilityManager.target = newThreat;
             abilityManager.Attack();
             
 
         }
-        void AttackProactive(GameObject target)
+        void AttackProactive(EntityInfo target)
         {
             if ((int) behavior.combatType < 2 ) return;
 
@@ -250,7 +250,7 @@ namespace Architome
 
             allies = allies.OrderBy(ally => ally.health/ally.maxHealth).ToList();
 
-            abilityManager.target = allies[0].gameObject;
+            abilityManager.target = allies[0];
 
             abilityManager.Attack();
             

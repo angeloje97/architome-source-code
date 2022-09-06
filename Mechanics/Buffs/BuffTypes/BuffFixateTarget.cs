@@ -7,7 +7,7 @@ namespace Architome
     public class BuffFixateTarget : BuffType
     {
         // Start is called before the first frame update
-        public GameObject originalFocusTarget;
+        public EntityInfo originalFocusTarget;
         public bool isFixating;
         new void GetDependencies()
         {
@@ -33,13 +33,13 @@ namespace Architome
             originalFocusTarget = buffInfo.hostInfo.CombatBehavior().GetFocus();
 
             isFixating = true;
-            buffInfo.hostInfo.CombatBehavior().SetFocus(buffInfo.targetObject, null, this);
+            buffInfo.hostInfo.CombatBehavior().SetFocus(buffInfo.targetInfo, null, this);
 
             if (buffInfo.hostInfo.AbilityManager().attackAbility)
             {
                 var combatEventData = new CombatEventData(buffInfo, buffInfo.properties.value);
                 buffInfo.targetInfo.combatEvents.OnFixate?.Invoke(combatEventData, true);
-                buffInfo.hostInfo.AbilityManager().target = buffInfo.targetObject;
+                buffInfo.hostInfo.AbilityManager().target = buffInfo.targetInfo;
                 buffInfo.hostInfo.AbilityManager().Attack();
                 buffInfo.hostInfo.AbilityManager().target = null;
             }

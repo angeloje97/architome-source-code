@@ -49,7 +49,7 @@ namespace Architome
         public Weapon currentWeapon;
         public bool wantsToCastAbility;
 
-        public GameObject target;
+        public EntityInfo target;
         public Vector3 location;
 
         //Events

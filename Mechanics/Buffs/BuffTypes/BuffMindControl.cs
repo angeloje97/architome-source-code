@@ -12,7 +12,7 @@ public class BuffMindControl : BuffStateChanger
     public AbilityManager abilityManager;
     public Movement movement;
     public CombatBehavior combatBehavior;
-    public GameObject originalFocus;
+    public EntityInfo originalFocus;
     
 
     new void GetDependencies()
@@ -120,14 +120,16 @@ public class BuffMindControl : BuffStateChanger
 
         if (target != null)
         {
+            var info = target.GetComponent<EntityInfo>();
+
             
             if (abilityManager.attackAbility.CanCastAt(target))
             {
                 if (combatBehavior)
                 {
-                    combatBehavior.SetFocus(target);
+                    combatBehavior.SetFocus(info);
                 }
-                abilityManager.target = target;
+                abilityManager.target = info;
                 abilityManager.Attack();
                 abilityManager.target = null;
                 return;

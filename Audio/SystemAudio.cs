@@ -15,10 +15,10 @@ namespace Architome
         public class NotificationEffect
         {
             [HideInInspector] public string name;
-            public Notification type;
+            public NotificationType type;
             public List<AudioClip> audioClips;
 
-            public NotificationEffect(Notification type)
+            public NotificationEffect(NotificationType type)
             {
                 this.type = type;
 
@@ -30,7 +30,7 @@ namespace Architome
         [SerializeField] AudioManager audioManager;
         
 
-        Dictionary<Notification, NotificationEffect> effectsMap;
+        Dictionary<NotificationType, NotificationEffect> effectsMap;
 
         [Header("Actions")]
         [SerializeField] bool update;
@@ -54,7 +54,7 @@ namespace Architome
             update = false;
 
             if (effects == null) effects = new();
-            foreach (Notification notification in Enum.GetValues(typeof(Notification)))
+            foreach (NotificationType notification in Enum.GetValues(typeof(NotificationType)))
             {
                 bool addEffect = true;
 
@@ -93,7 +93,7 @@ namespace Architome
             }
         }
 
-        void PlayNotificationSound(Notification type)
+        void PlayNotificationSound(NotificationType type)
         {
             if (audioManager == null) return;
             if (effectsMap == null) return;
@@ -119,7 +119,7 @@ namespace Architome
             }
         }
 
-        public static void PlayNotification(Notification type)
+        public static void PlayNotification(NotificationType type)
         {
             if (!active) return;
             active.PlayNotificationSound(type);

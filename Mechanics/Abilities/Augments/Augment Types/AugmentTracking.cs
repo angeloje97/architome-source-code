@@ -46,7 +46,7 @@ namespace Architome
             augment.ActivateAugment(eventData);
 
             await TrackTarget();
-            await PredictTarget(ability.targetLocked);
+            await PredictTarget(ability.targetLocked.gameObject);
 
             eventData.active = false;
 

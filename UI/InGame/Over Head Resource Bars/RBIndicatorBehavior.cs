@@ -38,7 +38,7 @@ public class RBIndicatorBehavior : MonoBehaviour
         GetDependencies();
     }
 
-    public void OnNewTarget(GameObject previousTarget, GameObject newTarget)
+    public void OnNewTarget(EntityInfo previousTarget, EntityInfo newTarget)
     {
         
         HandleAggroIndicator();

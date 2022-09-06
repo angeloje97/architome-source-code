@@ -289,7 +289,7 @@ namespace Architome.Enums
         Invisible,
     }
 
-    public enum Notification
+    public enum NotificationType
     {
         Primary,
         Secondary,

@@ -280,7 +280,7 @@ namespace Architome
 
                 if (abilityInfo.targetLocked)
                 {
-                    target = abilityInfo.targetLocked;
+                    target = abilityInfo.targetLocked.gameObject;
                 }
 
                 metrics.startingHeight = V3Helper.HeightFromGround(transform.position, LayerMasksData.active.walkableLayer);

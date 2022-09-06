@@ -135,6 +135,8 @@ namespace Architome
             public Action<CombatEventData, bool> OnFixate;
             public Action<List<EntityState>, List<EntityState>> OnStatesChange;
             public Action<List<EntityState>, EntityState> OnStateNegated;
+
+            public Action<ThreatManager.ThreatInfo, float> OnGenerateThreat;
             public Action<EntityInfo, float> OnPingThreat { get; set; }
             public Action<CombatEventData> OnImmuneDamage;
             public Action<EntityInfo> OnSummonEntity;

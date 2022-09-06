@@ -42,8 +42,8 @@ namespace Architome
 
 
         [SerializeField]
-        private GameObject focusTarget;
-        public GameObject target;
+        private EntityInfo focusTarget;
+        public EntityInfo target;
 
 
         public int[] abilityIndexPriority;
@@ -67,12 +67,12 @@ namespace Architome
         //Private fields
 
         //Events
-        public event Action<GameObject, GameObject> OnNewTarget;
-        public event Action<GameObject> OnSetFocus;
+        public event Action<EntityInfo, EntityInfo> OnNewTarget;
+        public event Action<EntityInfo> OnSetFocus;
 
         //Event Triggers
-        public GameObject previousTarget;
-        public GameObject previousFocusTarget;
+        public EntityInfo previousTarget;
+        public EntityInfo previousFocusTarget;
 
         public float tryMoveTimer;
 
@@ -168,7 +168,7 @@ namespace Architome
 
         public void OnTryCast(AbilityInfo ability)
         {
-            if (ability.target && !entityInfo.CanAttack(ability.target.gameObject))
+            if (ability.target && !entityInfo.CanAttack(ability.target))
             {
                 if (!abilityManager.attackAbility.isHealing)
                 {
@@ -183,9 +183,10 @@ namespace Architome
             if (ability.isAttack) { return; }
             if (ability.abilityType2 == AbilityType2.Passive) return;
 
+
             if (entityInfo.CanAttack(ability.target) && abilityManager.attackAbility.isHarming)
             {
-                SetFocus(ability.target, $"Casted at {ability.target}");
+                SetFocus(ability.target.GetComponent<EntityInfo>(), $"Casted at {ability.target}");
             }
         }
 
@@ -215,7 +216,7 @@ namespace Architome
             //InitCombatActions();
         }
 
-        public void OnPlayerAbilityTargetting(GameObject target, AbilityInfo ability)
+        public void OnPlayerAbilityTargetting(EntityInfo target, AbilityInfo ability)
         {
             if (target == null) return;
             if (ability == null) return;
@@ -299,7 +300,7 @@ namespace Architome
                 Destroy(combatType.gameObject);
             }
         }
-        public void SetFocus(GameObject target, string reason = "", BuffFixateTarget buffFixate = null)
+        public void SetFocus(EntityInfo target, string reason = "", BuffFixateTarget buffFixate = null)
         {
             if (entityInfo.states.Contains(EntityState.Taunted)) return;
 
@@ -325,11 +326,11 @@ namespace Architome
             }
 
         }
-        public GameObject GetFocus()
+        public EntityInfo GetFocus()
         {
             return focusTarget;
         }
-        public bool CanFocus(GameObject target)
+        public bool CanFocus(EntityInfo target)
         {
             if (target == null) return true;
 
@@ -368,7 +369,7 @@ namespace Architome
             
 
         }
-        GameObject CorrectTarget()
+        EntityInfo CorrectTarget()
         {
             if (proactiveTank && threatManager.highestNonTargettingThreat)
             {

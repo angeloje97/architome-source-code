@@ -16,7 +16,7 @@ public class PlayerController : MonoBehaviour
     public KeyBindings keyBindings;
     public AIBehavior behavior;
 
-    public Action<GameObject, AbilityInfo> OnPlayerTargetting;
+    public Action<EntityInfo, AbilityInfo> OnPlayerTargetting;
     public void GetDependencies()
     {
         
@@ -111,7 +111,8 @@ public class PlayerController : MonoBehaviour
 
         if(behavior && targetManager.currentHover)
         {
-            behavior.CombatBehavior().SetFocus(targetManager.currentHover);
+            var hoverInfo = targetManager.currentHover.GetComponent<EntityInfo>();
+            behavior.CombatBehavior().SetFocus(hoverInfo);
         }
 
         abilityManager.Attack();
@@ -130,14 +131,14 @@ public class PlayerController : MonoBehaviour
 
             if(abilityManager)
             {
-                GameObject target;
+                EntityInfo target;
                 if (targetManager.currentHover)
                 {
-                    target = targetManager.currentHover;
+                    target = targetManager.currentHover.GetComponent<EntityInfo>();
                 }
                 else if(targetManager.selectedTargets.Count > 0)
                 {
-                    target = targetManager.selectedTargets[0];
+                    target = targetManager.selectedTargets[0].GetComponent<EntityInfo>();
                     OnPlayerTargetting?.Invoke(target, ability);
                 }
                 else
@@ -197,11 +198,12 @@ public class PlayerController : MonoBehaviour
         }
         else if (targetManager.currentHover)
         {
-            abilityManager.target = targetManager.currentHover;
+            var targetInfo = targetManager.currentHover.GetComponent<EntityInfo>();
+            abilityManager.target = targetInfo;
             Attack();
             if (entityInfo.AIBehavior().behaviorType == AIBehaviorType.HalfPlayerControl)
             {
-                entityInfo.CombatBehavior().SetFocus(targetManager.currentHover);
+                entityInfo.CombatBehavior().SetFocus(targetInfo);
 
             }
         }

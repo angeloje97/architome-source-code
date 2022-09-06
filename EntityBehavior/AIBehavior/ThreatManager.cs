@@ -16,8 +16,8 @@ public class ThreatManager : MonoBehaviour
     public AbilityManager abilityManager;
     public LineOfSight lineOfSight;
     public CombatInfo combatInfo;
-    public GameObject highestThreat;
-    public GameObject highestNonTargettingThreat;
+    public EntityInfo highestThreat;
+    public EntityInfo highestNonTargettingThreat;
 
     [Serializable]
     public class ThreatInfo
@@ -120,7 +120,6 @@ public class ThreatManager : MonoBehaviour
     public event Action<ThreatInfo, float> OnIncreaseThreat;
     public event Action<ThreatInfo> OnFirstThreat;
     public event Action<ThreatInfo> OnRemoveThreat;
-    public event Action<ThreatInfo, float> OnGenerateThreat;
     public event Action<ThreatManager> OnEmptyThreats;
     public event Action<ThreatManager> OnClearThreats;
 
@@ -400,13 +399,10 @@ public class ThreatManager : MonoBehaviour
         if (!entityInfo.CanAttack(source)) return;
         if(entityInfo.gameObject == source) { return; }
         if (entityInfo.npcType == source.GetComponent<EntityInfo>().npcType) return;
-
+        if (source == null) return;
         bool firstThreat = threats.Count == 0;
 
-        var sourceInfo = source.GetComponent<EntityInfo>();
-        if (sourceInfo == null) return;
 
-        var sourceThreat = source.GetComponentInChildren<ThreatManager>();
 
         var threatInfo = Threat(source);
 
@@ -423,9 +419,10 @@ public class ThreatManager : MonoBehaviour
         }
 
         OnIncreaseThreat?.Invoke(threatInfo, value);
-        sourceThreat.OnGenerateThreat?.Invoke(threatInfo, value);
+        source.combatEvents.OnGenerateThreat?.Invoke(threatInfo, value);
 
-        HandleMaxThreat();
+        CheckMaxThreat();
+        //HandleMaxThreat();
         SortThreats();
 
         if (firstThreat && !fromAlert)
@@ -434,7 +431,22 @@ public class ThreatManager : MonoBehaviour
         }
         
 
-        
+        void CheckMaxThreat()
+        {
+            if (highestThreat == null)
+            {
+                highestThreat = source;
+                return;
+            }
+
+            var highestThreatInfo = Threat(highestThreat);
+
+            if (highestThreatInfo.threatInfo == source) return;
+            if (threatInfo.threatValue <= highestThreatInfo.threatValue) return;
+
+            highestThreat = highestThreatInfo.threatInfo;
+
+        }
     }
     async void SortThreats()
     {
@@ -454,7 +466,7 @@ public class ThreatManager : MonoBehaviour
             IncreaseThreat(threat.threatInfo, 1);
         }
     }
-    public GameObject RandomTargetBlackList(List<Role> blackListRole)
+    public EntityInfo RandomTargetBlackList(List<Role> blackListRole)
     {
 
         if (BlackList(blackListRole).Count == 0) { return null; }
@@ -464,28 +476,28 @@ public class ThreatManager : MonoBehaviour
             return BlackList(blackListRole)[UnityEngine.Random.Range(0, BlackList(blackListRole).Count)];
         }
     }
-    public List<GameObject> WhiteList(List<Role> whiteListRole)
+    public List<EntityInfo> WhiteList(List<Role> whiteListRole)
     {
-        var whiteListed = new List<GameObject>();
+        var whiteListed = new List<EntityInfo>();
 
         foreach(var threat in threats)
         {
-            if(whiteListRole.Contains(threat.threatObject.GetComponent<EntityInfo>().role))
+            if(whiteListRole.Contains(threat.threatInfo.role))
             {
-                whiteListed.Add(threat.threatObject);
+                whiteListed.Add(threat.threatInfo);
             }
         }
         return whiteListed;
     }
-    public List<GameObject> BlackList(List<Role> blackListRole)
+    public List<EntityInfo> BlackList(List<Role> blackListRole)
     {
-        var blackListed = new List<GameObject>();
+        var blackListed = new List<EntityInfo>();
 
         foreach(var threat in threats)
         {
-            if(!blackListRole.Contains(threat.threatObject.GetComponent<EntityInfo>().role))
+            if(!blackListRole.Contains(threat.threatInfo.role))
             {
-                blackListed.Add(threat.threatObject);
+                blackListed.Add(threat.threatInfo);
             }
         }
         return blackListed;
@@ -529,7 +541,7 @@ public class ThreatManager : MonoBehaviour
             {
                 if (entityInfo.CanAttack(info.threatObject))
                 {
-                    highestThreat = info.threatObject;
+                    highestThreat = info.threatInfo;
                     max = info.threatValue;
                 }
             }
@@ -542,7 +554,7 @@ public class ThreatManager : MonoBehaviour
             if (info.combatBehavior.target == entityObject) return;
 
             maxNonTargetting = info.threatValue;
-            highestNonTargettingThreat = info.threatObject;
+            highestNonTargettingThreat = info.threatInfo;
         }
     }
     public void HandleMaxThreatNonTargetting()
@@ -556,7 +568,7 @@ public class ThreatManager : MonoBehaviour
 
         float max = float.NegativeInfinity;
 
-        GameObject target = null;
+        EntityInfo target = null;
 
         foreach (var threat in threats)
         {
@@ -565,7 +577,7 @@ public class ThreatManager : MonoBehaviour
             if (threat.combatBehavior.target == entityObject) continue;
 
             max = threat.threatValue;
-            target = threat.threatObject;
+            target = threat.threatInfo;
         }
 
         if (target == null)
@@ -581,10 +593,10 @@ public class ThreatManager : MonoBehaviour
 
 
     }
-    public GameObject NearestHighestThreat(float range)
+    public EntityInfo NearestHighestThreat(float range)
     {
 
-        GameObject target = null;
+        EntityInfo target = null;
         var furthest = 0f;
         var highestThreat = 0f;
         foreach(var threat in threats)
@@ -592,9 +604,9 @@ public class ThreatManager : MonoBehaviour
             var distance = V3Helper.Distance(threat.threatObject.transform.position, entityObject.transform.position);
             if(distance <= range && distance > furthest && threat.threatValue > highestThreat)
             {
-                target = threat.threatObject;
+                target = threat.threatInfo;
 
-                if (!lineOfSight.HasLineOfSight(target)) continue;
+                if (!lineOfSight.HasLineOfSight(target.gameObject)) continue;
                 furthest = distance;
                 highestThreat = threat.threatValue;
             }

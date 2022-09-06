@@ -159,8 +159,8 @@ namespace Architome
                 var newBuff = buffManager.ApplyBuff(new(buff.gameObject, ability));
                 if (ability.targetLocked && newBuff)
                 {
-                    newBuff.targetObject = ability.targetLocked;
-                    newBuff.targetInfo = ability.targetLocked.GetComponent<EntityInfo>();
+                    newBuff.targetObject = ability.targetLocked.gameObject;
+                    newBuff.targetInfo = ability.targetLocked;
                 }
             }
         }

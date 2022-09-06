@@ -8,7 +8,7 @@ namespace Architome
     public class CombatNoControl : CombatType
     {
         // Start is called before the first frame update
-        GameObject target;
+        EntityInfo target;
         new void GetDependencies()
         {
             base.GetDependencies();
@@ -48,6 +48,8 @@ namespace Architome
             if (entity.workerState != WorkerState.Idle) return;
             target = combat.GetFocus() ? combat.GetFocus() : combat.target;
 
+            if (target == null) return;
+
             if (UsingAbility())
             {
                 return;
@@ -61,7 +63,7 @@ namespace Architome
 
         }
 
-        void OnSetFocus(GameObject target)
+        void OnSetFocus(EntityInfo target)
         {
 
             OnCombatRoutine();
@@ -124,8 +126,8 @@ namespace Architome
 
                 if (target == null) return false;
 
-                abilityManager.location = this.target.transform.position;
-                abilityManager.target = this.target;
+                abilityManager.location = target.transform.position;
+                abilityManager.target = target;
                 abilityManager.Cast(ability);
 
                 return true;

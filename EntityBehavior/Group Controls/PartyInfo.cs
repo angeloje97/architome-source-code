@@ -167,14 +167,14 @@ namespace Architome
             {
                 if (abilityManager)
                 {
-                    abilityManager.target = target.gameObject;
+                    abilityManager.target = target;
                     abilityManager.Attack();
                     abilityManager.target = null;
                 }
 
                 if (combatBehavior)
                 {
-                    combatBehavior.SetFocus(target.gameObject);
+                    combatBehavior.SetFocus(target);
                 }
             };
 

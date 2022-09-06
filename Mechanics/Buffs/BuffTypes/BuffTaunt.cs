@@ -8,7 +8,7 @@ namespace Architome
     {
         // Start is called before the first frame update
         public BuffStateChanger stateChanger;
-        public GameObject originalFocus;
+        public EntityInfo originalFocus;
 
 
         public new void GetDependencies()
@@ -64,7 +64,7 @@ namespace Architome
             if (buffInfo == null) { return; };
 
             originalFocus = buffInfo.hostInfo.CombatBehavior().GetFocus();
-            buffInfo.hostInfo.AIBehavior().CombatBehavior().SetFocus(buffInfo.sourceObject);
+            buffInfo.hostInfo.AIBehavior().CombatBehavior().SetFocus(buffInfo.sourceInfo);
             
         }
 

@@ -50,8 +50,8 @@ public class AbilityInfo : MonoBehaviour
     public Role appropriateRole;
     public ClassType appropriateClassType;
 
-    public GameObject target;
-    public GameObject targetLocked;
+    public EntityInfo target;
+    public EntityInfo targetLocked;
     public Vector3 location;
     public Vector3 locationLocked;
     public Vector3 directionLocked;
@@ -277,7 +277,7 @@ public class AbilityInfo : MonoBehaviour
     public Action<AbilityInfo> WhileCasting;
     public Action<AbilityInfo, List<(string, bool)>> OnReadyCheck { get; set; }
     public Action<AbilityInfo, List<bool>> OnBusyCheck;
-    public Action<AbilityInfo, GameObject, List<bool>, List<bool>> OnCorrectTargetCheck;
+    public Action<AbilityInfo, EntityInfo, List<bool>, List<bool>> OnCorrectTargetCheck;
     public Action<AbilityInfo> OnInterrupt;
     public List<AugmentType> augmentAbilities;
 
@@ -1096,7 +1096,7 @@ public class AbilityInfo : MonoBehaviour
 
         if (onlyCastSelf || abilityType == AbilityType.Use)
         {
-            target = entityObject;
+            target = entityInfo;
         }
 
         if (!target)
@@ -1150,7 +1150,7 @@ public class AbilityInfo : MonoBehaviour
 
         if (abilityType == AbilityType.LockOn && target == null) return false;
 
-        if (!lineOfSight.HasLineOfSight(target))
+        if (!lineOfSight.HasLineOfSight(target.gameObject))
         {
             if (movement)
             {
@@ -1365,16 +1365,15 @@ public class AbilityInfo : MonoBehaviour
             OnCatalystRelease?.Invoke(newCatalyst);
         }
     }
-    public bool IsCorrectTarget(GameObject target)
+    public bool IsCorrectTarget(EntityInfo target)
     {
+        var info = target;
         if(target == null) { return true; }
-        var info = target.GetComponent<EntityInfo>();
 
-        if (info == null) return false;
 
         if(!canCastSelf)
         {
-            if (target == entityObject)
+            if (info == entityInfo)
             {
                 return false;    
             }
@@ -1382,6 +1381,8 @@ public class AbilityInfo : MonoBehaviour
 
         var orChecks = new List<bool>();
         var andChecks = new List<bool>();
+
+
         OnCorrectTargetCheck?.Invoke(this, target, orChecks, andChecks);
         foreach(var check in orChecks) { if (check) return true; }
         foreach(var check in andChecks) { if (!check) return false; }
@@ -1676,10 +1677,10 @@ public class AbilityInfo : MonoBehaviour
         location = position;
         Cast();
     }
-    public void CastAt(GameObject target)
+    public void CastAt(EntityInfo target)
     {
         if (IsBusy()) return;
-        if(GetComponentInParent<AbilityManager>() == null) { return; }
+        if(abilityManager == null) { return; }
         this.target = target;
         Cast();
     }

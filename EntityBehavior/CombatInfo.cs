@@ -109,8 +109,8 @@ public class CombatInfo : MonoBehaviour
             entity.OnExperienceGain += OnExperienceGain;
             entity.OnDamagePreventedFromShields += OnDamagePreventedFromShields;
 
-            var threatManager = entity.GetComponentInChildren<ThreatManager>();
-            threatManager.OnGenerateThreat += OnGenerateThreat;
+            entity.combatEvents.OnGenerateThreat += OnGenerateThreat;
+
 
             ArchAction.Delay(() => {
                 levels = new();
@@ -285,20 +285,18 @@ public class CombatInfo : MonoBehaviour
         castedBy.Remove(target);
         OnTargetedByEvent?.Invoke(this);
     }
-    public void OnNewTarget(GameObject previousTarget, GameObject newTarget)
+    public void OnNewTarget(EntityInfo previousInfo, EntityInfo newInfo)
     {
-        if(previousTarget != null)
+        if(previousInfo != null)
         {
-            var previousInfo = previousTarget.GetComponent<EntityInfo>();
             var combatInfo = previousInfo.GetComponentInChildren<CombatInfo>();
             combatInfo.RemoveTarget(entityInfo.gameObject);
 
         }
 
-        if(newTarget != null)
+        if(newInfo != null)
         {
             if (ignoreIndicator) return;
-            var newInfo = newTarget.GetComponent<EntityInfo>();
             var combatInfo = newInfo.GetComponentInChildren<CombatInfo>();
             combatInfo.AddTarget(entityInfo.gameObject);
         }
