@@ -347,7 +347,7 @@ namespace Architome
 
                 if (nullPortrait)
                 {
-                    results = results.Where(entity => entity.PortraitIcon(false) == null).ToList();
+                    results = results.Where(entity => entity.PortraitIcon() == null).ToList();
                 }
 
                 if (character)
@@ -513,6 +513,17 @@ namespace Architome
                 }
 
                 keys.Add(archClass._id);
+            }
+
+            keys = new();
+
+            foreach (var room in Rooms)
+            {
+                if (keys.Contains(room._id))
+                {
+                    throw new Exception($"Duplicated id of {room._id} of {room}");
+                }
+                keys.Add(room._id);
             }
 
 

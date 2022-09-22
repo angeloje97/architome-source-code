@@ -29,6 +29,9 @@ namespace Architome
         public Effects effects;
 
         public Action OnMove;
+        public UnityEvent OnUnityMove;
+        public UnityEvent OnHoldStart;
+        public UnityEvent OnHoldEnd;
         public void GetSpots()
         {
             foreach (Transform child in transform)
@@ -59,6 +62,7 @@ namespace Architome
             location.y = transform.position.y;
 
             OnMove?.Invoke();
+            OnUnityMove?.Invoke();
             transform.LookAt(location);
 
             transform.position = originalLocation;
@@ -128,6 +132,7 @@ namespace Architome
         {
             if (isHolding) return;
             OnHoldingChange?.Invoke(true);
+            OnHoldStart?.Invoke();
             effects.pointingParticle?.Play(true);
             await Task.Delay(125);
             isHolding = true;
@@ -139,6 +144,7 @@ namespace Architome
             }
 
             isHolding = false;
+            OnHoldEnd?.Invoke();
             effects.pointingParticle?.Stop(true);
             OnHoldingChange?.Invoke(false);
         }

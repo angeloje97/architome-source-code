@@ -475,12 +475,14 @@ public class CatalystHit : MonoBehaviour
         {
             foreach (GameObject buff in abilityInfo.buffs)
             {
-                if (buff.GetComponent<BuffInfo>() && (buff.GetComponent<BuffInfo>().buffTargetType == buffType || buff.GetComponent<BuffInfo>().buffTargetType == BuffTargetType.Neutral))
+                var buffInfo = buff.GetComponent<BuffInfo>();
+                if (buffInfo && (buffInfo.buffTargetType == buffType || buffInfo.buffTargetType == BuffTargetType.Neutral))
                 {
-                    if(targetInfo.Buffs())
+                    var buffManager = targetInfo.Buffs();
+
+                    if (buffManager)
                     {
-                        //targetInfo.Buffs().ApplyBuff(buff, catalystInfo.entityInfo, abilityInfo, catalystInfo);
-                        targetInfo.Buffs().ApplyBuff(new(buff, catalystInfo));
+                        buffManager.ApplyBuff(new(buff, catalystInfo));
                     }
                 }
             }

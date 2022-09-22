@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -98,7 +99,67 @@ namespace Architome
             return entityList;
         }
 
-        
+        public static void ProcessEntitiesInRange(Vector3 location, float radius, LayerMask entityLayer, Action<EntityInfo> process)
+        {
+            Collider[] entitiesWithinRange = Physics.OverlapSphere(location, radius, entityLayer);
+
+            foreach (var collider in entitiesWithinRange)
+            {
+                var entity = collider.GetComponent<EntityInfo>();
+                if (entity == null) continue;
+
+                process(entity);
+            }
+        }
+
+        public static void ProcessEntitiesWithinLOS(Vector3 location, float radius, LayerMask entityLayer, LayerMask structureLayer, Action<EntityInfo> process)
+        {
+            Collider[] entitiesWithinRange = Physics.OverlapSphere(location, radius, entityLayer);
+
+            foreach (var collider in entitiesWithinRange)
+            {
+                var entity = collider.GetComponent<EntityInfo>();
+                if (entity == null) continue;
+
+                if(V3Helper.IsObstructed(entity.transform.position, location, structureLayer))
+                {
+                    continue;
+                }
+
+                process(entity);
+            }
+        }
+
+        public static void ProcessEntitiesInRange(Vector3 location, float radius, bool requiresLOS, LayerMask structureLayer, LayerMask entityLayer, Action<EntityInfo> process)
+        {
+            Collider[] entitiesWithinRange = Physics.OverlapSphere(location, radius, entityLayer);
+
+            foreach (var collider in entitiesWithinRange)
+            {
+                var entity = collider.GetComponent<EntityInfo>();
+                if (entity == null) continue;
+
+                if (requiresLOS)
+                {
+                    var direction = V3Helper.Direction(entity.transform.position, location);
+                    var distance = V3Helper.Distance(entity.transform.position, location);
+
+                    var ray = new Ray(location, direction);
+
+                    if(Physics.Raycast(ray, distance, structureLayer))
+                    {
+                        continue;
+                    }
+                }
+
+                process(entity);
+            }
+
+            //entityList = entitiesWithinRange.Select(entity => entity.GetComponent<EntityInfo>()).OrderBy(entity => Vector3.Distance(entity.transform.position, location)).ToList();
+
+        }
+
+
 
         public static List<EntityInfo> EntitiesWithinLOS(Vector3 position, float radius)
         {

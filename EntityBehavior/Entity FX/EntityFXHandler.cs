@@ -307,7 +307,7 @@ namespace Architome
             if (effect.particleEffect == null) return;
             if (particleManager == null) return;
 
-            var particle = particleManager.Play(effect.particleEffect, true);
+            var (particle, particleObj) = particleManager.Play(effect.particleEffect, true);
 
             HandleTransform();
             HandleOffset();

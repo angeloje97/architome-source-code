@@ -5,70 +5,95 @@ using System;
 using System.Linq;
 using Architome.Enums;
 
-public class CharacterBodyParts : MonoBehaviour
+namespace Architome
 {
-    [Serializable]
-    public class VectorBodyPart
+    public class CharacterBodyParts : MonoBehaviour
     {
-        public BodyPart part;
-        public Transform target;
-    }
-
-    public List<VectorBodyPart> partPairs;
-    public Sprite characterIcon;
-
-    //public GameObject rightHand;
-    //public GameObject rightThumb;
-    //public GameObject leftHand;
-    //public GameObject leftThumb;
-    //public GameObject spine;
-    //public GameObject hips;
-    //public GameObject hipsAttachment;
-    //public GameObject backAttachment;
-    //public GameObject capeAttachment;
-
-    private void OnValidate()
-    {
-        var enums = Enum.GetValues(typeof(BodyPart));
-
-        if (partPairs == null)
+        public EntityInfo entity;
+        [Serializable]
+        public class VectorBodyPart
         {
-            partPairs = new();
+            public BodyPart part;
+            public Transform target;
         }
 
-        foreach (BodyPart part in enums)
+        public List<VectorBodyPart> partPairs;
+        public Sprite characterIcon;
+
+        //public GameObject rightHand;
+        //public GameObject rightThumb;
+        //public GameObject leftHand;
+        //public GameObject leftThumb;
+        //public GameObject spine;
+        //public GameObject hips;
+        //public GameObject hipsAttachment;
+        //public GameObject backAttachment;
+        //public GameObject capeAttachment;
+
+        private void OnValidate()
         {
-            if (GetPair(part) == null)
+            var enums = Enum.GetValues(typeof(BodyPart));
+
+            if (partPairs == null)
             {
-                partPairs.Add(new() { part = part });
+                partPairs = new();
             }
-        }
-    }
 
-    public VectorBodyPart GetPair(BodyPart check)
-    {
-        foreach (var pair in partPairs)
-        {
-            if (pair.part == check)
+            foreach (BodyPart part in enums)
             {
-                return pair;
+                if (GetPair(part) == null)
+                {
+                    partPairs.Add(new() { part = part });
+                }
             }
         }
 
-        return null;
-    }
-
-    public Transform BodyPartTransform(BodyPart check)
-    {
-
-        foreach (var pair in partPairs)
+        private void Start()
         {
-            if (pair.part == check)
+            GetDepedencies();
+        }
+
+        void GetDepedencies()
+        {
+            entity = GetComponentInParent<EntityInfo>();
+            
+            if(entity)
             {
-                return pair.target;
+                if (characterIcon)
+                {
+                    entity.infoEvents.OnNullPortraitCheck += (EntityInfo info) => {
+                        info.SetPortrait(characterIcon);
+                    };
+                }
             }
         }
 
-        return transform;
+        public VectorBodyPart GetPair(BodyPart check)
+        {
+            foreach (var pair in partPairs)
+            {
+                if (pair.part == check)
+                {
+                    return pair;
+                }
+            }
+
+            return null;
+        }
+
+        public Transform BodyPartTransform(BodyPart check)
+        {
+
+            foreach (var pair in partPairs)
+            {
+                if (pair.part == check)
+                {
+                    return pair.target;
+                }
+            }
+
+            return transform;
+        }
     }
+
 }

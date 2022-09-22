@@ -13,8 +13,8 @@ namespace Architome
 
         //events
 
-        public Action<GameObject> OnWorldReviveB;
-        public Action<GameObject> OnWorldReviveA;
+        public Action<EntityInfo> OnWorldReviveB { get; set; }
+        public Action<EntityInfo> OnWorldReviveA { get; set; }
 
         public bool devToolsActive;
         public float value;
@@ -71,7 +71,7 @@ namespace Architome
             GetDependencies();
         }
 
-        public void Restore(GameObject entity, float health = 1, float mana = 1)
+        public void Restore(EntityInfo entity, float health = 1, float mana = 1)
         {
             var entityInfo = entity.GetComponent<EntityInfo>();
             if (entityInfo == null) { return; }
@@ -139,17 +139,16 @@ namespace Architome
             }
         }
 
-        public void Revive(GameObject entity, Vector3 position = new Vector3(), float health = 1, float mana = 1)
+        public void Revive(EntityInfo entity, Vector3 position = new Vector3(), float health = 1, float mana = 1)
         {
-            var entityInfo = entity.GetComponent<EntityInfo>();
-            if (entityInfo == null) { return; }
+            if (entity == null) { return; }
 
             OnWorldReviveB?.Invoke(entity);
 
             if (position != new Vector3())
             {
                 entity.transform.position = position;
-                entityInfo.currentRoom = entityInfo.CurrentRoom();
+                entity.currentRoom = entity.CurrentRoom();
             }
 
 
@@ -198,7 +197,7 @@ namespace Architome
             return newItem;
         }
 
-        public void ReviveAtSpawnBeacon(GameObject entity)
+        public void ReviveAtSpawnBeacon(EntityInfo entity)
         {
             var entityInfo = entity.GetComponent<EntityInfo>();
             var lastSpawnBeacon = GMHelper.WorldInfo().currentSpawnBeacon;
@@ -208,7 +207,7 @@ namespace Architome
 
             var randomPosition = lastSpawnBeacon.RandomPosition();
 
-            Revive(entity, randomPosition, .25f, .25f);
+            Revive(entityInfo, randomPosition, .25f, .25f);
             entityInfo.OnReviveThis?.Invoke(new(lastSpawnBeacon) { percentValue = .25f });
 
             lastSpawnBeacon.spawnEvents.OnSpawnEntity?.Invoke(entityInfo);

@@ -136,7 +136,7 @@ namespace Architome
             var particle = fx.particle;
             if (particle == null) return;
 
-            var particleObj = particleManager.Play(particle, true);
+            var (particleSys, particleObj) = particleManager.Play(particle, true);
 
             HandleTarget();
             HandleOffsets();

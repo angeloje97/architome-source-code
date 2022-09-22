@@ -17,6 +17,15 @@ namespace Architome
         [SerializeField] float walkSpeed = 1f;
         [SerializeField] float runSpeed = 1f;
 
+
+
+        
+
+        void Start()
+        {
+            GetDependencies();
+            ApplySettings();
+        }
         new void GetDependencies()
         {
             base.GetDependencies();
@@ -41,19 +50,34 @@ namespace Architome
                 entityInfo.OnLifeChange += OnLifeChange;
                 entityInfo.OnDamageTaken += OnDamageTaken;
                 entityInfo.OnCombatChange += OnCombatChange;
-                
+
+                HandleTaskAnimation();
             }
         }
 
-        
-
-        void Start()
+        void HandleTaskAnimation()
         {
-            GetDependencies();
-            ApplySettings();
+
+            animator.SetInteger("TaskID", -1);
+            entityInfo.taskEvents.OnStartTask += delegate (TaskEventData eventData) {
+                animator.SetInteger("TaskID", eventData.task.effects.taskAnimationID);
+            };
+
+            entityInfo.taskEvents.OnLingeringStart += delegate (TaskEventData eventData)
+            {
+                animator.SetInteger("TaskID", -1);
+                ArchAction.Delay(() => animator.SetInteger("TaskID", eventData.task.effects.lingeringAnimationID), .25f);
+            };
+
+            entityInfo.taskEvents.OnEndTask += delegate (TaskEventData eventData)  {
+                animator.SetInteger("TaskID", -1);
+            };
+
+            entityInfo.taskEvents.OnLingeringEnd += delegate (TaskEventData eventData)
+            {
+                animator.SetInteger("TaskID", -1);
+            };
         }
-
-
         // Update is called once per frame
         void Update()
         {

@@ -22,12 +22,52 @@ namespace Architome
             canvas.blocksRaycasts = val;
 
 
+
             async void UpdateCanvas()
             {
-                while (canvas != null && canvas.alpha != targetAlpha)
+                if (lerpValue < 1)
                 {
-                    canvas.alpha = Mathf.Lerp(canvas.alpha, targetAlpha, lerpValue);
-                    await Task.Yield();
+                    while (canvas != null && canvas.alpha != targetAlpha)
+                    {
+                        canvas.alpha = Mathf.Lerp(canvas.alpha, targetAlpha, lerpValue);
+                        await Task.Yield();
+                    }
+                }
+                else
+                {
+                    canvas.alpha = targetAlpha;
+                }
+            }
+        }
+
+        public static async Task SetCanvasAsync(CanvasGroup canvas, bool val, float lerpValue = 1f)
+        {
+            if (canvas == null) return;
+
+            if (canvas == null) return;
+
+            var targetAlpha = val ? 1 : 0;
+
+            await UpdateCanvas();
+
+            canvas.interactable = val;
+            canvas.blocksRaycasts = val;
+
+
+
+            async Task UpdateCanvas()
+            {
+                if (lerpValue < 1)
+                {
+                    while (canvas != null && canvas.alpha != targetAlpha)
+                    {
+                        canvas.alpha = Mathf.Lerp(canvas.alpha, targetAlpha, lerpValue);
+                        await Task.Yield();
+                    }
+                }
+                else
+                {
+                    canvas.alpha = targetAlpha;
                 }
             }
         }

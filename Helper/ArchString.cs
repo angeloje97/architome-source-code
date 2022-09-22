@@ -98,7 +98,7 @@ namespace Architome
             return line;
         }
 
-        public static string NextLineList(List<string> stringList)
+        public static string NextLineList(List<string> stringList, int extraSpace = 0)
         {
             var result = "";
 
@@ -106,7 +106,10 @@ namespace Architome
             {
                 if (result.Length > 0 && stringValue.Length > 0)
                 {
-                    result += "\n";
+                    for (int i = 0; i < extraSpace+1; i++)
+                    {
+                        result += "\n";
+                    }
                 }
 
                 result += stringValue;

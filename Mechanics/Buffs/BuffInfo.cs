@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using Architome.Enums;
 using System;
@@ -148,10 +149,31 @@ public class BuffInfo : MonoBehaviour
     public Action<BuffInfo, int, float> OnStack;
     public Action<BuffInfo, float, float> OnChangeValue;
 
+    LayerMask structureLayer;
+    LayerMask entityLayer;
+
 
     public static List<BuffInfo> buffs;
 
     bool powerSet;
+    private void Awake()
+    {
+        GetDependencies();
+    }
+
+    public void Start()
+    {
+        ArchAction.Yield(() => { 
+            if(!failed) OnBuffStart?.Invoke(this);
+            if (properties.time <= 0) Expire();
+                
+        });
+    }
+    private void Update()
+    {
+        if (properties.time <= 0) return;
+        HandleTimer();
+    }
 
     public void SetId(int id, bool forceChange = false)
     {
@@ -234,7 +256,8 @@ public class BuffInfo : MonoBehaviour
         }
     }
 
-    private void Awake()
+
+    void GetDependencies()
     {
         buffTimeComplete = false;
         buffTimer = properties.time;
@@ -242,21 +265,19 @@ public class BuffInfo : MonoBehaviour
         buffIcon = Icon();
         GetVessel();
         UpdateValues();
-        //Invoke("SpawnParticle", .125f);
         StartCoroutine(BuffIntervalHandler());
-    }
 
+        var layerMasksData = LayerMasksData.active;
+
+        if (layerMasksData)
+        {
+            entityLayer = layerMasksData.entityLayerMask;
+            structureLayer = layerMasksData.structureLayerMask;
+        }
+    }
     public void ApplyBaseValue(float value)
     {
         properties.value = value * properties.valueContributionToBuff;
-    }
-    public void Start()
-    {
-        ArchAction.Delay(() => { if(!failed) OnBuffStart?.Invoke(this); }, .0625f);
-    }
-    private void Update()
-    {
-        HandleTimer();
     }
 
 
@@ -461,26 +482,26 @@ public class BuffInfo : MonoBehaviour
                 buffTimer = 0;
                 buffTimeComplete = true;
                 OnBuffCompletion?.Invoke(this);
-                StartCoroutine(Expire());
+                Expire();
             }
         }
     }
     public void Deplete()
     {
         OnBuffDeplete?.Invoke(this);
-        StartCoroutine(Expire());
+        Expire();
     }
     public void Cleanse(string reason = "")
     {
         OnBuffCleanse?.Invoke(this);
-        StartCoroutine(Expire());
+        Expire();
     }
     public void CompleteEarly()
     {
         stacks = 0;
         buffTimer = 0;
     }
-    public IEnumerator Expire()
+    public async void Expire()
     {
         OnBuffEnd?.Invoke(this);
         buffTimeComplete = true;
@@ -500,7 +521,7 @@ public class BuffInfo : MonoBehaviour
             buffsManager.OnResetBuff -= OnResetBuff;
         }
 
-        yield return new WaitForSeconds(1f);
+        await Task.Delay(1000);
         Destroy(gameObject);
     }
     IEnumerator BuffIntervalHandler()
@@ -597,6 +618,57 @@ public class BuffInfo : MonoBehaviour
 
 
         return allyList;
+    }
+
+    public List<EntityInfo> EntitiesWithinRange(bool requiresLOS, Predicate<EntityInfo> valid)
+    {
+        var entityList = new List<EntityInfo>();
+
+        Entity.ProcessEntitiesInRange(transform.position, properties.radius, entityLayer, (EntityInfo entity) => {
+
+            if (requiresLOS)
+            {
+                if (V3Helper.IsObstructed(entity.transform.position, transform.position, structureLayer)) return;
+            }
+
+            if (!valid(entity)) return;
+
+            entityList.Add(entity);
+        });
+
+        return entityList;
+    }
+    public void ProcessEntitiesInRange(Action<EntityInfo> processes)
+    {
+
+        var entities = Physics.OverlapSphere(hostInfo.transform.position, properties.radius, entityLayer);
+
+        foreach (var entity in entities)
+        {
+            var info = entity.GetComponent<EntityInfo>();
+            if (info == null) continue;
+
+            processes(info);
+        }
+    }
+
+    public void ProcessEntitiesLineOfSight(Action<EntityInfo> process)
+    {
+        var entities = Physics.OverlapSphere(transform.position, properties.radius, entityLayer);
+
+        foreach (var entity in entities)
+        {
+            var info = entity.GetComponent<EntityInfo>();
+            if (info == null) continue;
+
+            var direction = V3Helper.Direction(entity.transform.position, transform.position);
+            var distance = V3Helper.Distance(entity.transform.position, transform.position);
+            var ray = new Ray(transform.position, direction);
+
+            if (Physics.Raycast(ray, distance, structureLayer)) continue;
+
+            process(info);
+        }
     }
     public void HandleTargetHealth(EntityInfo target, float val, BuffTargetType targettingType)
     {

@@ -90,7 +90,7 @@ namespace Architome
                 if (fx.particleObject == null) return;
                 if (particleManager == null) return;
 
-                var particle = particleManager.Play(fx.particleObject, !fx.loopParticle);
+                var (particle, particleObj) = particleManager.Play(fx.particleObject, !fx.loopParticle);
                 
                 if (particle == null) return;
                 particle.transform.SetParent(catalystManager.transform);

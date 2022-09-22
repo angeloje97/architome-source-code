@@ -156,7 +156,7 @@ namespace Architome
                     OnScrollWheel?.Invoke(Input.mouseScrollDelta.y);
                 }
 
-                if (Input.GetKeyDown(KeyCode.Mouse2))
+                if (Input.GetKeyDown(bindings.keyBinds["CameraRotator"]))
                 {
                     OnMiddleMouse?.Invoke();
                 }

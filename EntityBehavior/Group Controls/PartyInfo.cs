@@ -33,6 +33,7 @@ namespace Architome
             public Action<bool> OnCombatChange;
             public Action<EntityInfo> OnAddMember;
             public Action<EntityInfo> OnRemoveMember;
+            public Action<PartyFormation> OnMoveFormation;
             public Action<string> OnTransferScene;
             public Action<EntityInfo> OnPartyAttack;
         }
@@ -233,9 +234,9 @@ namespace Architome
         {
             if (partyControl != EntityControlType.PartyControl) return;
 
-            if (Mouse.CurrentHoverObject())
+            var currentObject = Mouse.CurrentHoverObject();
+            if (currentObject)
             {
-                var currentObject = Mouse.CurrentHoverObject();
 
                 if (HandleClickable(currentObject)) { return; }
                 else if (partyFormation && targetManager.currentHover == null)
@@ -244,8 +245,6 @@ namespace Architome
                     if (location == new Vector3(0, 0, 0)) { return; }
 
                     MovePartyTo(location);
-                    //partyFormation.MoveFormation(location);
-                    //MoveParty();
                 }
                 else if (targetManager.currentHover != null)
                 {
@@ -281,7 +280,10 @@ namespace Architome
         {
             for (int i = 0; i < members.Count; i++)
             {
-                EntityInfo memberInfo = members[i].GetComponent<EntityInfo>();
+                var memberInfo = members[i];
+                var movement = memberInfo.Movement();
+
+
 
                 if (memberInfo.Movement())
                 {

@@ -35,21 +35,24 @@ namespace Architome
             public bool resetOnCancel;
             public bool damageCancelsTask;
             public bool hideFromPlayers;
+        }
 
-            [Header("Effects")]
+        [Serializable]
+        public class Effects
+        {
             public int taskAnimationID;
             public int lingeringAnimationID;
-            public AudioClip workingSound;
-            public AudioClip completionSound;
-
+            public AudioClip workingSound, completionSound;
         }
 
         [Serializable]
         struct TaskWorkers
         {
+            public int maxWorkers;
             public List<EntityInfo> working;
             public List<EntityInfo> onTheWay;
             public List<EntityInfo> lingering;
+
 
             public void Reset()
             {
@@ -84,6 +87,8 @@ namespace Architome
         }
 
         public TaskProperties properties;
+        public Effects effects;
+
         [SerializeField]
         TaskWorkers workers;
         
@@ -93,6 +98,14 @@ namespace Architome
         TaskCompletionEvent completionEvents;
 
 
+
+        public void OnValidate()
+        {
+            //effects.workingSound = properties.workingSound;
+            //effects.completionSound = properties.completionSound;
+            //effects.taskAnimationID = properties.taskAnimationID;
+            //effects.lingeringAnimationID = properties.lingeringAnimationID;
+        }
 
         //Private variables
         float previousWorkDone;
@@ -307,17 +320,28 @@ namespace Architome
         public bool CanWork(EntityInfo entity)
         {
             TaskEventData eventData = new(this);
+            var station = properties.station;
+
+
+
             if (states.currentState != TaskState.Available)
             {
+                if (workers.Total() >= properties.maxWorkers)
+                {
+                    entity.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Max workers reached");
+                    station.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Max workers reached");
+                    return false;
+                }
+
                 entity.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Task not available");
-                properties.station.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Task not available");
+                station.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Task not available");
                 return false;
             }
 
             if (properties.noCombat && entity.isInCombat)
             {
                 entity.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Must be out of combat");
-                properties.station.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Must be out of combat");
+                station.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Must be out of combat");
                 return false;
             }
 
@@ -326,7 +350,7 @@ namespace Architome
             if (HostileEntitiesInRoom() && properties.noHostileMobsInRoom)
             {
                 entity.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Hostile mobs are still in this room");
-                properties.station.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Hostile mobs are still in this room");
+                station.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Hostile mobs are still in this room");
                 return false;
             }
 

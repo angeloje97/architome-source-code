@@ -50,6 +50,7 @@ namespace Architome
             ["SelectMultiple"] = KeyCode.LeftShift,
             ["SelectObject"] = KeyCode.Mouse0,
             ["Select"] = KeyCode.Mouse0,
+            ["CameraRotator"] = KeyCode.Mouse2,
 
             ["Action"] = KeyCode.Mouse1,
 
@@ -89,6 +90,7 @@ namespace Architome
             ["SelectMultiple"] = KeyCode.LeftShift,
             ["SelectObject"] = KeyCode.Mouse0,
             ["Select"] = KeyCode.Mouse0,
+            ["CameraRotator"] = KeyCode.Mouse2,
 
             ["Action"] = KeyCode.Mouse1,
 
@@ -178,6 +180,10 @@ namespace Architome
             if (keyCodeIndexes[key] == 0) return -1;
 
             return keyCodeIndexes[key];
+        }
+        public int SpriteIndex(string keyName)
+        {
+            return SpriteIndex(keyBinds[keyName]);
         }
 
         public void SaveKeyBindings()

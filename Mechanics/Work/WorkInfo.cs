@@ -4,12 +4,15 @@ using UnityEngine;
 using System;
 using Architome.Enums;
 using System.Linq;
+using UnityEditor;
 
 namespace Architome
 {
     [RequireComponent(typeof(Clickable))]
+    [RequireComponent(typeof(WorkFX))]
     public class WorkInfo : MonoBehaviour
     {
+        public string workName;
         public static List<WorkInfo> workStations { get; set; }
         List<WorkInfo> workStationsDebugging;
 
@@ -41,6 +44,29 @@ namespace Architome
             taskEvents.OnTaskComplete += HandleTaskComplete;
         }
 
+        private void Awake()
+        {
+            HandleGlobal(true);
+        }
+
+        private void OnDestroy()
+        {
+            HandleGlobal(false);
+        }
+
+        void OnValidate()
+        {
+            if (workName == null || workName.Trim().Length == 0)
+            {
+                workName = name;
+            }
+        }
+
+        void Update()
+        {
+
+        }
+
         void HandleTaskComplete(TaskEventData eventData)
         {
             ArchAction.Yield(() => {
@@ -65,16 +91,6 @@ namespace Architome
 
         void HandleCount()
         {
-        }
-
-        private void Awake()
-        {
-            HandleGlobal(true);
-        }
-
-        private void OnDestroy()
-        {
-            HandleGlobal(false);
         }
 
         void HandleGlobal(bool adding)
@@ -157,21 +173,9 @@ namespace Architome
         }
         
         
-        // Start is called before the first frame update
-
-        private void OnValidate()
-        {
-            foreach(var task in tasks)
-            {
-                task.properties.station = this;
-            }
-        }
 
         // Update is called once per frame
-        void Update()
-        {
 
-        }
 
         public TaskInfo Task(string taskString)
         {

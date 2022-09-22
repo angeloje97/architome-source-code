@@ -18,7 +18,7 @@ namespace Architome
 
         void Start()
         {
-            
+            if (!generateBossKilled && !generateForcesKilled) return;
 
             GetDependencies();
         }

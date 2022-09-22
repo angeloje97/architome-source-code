@@ -6,8 +6,7 @@ using Architome.Enums;
 using Architome;
 public class ActionBarsInfo : MonoBehaviour
 {
-    // Start is called before the first frame update
-
+    public static ActionBarsInfo active;
 
     public List<ActionBarBehavior> actionBars;
     public List<ActionBarBehavior> miscActionBars;
@@ -25,25 +24,16 @@ public class ActionBarsInfo : MonoBehaviour
         GameManager.active.OnNewPlayableEntity += OnNewPlayableEntity;
     }
 
+    private void Awake()
+    {
+        active = this;
+    }
+
     // Update is called once per frame
     void Update()
     {
         
     }
-
-    //public void SetMainActionBarsParty(AbilityInfo abilityInfo, int actionBarIndex)
-    //{
-    //    if(actionBars == null) { return; }
-    //    if(actionBarIndex >= actionBars.Count) { return; }
-    //    actionBars[actionBarIndex].SetActionBar(abilityInfo);
-    //}
-
-    //public void SetPartyPortrait(EntityInfo entity, int actionBarIndex)
-    //{
-    //    if(actionBars == null) { return; }
-    //    if(actionBarIndex >= actionBars.Count) { return; }
-    //    actionBars[actionBarIndex].SetCharacterPortrait(entity);
-    //}
 
     public void OnNewPlayableEntity(EntityInfo newEntity, int index)
     {

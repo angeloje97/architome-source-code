@@ -1,7 +1,9 @@
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Architome.Enums;
 
 namespace Architome.Tutorial
 {
@@ -9,7 +11,11 @@ namespace Architome.Tutorial
     {
         public Action<EventListener> OnSuccesfulEvent, OnNewEvent;
         public List<EventListener> eventListeners;
+       
         public Transform listenerTarget;
+
+        public float delay;
+        public float delayBetweenDirections;
 
         private void OnValidate()
         {
@@ -23,28 +29,52 @@ namespace Architome.Tutorial
 
         void Start()
         {
-            GetListenerTargets();
+            ArchAction.Delay(() => GetListenerTargets(), delay);
         }
         void GetListenerTargets()
         {
             if (listenerTarget == null) return;
 
-            eventListeners = new();
+            eventListeners = listenerTarget.GetComponents<EventListener>().ToList();
 
-            int amount = 0;
+            if (eventListeners.Count == 0) return;
 
-            foreach (var listener in listenerTarget.GetComponents<EventListener>())
+            var notificationManager = NotificationManager.active;
+
+            HandleNotification(eventListeners[0], notificationManager);
+
+            for (int i = 0; i < eventListeners.Count - 1; i++)
             {
-                if (amount == 0)
+
+                var nextListener = eventListeners[i + 1];
+                
+                eventListeners[i].OnSuccessfulEvent += (EventListener listener) =>
                 {
-                    listener.StartEventListener();
-                }
+                    ArchAction.Delay(() => {
+                        HandleNotification(nextListener, notificationManager);
+                    }, delayBetweenDirections);
+                    
+                };
 
-                eventListeners.Add(listener);
-                listener.OnSuccessfulEvent += HandleSuccesfulEvent;
 
-                amount++;
             }
+        }
+
+        public async void HandleNotification(EventListener listener, NotificationManager manager)
+        {
+            listener.StartEventListener();
+            var direction = await manager.CreateDirectionNotification(new(NotificationType.Primary) {
+                name = listener.title,
+                description = listener.NotificationDescription(),
+                dismissable = false,
+            });
+
+            listener.OnSuccessfulEvent +=  (EventListener listener) => {
+                direction.CompleteDirection();
+                direction.Bump();
+                SystemAudio.PlayNotification(NotificationType.Info);
+
+            };
         }
 
         public void HandleSuccesfulEvent(EventListener listener)
@@ -57,6 +87,7 @@ namespace Architome.Tutorial
             eventListeners[index + 1].StartEventListener();
 
             OnNewEvent?.Invoke(eventListeners[index + 1]);
+
         }
     }
 }

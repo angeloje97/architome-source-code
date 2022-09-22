@@ -68,7 +68,7 @@ namespace Architome
 
             foreach(var member in members)
             {
-                WorldActions.active.ReviveAtSpawnBeacon(member.gameObject);
+                WorldActions.active.ReviveAtSpawnBeacon(member);
                 spawnerInfo.spawnEvents.OnReviveEntity?.Invoke(member);
                 await Task.Delay(500);
             }

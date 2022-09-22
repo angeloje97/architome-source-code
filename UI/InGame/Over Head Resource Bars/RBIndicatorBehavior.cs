@@ -7,6 +7,7 @@ public class RBIndicatorBehavior : MonoBehaviour
 {
     // Start is called before the first frame update
     //I have no idea what the RB stands for in RBIndicatorBehavior.
+    // It stands for Resource Bar
     
     public EntityInfo entityInfo;
     public CombatBehavior combatBehavior;

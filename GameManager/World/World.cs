@@ -20,6 +20,8 @@ namespace Architome
 
         public float baseMovementSpeed;
         public float baseWalkSpeed;
+        public bool noDisappearOnDeath;
+
 
         [Serializable]
         public class UIPrefabs

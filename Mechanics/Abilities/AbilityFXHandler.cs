@@ -97,14 +97,21 @@ namespace Architome
 
             foreach (var effect in newCatalyst.effects.abilityEffects)
             {
-                if (info.effectMap.ContainsKey(effect.trigger))
+                if (!info.effectMap.ContainsKey(effect.trigger))
                 {
-                    info.effectMap[effect.trigger].Add(effect);
+                    info.effectMap.Add(effect.trigger, new());
                 }
-                else
-                {
-                    info.effectMap.Add(effect.trigger, new() { effect });
-                }
+
+                info.effectMap[effect.trigger].Add(effect);
+
+                //if (info.effectMap.ContainsKey(effect.trigger))
+                //{
+                //    info.effectMap[effect.trigger].Add(effect);
+                //}
+                //else
+                //{
+                //    info.effectMap.Add(effect.trigger, new() { effect });
+                //}
             }
         }
 
@@ -230,13 +237,13 @@ namespace Architome
 
             if (status)
             {
-                var newParticle = particleManager.Play(effect.particle);
+                var (newParticle, particleObj) = particleManager.Play(effect.particle);
 
                 
-                gameObjects.Add(newParticle.gameObject);
+                gameObjects.Add(particleObj);
 
 
-                HandleParticleTransform(effect, newParticle.GetComponent<ParticleSystem>());
+                HandleParticleTransform(effect, particleObj, newParticle);
                 
 
                 newParticle.transform.localScale += effect.offsetScale;
@@ -259,7 +266,7 @@ namespace Architome
             {
                 for (int i = 0; i < gameObjects.Count; i++)
                 {
-                    gameObjects[i].GetComponent<ParticleSystem>().Stop();
+                    gameObjects[i].GetComponentInChildren<ParticleSystem>().Stop(true);
                     var current = gameObjects[i];
 
                     gameObjects.RemoveAt(i);
@@ -284,7 +291,7 @@ namespace Architome
                 return new Vector3(value, value, value);
             }
         }
-        async void HandleParticleTransform(CatalystInfo.CatalystEffects.Ability effect, ParticleSystem particle)
+        async void HandleParticleTransform(CatalystInfo.CatalystEffects.Ability effect, GameObject particle, ParticleSystem system)
         {
             if (effect.target == CatalystParticleTarget.Self)
             {
@@ -307,7 +314,7 @@ namespace Architome
             Transform bodyPart1 = bodyPart.BodyPartTransform(effect.bodyPart);
             Transform bodyPart2 = bodyPart.BodyPartTransform(effect.bodyPart2);
 
-            while (particle.isPlaying)
+            while (system.isPlaying)
             {
 
                 if (effect.target == CatalystParticleTarget.BetweenBodyParts)

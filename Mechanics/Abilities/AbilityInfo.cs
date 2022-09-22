@@ -254,7 +254,9 @@ public class AbilityInfo : MonoBehaviour
     public bool nullifyDamage;
     public bool interruptable;
     public bool isAttack;
-    public bool active; //State if the ability can be casted.
+    public bool active;
+
+    //State if the ability can be casted.
     public bool usesWeaponAttackDamage { get; set; }
 
     [Header("Ability Timers")]
@@ -281,6 +283,8 @@ public class AbilityInfo : MonoBehaviour
     public Action<AbilityInfo> OnInterrupt;
     public List<AugmentType> augmentAbilities;
 
+    public Action<AbilityInfo, bool> OnActiveChange;
+    public Action<AbilityInfo, int> OnChargesChange;
 
 
     //Augments
@@ -339,7 +343,8 @@ public class AbilityInfo : MonoBehaviour
     {
         GetDependencies();
         HandleInitiates();
-        
+        HandleEvents();
+
         active = true;
 
         void HandleInitiates()
@@ -355,6 +360,28 @@ public class AbilityInfo : MonoBehaviour
         HandleWantsToCast();
         HandleDeadTarget();
         HandleAutoAttack();
+    }
+
+    public async void HandleEvents()
+    {
+        var activeCheck = !active;
+        var chargeCheck = -1;
+        while (this)
+        {
+            if (activeCheck != active)
+            {
+                activeCheck = active;
+                OnActiveChange?.Invoke(this, active);
+            }
+
+            if (chargeCheck != coolDown.charges)
+            {
+                chargeCheck = coolDown.charges;
+                OnChargesChange?.Invoke(this, coolDown.charges);
+            }
+
+            await Task.Yield();
+        }
     }
     public void OnStartMove(Movement movement)
     {

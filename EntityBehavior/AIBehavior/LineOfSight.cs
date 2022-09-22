@@ -5,6 +5,7 @@ using Architome.Enums;
 using Architome;
 using System.Linq;
 using System.Threading.Tasks;
+using System;
 
 namespace Architome
 {
@@ -182,7 +183,7 @@ namespace Architome
 
             for (int i = 0; i < entitiesWithinLineOfSight.Count; i++)
             {
-                var entity = entitiesWithinLineOfSight[i].GetComponent<EntityInfo>();
+                var entity = entitiesWithinLineOfSight[i];
 
                 if (!entity.isAlive)
                 {
@@ -242,134 +243,6 @@ namespace Architome
 
             entitiesWithinLineOfSight.Remove(target);
         }
-
-        //public void DetectionCheck()
-        //{
-        //    if(entityObject == null)
-        //    {
-        //        return;
-        //    }
-
-        //    Collider[] rangeChecks = Physics.OverlapSphere(entityObject.transform.position, radius, targetLayer);
-        //    var entities = Entity.EntitesWithinLOS(entityObject.transform.position, radius);
-
-
-        //    foreach(Collider check in rangeChecks)
-        //    {
-        //        if(!entitiesDetected.Contains(check.gameObject))
-        //        {
-        //            if(check.GetComponent<EntityInfo>())
-        //            {
-        //                if(check.GetComponent<EntityInfo>() == entityInfo)
-        //                {
-        //                    continue;
-        //                }
-
-        //                if(check.GetComponent<EntityInfo>().isAlive)
-        //                {
-        //                    if(check.GetComponent<EntityInfo>().currentRoom == null || 
-        //                        (check.GetComponent<EntityInfo>().currentRoom && check.GetComponent<EntityInfo>().currentRoom.isRevealed))
-        //                    {
-        //                        entitiesDetected.Add(check.gameObject);
-        //                    }
-
-        //                }
-        //            }
-        //        }
-        //    }
-
-        //    for(int i = 0; i < entitiesDetected.Count; i++)
-        //    {
-        //        bool isDetected = false;
-
-        //        foreach(Collider collide in rangeChecks)
-        //        {
-        //            if(collide.gameObject == entitiesDetected[i])
-        //            {
-        //                isDetected = true;
-        //            }
-        //        }
-
-        //        //Out of Range
-        //        if(!isDetected)
-        //        {
-        //            PlayerOutOfRangeCheck(entitiesDetected[i]);
-        //            entitiesDetected.RemoveAt(i);
-        //            i--;
-        //        }
-        //    }
-
-        //    DeadCheck();
-        //    //PlayerLineOfSightCheck();
-        //}
-
-        //public void PlayerLineOfSightCheck()
-        //{
-        //    if(!isPlayer) { return; }
-        //    for(int i = 0; i < entitiesDetected.Count; i++)
-        //    {
-        //        if(!entityInfo.CanAttack(entitiesDetected[i])) { continue; }
-
-        //        var isInLineOfSight = enemiesWithinLineOfSight.Contains(entitiesDetected[i]);
-
-        //        if(HasLineOfSight(entitiesDetected[i]))
-        //        {
-        //            if (!isInLineOfSight)
-        //            {
-        //                entitiesDetected[i].GetComponent<EntityInfo>().OnPlayerLineOfSight?.Invoke(entityInfo, partyInfo);
-        //                enemiesWithinLineOfSight.Add(entitiesDetected[i]);
-        //            }
-        //        }
-        //        else
-        //        {
-        //            if(isInLineOfSight)
-        //            {
-        //                entitiesDetected[i].GetComponent<EntityInfo>().OnPlayerLOSBreak?.Invoke(entityInfo, partyInfo);
-        //                entitiesDetected.RemoveAt(i);
-        //                i--;
-        //            }
-        //        }
-        //    }
-        //}
-
-        //public void PlayerOutOfRangeCheck(GameObject target)
-        //{
-        //    if (!isPlayer) { return; }
-        //    target.GetComponent<EntityInfo>().OnPlayerOutOfRange?.Invoke(entityInfo, partyInfo);
-        //}
-
-        //public void RangeCheck()
-        //{
-        //    foreach(GameObject entity in entitiesDetected)
-        //    {
-        //        if(V3Helper.Distance(entity.transform.position, entityObject.transform.position) > radius + 2)
-        //        {
-
-
-        //            entitiesDetected.Remove(entity);
-        //            MemberLosCheck(entity);
-
-
-        //            return;
-        //        }
-        //    }
-        //}
-        //public void DeadCheck()
-        //{
-        //    for(int i = 0; i < entitiesDetected.Count; i++)
-        //    {
-        //        var entity = entitiesDetected[i];
-        //        if(entity.GetComponent<EntityInfo>())
-        //        {
-        //            if(!entity.GetComponent<EntityInfo>().isAlive)
-        //            {
-        //                entitiesDetected.RemoveAt(i);
-        //                i--;
-
-        //            }
-        //        }
-        //    }
-        //}
         public void MemberLosCheck(GameObject target)
         {
             if (partyInfo == null)
@@ -390,6 +263,20 @@ namespace Architome
                 }
             }
 
+        }
+
+        public List<EntityInfo> DetectedEntities(Predicate<EntityInfo> predicate)
+        {
+            var entityList = new List<EntityInfo>();
+
+            foreach (var entity in entitiesWithinLineOfSight)
+            {
+                if (!predicate(entity)) continue;
+
+                entityList.Add(entity);
+            }
+
+            return entityList;
         }
         public List<EntityInfo> DetectedEntities(NPCType npcType)
         {
@@ -412,9 +299,8 @@ namespace Architome
             var entityList = new List<EntityInfo>();
             var listCheck = partyInfo ? partyInfo.members : entitiesWithinLineOfSight;
 
-            foreach (var entity in listCheck)
+            foreach (var info in listCheck)
             {
-                var info = entity.GetComponent<EntityInfo>();
 
                 if (info.npcType == entityInfo.npcType)
                 {
@@ -431,9 +317,8 @@ namespace Architome
         {
             var entities = new List<EntityInfo>();
 
-            foreach (var entity in entitiesWithinLineOfSight)
+            foreach (var info in entitiesWithinLineOfSight)
             {
-                var info = entity.GetComponent<EntityInfo>();
                 if (info == null) continue;
                 entities.Add(info);
             }
@@ -445,9 +330,9 @@ namespace Architome
         {
             var entityList = new List<EntityInfo>();
 
-            foreach (var entity in entitiesWithinLineOfSight)
+            foreach (var info in entitiesWithinLineOfSight)
             {
-                var info = entity.GetComponent<EntityInfo>();
+                
                 if (info == null) continue;
 
                 var distance = V3Helper.Distance(info.transform.position, entityInfo.transform.position);
@@ -472,9 +357,8 @@ namespace Architome
         {
             var entityList = new List<EntityInfo>();
 
-            foreach (var entity in entitiesWithinLineOfSight)
+            foreach (var info in entitiesWithinLineOfSight)
             {
-                var info = entity.GetComponent<EntityInfo>();
                 if (info == null) continue;
                 var distance = V3Helper.Distance(info.transform.position, entityInfo.transform.position);
                 if (distance > range) continue;

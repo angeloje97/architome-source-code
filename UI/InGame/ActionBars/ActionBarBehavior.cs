@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -29,10 +30,9 @@ public class ActionBarBehavior : MonoBehaviour
 
     //Events
     public Action<AbilityInfo, int> OnChargeChange;
+    public Action<AbilityInfo, AbilityInfo> OnAbilityChange;
     public Action<AbilityInfo> OnNewAbility;
 
-    //EventHandlers
-    int chargeCheck;
     public void GetDependencies()
     {
         keyBindings = KeyBindings.active;
@@ -45,11 +45,12 @@ public class ActionBarBehavior : MonoBehaviour
             keyBindings.OnLoadBindings += OnLoadBindings;
         }
 
-        
+        OnAbilityChange += HandleAbilityChange;
     }
     void Start()
     {
         GetDependencies();
+        HandleEvents();
     }
 
     // Update is called once per frame
@@ -57,7 +58,6 @@ public class ActionBarBehavior : MonoBehaviour
     {
         if (!isActive) { return; }
         HandleActionBars();
-        HandleEvents();
     }
 
     public void OnAbilityKey(int number)
@@ -131,17 +131,50 @@ public class ActionBarBehavior : MonoBehaviour
             {
                 iconMain.fillAmount = abilityInfo.coolDown.progress;
             }
-            
+
         }
     }
 
-    public void HandleEvents()
+    public async void HandleEvents()
     {
-        if(chargeCheck != abilityInfo.coolDown.charges)
+        var previousAbility = abilityInfo;
+
+        while (this)
         {
-            chargeCheck = (int) abilityInfo.coolDown.charges;
-            OnChargeChange?.Invoke(abilityInfo, chargeCheck);
+            if (previousAbility != abilityInfo)
+            {
+                OnAbilityChange?.Invoke(previousAbility, abilityInfo);
+                previousAbility = abilityInfo;
+                Debugger.Combat(6490, $"Ability Changed to {abilityInfo}");
+            }
+            await Task.Yield();
         }
+    }
+
+    void HandleAbilityChange(AbilityInfo before, AbilityInfo after)
+    {
+        if (before)
+        {
+            before.OnActiveChange -= OnAbilityActiveChange;
+            before.OnChargesChange -= OnAbilityChargesChange;
+            
+        }
+
+        if (after)
+        {
+            after.OnActiveChange += OnAbilityActiveChange;
+            after.OnChargesChange += OnAbilityChargesChange;
+        }
+    }
+
+    void OnAbilityActiveChange(AbilityInfo ability, bool active)
+    {
+        DisplayAbilityActive(active);
+    }
+
+    void OnAbilityChargesChange(AbilityInfo ability, int charges)
+    {
+        OnChargeChange?.Invoke(ability, charges);
     }
     public void SetImage(bool val)
     {
@@ -170,13 +203,13 @@ public class ActionBarBehavior : MonoBehaviour
             keyBindText.text = keyBindings.keyBinds[$"Ability{actionBarNum}"].ToString().ToUpper();
             keyBindText.gameObject.SetActive(val);
         }
-
-        //if(keyBindText)
-        //{
-        //    keyBindText.text = keyBindings.keyBinds[keyBind].ToString().ToUpper();
-        //    keyBindText.gameObject.SetActive(val);
-        //}
-        
+    }
+    public void DisplayAbilityActive(bool val)
+    {
+        if (iconMain)
+        {
+            iconMain.gameObject.SetActive(val);
+        }
     }
 
     public void OnLoadBindings(KeyBindings bindings)
@@ -186,6 +219,11 @@ public class ActionBarBehavior : MonoBehaviour
     public void SetKeyBindText()
     {
         keyBindText.text = keyBindings.keyBinds[$"Ability{actionBarNum}"].ToString().ToUpper();
+    }
+
+    public int SpriteIndex(KeyBindings bindings)
+    {
+        return bindings.SpriteIndex($"Ability{actionBarNum}");
     }
     public void SetActionBar(AbilityInfo abilityInfo)
     {
@@ -203,6 +241,7 @@ public class ActionBarBehavior : MonoBehaviour
         iconDark.sprite = abilityInfo.abilityIcon;
         iconDark.color = darkenedColor;
         OnNewAbility?.Invoke(abilityInfo);
+        DisplayAbilityActive(abilityInfo.active);
 
         SetImage(true);
 

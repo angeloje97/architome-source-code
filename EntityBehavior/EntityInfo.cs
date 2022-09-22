@@ -44,6 +44,8 @@ namespace Architome
 
         int saveIndex = -1;
 
+        
+
         public int SaveIndex { get { return saveIndex; } set { saveIndex = value; } }
 
         public string entityName;
@@ -128,6 +130,7 @@ namespace Architome
             public Action<EntityInfo, bool, GameObject> OnMouseHover;
             public Action<Vector3> OnSignificantMovementChange;
             public Action<EntityRarity, EntityRarity> OnRarityChange;
+            public Action<EntityInfo> OnNullPortraitCheck;
         }
 
         public struct CombatEvents
@@ -820,6 +823,12 @@ namespace Architome
             }
             else
             {
+                var world = World.active;
+                if (world.noDisappearOnDeath)
+                {
+                    return;
+                }
+
                 Decay();
             }
         }
@@ -853,7 +862,11 @@ namespace Architome
 
             return NPCType.Hostile;
         }
-        public Sprite PortraitIcon(bool fixPortrait = true)
+        public void SetPortrait(Sprite sprite)
+        {
+
+        }
+        public Sprite PortraitIcon()
         {
 
             if (entityPortrait != null)
@@ -861,16 +874,9 @@ namespace Architome
                 return entityPortrait;
             }
 
-            var bodyPart = GetComponentInChildren<CharacterBodyParts>();
-            
-            if (bodyPart && bodyPart.characterIcon && fixPortrait)
-            {
-                entityPortrait = bodyPart.characterIcon;
+            infoEvents.OnNullPortraitCheck?.Invoke(this);
 
-                return entityPortrait;
-            }
-
-            return null;
+            return entityPortrait;
         }
         public bool LootItem(ItemInfo itemInfo, bool fromWorld = false)
         {
@@ -1244,6 +1250,10 @@ namespace Architome
         public AudioManager SoundEffect()
         {
             return GetComponentsInChildren<AudioManager>().First(manager => manager.mixerGroup == GMHelper.Mixer().SoundEffect);
+        }
+        public CharacterBodyParts BodyParts()
+        {
+            return EntityComponent<CharacterBodyParts>();
         }
         public ParticleManager ParticleManager()
         {

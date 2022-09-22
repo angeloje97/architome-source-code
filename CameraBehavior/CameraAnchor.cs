@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Threading.Tasks;
 using Architome.Enums;
+using System;
+using UnityEditor;
 
 namespace Architome
 {
@@ -20,10 +22,15 @@ namespace Architome
         public float smoothSpeed = .125f;
         public float rotationSpeed = 5;
 
+        public Action<float, float> OnAngleChange;
+        public KeyBindings keyBindData;
+
+
         void GetDependencies()
         {
             ArchInput.active.OnMiddleMouse += OnMiddleMouse;
             CameraManager.active.cameraAnchor = this;
+            keyBindData = KeyBindings.active;
 
 
             var gameManager = GameManager.active;
@@ -42,17 +49,27 @@ namespace Architome
         void Start()
         {
             GetDependencies();
+            HandleEvents();
             anchorYVal = transform.eulerAngles.y;
         }
-
-        public void OnNewPlayableParty(PartyInfo party, int index)
-        {
-            target = party.center;
-        }
-
         private void Awake()
         {
             active = this;
+        }
+
+        async void HandleEvents()
+        {
+            float anchorYCheck = anchorYVal;
+            while (this)
+            {
+                await Task.Yield();
+
+                if (anchorYCheck != anchorYVal)
+                {
+                    OnAngleChange?.Invoke(anchorYCheck, anchorYVal);
+                    anchorYCheck = anchorYVal;
+                }
+            }
         }
 
         // Update is called once per frame
@@ -61,14 +78,41 @@ namespace Architome
             FollowTarget();
             HandleRotation();
         }
+
+        public void OnNewPlayableParty(PartyInfo party, int index)
+        {
+            target = party.center;
+        }
+
         async void OnMiddleMouse()
         {
             if (Mouse.IsMouseOverUI()) return;
-            while (!Input.GetKeyUp(KeyCode.Mouse2))
+            var keyCode = keyBindData.keyBinds["CameraRotator"];
+            while (!Input.GetKeyUp(keyCode))
             {
                 await Task.Yield();
                 anchorYVal += Input.GetAxis("Mouse X") * rotationSpeed;
+                
+                if (anchorYVal < 0)
+                {
+                    anchorYVal += 360;
+                    AngleJump(360);
+                }
+
+                if (anchorYVal > 360)
+                {
+                    anchorYVal -= 360;
+                    AngleJump(-360);
+                }
+
+
             }
+        }
+
+        public void AngleJump(float amount)
+        {
+            anchorRotation = new Vector3(0, anchorRotation.y + amount, 0);
+
         }
 
         public void FollowTarget()
@@ -86,6 +130,7 @@ namespace Architome
             anchorRotation = Vector3.Lerp(anchorRotation, desiredRotation, smoothSpeed);
 
             transform.rotation = Quaternion.Euler(anchorRotation);
+
         }
 
     }

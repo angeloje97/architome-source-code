@@ -190,9 +190,9 @@ namespace Architome
             if (effect.particleObj == null) return;
             if (particleManager == null) return;
 
-            var system = particleManager.Play(effect.particleObj, true);
+            var (system, particleObj) = particleManager.Play(effect.particleObj, true);
 
-            HandleParticleTransform(effect, system.gameObject);
+            HandleParticleTransform(effect, particleObj);
             
             system.transform.position += effect.offsetPosition;
             system.transform.localScale += effect.offsetScale;

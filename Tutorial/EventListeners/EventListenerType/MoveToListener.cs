@@ -43,6 +43,7 @@ namespace Architome.Tutorial
 
         void Start()
         {
+            base.GetDependencies();
             HandleStart();
         }
 
@@ -54,7 +55,7 @@ namespace Architome.Tutorial
         {
             if (active) return;
             active = true;
-            while (!activated)
+            while (!completed)
             {
                 await Task.Yield();
 
@@ -70,7 +71,40 @@ namespace Architome.Tutorial
 
             active = false;
 
-            ActivateEventListener();
+            CompleteEventListener();
+        }
+
+        public override string Directions()
+        {
+
+            var selectKeyIndex = keyBindData.SpriteIndex("Select");
+            var actionKeyIndex = keyBindData.SpriteIndex("Action");
+            return $"To move {sourceInfo.entityName}, select them with (Select <sprite={selectKeyIndex}> ) and then use (Action <sprite={actionKeyIndex}>) on a location you want to move them.";
+        }
+
+        public override string Tips()
+        {
+            var stringList = new List<string>() {
+                base.Tips()
+            };
+        
+            var members = sourceInfo.transform.parent.GetComponentsInChildren<EntityInfo>();
+
+            var memberIndex = 0;
+
+            for (int i = 0; i < members.Length; i++)
+            {
+                if (members[i] != sourceInfo) continue;
+                memberIndex = i;
+            }
+
+            var alternateActionIndex = keyBindData.SpriteIndex($"AlternateAction{memberIndex}");
+            stringList.Add(
+                $"Tip: Alternatively, you can use (Member Action {memberIndex + 1} <sprite={alternateActionIndex}> ) on a desired location to move party member ({memberIndex + 1}) without having to select the them."
+            );
+
+            return ArchString.NextLineList(stringList);
+
         }
 
         public override void StartEventListener()
@@ -93,7 +127,7 @@ namespace Architome.Tutorial
         void OnStartMove(Movement movement)
         {
             movement.OnStartMove -= OnStartMove;
-            ActivateEventListener();
+            CompleteEventListener();
         }
     }
 }

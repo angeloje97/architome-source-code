@@ -12,7 +12,8 @@ namespace Architome
 
         public bool manifestMaxX;
         public bool manifestMaxY;
-        
+        public bool ignoreInactives;
+
         public Vector2 offSet, min;
         public Vector2 max = new(float.PositiveInfinity, float.PositiveInfinity);
 
@@ -26,6 +27,8 @@ namespace Architome
             test = false;
             AdjustToSize();
         }
+
+
         public void AdjustToSize()
         {
             if (target == null) target = transform;
@@ -62,6 +65,7 @@ namespace Architome
 
             foreach (var trans in targetWidths)
             {
+                if (ignoreInactives && !trans.gameObject.activeSelf) continue;
                 var rectTrans = trans.GetComponent<RectTransform>();
 
                 if (rectTrans.rect.width > max)
@@ -79,6 +83,7 @@ namespace Architome
 
             foreach (var trans in targetHeights)
             {
+                if (ignoreInactives && !trans.gameObject.activeSelf) continue;
                 var rectTrans = trans.GetComponent<RectTransform>();
 
                 if (rectTrans.rect.height > max)

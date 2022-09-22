@@ -34,6 +34,8 @@ namespace Architome
             public Image buttonColor;
             public Color enableColor;
             public Color disableColor;
+
+            public Image background, border;
         }
 
         public Info info;
@@ -67,6 +69,16 @@ namespace Architome
             buttonName.text = name;
         }
 
+        public void SetButton(string name, Action action)
+        {
+            if (buttonName)
+            {
+                buttonName.text = name;
+            }
+
+            OnClick += (ArchButton) => { action(); };
+        }
+
         public void SetButton(bool val)
         {
             var buttonColor = val ? info.enableColor : info.disableColor;
@@ -84,6 +96,11 @@ namespace Architome
         }
 
         
+        public void SetBorder(Color color)
+        {
+            if (info.border == null) return;
+            info.border.color = color;
+        }
 
         public void OnPointerEnter(PointerEventData eventData)
         {

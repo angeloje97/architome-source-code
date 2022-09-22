@@ -186,6 +186,19 @@ namespace Architome.Enums
         Catalyst,
     }
 
+    public enum NotificationEvent
+    {
+        OnStart,
+        OnComplete,
+        OnInterval,
+        OnDismiss,
+        OnAppear,
+        OnFirstAppear,
+        OnHide,
+        BeforeHide,
+        OnBump,
+    }
+
     public enum AbilityType2
     {
         Passive,

@@ -39,7 +39,7 @@ namespace Architome
         public void SetEntity(EntityInfo entity)
         {
             this.entity = entity;
-            info.entityIcon.sprite = entity.PortraitIcon(true);
+            info.entityIcon.sprite = entity.PortraitIcon();
             info.entityName.text = $"{entity.entityName}";
             info.healthMana.text = $"Health: {entity.maxHealth} Mana: {entity.maxMana}";
             info.level.text = $"Level: {entity.entityStats.Level}";

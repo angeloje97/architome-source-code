@@ -132,18 +132,6 @@ namespace Architome
                 }
 
                 ability.active = true;
-                //if (child.GetComponent<AbilityInfo>())
-                //{
-                //    if (child.GetComponent<AbilityInfo>().isAttack || child.GetChild)
-                //    {
-                //        attackAbility = child.GetComponent<AbilityInfo>();
-                //    }
-                //    else
-                //    {
-                //        abilities.Add(child.GetComponent<AbilityInfo>());
-                //    }
-                //    child.GetComponent<AbilityInfo>().active = true;
-                //}
             }
 
 
@@ -255,10 +243,11 @@ namespace Architome
                     continue;
                 }
 
-                if (ability == currentlyCasting)
+                if (!val && ability == currentlyCasting)
                 {
                     ability.OnInterrupt?.Invoke(ability);
                 }
+
                 ability.active = val;
             }
         }
