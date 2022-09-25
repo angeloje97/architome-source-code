@@ -10,6 +10,7 @@ namespace Architome
         public BuffStateChanger stateChanger;
         public EntityInfo originalFocus;
 
+        bool active;
 
         public new void GetDependencies()
         {
@@ -27,7 +28,7 @@ namespace Architome
                 }
 
                 stateChanger.OnSuccessfulStateChange += OnSuccessfulStateChange;
-                stateChanger.OnStateChangerEnd += OnStateChangerEnd;
+                //stateChanger.OnStateChangerEnd += OnStateChangerEnd;
 
             }
             
@@ -63,23 +64,44 @@ namespace Architome
             if (state != EntityState.Taunted) return;
             if (buffInfo == null) { return; };
 
-            originalFocus = buffInfo.hostInfo.CombatBehavior().GetFocus();
-            buffInfo.hostInfo.AIBehavior().CombatBehavior().SetFocus(buffInfo.sourceInfo);
-            
-        }
+            active = true;
 
-        void OnStateChangerEnd(BuffStateChanger stateChanger, EntityState newState)
-        {
-            if (buffInfo == null) { return; }
-            if (newState == EntityState.Taunted)
+            var combatBehavior = buffInfo.hostInfo.CombatBehavior();
+
+            originalFocus = combatBehavior.GetFocus();
+
+            combatBehavior.OnCanFocusCheck += OnCanFocusCheck;
+
+            buffInfo.OnBuffEnd += delegate (BuffInfo buff) {
+                combatBehavior.OnCanFocusCheck -= OnCanFocusCheck;
+
+                buffInfo.hostInfo.CombatBehavior().SetFocus(originalFocus);
+            };
+
+            Debugger.Combat(4395, $"Taunting target {buffInfo.hostInfo}");
+            combatBehavior.SetFocus(buffInfo.sourceInfo);
+            
+            
+            void OnCanFocusCheck(EntityInfo entity, EntityInfo target, List<bool> setFocusChecks)
             {
-                return;
+                if (!active) return;
+                setFocusChecks.Add(target == buffInfo.sourceInfo);
+                
             }
-
-            
-            buffInfo.hostInfo.CombatBehavior().SetFocus(originalFocus);
-
         }
+
+
+        //void OnStateChangerEnd(BuffStateChanger stateChanger, EntityState newState)
+        //{
+        //    if (buffInfo == null) { return; }
+        //    if (newState == EntityState.Taunted)
+        //    {
+        //        return;
+        //    }
+
+        //    active = false;
+        //    buffInfo.hostInfo.CombatBehavior().SetFocus(originalFocus);
+        //}
     }
 
 }

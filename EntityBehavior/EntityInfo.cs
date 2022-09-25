@@ -128,7 +128,7 @@ namespace Architome
             public Action<Inventory.LootEventData> OnLootItem;
             public Action<Inventory.LootEventData> OnLootItemFromWorld;
             public Action<EntityInfo, bool, GameObject> OnMouseHover;
-            public Action<Vector3> OnSignificantMovementChange;
+            public Action<Vector3> OnSignificantMovementChange { get; set; }
             public Action<EntityRarity, EntityRarity> OnRarityChange;
             public Action<EntityInfo> OnNullPortraitCheck;
         }

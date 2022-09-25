@@ -105,7 +105,7 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
 
 
     //Event Handlers
-    public void OnDrop(PointerEventData eventData)
+    public virtual void OnDrop(PointerEventData eventData)
     {
         if (!interactable) return;
         if (eventData.pointerDrag == null) { return; }
@@ -115,7 +115,7 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
 
         droppedItem.HandleNewSlot(this);
     }
-    public void OnPointerEnter(PointerEventData eventData)
+    public virtual void OnPointerEnter(PointerEventData eventData)
     {
         if (eventData.pointerDrag == null) { return; }
         if (!eventData.pointerDrag.GetComponent<ItemInfo>()) { return; }
@@ -124,7 +124,7 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
 
         draggingItem.currentSlotHover = this;
     }
-    public void OnPointerExit(PointerEventData eventData)
+    public virtual void OnPointerExit(PointerEventData eventData)
     {
         if (eventData.pointerDrag == null) { return; }
         if (!eventData.pointerDrag.GetComponent<ItemInfo>()) { return; }

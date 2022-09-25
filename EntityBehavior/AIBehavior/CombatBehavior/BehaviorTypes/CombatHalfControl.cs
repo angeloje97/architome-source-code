@@ -65,8 +65,8 @@ namespace Architome
             if (UsingAbility()) return;
             if (UsingHealingAbility()) return;
 
-
-            var target = combat.GetFocus() != null ? combat.GetFocus() : combat.target;
+            var focusTarget = combat.GetFocus();
+            var target = focusTarget != null ? focusTarget : combat.target;
             HandleHarm(target);
             HandleAutoHeal();
 
@@ -217,6 +217,7 @@ namespace Architome
             if(behavior.combatType != CombatBehaviorType.Reactive) { return; }
 
             var newThreat = threatManager.NearestHighestThreat(abilityManager.attackAbility.range);
+            if (newThreat == null) return;
 
             if (!los.HasLineOfSight(newThreat.gameObject) || !abilityManager.attackAbility.AbilityIsInRange(newThreat.gameObject)) return;
 

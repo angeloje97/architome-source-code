@@ -230,6 +230,22 @@ namespace Architome
                 return Instantiate(entity, newPosition, new Quaternion());
             }
         }
+
+        public EntityInfo MoveEntity(EntityInfo entity, Vector3 position, LayerMask groundLayer)
+        {
+            var offset = entity.GetComponent<BoxCollider>().size.y / 2;
+
+            var node = AstarPath.active.GetNearest(position);
+
+            var newPosition = node.position;
+
+            var groundPosition = V3Helper.GroundPosition(newPosition, groundLayer, 0, offset);
+
+            entity.transform.position = groundPosition;
+            entity.infoEvents.OnSignificantMovementChange?.Invoke(position);
+
+            return entity;
+        }
     }
 
 }

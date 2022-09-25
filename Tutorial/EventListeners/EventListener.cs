@@ -17,9 +17,11 @@ namespace Architome.Tutorial
         public event Action<EventListener> OnSuccessfulEvent;
         public event Action<EventListener> OnFailEvent;
         public event Action<EventListener> OnStartEvent;
+        public event Action<EventListener> OnEndEvent;
         public UnityEvent OnStartEventUnity;
         public UnityEvent OnSuccessfulEventUnity;
         public UnityEvent OnFailEventUnity;
+        public UnityEvent OnEndEventUnity;
 
         public bool listenOnStart;
         [SerializeField] protected bool initiated;
@@ -71,6 +73,8 @@ namespace Architome.Tutorial
             completed = true;
             OnSuccessfulEvent?.Invoke(this);
             OnSuccessfulEventUnity?.Invoke();
+            OnEndEvent?.Invoke(this);
+            OnEndEventUnity?.Invoke();
 
             Debugger.Environment(4325, $"Completed event {title}");
         } 
@@ -79,6 +83,9 @@ namespace Architome.Tutorial
         {
             OnFailEvent?.Invoke(this);
             OnFailEventUnity?.Invoke();
+
+            OnEndEvent?.Invoke(this);
+            OnEndEventUnity?.Invoke();
         }
 
         public virtual string Directions()

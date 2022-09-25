@@ -49,8 +49,6 @@ namespace Architome
         public int[] abilityIndexPriority;
         public List<SpecialAbility> specialAbilities;
 
-        bool isFixated;
-
         [Serializable]
         public struct HealSettings
         {
@@ -67,12 +65,14 @@ namespace Architome
         //Private fields
 
         //Events
-        public event Action<EntityInfo, EntityInfo> OnNewTarget;
+        public Action<EntityInfo, EntityInfo, List<bool>> OnCanFocusCheck { get; set; }
+        public  Action<EntityInfo, EntityInfo> OnNewTarget { get; set; }
+        public Action<EntityInfo, EntityInfo> OnNewFocusTarget { get; set; }
         public event Action<EntityInfo> OnSetFocus;
 
         //Event Triggers
-        public EntityInfo previousTarget;
-        public EntityInfo previousFocusTarget;
+        EntityInfo previousTarget;
+        EntityInfo previousFocusTarget;
 
         public float tryMoveTimer;
 
@@ -91,6 +91,7 @@ namespace Architome
                 entityInfo.OnHealingDone += OnHealingDone;
 
                 movement = entityInfo.Movement();
+
 
                 if (movement)
                 {
@@ -139,7 +140,13 @@ namespace Architome
             GetDependencies();
             if (threatManager) { StartCoroutine(CombatRoutine()); }
             HandleStartCombatStatus();
+
             
+        }
+        void Update()
+        {
+            HandleEvents();
+            HandleTimers();
         }
 
         async void HandleStartCombatStatus()
@@ -300,20 +307,14 @@ namespace Architome
                 Destroy(combatType.gameObject);
             }
         }
-        public void SetFocus(EntityInfo target, string reason = "", BuffFixateTarget buffFixate = null)
+        public void SetFocus(EntityInfo target, string reason = "")
         {
-            if (entityInfo.states.Contains(EntityState.Taunted)) return;
+            //if (entityInfo.states.Contains(EntityState.Taunted)) return;
 
-            if (!CanFocus(target)) return;            
-
-            if (buffFixate != null)
-            {
-                isFixated = buffFixate.isFixating;
-            }
-            else
-            {
-                if (isFixated) return;
-            }
+            var canFocus = CanFocus(target);
+            
+            if (!canFocus) return;
+         
 
             if (target == null)
             {
@@ -332,7 +333,18 @@ namespace Architome
         }
         public bool CanFocus(EntityInfo target)
         {
+            var setFocusChecks = new List<bool>();
+
+            OnCanFocusCheck?.Invoke(entityInfo, target, setFocusChecks);
+
+
+            foreach (var focusCheck in setFocusChecks)
+            {
+                if (!focusCheck) return false;
+            }
+
             if (target == null) return true;
+
 
             var attackAbility = abilityManager.attackAbility;
             if (attackAbility == null) return false;
@@ -400,12 +412,6 @@ namespace Architome
         }
         public void OnEmptyThreats(ThreatManager threatManager)
         {
-        }
-        void Update()
-        {
-            HandleEvents();
-
-            HandleTimers();
         }
         void HandleEvents()
         {

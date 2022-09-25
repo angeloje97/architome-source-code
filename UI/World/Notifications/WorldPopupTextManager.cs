@@ -106,14 +106,22 @@ namespace Architome
             popUp.SetAnimation(new() { healthChange = true });
         }
 
-        public void GeneralPopUp(Transform target, string text)
+        public WorldPopUpText GeneralPopUp(Transform target, string text, Color color, WorldPopUpText.PopUpParameters parameters = null)
         {
-            if (prefabs.generalNotification == null) return;
-            if (!preferences.popUpPreferences.showGeneral) return;
+            if (prefabs.generalNotification == null) return null;
+            if (!preferences.popUpPreferences.showGeneral) return null;
             var popUp = Instantiate(prefabs.generalNotification, transform).GetComponent<WorldPopUpText>();
-            popUp.SetPopUp(target, text, colors.general);
+            popUp.SetPopUp(target, text, color);
+
+            if (parameters != null)
+            {
+                popUp.SetAnimation(parameters);
+            }
+
 
             ArchAction.Delay(() => { popUp.EndAnimation(); }, 1f);
+
+            return popUp;
         }
     }
 

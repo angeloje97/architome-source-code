@@ -130,7 +130,29 @@ namespace Architome
             anchorRotation = Vector3.Lerp(anchorRotation, desiredRotation, smoothSpeed);
 
             transform.rotation = Quaternion.Euler(anchorRotation);
+        }
 
+        public void DelayFollowing(float delay = 1f)
+        {
+            var originalTransform = target;
+            target = null;
+
+
+            ArchAction.Delay(() => { target = originalTransform; }, delay );
+        }
+
+        public async void DelayFollowingUntil(Task task)
+        {
+            var originalTransform = target;
+            target = null;
+            await task;
+
+            target = originalTransform;
+        }
+
+        public void SetTarget(Transform target)
+        {
+            this.target = target.gameObject;
         }
 
     }

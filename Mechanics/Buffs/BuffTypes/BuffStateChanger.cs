@@ -19,13 +19,16 @@ namespace Architome
 
             if (buffInfo)
             {
-                buffInfo.OnBuffEnd += OnBuffEnd;
 
                 ApplyBuff();
 
                 if (applied == true)
                 {
                     OnSuccessfulStateChange?.Invoke(this, stateToChange);
+                    buffInfo.OnBuffEnd += delegate (BuffInfo buff)
+                    {
+                        HandleRemoveState(buff);
+                    };
                     return;
                 }
                 buffInfo.failed = true;
@@ -58,11 +61,6 @@ namespace Architome
         void Update()
         {
 
-        }
-
-        public void OnBuffEnd(BuffInfo buff)
-        {
-            HandleRemoveState(buff);
         }
 
         public void HandleRemoveState(BuffInfo buff)

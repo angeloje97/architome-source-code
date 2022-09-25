@@ -61,7 +61,7 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
     public Action<ItemInfo, bool> OnDragChange {get; set;}
     public Action<ItemInfo, bool> OnEquipChange {get; set;}
 
-    public Action<ItemInfo, EntityInfo> OnPickUp;
+    public Action<ItemInfo, EntityInfo> OnPickUp { get; set; }
 
     bool isDestroyed;
 

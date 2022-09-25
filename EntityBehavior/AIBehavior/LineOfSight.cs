@@ -113,9 +113,10 @@ namespace Architome
         }
         async void LineOfSightRoutine()
         {
-            while (true)
+            while (this)
             {
                 await Task.Delay((int)(1000 * detectionInterval));
+                
                 if (!entityInfo.isAlive) continue;
                 //DetectionCheck();
                 if (!RoomIsRevealed()) continue;
@@ -149,7 +150,7 @@ namespace Architome
         }
         void Scan()
         {
-            //var entities = Entity.EntitiesWithinLOS(entityObject.transform.position, radius);
+            if (entityObject == null) return;
 
             var entities = Physics.OverlapSphere(entityObject.transform.position, radius, targetLayer);
             var entitiesScanned = new List<EntityInfo>();

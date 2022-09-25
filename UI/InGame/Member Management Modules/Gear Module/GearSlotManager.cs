@@ -23,11 +23,7 @@ namespace Architome
 
 
 
-        public Action<GearSlot> OnIncorrectEquipmentInsertion;
-
-
-
-    //Update Triggers
+        //Update Triggers
         private EntityInfo currentEntity;
 
 
@@ -60,11 +56,6 @@ namespace Architome
         void Start()
         {
             GetDependencies();
-        }
-
-        public void IncorrectEquipmentType(GearSlot slot, string reason = "")
-        {
-            OnIncorrectEquipmentInsertion?.Invoke(slot);
         }
 
         void OnSelectEntity(EntityInfo entity)

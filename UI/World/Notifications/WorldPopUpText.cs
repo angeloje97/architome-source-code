@@ -28,7 +28,10 @@ namespace Architome
         }
 
         public Transform target;
+        public Vector3 lastLocation;
+        public Vector3 offset;
         public Info info;
+        public Camera mainCamera;
 
         public class PopUpParameters
         {
@@ -63,13 +66,29 @@ namespace Architome
             }
         }
 
+        public Vector3 WorldToScreenPoint(Vector3 position)
+        {
+            if (mainCamera == null)
+            {
+                mainCamera = MainCamera3.active;
+            }
+
+            return mainCamera.WorldToScreenPoint(position);
+        }
+
         void StickToTarget()
         {
-            if (target == null) return;
+            if (target == null && lastLocation == new Vector3()) return;
 
-            var position = MainCamera3.active.WorldToScreenPoint(target.position);
+            if (target)
+            {
+                lastLocation = target.position;
+            }
+
+            var position = WorldToScreenPoint(target ? target.position : lastLocation);
 
             position = new Vector3(position.x, position.y, 0);
+            position += offset;
 
             transform.position = position;
         }
@@ -86,6 +105,11 @@ namespace Architome
             
 
             Play();
+        }
+
+        public void SetOffset(Vector3 offset)
+        {
+            this.offset = offset;
         }
 
         async void Play()

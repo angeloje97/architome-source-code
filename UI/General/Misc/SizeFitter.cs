@@ -34,6 +34,7 @@ namespace Architome
             if (target == null) target = transform;
             var rectTransform = target.GetComponent<RectTransform>();
 
+
             var height = V3Helper.Height(targetHeights) + offSet.y;
             var width = V3Helper.Width(targetWidths) + offSet.x;
 
@@ -65,7 +66,7 @@ namespace Architome
 
             foreach (var trans in targetWidths)
             {
-                if (ignoreInactives && !trans.gameObject.activeSelf) continue;
+                if (ignoreInactives && !trans.gameObject.activeInHierarchy) continue;
                 var rectTrans = trans.GetComponent<RectTransform>();
 
                 if (rectTrans.rect.width > max)
@@ -83,7 +84,7 @@ namespace Architome
 
             foreach (var trans in targetHeights)
             {
-                if (ignoreInactives && !trans.gameObject.activeSelf) continue;
+                if (ignoreInactives && !trans.gameObject.activeInHierarchy) continue;
                 var rectTrans = trans.GetComponent<RectTransform>();
 
                 if (rectTrans.rect.height > max)

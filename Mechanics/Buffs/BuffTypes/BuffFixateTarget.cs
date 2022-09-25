@@ -13,9 +13,11 @@ namespace Architome
         {
             base.GetDependencies();
 
-            buffInfo.OnBuffEnd += OnBuffEnd;
+            buffInfo.OnBuffStart += delegate (BuffInfo buff)
+            {
+                ApplyBuff();
 
-            ApplyBuff();
+            };
         }
 
         public void ApplyBuff()
@@ -30,10 +32,24 @@ namespace Architome
                 return;
             }
 
-            originalFocusTarget = buffInfo.hostInfo.CombatBehavior().GetFocus();
+            var combatBehavior = buffInfo.hostInfo.CombatBehavior();
+
+            originalFocusTarget = combatBehavior.GetFocus();
 
             isFixating = true;
-            buffInfo.hostInfo.CombatBehavior().SetFocus(buffInfo.targetInfo, null, this);
+            combatBehavior.SetFocus(buffInfo.targetInfo, null);
+
+            combatBehavior.OnCanFocusCheck += OnCanFocusCheck;
+
+            buffInfo.OnBuffEnd += delegate (BuffInfo buff)
+            {
+                combatBehavior.OnCanFocusCheck -= OnCanFocusCheck;
+                var eventData = new CombatEventData(buff, buff.properties.value);
+                buffInfo.targetInfo.combatEvents.OnFixate?.Invoke(eventData, false);
+                isFixating = false;
+                buffInfo.hostInfo.CombatBehavior().SetFocus(originalFocusTarget, $"Setting original focus target");
+
+            };
 
             if (buffInfo.hostInfo.AbilityManager().attackAbility)
             {
@@ -43,11 +59,19 @@ namespace Architome
                 buffInfo.hostInfo.AbilityManager().Attack();
                 buffInfo.hostInfo.AbilityManager().target = null;
             }
+
+            void OnCanFocusCheck(EntityInfo entity, EntityInfo target, List<bool> setFocusChecks)
+            {
+                setFocusChecks.Add(target == buffInfo.targetInfo);
+                
+            }
         }
         void Start()
         {
             GetDependencies();
         }
+
+
 
         public override string Description()
         {
@@ -69,14 +93,6 @@ namespace Architome
         public override string GeneralDescription()
         {
             return "Forced to focus a target.\n";
-        }
-
-        void OnBuffEnd(BuffInfo buff)
-        {
-            var eventData = new CombatEventData(buff, buff.properties.value);
-            buffInfo.targetInfo.combatEvents.OnFixate?.Invoke(eventData, false);
-            isFixating = false;
-            buffInfo.hostInfo.CombatBehavior().SetFocus(originalFocusTarget, $"Setting original focus target", this);
         }
     }
 

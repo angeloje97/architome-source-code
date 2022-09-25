@@ -11,6 +11,8 @@ namespace Architome
         // Start is called before the first frame update
         [SerializeField] AudioManager audioManager;
         [SerializeField] ParticleManager particleManager;
+        [SerializeField] ItemSlotHandler itemSlotHandler;
+        [SerializeField] WorldPopupTextManager popUpManager;
 
         public ItemInfo worldItemInfo;
 
@@ -19,11 +21,30 @@ namespace Architome
 
         private void Start()
         {
-            GetDependencies();
+            GetDependenciesWorld();
+            GetDependenciesUI();
         }
 
-        
-        void GetDependencies()
+        void GetDependenciesUI()
+        {
+            itemSlotHandler = GetComponent<ItemSlotHandler>();
+            if (itemSlotHandler == null) return;
+
+            HandleCantInsertIntoSlot();
+        }
+        void HandleCantInsertIntoSlot()
+        {
+            var notifications = NotificationManager.active;
+            itemSlotHandler.OnCantInsertToSlot += async delegate (InventorySlot slot, ItemInfo item, string reason)
+            {
+                var notification = await notifications.CreateNotification(new(NotificationType.Warning) {
+                    name = item.item.itemName,
+                    description = reason,
+                    dismissable = true
+                });
+            };
+        }
+        void GetDependenciesWorld()
         {
             if (!worldItemInfo)
             {
@@ -31,11 +52,15 @@ namespace Architome
             }
             if (!worldItemInfo) return;
             if (worldItemInfo.isUI) return;
+            popUpManager = WorldPopupTextManager.active;
 
 
             HandleStart();
-            worldItemInfo.OnPickUp += OnItemPickedUp;
+            //worldItemInfo.OnPickUp += OnItemPickedUp;
+            HandleItemPickUp(worldItemInfo);
+
         }
+
 
         async void HandleStart()
         {
@@ -47,14 +72,41 @@ namespace Architome
             HandleItemFX(worldItemInfo, ItemEvent.OnDrop);
         }
 
-        void OnItemPickedUp(ItemInfo info, EntityInfo entityPickedUp)
+        void HandleItemPickUp(ItemInfo item)
         {
-            var soundEffect = entityPickedUp.SoundEffect();
-            if (soundEffect == null) return;
+            var world = World.active;
+            var rarityProperty = world.RarityProperty(item.item.rarity);
 
-            audioManager = soundEffect;
+            item.OnPickUp += delegate (ItemInfo info, EntityInfo entityPickedUp) {
+                var soundEffect = entityPickedUp.SoundEffect();
+                if (soundEffect == null) return;
 
-            HandleItemFX(info, ItemEvent.OnPickUp);
+                audioManager = soundEffect;
+
+                HandlePopUpText();
+
+                HandleItemFX(info, ItemEvent.OnPickUp);
+
+            };
+
+            void HandlePopUpText()
+            {
+                var stacks = item.currentStacks;
+                var text = $"{item.item.itemName}";
+
+
+                if (stacks > 1)
+                {
+                    text += $"x{stacks}";
+                }
+
+                var popUp = popUpManager.GeneralPopUp(transform, text, rarityProperty.color, new()
+                {
+                    healthChange = true
+                });
+
+                popUp.SetOffset(new(0, 60, 0));
+            }
         }
         
 

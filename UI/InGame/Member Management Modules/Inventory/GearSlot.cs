@@ -16,7 +16,7 @@ namespace Architome
         public EquipmentSlotType slotType;
         GearSlotManager manager;
         //Update Trigger Handlers
-
+        public ToolTip currentToolTip;
 
 
         new void GetDependencies()
@@ -42,7 +42,8 @@ namespace Architome
             var item = info.item;
             if (!Item.Equipable(item))
             {
-                manager.IncorrectEquipmentType(this, "Not an equipable item.");
+                //manager.IncorrectEquipmentType(this, "Not an equipable item.");
+                itemSlotHandler.HandleCantInsert(this, info, "That is not an equipable item.");
                 return false;
             }
 
@@ -52,7 +53,10 @@ namespace Architome
 
             if (slotType != equipment.equipmentSlotType && equipment.secondarySlotType != slotType)
             {
-                manager.IncorrectEquipmentType(this, "Incorrect slot type for weapon.");
+                //manager.IncorrectEquipmentType(this, "Incorrect slot type for weapon.");
+                
+                itemSlotHandler.HandleCantInsert(this, info, $"{info.item.itemName} cannot be inserted into {ArchString.CamelToTitle(equipment.equipmentSlotType.ToString())} slot.");
+
                 return false;
             }
 
@@ -62,7 +66,8 @@ namespace Architome
             {
                 if (!archClass.CanEquip(item, out string reason))
                 {
-                    manager.IncorrectEquipmentType(this, reason);
+                    //manager.IncorrectEquipmentType(this, reason);
+                    itemSlotHandler.HandleCantInsert(this, info, reason);
 
                     return false;
                 }
@@ -70,6 +75,34 @@ namespace Architome
             }
 
             return true;
+        }
+
+        public override void OnPointerEnter(PointerEventData eventData)
+        {
+            base.OnPointerEnter(eventData);
+            if (currentItemInfo != null) return;
+
+            if (currentToolTip != null) return;
+
+            currentToolTip = ToolTipManager.active.Label();
+
+            currentToolTip.followMouse = true;
+
+            currentToolTip.SetToolTip(new()
+            {
+                name = ArchString.CamelToTitle(slotType.ToString())
+            });
+        }
+
+        public override void OnPointerExit(PointerEventData eventData)
+        {
+            base.OnPointerExit(eventData);
+
+            if (currentToolTip != null)
+            {
+                currentToolTip.DestroySelf();
+                currentToolTip = null;
+            }
         }
 
     }

@@ -19,6 +19,9 @@ public class ThreatManager : MonoBehaviour
     public EntityInfo highestThreat;
     public EntityInfo highestNonTargettingThreat;
 
+
+    [SerializeField] bool debugHighestThreat;
+
     [Serializable]
     public class ThreatInfo
     {
@@ -170,10 +173,7 @@ public class ThreatManager : MonoBehaviour
     }
     public void OnChangeNpcType(NPCType before, NPCType after)
     {
-
         HandleMaxThreat();
-
-
     }
     public void OnDamageDone(CombatEventData eventData)
     {
@@ -328,7 +328,7 @@ public class ThreatManager : MonoBehaviour
         threats.Remove(threat);
         threatDict.Remove(threatInfo);
         
-        HandleMaxThreat();
+        //HandleMaxThreat();
         OnRemoveThreat?.Invoke(threat);
         UpdateCombatActive();
 
@@ -398,7 +398,7 @@ public class ThreatManager : MonoBehaviour
         if (!entityInfo.isAlive) return;
         if (!entityInfo.CanAttack(source)) return;
         if(entityInfo.gameObject == source) { return; }
-        if (entityInfo.npcType == source.GetComponent<EntityInfo>().npcType) return;
+        if (entityInfo.npcType == source.npcType) return;
         if (source == null) return;
         bool firstThreat = threats.Count == 0;
 
@@ -441,10 +441,20 @@ public class ThreatManager : MonoBehaviour
 
             var highestThreatInfo = Threat(highestThreat);
 
-            if (highestThreatInfo.threatInfo == source) return;
-            if (threatInfo.threatValue <= highestThreatInfo.threatValue) return;
+            if (debugHighestThreat)
+            {
+                Debugger.Combat(6495, $"New Threat {threatInfo.threatInfo} value : {threatInfo.threatValue}");
+                Debugger.Combat(6494, $"Highest threat {highestThreatInfo.threatInfo} value: {highestThreatInfo.threatValue}");
+            }
 
-            highestThreat = highestThreatInfo.threatInfo;
+
+            if (highestThreatInfo.threatInfo == source) return;
+            if (threatInfo.threatValue >= highestThreatInfo.threatValue)
+            {
+                highestThreat = source;
+
+            }
+
 
         }
     }

@@ -15,6 +15,7 @@ namespace Architome
             public GameObject generalHeader;
             public GameObject general;
             public GameObject side;
+            public GameObject label;
         }
 
         public Transform sideToolBarPosition;
@@ -47,6 +48,11 @@ namespace Architome
         public ToolTip General()
         {
             return ToolTip(tools.general);
+        }
+
+        public ToolTip Label()
+        {
+            return ToolTip(tools.label);
         }
 
         public ToolTip Side()

@@ -12,16 +12,15 @@ namespace Architome
     [RequireComponent(typeof(CanvasGroup))]
     public class ToolTip : MonoBehaviour
     {
-        public bool update;
         public ToolTipManager manager;
         [Serializable]
         public class Components
         {
             public Icon icon;
             public TextMeshProUGUI name, subHeadline, type, description, attributes, requirements, value;
-            public List<Transform> manifestHeight, manifestWidth;
-            public RectTransform rectTransform;
             public CanvasGroup canvasGroup;
+            public RectTransform rectTransform;
+            public SizeFitter sizeFitter;
         }
 
         public HashSet<string> rarityEffects
@@ -46,18 +45,15 @@ namespace Architome
 
         public bool adjustToMouse;
         public bool adjustToSide;
+        public bool followMouse;
         
         public Components components;
         public RarityInfo rarityInfo;
 
-        [Header("Adjustments")]
-        public float widthOffset;
-        public float minWidth;
-        public float heightOffSet;
-        public float minHeight;
-        public float extraTime = 0f;
+        
 
         [SerializeField] float minXAnchor, maxXAnchor, minYAnchor, maxYAnchor;
+        [SerializeField] int adjustSizeIterations = 3;
         bool canDestroySelf;
         bool destroyedSelf;
 
@@ -69,7 +65,7 @@ namespace Architome
         void Start()
         {
             GetDependencies();
-            PrepareFormatting();
+            //PrepareFormatting();
         }
 
         async void PrepareFormatting()
@@ -82,21 +78,33 @@ namespace Architome
             group.blocksRaycasts = false;
             group.alpha = 0;
 
-            await Task.Delay((int)(extraTime * 1000));
+
 
             //await Task.Delay(50);
+            var sizeFitters = GetComponentsInChildren<ContentSizeFitter>();
+            AdjustSize(sizeFitters);
 
-
-            for (int i = 0; i < 3; i++)
+            bool halfWay = false;
+            for (int i = 0; i < adjustSizeIterations; i++)
             {
 
                 await Task.Yield();
 
-                AdjustSize();
+                if (halfWay) continue;
+
+                if (i == adjustSizeIterations / 2)
+                {
+                    halfWay = true;
+                    AdjustSize(sizeFitters);
+                }
+
+
             }
+            AdjustSize(sizeFitters);
 
             AdjustToMouse();
             AdjustToSide();
+            FollowMouse();
 
 
             canDestroySelf = true;
@@ -123,10 +131,6 @@ namespace Architome
 
         private void OnValidate()
         {
-            if (!update) return;
-            update = false;
-            components.rectTransform = GetComponent<RectTransform>();
-            AdjustSize();
         }
 
         void HandleNullTexts()
@@ -160,6 +164,7 @@ namespace Architome
             HandleNullTexts();
             HandleRarity();
             HandleEntityRarity();
+            PrepareFormatting();
 
             void HandleRarity()
             {
@@ -231,40 +236,57 @@ namespace Architome
             AdjustToPosition(manager.sideToolBarPosition.position);
         }
 
+        public async void FollowMouse()
+        {
+            if (!followMouse) return;
+
+            while (this)
+            {
+                AdjustToPosition(Input.mousePosition);
+                await Task.Yield();
+            }
+        }
+
         public void AdjustToPosition(Vector3 position)
         {
 
             float xAnchor = position.x > Screen.width / 2 ? maxXAnchor : minXAnchor;
             float yAnchor = position.y > Screen.height / 2 ? maxYAnchor : minYAnchor;
 
-            GetComponent<RectTransform>().pivot = new Vector2(xAnchor, yAnchor);
+            components.rectTransform.pivot = new Vector2(xAnchor, yAnchor);
 
             transform.position = position;
         }
 
-        public void AdjustSize()
+        public void AdjustSize(ContentSizeFitter[] sizeFitters)
         {
-
-            var height = V3Helper.Height(components.manifestHeight) + heightOffSet;
-            var width = V3Helper.Width(components.manifestWidth) + widthOffset;
-
-            if (height < minHeight)
-            {
-                height = minHeight;
-            }
-
-            if (width < minWidth)
-            {
-                width = minWidth;
-            }
-
-            components.rectTransform.sizeDelta = new(width, height);
-
-            foreach (var sizeFitter in GetComponentsInChildren<ContentSizeFitter>())
+            foreach (var sizeFitter in sizeFitters)
             {
                 sizeFitter.enabled = false;
                 sizeFitter.enabled = true;
             }
+            components.sizeFitter.AdjustToSize();
+            return;
+            //var height = V3Helper.Height(components.manifestHeight) + heightOffSet;
+            //var width = V3Helper.Width(components.manifestWidth) + widthOffset;
+
+            //if (height < minHeight)
+            //{
+            //    height = minHeight;
+            //}
+
+            //if (width < minWidth)
+            //{
+            //    width = minWidth;
+            //}
+
+            //components.rectTransform.sizeDelta = new(width, height);
+
+            //foreach (var sizeFitter in GetComponentsInChildren<ContentSizeFitter>())
+            //{
+            //    sizeFitter.enabled = false;
+            //    sizeFitter.enabled = true;
+            //}
 
             //AdjustToMouse();
         }

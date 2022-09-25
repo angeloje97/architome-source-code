@@ -17,6 +17,7 @@ namespace Architome
         {
             Self,
             BetweenTargets,
+            BetweenPosition,
             Target
         }
 
@@ -28,6 +29,7 @@ namespace Architome
             public GameObject particle;
             public TransformType particleType;
             public BodyPart bodyPartTarget;
+            public bool setBodyPartAsParent;
 
             public AudioClip audioClip;
             public float volume = 1;
@@ -73,11 +75,24 @@ namespace Architome
                     {
                         var bodyParts = entity.BodyParts();
                         var bodyPart = bodyParts.BodyPartTransform(effect.bodyPartTarget);
+                        if (effect.setBodyPartAsParent)
+                        {
+                            particleObj.transform.SetParent(bodyPart);
+                            return;
+                        }
+                        particleObj.transform.position = bodyPart.transform.position;
+
+
                     }
 
                     if (effect.particleType == TransformType.BetweenTargets)
                     {
                         HandleBetweenTargets();
+                    }
+
+                    if (effect.particleType == TransformType.BetweenPosition)
+                    {
+                        HandleBetweenPositions();
                     }
                     
                     async void HandleBetweenTargets()
@@ -87,7 +102,19 @@ namespace Architome
                         {
                             await Task.Yield();
                             particleObj.transform.LookAt(entity.transform);
+                            var distance = V3Helper.Distance(entity.transform.position, particleObj.transform.position);
+                            var localScale = particleObj.transform.localScale;
+                            particleObj.transform.localScale = new Vector3(localScale.x, localScale.y, distance);
+
                         }
+                    }
+
+                    void HandleBetweenPositions()
+                    {
+                        particleObj.transform.LookAt(position);
+                        var distance = V3Helper.Distance(position, particleObj.transform.position);
+                        var localScale = particleObj.transform.localScale;
+                        particleObj.transform.localScale = new Vector3(localScale.x, localScale.y, distance);
                     }
                 }
             }

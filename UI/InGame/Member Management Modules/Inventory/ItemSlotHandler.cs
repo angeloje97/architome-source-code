@@ -18,6 +18,7 @@ namespace Architome
         public Action<bool> OnActiveChange;
         public Action<ItemInfo> OnItemAction;
         public Action<ItemInfo> OnNullHover;
+        public Action<InventorySlot, ItemInfo, string> OnCantInsertToSlot;
         public Action UpdateActions;
 
         public bool active;
@@ -96,6 +97,11 @@ namespace Architome
             }
 
             OnChangeItem?.Invoke(eventData);
+        }
+
+        public void HandleCantInsert(InventorySlot slot, ItemInfo item,  string reason)
+        {
+            OnCantInsertToSlot?.Invoke(slot, item, reason);
         }
         
     }

@@ -94,6 +94,7 @@ namespace Architome
                 entityInfo.OnChangeStats += OnChangeStats;
                 entityInfo.OnLifeChange += OnLifeCheck;
                 entityInfo.combatEvents.OnStatesChange += OnStatesChange;
+                entityInfo.infoEvents.OnSignificantMovementChange += OnSignificantMovementChange;
             }
 
             if (destinationSetter.target == null)
@@ -224,6 +225,11 @@ namespace Architome
         void OnChangeStats(EntityInfo entity)
         {
             UpdateMovementSpeed();
+        }
+
+        void OnSignificantMovementChange(Vector3 newPosition)
+        {
+            StopMoving(true);
         }
         void UpdateMovementSpeed()
         {
