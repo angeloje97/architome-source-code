@@ -7,8 +7,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
-
-
+using UltimateClean;
 
 namespace Architome
 {
@@ -67,7 +66,7 @@ namespace Architome
         public bool isRegening = false;
         public bool disappeared = false;
         public bool isHover = false;
-        public Transform target;
+        public Transform target { get; private set; }
         public Role role;
         public RoomInfo currentRoom;
         public List<EntityState> states;
@@ -125,12 +124,13 @@ namespace Architome
         {
             public Action<List<string>> OnUpdateObjectives;
             public Action<Quest> OnQuestComplete;
-            public Action<Inventory.LootEventData> OnLootItem;
-            public Action<Inventory.LootEventData> OnLootItemFromWorld;
+            public Action<Inventory.LootEventData> OnLootItem { get; set; }
+            public Action<Inventory.LootEventData> OnLootItemFromWorld { get; set; }
             public Action<EntityInfo, bool, GameObject> OnMouseHover;
             public Action<Vector3> OnSignificantMovementChange { get; set; }
             public Action<EntityRarity, EntityRarity> OnRarityChange;
             public Action<EntityInfo> OnNullPortraitCheck;
+            public Action<Currency, int, List<bool>> OnCanSpendCheck;
         }
 
         public struct CombatEvents
@@ -540,14 +540,12 @@ namespace Architome
 
                     combatData.value -= combatData.value * reduction;
                     //combatData.value -= stats.armor;
-                    Debugger.Combat(5330, $"{entityName} : blocking {reduction} phyisical damage with {stats.armor} armor reducing damage to {combatData.value}");
                 }
                 else if (damageType == DamageType.Magical)
                 {
                     var reduction = ReductionPercent(stats.magicResist);
                     //combatData.value -= stats.magicResist;
                     combatData.value -= combatData.value * reduction;
-                    Debugger.Combat(5329, $"{entityName} : blocking {reduction} magic damage with {stats.magicResist} magic resist reducing damage to {combatData.value}");
                 }
 
                 if (combatData.value < 0)
@@ -579,12 +577,6 @@ namespace Architome
                     source.combatEvents.BeforeDamageDone?.Invoke(combatData);
                 }
                 combatEvents.BeforeDamageTaken?.Invoke(combatData);
-
-
-                if (lethalDamage)
-                {
-                    Debugger.Combat(2893, $"Lethal damage is now {combatData.value}");
-                }
 
 
                 DamageShield();
@@ -746,6 +738,12 @@ namespace Architome
             //}
 
             //return null;
+        }
+
+        public bool SetTarget(Transform target)
+        {
+            this.target = target;   
+            return true;
         }
         public bool IsEnemy(GameObject target)
         {
@@ -952,6 +950,22 @@ namespace Architome
             return true;
         }
 
+        public bool CanSpend(Currency currency, int amount)
+        {
+            var checks = new List<bool>();
+
+            infoEvents.OnCanSpendCheck?.Invoke(currency, amount, checks);
+
+            foreach (var check in checks)
+            {
+                if (check)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
         public bool CanAttack(GameObject target)
         {
             if(target == null) { return false; }

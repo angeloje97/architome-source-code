@@ -20,6 +20,7 @@ namespace Architome
 
         public RoomInfo info;
 
+        public bool showRoom;
         private void OnValidate()
         {
             if (GetComponent<RoomInfo>())
@@ -34,6 +35,18 @@ namespace Architome
             ShowPatrolGroupSpots(showPatrolGroupSpots);
             ShowChestSpots(showChestSpots);
             UpdatePaths();
+            ShowRoom();
+        }
+
+        void ShowRoom()
+        {
+            if (!showRoom) return;
+            showRoom = false;
+
+            foreach (var renderer in GetComponentsInChildren<Renderer>())
+            {
+                renderer.enabled = true;
+            }
         }
 
         private void Start()

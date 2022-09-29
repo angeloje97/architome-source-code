@@ -165,6 +165,21 @@ namespace Architome
 
         }
 
+        public void ManifestRadius(GameObject particleObj, float radius)
+        {
+            var particleSystems = particleObj.GetComponentsInChildren<ParticleSystem>();
+
+            foreach (var system in particleSystems)
+            {
+                if (system.shape.enabled)
+                {
+                    var shape = system.shape;
+
+                    shape.radius = radius;
+                }
+            }
+        }
+
 
     }
 

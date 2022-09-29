@@ -70,7 +70,7 @@ namespace Architome
         public Action<AbilityInfo, AugmentChannel> OnChannelEnd;
         public Action<AbilityInfo, AugmentChannel> OnCancelChannel;
         public Action<AbilityInfo> OnCancelCast;
-        public Action<AbilityInfo> OnNewAbility;
+        public Action<AbilityInfo> OnNewAbility { get; set; }
         public Action<AbilityInfo, CatalystInfo> OnCatalystRelease { get; set; }
         public Action<AbilityInfo> WhileCasting;
         public Action<AbilityInfo> WhileChanneling;
@@ -171,6 +171,8 @@ namespace Architome
             attackAbility.UpdateAbility();
 
             attackAbility.active = true;
+
+            OnNewAbility?.Invoke(attackAbility);
 
         }
 

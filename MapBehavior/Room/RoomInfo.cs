@@ -91,9 +91,11 @@ namespace Architome
         public struct Events
         {
             public Action<RoomInfo, bool> OnShowRoom;
+            public Action<RoomInfo, Renderer[]> OnGetAllRenderers;
 
             //Entity Events
             public Action<RoomInfo> OnEnterRoom;
+
         }
 
         public Events events;
@@ -216,6 +218,7 @@ namespace Architome
         public void GetAllRenderers()
         {
             allRenderers = GetComponentsInChildren<Renderer>();
+
         }
         public void ShowRoom(bool val, Vector3 point = new Vector3(), bool forceShow = false)
         {
@@ -269,11 +272,6 @@ namespace Architome
             while (count < orderedRenders.Count)
             {
                 if (isRevealed != val) { break; }
-                if (HandleActivator(orderedRenders[count].gameObject))
-                {
-                    count++;
-                    continue;
-                }
 
                 if (orderedRenders[count].enabled == val)
                 {
@@ -301,13 +299,6 @@ namespace Architome
                     light.enabled = val;
                 }
             }
-        }
-        bool HandleActivator(GameObject activator)
-        {
-            if (!activator.GetComponent<WalkThroughActivate>()) { return false; }
-
-
-            return true;
         }
 
 
@@ -344,15 +335,6 @@ namespace Architome
             {
                 badSpawn = true;
             }
-
-            //if (!CheckRoomCollision())
-            //{
-            //    badSpawn = true;
-            //}
-            //else if (!CheckRoomAbove())
-            //{
-            //    badSpawn = true;
-            //}
             
 
             if (badSpawn)
@@ -361,7 +343,6 @@ namespace Architome
                 {
                     incompatablePaths.Add(originPath);
                 }
-                //incompatablePaths.Add(originPath);
                 return true;
             }
 
@@ -447,67 +428,22 @@ namespace Architome
 
             return true;
         }
-        // Update is called once per frame
-        bool CheckRoomCollision()
-        {
-            if (roomCenter == null) { return true; }
-            if (isEntranceRoom) { return true; }
-            foreach (Transform probe in roomCenter)
-            {
-                foreach (Transform child in allObjects)
-                {
-                    var direction = V3Helper.Direction(child.position, probe.position);
-                    var distance = V3Helper.Distance(child.position, probe.position);
-
-                    Ray ray = new Ray(probe.position, direction);
-
-                    if (Physics.Raycast(ray, out RaycastHit hit, distance))
-                    {
-                        if (!allObjects.Contains(hit.transform))
-                        {
-                            return false;
-                        }
-                    }
-                }
-            }
-
-            return true;
-        }
-        bool CheckRoomAbove()
-        {
-            if (roomCenter == null) { return true; }
-            if (isEntranceRoom) { return true; }
-
-            foreach (Transform probe in roomCenter)
-            {
-                var distance = 35f;
-                var direction = Vector3.up;
-                Ray ray = new Ray(probe.position, direction);
-                if (Physics.Raycast(ray, out RaycastHit hit, distance))
-                {
-                    if (!allObjects.Contains(hit.transform))
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
-
-        }
-
-
-        
 
         public PathInfo Entrance
         {
-            get { return paths.Find(path => path.isEntrance == true); } 
-        }
-        public void CheckRoomBelow()
-        {
-            if (isEntranceRoom) { return; }
 
+            get 
+            { 
+                foreach (var path in paths)
+                {
+                    if (path.isEntrance)
+                    {
+                        return path;
+                    }
+                }
 
+                return null; 
+            } 
         }
     }
 }

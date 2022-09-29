@@ -11,6 +11,8 @@ namespace Architome
         public AbilityType2 slotType;
         public Transform border;
         public AbilityInfo ability;
+        AbilityInfoUI currentAbilityUI;
+        
 
         void Start()
         {
@@ -26,9 +28,15 @@ namespace Architome
         public void SetAbilityUI(AbilityInfoUI abilityUI)
         {
             //if (!abilityUI.GetComponent<AbilityInfoUI>()) { return; }
+            if (currentAbilityUI != null)
+            {
+                Destroy(currentAbilityUI.gameObject);
+            }
+
 
 
             ability = abilityUI.abilityInfo;
+            currentAbilityUI = abilityUI;
 
             foreach (var augmentSlot in transform.parent.GetComponentsInChildren<AugmentSlot>())
             {

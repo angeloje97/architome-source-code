@@ -56,8 +56,8 @@ namespace Architome
         
 
         public Dictionary<EntityInfo, EntitySlot> slotMap;
-        public Action<EntityInfo> OnSelectEntity;
-        public Action<List<ItemData>> OnCurrenciesChange;
+        public Action<EntityInfo> OnSelectEntity { get; set; }
+        public Action<List<ItemData>> OnCurrenciesChange { get; set; }
 
         private void Awake()
         {

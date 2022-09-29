@@ -20,7 +20,6 @@ public class ThreatManager : MonoBehaviour
     public EntityInfo highestNonTargettingThreat;
 
 
-    [SerializeField] bool debugHighestThreat;
 
     [Serializable]
     public class ThreatInfo
@@ -441,11 +440,6 @@ public class ThreatManager : MonoBehaviour
 
             var highestThreatInfo = Threat(highestThreat);
 
-            if (debugHighestThreat)
-            {
-                Debugger.Combat(6495, $"New Threat {threatInfo.threatInfo} value : {threatInfo.threatValue}");
-                Debugger.Combat(6494, $"Highest threat {highestThreatInfo.threatInfo} value: {highestThreatInfo.threatValue}");
-            }
 
 
             if (highestThreatInfo.threatInfo == source) return;

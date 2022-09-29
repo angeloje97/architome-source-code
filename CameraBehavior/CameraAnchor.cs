@@ -150,9 +150,14 @@ namespace Architome
             target = originalTransform;
         }
 
-        public void SetTarget(Transform target)
+        public void SetTarget(Transform target, bool instantTransform = false)
         {
             this.target = target.gameObject;
+
+            if (instantTransform)
+            {
+                transform.position = target.position;
+            }
         }
 
     }

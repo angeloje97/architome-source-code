@@ -190,7 +190,7 @@ public class PlayerController : MonoBehaviour
     public void HandleActionButton(bool isFromPartyControl = false)
     {
         var currentObject = Mouse.CurrentHoverObject();
-
+        
         if (currentObject && currentObject.GetComponent<Clickable>() && !Mouse.IsMouseOverUI())
         {
             if (!isFromPartyControl) return;

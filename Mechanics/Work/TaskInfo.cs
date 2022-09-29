@@ -347,7 +347,7 @@ namespace Architome
 
 
 
-            if (HostileEntitiesInRoom() && properties.noHostileMobsInRoom)
+            if (properties.noHostileMobsInRoom && HostileEntitiesInRoom())
             {
                 entity.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Hostile mobs are still in this room");
                 station.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Hostile mobs are still in this room");

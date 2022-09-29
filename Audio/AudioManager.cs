@@ -80,7 +80,6 @@ namespace Architome
 
                 time++;
 
-                Debugger.Environment(5912, $"{gameObject} is active for {time} seconds");
                 audioRoutineIsActive = await IsPlaying();
             }
 

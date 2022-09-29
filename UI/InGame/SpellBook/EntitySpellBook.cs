@@ -4,6 +4,7 @@ using Architome;
 using UnityEngine;
 using System;
 using UnityEngine.UI;
+using Architome.Enums;
 
 [RequireComponent(typeof(CanvasGroup))]
 public class EntitySpellBook : MonoBehaviour
@@ -82,7 +83,9 @@ public class EntitySpellBook : MonoBehaviour
         
         //ClearBin();
         CreateItems(entity);
+        
     }
+
     public void ClearBin()
     {
         GetComponentInParent<ModuleInfo>()?.DestroyBin();
@@ -113,11 +116,11 @@ public class EntitySpellBook : MonoBehaviour
     {
         var abilities = entity.GetComponentInChildren<AbilityManager>();
 
+        if(abilities == null) { return; }
         var world = World.active;
 
         var itemTemplate = world.prefabsUI.item;
 
-        if(abilities == null) { return; }
 
         foreach(var slot in spellSlots)
         {
@@ -133,6 +136,24 @@ public class EntitySpellBook : MonoBehaviour
             slot.SetAbilityUI(abilityUI);
 
             HandleAugments(slot);
+        }
+
+        HandleNewAbility();
+
+        void HandleNewAbility()
+        {
+            abilities.OnNewAbility += delegate (AbilityInfo ability)
+            {
+                var slot = Slot(ability.abilityType2);
+                if (slot == null) return;
+                var newUI = Instantiate(abilityTemplate);
+
+                var abilityUI = newUI.GetComponent<AbilityInfoUI>();
+                abilityUI.SetAbility(ability);
+
+                slot.SetAbilityUI(abilityUI);
+                HandleAugments(slot);
+            };
         }
 
         void HandleAugments(SpellBookSlot slot)
@@ -156,6 +177,17 @@ public class EntitySpellBook : MonoBehaviour
                 ArchAction.YieldFor(() => { newItem.ReturnToSlot(); }, 2);
             }
 
+        }
+
+        SpellBookSlot Slot(AbilityType2 slotType)
+        {
+            foreach(var slot in spellSlots)
+            {
+                if (slot.slotType != slotType) continue;
+                return slot;
+            }
+
+            return null;
         }
 
     }

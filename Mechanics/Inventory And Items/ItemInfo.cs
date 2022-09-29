@@ -143,8 +143,6 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
             transform.Rotate(Vector3.up * UnityEngine.Random.Range(0, 360f));
             randomPosition = transform.position + transform.forward * 5f;
 
-
-            Debugger.Environment(8549, $"Looking for good spot. Tries:  {tries}");
             tries--;
 
             if (tries <= 0) return;

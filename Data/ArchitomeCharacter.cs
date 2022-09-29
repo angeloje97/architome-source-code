@@ -473,7 +473,6 @@ public class ArchitomeCharacter : MonoBehaviour
         foreach(GameObject bodyPart in bodyPartObject)
         {
             var activePart = ActivePartIndex(bodyPart);
-            Debugger.InConsole(2495, $"{activePart}");
             activePart++;
 
             SetPart(bodyPartNum, activePart);

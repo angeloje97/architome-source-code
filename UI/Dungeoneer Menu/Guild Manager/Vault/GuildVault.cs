@@ -251,7 +251,7 @@ namespace Architome
 
 
             manager.guildInfo.maxSlots++;
-
+            items.Add(new());
             UpdateInventorySlots();
         }
         public int SlotPrice()

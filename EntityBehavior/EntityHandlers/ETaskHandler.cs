@@ -190,6 +190,7 @@ namespace Architome
 
             return successful;
         }
+
         async public void StartWork(TaskInfo task)
         {
             Debugger.InConsole(18964, $"{task}");
@@ -221,9 +222,10 @@ namespace Architome
             if (!successful)
             {
                 StopTask();
+                return;
             }
 
-            if (!successful) return;
+            entityInfo.SetTarget(task.properties.station.transform);
 
             WorkOn(task);
 

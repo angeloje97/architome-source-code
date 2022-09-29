@@ -18,7 +18,8 @@ namespace Architome
             Self,
             BetweenTargets,
             BetweenPosition,
-            Target
+            Target,
+            Location
         }
 
         [System.Serializable]
@@ -68,6 +69,12 @@ namespace Architome
                 {
                     if (effect.particleType == TransformType.Self)
                     {
+                        return;
+                    }
+
+                    if (effect.particleType == TransformType.Location)
+                    {
+                        particleObj.transform.position = position;
                         return;
                     }
 

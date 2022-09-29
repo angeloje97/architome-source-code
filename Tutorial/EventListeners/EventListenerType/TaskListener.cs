@@ -11,10 +11,38 @@ namespace Architome.Tutorial
         public WorkInfo workInfoTarget;
         public string taskWorkString;
         public int taskIndex;
+        public bool preventUntilStart;
+        public bool simple;
+        
         
         void Start()
         {
             HandleStart();
+            ArchAction.Delay(() => HandlePreventUntilStart(), 1f);
+            //HandlePreventUntilStart();
+        }
+
+        void HandlePreventUntilStart()
+        {
+            if (!preventUntilStart) return;
+
+            var clickable = workInfoTarget.GetComponent<Clickable>();
+
+            for(int i = 0; i < clickable.options.Count; i++)
+            {
+                var option = clickable.options[i];
+                if (option.text != taskWorkString) continue;
+
+                var index = i;
+                OnStartEvent += delegate (EventListener listener)
+                {
+                    clickable.options.Insert(index, new() { text = taskWorkString });
+                };
+
+                clickable.options.RemoveAt(i);
+                i--;
+            }
+
         }
 
         private void OnValidate()
@@ -52,8 +80,17 @@ namespace Architome.Tutorial
         {
             var stringList = new List<string>() {
                 base.Directions(),
-                $"Use the move action for a party member on ${workInfoTarget.workName} and click {taskWorkString} to have them work on it."
+                
             };
+
+            if (simple)
+            {
+                stringList.Add($"Use {workInfoTarget.workName} and activate {taskWorkString}");
+            }
+            else
+            {
+                stringList.Add($"Use the move action for a party member on {workInfoTarget.workName} and have them work on the task '{taskWorkString}'");
+            }
 
             return ArchString.NextLineList(stringList);
         }

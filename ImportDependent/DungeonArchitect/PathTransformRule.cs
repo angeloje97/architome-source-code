@@ -22,7 +22,6 @@ namespace Architome
         {
             base.GetTransform(socket, model, propTransform, random, out outPosition, out outRotation, out outScale);
             
-            Debugger.Environment(3254, $"{model} object");
 
         }
 

@@ -56,7 +56,7 @@ namespace Architome
 
         public void SetCard(bool available)
         {
-            this.isActive = available;
+            isActive = available;
             OnActiveChange?.Invoke(isActive);
 
             var action = available ? OnActiveTrue : OnActiveFalse;
