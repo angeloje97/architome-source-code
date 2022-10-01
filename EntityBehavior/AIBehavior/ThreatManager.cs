@@ -506,6 +506,11 @@ public class ThreatManager : MonoBehaviour
         }
         return blackListed;
     }
+
+    public void IncreaseMassiveThreat(EntityInfo entity)
+    {
+        IncreaseThreat(entity, 5000);
+    }
     public bool ContainsRole(Role role)
     {
         foreach(var i in threats)

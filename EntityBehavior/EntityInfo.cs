@@ -950,6 +950,16 @@ namespace Architome
             return true;
         }
 
+        public override string ToString()
+        {
+            if (entityName == null || entityName.Trim() == "")
+            {
+                return name;
+            }
+
+            return entityName;
+        }
+
         public bool CanSpend(Currency currency, int amount)
         {
             var checks = new List<bool>();

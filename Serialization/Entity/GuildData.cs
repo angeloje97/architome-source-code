@@ -10,6 +10,8 @@ namespace Architome
     {
         public EntityData.InventoryData inventory;
         public EntityData.InventoryData currencies;
+        //public List<ItemData> inventory;
+        //public List<ItemData> currencies;
         public int level;
 
         public GuildData(GuildManager guildManager)

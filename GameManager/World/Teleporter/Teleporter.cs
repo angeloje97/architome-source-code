@@ -86,6 +86,7 @@ namespace Architome
             AfterTeleportEntityUnity?.Invoke();
             teleporting = false;
         }
+
         public async void TeleportEntityDoingTask(bool setCameraAnchor)
         {
             if (otherTeleporter == null) return;
@@ -135,6 +136,15 @@ namespace Architome
             room.ShowRoom(true, transform.position, true);
         }
 
+        public void TeleportPartyToSpot()
+        {
+            var gameManager = GameManager.active;
+            if (gameManager == null) return;
+            if (gameManager.playableParties == null || gameManager.playableParties.Count <= 0) return;
+            var party = gameManager.playableParties[0];
+
+            TeleportPartyToSpot(party);
+        }
         public async void TeleportPartyToSpot(PartyInfo party)
         {
             if (teleporting) return;

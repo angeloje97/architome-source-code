@@ -11,7 +11,6 @@ namespace Architome
     {
         public int id;
         public int dataIndex;
-
         [Serializable] public class Info
         {
             public EntityInfo.Properties properties;
@@ -103,7 +102,7 @@ namespace Architome
                         {
                             if (maps.buffs.ContainsKey(buffId)) continue;
 
-                            equipment.equipmentEffects.Add(maps.buffs[buffId].gameObject);
+                            equipment.equipmentEffects.Add(maps.buffs[buffId]);
                         }
                     }
                 }
@@ -252,13 +251,13 @@ namespace Architome
             id = entity._id;
             this.dataIndex = dataIndex;
 
+
             name = entity.entityName;
             info = new(entity);
 
             var entityInventory = entity.GetComponentInChildren<Inventory>();
             inventory = new(entityInventory.inventoryItems);
             abilities = new(entity);
-
             //inventory = new(entity.GetComponentInChildren<Inventory>());
 
             var character = entity.GetComponentInChildren<CharacterInfo>();

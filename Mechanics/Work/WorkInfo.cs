@@ -13,6 +13,8 @@ namespace Architome
     public class WorkInfo : MonoBehaviour
     {
         public string workName;
+
+        [SerializeField] bool updateTasks;
         public static List<WorkInfo> workStations { get; set; }
         List<WorkInfo> workStationsDebugging;
 
@@ -59,6 +61,20 @@ namespace Architome
             if (workName == null || workName.Trim().Length == 0)
             {
                 workName = name;
+            }
+            UpdateTasks();
+        }
+
+        void UpdateTasks()
+        {
+            if (!updateTasks) return;
+            updateTasks = false;
+
+            tasks ??= new();
+
+            foreach (var task in tasks)
+            {
+                task.properties.station = this;
             }
         }
 

@@ -20,8 +20,7 @@ namespace Architome
 
 
         public Action<PromptInfo> OnPickChoice;
-        public UnityEvent OnInvalidInput;
-        public UnityEvent OnValidInput;
+        
 
         public PromptChoiceData choiceData;
         public PromptInfoData promptData;
@@ -46,15 +45,18 @@ namespace Architome
         {
             public bool enable;
             public TMP_InputField inputField;
+            public bool validInput;
+            public bool start;
+            public UnityEvent OnInvalidInput;
+            public UnityEvent OnValidInput;
         }
 
         public Info info;
         
         public SliderInfo sliderInfo;
 
-        public InputFieldInfo inputFieldInfo;
+        public InputFieldInfo input;
 
-        bool validInput;
         public void EndOptions()
         {
 
@@ -120,18 +122,26 @@ namespace Architome
             bool validInput = input.text.Length > 0 && input.text.Length < maxInputLength;
             choiceData.userInput = input.text;
 
+            Debugger.Environment(5491, $"Input text is valid: {validInput}");
 
-            if (this.validInput != validInput)
+            if (!this.input.start)
             {
-                this.validInput = validInput;
+                this.input.start = true;
+                this.input.validInput = !validInput;
+            }
+
+
+            if (this.input.validInput != validInput)
+            {
+                this.input.validInput = validInput;
 
                 if (validInput)
                 {
-                    OnValidInput?.Invoke();
+                    this.input.OnValidInput?.Invoke();
                 }
                 else
                 {
-                    OnInvalidInput?.Invoke();
+                    this.input.OnInvalidInput?.Invoke();
                 }
             }
 
@@ -139,9 +149,11 @@ namespace Architome
 
         void HandleInputField()
         {
-            if (!inputFieldInfo.enable) return;
+            if (!input.enable) return;
 
-            UpdateInputField(inputFieldInfo.inputField);
+
+            UpdateInputField(input.inputField);
+            
         }
         public void HandleSlider()
         {
@@ -193,6 +205,7 @@ namespace Architome
         public Sprite icon;
 
     }
+    [Serializable]
     public struct PromptChoiceData
     {
         public int optionPicked;

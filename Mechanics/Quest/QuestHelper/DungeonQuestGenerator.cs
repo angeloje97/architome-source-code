@@ -83,6 +83,7 @@ namespace Architome
                     question = "This quest is incomplete and will be abandoned when entering the next level.",
                     option1 = "Proceed",
                     option2 = "Cancel",
+                    
                 });
 
                 if (choice.optionString == "Cancel")

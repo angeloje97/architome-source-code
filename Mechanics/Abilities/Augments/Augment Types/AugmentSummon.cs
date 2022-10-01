@@ -81,6 +81,18 @@ namespace Architome
                     entityNames.Add(info.entityName);
                 }
 
+                if (group.minAmount == group.maxAmount)
+                {
+                    if (group.minAmount > 1)
+                    {
+                        result += $"{group.minAmount} ";
+                    }
+                }
+                else
+                {
+                    result += $"{group.minAmount} - {group.maxAmount}";
+                }
+
                 result += $"{ArchString.StringList(entityNames)} for {liveTime} seconds.";
             }
 

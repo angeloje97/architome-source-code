@@ -29,14 +29,21 @@ namespace Architome
         public Info info;
 
 
-        public Action<SaveGameSlot> OnClick;
-        public Action<SaveGameSlot> OnDoubleClick;
+        public Action<SaveGameSlot> OnClick { get; set; }
+        public Action<SaveGameSlot> OnDoubleClick { get; set; }
 
+        public Action<SaveGameSlot> OnDestroySelf { get; set; }
 
         void Start()
         {
             manager = GetComponentInParent<GameLoadManager>();
 
+        }
+
+        public void DestroySelf()
+        {
+            OnDestroySelf?.Invoke(this);
+            Destroy(gameObject);
         }
 
         public void SetStatus(bool selected)

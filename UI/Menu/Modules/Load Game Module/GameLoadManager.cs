@@ -11,6 +11,7 @@ namespace Architome
         public List<SaveGameSlot> slots;
         public SaveGame selectedSave;
         public SaveGame hoverSave;
+        public SaveGameSlot selectedSlot;
         public MenuModule module;
         public bool selectedSaveExists;
 
@@ -30,7 +31,7 @@ namespace Architome
         [SerializeField] Info info;
         [SerializeField] Prefabs prefabs;
 
-        public Action<SaveGame> OnSelectSave;
+        public Action<SaveGame> OnSelectSave { get; set; }
         private void Start()
         {
             selectedSave = null;
@@ -70,12 +71,20 @@ namespace Architome
                 newSlot.OnClick += OnClickSave;
                 newSlot.OnDoubleClick += OnDoubleClickSave;
 
+                newSlot.OnDestroySelf += delegate (SaveGameSlot slot)
+                {
+                    slot.OnClick -= OnClickSave;
+                    slot.OnDoubleClick -= OnDoubleClickSave;
+                };
+
                 slots.Add(newSlot);
                 
             }
         }
-        public void HandleSelect(SaveGame save)
+        public void HandleSelect(SaveGameSlot saveSlot)
         {
+            var save = saveSlot.saveGame;
+            selectedSlot = saveSlot;
             selectedSave = save;
             OnSelectSave?.Invoke(save);
             selectedSaveExists = true;
@@ -83,9 +92,36 @@ namespace Architome
             UpdateButtons();
         }
 
+        public async void DeleteSelectedSave()
+        {
+            if (selectedSave == null) return;
+
+            var userChoice = await PromptHandler.active.GeneralPrompt(new()
+            {
+                title = "Delete Save Game",
+                question = $"Are you sure you want to delete {selectedSave.saveName}?",
+                option1 = "Confirm",
+                option2 = "Cancel",
+                blocksScreen = true
+            });
+
+            if (userChoice.optionString != "Confirm") return;
+
+
+            slots.Remove(selectedSlot);
+            selectedSlot.DestroySelf();
+
+            SerializationManager.DeleteSave(selectedSave.SaveFileName());
+            selectedSlot = null;
+            selectedSave = null;
+            UpdateSlots();
+            UpdateButtons();
+
+        }
+
         public void OnClickSave(SaveGameSlot slot)
         {
-            HandleSelect(slot.saveGame);
+            HandleSelect(slot);
         }
 
         public void OnDoubleClickSave(SaveGameSlot slot)
@@ -111,6 +147,29 @@ namespace Architome
             }
 
         }
+
+        public async void RenameSave()
+        {
+            if (selectedSave == null) return;
+
+            var userInput = await PromptHandler.active.InputPrompt(new() {
+                title = selectedSave.saveName,
+                question = $"New name for {selectedSave.saveName}",
+                option1 = "Apply",
+                option2 = "Cancel",
+                blocksScreen = true,
+                maxInputLength = 30
+            });
+
+            var newName = userInput.userInput;
+
+            selectedSave.saveName = newName;
+            selectedSlot.info.saveName.text = newName;
+
+            selectedSave.Save();
+            
+        }
+
         public void UpdateSlots()
         {
             foreach (var slot in slots)

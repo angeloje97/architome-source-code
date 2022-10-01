@@ -272,7 +272,7 @@ public class AbilityInfo : MonoBehaviour
     [SerializeField] private bool wantsToCast;
     public bool isAutoAttacking;
 
-    public Action<CatalystInfo> OnCatalystRelease;
+    public Action<CatalystInfo> OnCatalystRelease { get; set; }
     public Action<AbilityInfo> OnSuccessfulCast;
     public Action<AbilityInfo, bool> OnAbilityStartEnd;
     public Action<AbilityInfo> OnUpdateRestrictions;
@@ -360,6 +360,25 @@ public class AbilityInfo : MonoBehaviour
         HandleWantsToCast();
         HandleDeadTarget();
         HandleAutoAttack();
+    }
+
+    public override string ToString()
+    {
+        if (abilityName.Length == 0)
+        {
+            if (name.Length == 0)
+            {
+                if (catalyst)
+                {
+                    return catalyst.name;
+                }
+            }
+
+            return name;
+
+        }
+
+        return abilityName;
     }
 
     public async void HandleEvents()
@@ -511,21 +530,7 @@ public class AbilityInfo : MonoBehaviour
     }
     public string Name()
     {
-        if (abilityName.Length == 0)
-        {
-            if (name.Length == 0)
-            {
-                if (catalyst)
-                {
-                    return catalyst.name;
-                }
-            }
-
-            return name;
-
-        }
-
-        return abilityName;
+        return ToString();
     }
 
     public Sprite Icon()

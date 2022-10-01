@@ -106,19 +106,19 @@ namespace Architome
         {
             if (before)
             {
-                foreach (var buffObj in before.equipmentEffects)
+                foreach (var buff in before.equipmentEffects)
                 {
-                    var info = buffObj.GetComponent<BuffInfo>();
-                    CleanseBuff(info);
+                    CleanseBuff(buff);
                 }
             }
 
             if (after)
             {
-                foreach (var buffObj in after.equipmentEffects)
+                if (after.equipmentEffects == null) return;
+                foreach (var buff in after.equipmentEffects)
                 {
-                    var info = buffObj.GetComponent<BuffInfo>();
-                    ApplyBuff(new(info, after, entityInfo));
+                    
+                    ApplyBuff(new(buff, after, entityInfo));
                 }
             }
         }

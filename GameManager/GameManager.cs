@@ -37,6 +37,8 @@ namespace Architome
 
         public Action<EntityInfo, int> OnNewPlayableEntity;
         public Action<PartyInfo, int> OnNewPlayableParty;
+        public Action<EntityInfo> OnRemoveEntitiy;
+        public Action<PartyInfo> OnRemoveParty;
 
 
         void Awake()
@@ -114,7 +116,7 @@ namespace Architome
 
         public void AddPlayableCharacter(EntityInfo playableChar)
         {
-            if (playableEntities == null) { playableEntities = new List<EntityInfo>(); }
+            playableEntities ??= new();
             if (playableEntities.Contains(playableChar)) return;
 
             playableEntities.Add(playableChar);
@@ -123,46 +125,44 @@ namespace Architome
 
         public void AddPlayableParty(PartyInfo playableParty)
         {
-            if (playableParties == null) { playableParties = new List<PartyInfo>(); }
+            playableParties ??= new();
 
             playableParties.Add(playableParty);
             OnNewPlayableParty?.Invoke(playableParty, playableParties.IndexOf(playableParty));
         }
 
+        public void RemovePLayableCharacter(EntityInfo playableChar)
+        {
+            playableEntities ??= new();
+
+            if (!playableEntities.Contains(playableChar)) return;
+            playableEntities.Remove(playableChar);
+            OnRemoveEntitiy?.Invoke(playableChar);
+        }
+
+        public void RemovePlayableParty(PartyInfo party)
+        {
+            playableParties ??= new();
+
+            if (!playableParties.Contains(party)) return;
+            playableParties.Remove(party);
+            OnRemoveParty?.Invoke(party);
+        }
+
+
         public void ReloadScene()
         {
-            if (reloadCurrentScene)
-            {
-                reloadCurrentScene = false;
-
-                Scene scene = SceneManager.GetActiveScene();
-                SceneManager.LoadScene(scene.name);
-            }
+            if (!reloadCurrentScene) return;
+            reloadCurrentScene = false;
+            
+            Scene scene = SceneManager.GetActiveScene();
+            SceneManager.LoadScene(scene.name);
+            
         }
 
 
         private void OnValidate()
         {
-            //Stats stats = new()
-            //{
-            //    Wisdom = 5,
-            //    Strength = 3,
-            //    attackSpeed = .25f,
-            //    attackDamage = 10f,
-            //};
-
-            //var percentageFields = Stats.PercentageFields;
-            //foreach (var attribute in stats.Attributes())
-            //{
-            //    if (percentageFields.Contains(attribute.Name))
-            //    {
-            //        Debugger.InConsole(4392, $"{attribute.Name} : {((float)attribute.Data) * 100}%");
-            //    }
-            //    else
-            //    {
-            //        Debugger.InConsole(4328, $"{attribute.Name}: {attribute.Value}");
-            //    }
-            //}
         }
     }
 

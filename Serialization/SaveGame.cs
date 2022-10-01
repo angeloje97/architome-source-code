@@ -129,6 +129,11 @@ namespace Architome
             this.fileLocation = fileLocation;
         }
 
+        public string SaveFileName()
+        {
+            return $"Save{saveId}.save";
+        }
+
         public SaveGame LoadSave(string saveName)
         {
             var obj = SerializationManager.LoadGame(saveName);

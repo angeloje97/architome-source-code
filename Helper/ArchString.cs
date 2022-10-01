@@ -1,3 +1,4 @@
+using DungeonArchitect.Flow.Domains.Layout.Tasks;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -54,13 +55,13 @@ namespace Architome
 
             for (int i = 0; i < strings.Count; i++)
             {
-                if (i == 0)
+                if (list.Trim().Length > 0 && strings[i].Trim().Length > 0)
                 {
-                    list += strings[i];
-                    continue;
+                    list += ", ";
                 }
 
-                list += $", {strings[i]}";
+                list += $"{strings[i]}";
+
             }
 
             return list;

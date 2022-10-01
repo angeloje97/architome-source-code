@@ -26,7 +26,6 @@ namespace Architome
             HandleStart();
             HandleNullGuildManager();
         }
-
         void GetDependencies()
         {
             guildManager = GuildManager.active;
@@ -36,7 +35,6 @@ namespace Architome
                 guildManager.OnCurrenciesChange += HandleCurrencyChange;
             }
         }
-
         void HandleStart()
         {
             if (displayPrefab == null) return;
@@ -57,8 +55,6 @@ namespace Architome
                 UpdateDisplay(itemData);
             }
         }
-
-
         CurrencyDisplay UpdateDisplay(ItemData itemData)
         {
             idDisplayMap ??= new();
@@ -122,7 +118,6 @@ namespace Architome
                 UpdateDisplay(currencyData);
             }
         }
-
         bool SpendCurrency(Currency currency, int amount)
         {
             if (currencyDatas == null) return false;

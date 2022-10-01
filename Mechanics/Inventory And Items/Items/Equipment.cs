@@ -20,7 +20,7 @@ namespace Architome
 
         public Stats stats;
 
-        public List<GameObject> equipmentEffects;
+        public List<BuffInfo> equipmentEffects = new();
 
 
         [Header("Stat Weights")]
@@ -65,33 +65,16 @@ namespace Architome
                 if (!updateBuffs) return;
                 updateBuffs = false;
 
-                if (equipmentEffects == null) equipmentEffects = new();
+                equipmentEffects ??= new();
 
-                for (int i = 0; i < equipmentEffects.Count; i++)
-                {
-                    var buffObject = equipmentEffects[i];
-                    if (buffObject == null)
-                    {
-                        equipmentEffects.RemoveAt(i);
-                        i--;
-                        continue;
-                    }
-
-                    var info = buffObject.GetComponent<BuffInfo>();
-
-                    if (info == null)
-                    {
-                        equipmentEffects.RemoveAt(i);
-                        i--;
-                    }
-                }
+                
             }
         }
 
         public List<int> EquipmentEffectsData()
         {
             var data = new List<int>();
-
+            equipmentEffects ??= new();
             foreach (var effect in equipmentEffects)
             {
                 var info = effect.GetComponent<BuffInfo>();

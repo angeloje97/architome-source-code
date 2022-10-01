@@ -65,6 +65,20 @@ namespace Architome
             }
         }
 
+        public static void DeleteSave(string saveFileName)
+        {
+            if (!Directory.Exists($"{Application.persistentDataPath}/saves")) return;
+
+            var fileEntries = Directory.GetFiles($"{Application.persistentDataPath}/saves");
+
+            foreach (var entry in fileEntries)
+            {
+                if (!entry.EndsWith($"{saveFileName}")) continue;
+                File.Delete(entry);
+                break;
+            }
+        }
+
 
         public static List<object> LoadSaves()
         {
@@ -174,10 +188,15 @@ namespace Architome
             var quatSurrogate = new QuaternionSerializationSurrogate();
             var v2Surrogate = new Vector2SerializationSurrogate();
 
+            var itemDataSurrogate = new ItemDataSurrogate();
+            var buffSurrogate = new BuffSurrogate();
+
             selector.AddSurrogate(typeof(Vector3), new StreamingContext(StreamingContextStates.All), v3Surrogate);
             selector.AddSurrogate(typeof(Quaternion), new StreamingContext(StreamingContextStates.All), quatSurrogate);
             selector.AddSurrogate(typeof(Vector2), new StreamingContext(StreamingContextStates.All), v2Surrogate);
 
+            selector.AddSurrogate(typeof(ItemData), new StreamingContext(StreamingContextStates.All), itemDataSurrogate);
+            selector.AddSurrogate(typeof(BuffInfo), new StreamingContext(StreamingContextStates.All), buffSurrogate);
             formatter.SurrogateSelector = selector;
 
             return formatter;

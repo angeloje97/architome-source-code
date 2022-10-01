@@ -50,6 +50,11 @@ namespace Architome
 
         }
 
+        public override string ToString()
+        {
+            return itemName;
+        }
+
         public bool Equals(Item other)
         {
 
@@ -188,7 +193,11 @@ namespace Architome
             this.item = info.item;
             this.amount = info.currentStacks;
         }
-        public ItemData() { }
+        public ItemData() 
+        {
+            item = null;
+            amount = 0;
+        }
 
         public Item item;
         public int amount;

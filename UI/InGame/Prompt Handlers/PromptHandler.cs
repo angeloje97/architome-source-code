@@ -127,23 +127,18 @@ namespace Architome
             return await UserChoice(prompt);
         }
 
-        async public Task<(int, string)> InputPrompt(PromptInfoData promptData)
+        async public Task<PromptChoiceData> InputPrompt(PromptInfoData promptData)
         {
-            if (prefabs.inputPrompt == null) return (-1, "");
+            if (prefabs.inputPrompt == null) return PromptChoiceData.defaultPrompt;
 
-            var prompt = ActivatePrompt(prefabs.generalPrompt, new Vector3(0, 270, 0));
+            var prompt = ActivatePrompt(prefabs.inputPrompt, new Vector3(0, 270, 0));
 
             prompt.SetPrompt(promptData);
 
 
-            while (prompt.choicePicked == -1)
-            {
-                await Task.Yield();
+            
 
-                if (!prompt.isActive) break;
-            }
-
-            return (prompt.choicePicked, prompt.userInput);
+            return await UserChoice(prompt);
         }
 
         async public Task MessagePrompt(PromptInfoData promptData)

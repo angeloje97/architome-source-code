@@ -14,6 +14,7 @@ namespace Architome.Tutorial
         public bool deactiveAbilityUntilActive;
 
         ActionBarBehavior currentActionBarBehavior;
+
         
 
         void Start()
@@ -56,11 +57,16 @@ namespace Architome.Tutorial
         {
             //if (ability == null) return;
             base.StartEventListener();
-            ability.OnSuccessfulCast += OnSuccesfulCast;
+            ability.OnCatalystRelease += OnCatalystRelease;
+
+            if (particularTarget)
+            {
+                PreventEntityDeath(particularTarget);
+            }
 
 
             OnSuccessfulEvent += (EventListener listener) => {
-                ability.OnSuccessfulCast -= OnSuccesfulCast;
+                ability.OnCatalystRelease -= OnCatalystRelease;
             };
             GetCurrentActionBarBehavior();
         }
@@ -81,7 +87,24 @@ namespace Architome.Tutorial
 
         public override string Directions()
         {
-            return base.Directions();
+            var result = new List<string>() {
+                base.Directions()
+            };
+            var actionBarName = $"Ability{currentActionBarBehavior.actionBarNum}";
+
+            var newDirection = $"Use {ability} ";
+
+            if (particularTarget)
+            {
+                newDirection += $"on {particularTarget} ";
+            }
+
+            newDirection += $"by hovering over an enemy and using the <sprite={keyBindData.SpriteIndex(actionBarName)}> button.";
+
+            result.Add(newDirection);
+
+
+            return ArchString.NextLineList(result);
         }
 
         public override string Tips()
@@ -89,15 +112,35 @@ namespace Architome.Tutorial
             return base.Tips();
         }
 
-        public void OnSuccesfulCast(AbilityInfo ability)
+        public void OnCatalystRelease(CatalystInfo catalyst)
         {
-            if (particularTarget && ability.targetLocked != particularTarget.gameObject)
+            if (particularTarget && catalyst.target != particularTarget.gameObject)
             {
                 return;
             }
 
-            CompleteEventListener();
 
+            
+            if (particularTarget)
+            {
+                Action<bool> action = delegate (bool isAlive)
+                {
+                    if (!isAlive)
+                    {
+                        CompleteEventListener();
+                    }
+                };
+
+                particularTarget.OnLifeChange += action;
+
+                OnSuccessfulEvent += delegate (EventListener listener) {
+                    particularTarget.OnLifeChange -= action;
+                };
+
+                return;
+            }
+
+            CompleteEventListener();
         }
     }
 }
