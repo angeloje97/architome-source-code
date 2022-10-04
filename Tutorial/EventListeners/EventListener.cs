@@ -14,16 +14,26 @@ namespace Architome.Tutorial
         public string title;
         [Multiline] public string description;
         [Multiline] public string tip;
+        [SerializeField] Transform trailTarget;
+        [SerializeField] bool enableTrail;
+
         public event Action<EventListener> OnSuccessfulEvent;
         public event Action<EventListener> OnFailEvent;
         public event Action<EventListener> OnStartEvent;
         public event Action<EventListener> OnEndEvent;
-        public UnityEvent OnStartEventUnity;
-        public UnityEvent OnSuccessfulEventUnity;
-        public UnityEvent OnFailEventUnity;
-        public UnityEvent OnEndEventUnity;
+
+        public float extraSuccessfulTime = 0f;
+
+        [Serializable]
+        public struct UnityEvents
+        {
+            public UnityEvent OnSuccessfulEvent, OnFailEvent, OnStartEvent, OnEndEvent;
+        }
+
+        public UnityEvents events;
 
         public bool listenOnStart;
+        [SerializeField] protected bool simple;
         [SerializeField] protected bool initiated;
 
 
@@ -35,6 +45,24 @@ namespace Architome.Tutorial
             keyBindData = KeyBindings.active;
             actionBarsManager = ActionBarsInfo.active;
             actions = WorldActions.active;
+        }
+
+        public void HandleTrailEmission()
+        {
+            if (!enableTrail) return;
+            if (trailTarget == null) return;
+
+            var trailEmitter = TrailEmitter.activeTrailEmitter;
+            if (trailEmitter == null) return;
+
+            OnStartEvent += (EventListener listener) => {
+                trailEmitter.SetTrail(trailTarget);
+                trailEmitter.SetEmission(true);
+            };
+
+            OnEndEvent += (EventListener listener) => {
+                trailEmitter.SetEmission(false);
+            };
         }
 
 
@@ -65,6 +93,24 @@ namespace Architome.Tutorial
             }
         }
 
+        public void PreventEntityDeathBeforeStart(EntityInfo entity)
+        {
+            entity.OnLifeChange += OnEntityLifeChange;
+
+            OnStartEvent += (EventListener listener) => {
+                entity.OnLifeChange -= OnEntityLifeChange;
+            };
+
+            void OnEntityLifeChange(bool isAlive)
+            {
+                ArchAction.Delay(() => {
+                    if (initiated) return;
+                    actions.Revive(entity, entity.transform.position);
+
+                }, 2f);
+            }
+        }
+
 
 
         protected void CompleteEventListener()
@@ -72,9 +118,9 @@ namespace Architome.Tutorial
             if (completed) return;
             completed = true;
             OnSuccessfulEvent?.Invoke(this);
-            OnSuccessfulEventUnity?.Invoke();
+            events.OnSuccessfulEvent?.Invoke();
             OnEndEvent?.Invoke(this);
-            OnEndEventUnity?.Invoke();
+            events.OnEndEvent?.Invoke();
 
             Debugger.Environment(4325, $"Completed event {title}");
         } 
@@ -82,10 +128,10 @@ namespace Architome.Tutorial
         protected void FailEventListeners()
         {
             OnFailEvent?.Invoke(this);
-            OnFailEventUnity?.Invoke();
+            events.OnFailEvent?.Invoke();
 
             OnEndEvent?.Invoke(this);
-            OnEndEventUnity?.Invoke();
+            events.OnEndEvent?.Invoke();
         }
 
         public virtual string Directions()
@@ -116,7 +162,7 @@ namespace Architome.Tutorial
         {
             initiated = true;
             OnStartEvent?.Invoke(this);
-            OnStartEventUnity?.Invoke();
+            events.OnStartEvent?.Invoke();
         }
     }
 }

@@ -44,15 +44,24 @@ namespace Architome.Tutorial
             var selectMultipleIndex = keyBindData.SpriteIndex("SelectMultiple");
             var actionIndex = keyBindData.SpriteIndex("Action");
 
-            result.Add($"Move all the party members at once by holding <sprite={selectMultipleIndex}> and pressing <sprite={actionIndex}>");
+            if (!simple)
+            {
+                result.Add($"Move all the party members at once by holding <sprite={selectMultipleIndex}> and pressing <sprite={actionIndex}>");
+            }
 
             return ArchString.StringList(result);
         }
 
         public override string Tips()
         {
-            var result = base.Tips();
-            return result;
+            var result = new List<string>() { base.Tips() };
+
+            if (!simple)
+            {
+                var actionIndex = keyBindData.SpriteIndex("Action");
+                result.Add($"You can also hold <sprite={actionIndex}> and move you mouse to change the direction of the formation");
+            }
+            return ArchString.NextLineList(result);
         }
     }
 }

@@ -2,6 +2,7 @@ using Architome.Enums;
 using Mono.Cecil;
 using System.Collections;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -13,13 +14,16 @@ namespace Architome
         [SerializeField] AudioManager audioManager;
         [SerializeField] Teleporter teleporter;
 
+        LayerMask walkableLayer;
+
         public enum TransformType
         {
             Self,
             BetweenTargets,
             BetweenPosition,
             Target,
-            Location
+            Location,
+            GroundLocation,
         }
 
         [System.Serializable]
@@ -42,11 +46,22 @@ namespace Architome
         private void Start()
         {
             if (effects == null) return;
+            GetDependencies();
             foreach (var effect in effects)
             {
                 teleporter.AddEventAction(effect.eventTrigger, (EntityInfo entity, Vector3 location) => {
                     HandleEffect(effect, entity, location);
                 });
+            }
+        }
+
+        void GetDependencies()
+        {
+            var layerMasksData = LayerMasksData.active;
+
+            if (layerMasksData)
+            {
+                walkableLayer = layerMasksData.walkableLayer;
             }
         }
 
@@ -72,10 +87,17 @@ namespace Architome
                         return;
                     }
 
+
                     if (effect.particleType == TransformType.Location)
                     {
                         particleObj.transform.position = position;
                         return;
+                    }
+
+                    if (effect.particleType == TransformType.GroundLocation)
+                    {
+                        var groundPosition = V3Helper.GroundPosition(position, walkableLayer, 0, 0);
+                        particleObj.transform.position = groundPosition;
                     }
 
                     if (effect.particleType == TransformType.Target)

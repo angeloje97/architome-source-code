@@ -24,6 +24,7 @@ namespace Architome
 
 
         public Action<EntityInfo, Vector3> BeforeTeleportEntity, AfterTeleportEntity;
+
         public UnityEvent AfterTeleportEntityUnity;
         public UnityEvent BeforeTeleportEntityUnity;
 
@@ -216,7 +217,6 @@ namespace Architome
                 }
             }
         }
-
 
         public EntityInfo EntityDoingTask()
         {

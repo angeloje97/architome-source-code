@@ -5,18 +5,17 @@ using UnityEngine.EventSystems;
 
 namespace Architome
 {
-    public class ActionBarIcon : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDropHandler, IPointerEnterHandler, IPointerExitHandler
+    public class ActionBarIcon : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDropHandler
     {
         // Start is called before the first frame update
         public ActionBarSlot actionBarSlot;
         public ActionBarSlot hoverSlot;
         public ActionBarBehavior actionBarBehavior;
 
-        ToolTip toolTip;
-        ToolTipManager toolTipManager;
-
+        DragAndDrop dragAndDrop;
 
         public int childIndex;
+        public bool dragging;
 
         public void GetDependencies()
         {
@@ -24,20 +23,38 @@ namespace Architome
             {
                 actionBarBehavior.OnNewAbility += OnNewAbility;
             }
+            dragAndDrop = GetComponent<DragAndDrop>();
+
+            if (dragAndDrop)
+            {
+                dragAndDrop.OnDragChange += OnDragChange;
+            }
         }
 
         void Start()
         {
+            GetDependencies();
+        }
 
+        public void OnDragChange(DragAndDrop dragAndDrop, bool isDragging)
+        {
+            Debugger.UI(5439, $"{this} drag and drop changed isDragging {isDragging}");
+            if (isDragging)
+            {
+                actionBarBehavior.DestroyToolTip();
+            }
         }
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            if (GetComponentInParent<ModuleInfo>() && GetComponentInParent<ModuleInfo>().itemBin)
+            var module = GetComponentInParent<ModuleInfo>();
+            if (module && module.itemBin)
             {
-                transform.SetParent(GetComponentInParent<ModuleInfo>().itemBin);
+                transform.SetParent(module.itemBin);
             }
+
             hoverSlot = actionBarSlot;
+            actionBarBehavior.blockToolTip = true;
         }
 
         public void OnPointerUp(PointerEventData eventData)
@@ -50,6 +67,9 @@ namespace Architome
                     ResetBar();
                 }
             }
+
+            actionBarBehavior.blockToolTip = false;
+
         }
 
         public void OnDrop(PointerEventData eventData)
@@ -93,9 +113,9 @@ namespace Architome
 
         public void OnNewAbility(AbilityInfo ability)
         {
-            if (GetComponent<DragAndDrop>())
+            if (dragAndDrop)
             {
-                GetComponent<DragAndDrop>().enabled = ability != null;
+                dragAndDrop.enabled = ability != null;
                 SetCanvasGroup(true);
                 ReturnToActionBar();
             }
@@ -143,34 +163,6 @@ namespace Architome
             }
 
             actionBarBehavior.ResetBar();
-        }
-
-        public void OnPointerEnter(PointerEventData eventData)
-        {
-            if (actionBarBehavior.abilityInfo == null) return;
-            if (toolTipManager == null)
-            {
-                toolTipManager = ToolTipManager.active;
-
-                if (toolTipManager == null) return;
-            }
-
-            toolTip = toolTipManager.GeneralHeader();
-
-            if (toolTip == null) return;
-
-            toolTip.adjustToMouse = true;
-
-            toolTip.SetToolTip(actionBarBehavior.abilityInfo.ToolTipData());
-
-
-        }
-
-        public void OnPointerExit(PointerEventData eventData)
-        {
-            if (toolTip == null) return;
-
-            toolTip.DestroySelf();
         }
     }
 

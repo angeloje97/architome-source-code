@@ -405,7 +405,7 @@ namespace Architome
         {
             target = CorrectTarget();
 
-            if (focusTarget == threatInfo.threatObject)
+            if (focusTarget == threatInfo.threatInfo)
             {
                 focusTarget = null;
             }
@@ -422,6 +422,7 @@ namespace Architome
                 if (previousTarget != target)
                 {
                     OnNewTarget?.Invoke(previousTarget, target);
+                    entityInfo.SetCombatTarget(target);
                     previousTarget = target;
                 }
 

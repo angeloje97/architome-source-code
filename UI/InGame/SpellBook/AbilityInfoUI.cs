@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Architome.Enums;
+using static Architome.CatalystInfo.CatalystEffects;
 
 namespace Architome
 {
@@ -16,6 +17,7 @@ namespace Architome
 
         ToolTip toolTip;
         ToolTipManager manager;
+        
 
         ToolTipManager Manager 
         {
@@ -62,16 +64,20 @@ namespace Architome
 
         public void Return()
         {
-            if (currentSlot != null)
-            {
-                if (currentActionBarSlot &&
-                    currentActionBarHover == null)
-                {
-                    Destroy(gameObject);
-                }
+            if (currentSlot == null) return;
 
-                currentSlot.SetAbilityUI(this);
+
+            if (currentActionBarSlot &&
+                currentActionBarHover == null)
+            {
+                Destroy(gameObject);
             }
+
+            transform.position = currentSlot.transform.position;
+            GetComponent<RectTransform>().sizeDelta = currentSlot.GetComponent<RectTransform>().sizeDelta * 1.25f;
+
+            transform.SetParent(currentSlot.transform);
+            currentSlot.border.SetAsLastSibling();
         }
 
         public void SetAbility(AbilityInfo ability)
@@ -144,6 +150,8 @@ namespace Architome
 
             toolTip.DestroySelf();
         }
+
+        
     }
 
 }

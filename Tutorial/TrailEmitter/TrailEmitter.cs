@@ -8,6 +8,8 @@ namespace Architome.Tutorial
 {
     public class TrailEmitter : MonoBehaviour
     {
+        public static TrailEmitter activeTrailEmitter;
+
         public Trail trail;
         public Transform trailTarget;
 
@@ -22,6 +24,11 @@ namespace Architome.Tutorial
         private void Start()
         {
             HandleEmitOnStart();
+        }
+
+        private void Awake()
+        {
+            activeTrailEmitter = this;
         }
 
         void HandleEmitOnStart()
@@ -55,8 +62,8 @@ namespace Architome.Tutorial
 
             while (active)
             {
-                await Task.Delay((int)(1000 * interval));
                 SpawnEmission(trailTarget);
+                await Task.Delay((int)(1000 * interval));
             }
 
             intervalActive = false;
@@ -64,6 +71,7 @@ namespace Architome.Tutorial
 
         void SpawnEmission(Transform target)
         {
+            if (target == null) return;
             var newTrail = Instantiate(trail.gameObject, transform.position, transform.rotation);
 
             var trailBehavior = newTrail.GetComponent<Trail>();

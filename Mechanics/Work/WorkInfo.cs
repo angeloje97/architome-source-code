@@ -43,6 +43,9 @@ namespace Architome
             GetDependencies();
             HandleCount();
 
+            updateTasks = true;
+            UpdateTasks();
+
             taskEvents.OnTaskComplete += HandleTaskComplete;
         }
 

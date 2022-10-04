@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Architome
+namespace Architome.Tutorial
 {
     public class HealPartyListener : EventListener
     {

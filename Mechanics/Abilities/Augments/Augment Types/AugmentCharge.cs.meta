@@ -3,7 +3,11 @@ guid: 95b8482d502351443b86009812e825e2
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - augment: {instanceID: 0}
+  - activeCatalyst: {instanceID: 0}
+  - pathfindingAgent: {fileID: 3837214810460680884, guid: 0b1d498b816672844be14cd4747aefa0, type: 3}
+  - catalystManager: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

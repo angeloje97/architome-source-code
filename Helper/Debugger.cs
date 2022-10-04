@@ -8,8 +8,9 @@ public class Debugger : MonoBehaviour
     static bool debugging = false;
     static bool debugCombat = false;
     static bool debugEnvironment = true;
-    static bool debugUI = false;
+    static bool debugUI = true;
     static bool debugSocial = false;
+    static bool debugOutSource = false;
     void Start()
     {
         
@@ -53,6 +54,12 @@ public class Debugger : MonoBehaviour
         if (!debugSocial) return;
 
         Debug.Log($"Social: {id} : {sentence}");
+    }
+
+    public static void OutSource(int id, string sentence)
+    {
+        if (!debugOutSource) return;
+        Debug.Log($"OutSource: {id} : {sentence}");
     }
 
 }

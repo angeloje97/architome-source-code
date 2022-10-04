@@ -285,6 +285,7 @@ public class AbilityInfo : MonoBehaviour
 
     public Action<AbilityInfo, bool> OnActiveChange;
     public Action<AbilityInfo, int> OnChargesChange;
+    public Action<AbilityInfo, ToolTipData> OnAcquireToolTip;
 
 
     //Augments
@@ -878,7 +879,7 @@ public class AbilityInfo : MonoBehaviour
 
         var value = showResources ? ResourceDescription() : "";
 
-        return new() {
+        var newToolTip = new ToolTipData() {
             icon = Icon(),
             subeHeadline = ArchString.CamelToTitle(abilityType2.ToString()),
             name = Name(),
@@ -887,6 +888,10 @@ public class AbilityInfo : MonoBehaviour
             requirements = RestrictionDescription(),
             value = value
         };
+
+        OnAcquireToolTip?.Invoke(this, newToolTip);
+
+        return newToolTip;
 
     }
     async void OnGlobalCoolDown(AbilityInfo ability)

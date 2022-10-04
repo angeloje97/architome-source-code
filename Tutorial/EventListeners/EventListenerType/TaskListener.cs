@@ -12,14 +12,13 @@ namespace Architome.Tutorial
         public string taskWorkString;
         public int taskIndex;
         public bool preventUntilStart;
-        public bool simple;
         
         
         void Start()
         {
             HandleStart();
             ArchAction.Delay(() => HandlePreventUntilStart(), 1f);
-            //HandlePreventUntilStart();
+            HandleTrailEmission();
         }
 
         void HandlePreventUntilStart()
@@ -85,7 +84,7 @@ namespace Architome.Tutorial
 
             if (simple)
             {
-                stringList.Add($"Use {workInfoTarget.workName} and activate {taskWorkString}");
+                stringList.Add($"Use the {taskWorkString} action on {workInfoTarget.workName}.");
             }
             else
             {

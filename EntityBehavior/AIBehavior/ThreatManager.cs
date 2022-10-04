@@ -24,14 +24,16 @@ public class ThreatManager : MonoBehaviour
     [Serializable]
     public class ThreatInfo
     {
-        public ThreatManager threatManager;
-        public CombatBehavior combatBehavior;
-        public GameObject sourceObject;
-        public GameObject threatObject;
-        public EntityInfo threatInfo;
+        public ThreatManager threatManager; //Owner
+        public GameObject sourceObject;     //Owner
+        public EntityInfo sourceInfo;       //Owner
+        public GameObject threatObject;     //Attacker
+        public EntityInfo threatInfo;       //Attacker
         public float threatValue;
         public float timeInCombat;
         public bool isActive;
+
+        public Action<ThreatInfo> OnThreatEnd;
 
         public void IncreaseThreat(float val)
         {
@@ -41,14 +43,21 @@ public class ThreatManager : MonoBehaviour
         {
             this.threatManager = threatManager;
             sourceObject = source.gameObject;
+            sourceInfo = source;
             threatObject = threat.gameObject;
             threatValue = val;
             threatInfo = threat;
-            combatBehavior = threatObject.GetComponentInChildren<CombatBehavior>();
 
             threatManager.OnClearThreats += OnClearThreats;
             source.OnDeath += OnSourceDeath;
             threat.OnDeath += OnThreatDeath;
+
+            OnThreatEnd += delegate (ThreatInfo threatInfo)
+            {
+                threatManager.OnClearThreats -= OnClearThreats;
+                source.OnDeath -= OnSourceDeath;
+                threat.OnDeath -= OnThreatDeath;
+            };
             
 
             isActive = true;
@@ -56,29 +65,31 @@ public class ThreatManager : MonoBehaviour
         }
         public async void CombatTimeRoutine()
         {
+            
             while (isActive)
             {
                 if (!Application.isPlaying) return;
-                await Task.Delay(1000);
-                timeInCombat += 1;
                 try
                 {
-                    if (!threatObject.GetComponent<EntityInfo>().isAlive)
+                    if (!threatInfo.isAlive)
                     {
                         RemoveThreat();
                     }
 
-                    if (!sourceObject.GetComponent<EntityInfo>().CanAttack(threatObject))
+                    if (!sourceInfo.CanAttack(threatObject))
                     {
                         RemoveThreat();
                     }
 
-                    if (!sourceObject.GetComponent<EntityInfo>().isAlive)
+                    if (!sourceInfo.isAlive)
                     {
                         threatManager.ClearThreats();
                     }
                 }
-                catch {}
+                catch { }
+                await Task.Delay(1000);
+                timeInCombat += 1;
+                
                 
 
             }
@@ -97,14 +108,11 @@ public class ThreatManager : MonoBehaviour
         }
         public void RemoveThreat()
         {
+            isActive = false;
+            OnThreatEnd?.Invoke(this);
             try
             {
                 threatManager.RemoveThreat(threatInfo);
-                Debugger.InConsole(3974, $"{threatObject} removes from {sourceObject}");
-                sourceObject.GetComponent<EntityInfo>().OnDeath -= OnSourceDeath;
-                threatObject.GetComponent<EntityInfo>().OnDeath -= OnThreatDeath;
-                threatManager.OnClearThreats -= OnClearThreats;
-                isActive = false;
             }
             catch
             {
@@ -121,10 +129,9 @@ public class ThreatManager : MonoBehaviour
     public event Action<ThreatInfo> OnNewThreat;
     public event Action<ThreatInfo, float> OnIncreaseThreat;
     public event Action<ThreatInfo> OnFirstThreat;
-    public event Action<ThreatInfo> OnRemoveThreat;
+    public Action<ThreatInfo> OnRemoveThreat;
     public event Action<ThreatManager> OnEmptyThreats;
     public event Action<ThreatManager> OnClearThreats;
-
 
     bool sortingThreats;
     bool combatActive;
@@ -236,7 +243,6 @@ public class ThreatManager : MonoBehaviour
 
         return 1f;
     }
-
     public void OnBuffApply(BuffInfo appliedBuff, EntityInfo source)
     {
 
@@ -275,12 +281,10 @@ public class ThreatManager : MonoBehaviour
         IncreaseThreat(target, 15f, true);
 
     }
-
     public void OnPingThreat(EntityInfo source, float value)
     {
         IncreaseThreat(source, value);
     }
-
     public void ClearThreatQueue()
     {
         if (!entityInfo.isAlive)
@@ -326,6 +330,10 @@ public class ThreatManager : MonoBehaviour
         if(!threats.Contains(threat)) { return; }
         threats.Remove(threat);
         threatDict.Remove(threatInfo);
+        if (highestThreat == threatInfo) highestThreat = null;
+        if (highestNonTargettingThreat == threatInfo) highestNonTargettingThreat = null;
+
+        HandleMaxThreat();
         
         //HandleMaxThreat();
         OnRemoveThreat?.Invoke(threat);
@@ -421,6 +429,7 @@ public class ThreatManager : MonoBehaviour
         source.combatEvents.OnGenerateThreat?.Invoke(threatInfo, value);
 
         CheckMaxThreat();
+        CheckMaxThreatNonTargetting();
         //HandleMaxThreat();
         SortThreats();
 
@@ -448,8 +457,33 @@ public class ThreatManager : MonoBehaviour
                 highestThreat = source;
 
             }
+        }
+
+        void CheckMaxThreatNonTargetting()
+        {
+            if (source.combatTarget == entityInfo)
+            {
+                if (highestNonTargettingThreat == source)
+                {
+                    highestNonTargettingThreat = null;
+                }
+                return;
+            }
+
+            if (highestNonTargettingThreat == null)
+            {
+                highestNonTargettingThreat = source;
+                return;
+            }
 
 
+            var highestThreat = Threat(highestNonTargettingThreat);
+            
+
+            if (highestThreat.threatValue > threatInfo.threatValue)
+            {
+                highestNonTargettingThreat = source;
+            }
         }
     }
     async void SortThreats()
@@ -506,7 +540,6 @@ public class ThreatManager : MonoBehaviour
         }
         return blackListed;
     }
-
     public void IncreaseMassiveThreat(EntityInfo entity)
     {
         IncreaseThreat(entity, 5000);
@@ -536,11 +569,7 @@ public class ThreatManager : MonoBehaviour
 
             HandleMax(info);
             HandleNonTargetting(info);
-
-            
         }
-
-
 
         void HandleMax(ThreatInfo info)
         {
@@ -558,49 +587,14 @@ public class ThreatManager : MonoBehaviour
         
         void HandleNonTargetting(ThreatInfo info)
         {
-            if (info.threatValue < maxNonTargetting) return;
-            if (!info.threatInfo.isInCombat) return;
-            if (info.combatBehavior.target == entityObject) return;
+            var enemy = info.threatInfo;
+
+            if (enemy.combatTarget == entityInfo) return;
+            if (info.threatValue <= maxNonTargetting) return;
 
             maxNonTargetting = info.threatValue;
-            highestNonTargettingThreat = info.threatInfo;
+            highestNonTargettingThreat = enemy;
         }
-    }
-    public void HandleMaxThreatNonTargetting()
-    {
-        
-        if (threats.Count == 0)
-        {
-            highestNonTargettingThreat = null;
-            return;
-        }
-
-        float max = float.NegativeInfinity;
-
-        EntityInfo target = null;
-
-        foreach (var threat in threats)
-        {
-            if (threat.threatValue < max) continue;
-            if (!threat.threatInfo.isInCombat) continue;
-            if (threat.combatBehavior.target == entityObject) continue;
-
-            max = threat.threatValue;
-            target = threat.threatInfo;
-        }
-
-        if (target == null)
-        {
-            highestNonTargettingThreat = null;
-        }
-        else
-        {
-            highestNonTargettingThreat = target;
-        }
-
-
-
-
     }
     public EntityInfo NearestHighestThreat(float range)
     {

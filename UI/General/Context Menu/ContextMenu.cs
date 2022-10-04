@@ -32,6 +32,11 @@ namespace Architome
         public float startingWidth;
 
         RectTransform rectTransform;
+        KeyBindings keyBindData;
+        bool exitKeysActive;
+
+
+        public Action<ContextMenu, bool> OnContextActiveChange;
 
         void GetDependencies()
         {
@@ -39,6 +44,7 @@ namespace Architome
             layoutGroup = GetComponentInChildren<HorizontalOrVerticalLayoutGroup>();
             rectTransform = GetComponent<RectTransform>();
             module.OnActiveChange += OnActiveChange;
+            keyBindData = KeyBindings.active;
 
             startingWidth = rectTransform.rect.width;
         }
@@ -53,20 +59,28 @@ namespace Architome
             GetDependencies();
         }
 
-        public void HandleInput()
+        public async Task HandleInput()
         {
-            var cancelKeys = new List<KeyCode>()
-            {
-                KeyCode.Mouse0,
-                KeyCode.Mouse1,
-                KeyCode.Escape
-            };
 
-            foreach (var key in cancelKeys)
+            await ExitKeys();
+
+            if (isChoosing)
             {
-                if (!Input.GetKeyDown(key)) continue;
                 CancelOptions();
             }
+
+            //var cancelKeys = new List<KeyCode>()
+            //{
+            //    KeyCode.Mouse0,
+            //    KeyCode.Mouse1,
+            //    KeyCode.Escape
+            //};
+
+            //foreach (var key in cancelKeys)
+            //{
+            //    if (!Input.GetKeyUp(key)) continue;
+            //    CancelOptions();
+            //}
 
             //if (Input.GetKeyDown(KeyCode.Mouse0) || Input.GetKeyDown(KeyCode.Mouse1) || Input.GetKeyDown(KeyCode.Escape)))
             //{
@@ -75,6 +89,45 @@ namespace Architome
             //        CancelOptions();
             //    }
             //}
+        }
+
+        public async Task ExitKeys()
+        {
+            exitKeysActive = true;
+
+            var alternateActionsName = new List<string>();
+
+            for (int i = 0; i < 5; i++)
+            {
+                alternateActionsName.Add($"AlternateAction{i}");
+            }
+
+            var exitKeys = new List<KeyCode>() { 
+                KeyCode.Mouse0,
+                KeyCode.Mouse1,
+                KeyCode.Escape
+            };
+
+            foreach (var action in alternateActionsName)
+            {
+                exitKeys.Add(keyBindData.keyBinds[action]);
+            }
+
+
+            while (exitKeysActive)
+            {
+                if (!isChoosing) break;
+                foreach (var key in exitKeys)
+                {
+                    if (Input.GetKeyUp(key))
+                    {
+                        exitKeysActive = false;
+                    }
+                }
+                await Task.Yield();
+            }
+
+            exitKeysActive = false;
         }
 
         void OnActiveChange(bool isActive)
@@ -108,38 +161,39 @@ namespace Architome
                 await Task.Yield();
             }
 
+
             ClearOptions();
 
             isChoosing = true;
+            OnContextActiveChange?.Invoke(this, true);
             pickedOption = -1;
 
             info.title.text = contextData.title;
             CreateOptions(contextData.options);
 
-            await Task.Delay(63);
+            await ExitKeys();
 
-            while (isChoosing)
-            {
-                HandleInput();
-                await Task.Yield();
-            }
+            await HandleInput();
 
             module.SetActive(false);
 
+
+            var response = new ContextMenuResponse();
+
             if (pickedOption == -1)
             {
-                return new()
-                {
-                    stringValue = "",
-                    index = -1
-                };
+                response.stringValue = "";
+                response.index = -1;
+            }
+            else
+            {
+                response.stringValue = contextData.options[pickedOption];
+                response.index = pickedOption;
             }
 
-            return new()
-            {
-                stringValue = contextData.options[pickedOption],
-                index = pickedOption
-            };
+
+            OnContextActiveChange?.Invoke(this, false);
+            return response;
         }
 
         void CreateOptions(List<string> options)

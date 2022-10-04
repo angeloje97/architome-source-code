@@ -108,7 +108,7 @@ public class EquipmentSlot : MonoBehaviour
 
     void Update()
     {
-        HandleNewEquipment();
+        HandleEvents();
         HandleWeapon();
     }
     void HandleWeapon()
@@ -123,58 +123,65 @@ public class EquipmentSlot : MonoBehaviour
         StayOnMidPoint();
         StayOnSheath();
     }
-    void HandleNewEquipment()
+    void HandleEvents()
     {
-        CheckForNewEquipment();
-        HandleRequiresUpdate();
 
-        void CheckForNewEquipment()
+        if (previousEquipment != equipment)
         {
-            if (previousEquipment != equipment)
-            {
-                charInfo.OnChangeEquipment?.Invoke(this, previousEquipment, equipment);
-                if (weaponObject != null)
-                {
-                    Destroy(weaponObject);
-                }
-                previousEquipment = equipment;
-                requiresUpdate = true;
-                if (Item.IsWeapon(equipment))
-                {
-                    weapon = (Weapon)equipment;
-                }
+            OnNewEquipment(previousEquipment, equipment);
+            previousEquipment = equipment;
+        }
 
+        if (requiresUpdate)
+        {
+            requiresUpdate = false;
+            UpdateEquipment();
+        }
+    }
+
+    void UpdateEquipment()
+    {
+        UpdateNewEquipment();
+        HandleNullEquipment();
+
+        void UpdateNewEquipment()
+        {
+            ShowWeapon();
+        }
+
+
+        void HandleNullEquipment()
+        {
+            if (equipment != null) { return; }
+
+            foreach (Transform child in transform)
+            {
+                Destroy(child.gameObject);
             }
         }
-        void HandleRequiresUpdate()
+    }
+
+    void OnNewEquipment(Equipment previous, Equipment newEquipment)
+    {
+        charInfo.OnChangeEquipment?.Invoke(this, previous, newEquipment);
+
+        if (weapon)
         {
-            if(requiresUpdate)
-            {
-                requiresUpdate = false;
-                UpdateNewEquipment();
-                HandleNullEquipment();
-            }
-
-            void UpdateNewEquipment()
-            {
-                ShowWeapon();
-            }
-
-
-            void HandleNullEquipment()
-            {
-                if(equipment != null) { return; }
-                
-                foreach(Transform child in transform)
-                {
-                    Destroy(child.gameObject);
-                }
-                
-
-
-            }
+            weapon = null;
         }
-        
+
+        if (weaponObject != null)
+        {
+            Destroy(weaponObject);
+            
+        }
+
+        requiresUpdate = true;
+
+        if (Item.IsWeapon(newEquipment))
+        {
+            weapon = (Weapon)equipment;
+        }
     }
     void StayOnPart()
     {
@@ -191,23 +198,22 @@ public class EquipmentSlot : MonoBehaviour
     {
         if(equipment == null) { return; }
         if (sheathed) { return; }
-        if (savePosition)
-        {
-            var weapon = (Weapon)original;
-            var child = new GameObject();
-            //foreach(Transform children in transform)
-            //{
-            //    Destroy(child);
-            //    child = children.gameObject;
-            //}
+        if (!savePosition) return;
+        savePosition = false;
+        var weapon = (Weapon)original;
+        var child = new GameObject();
+        //foreach(Transform children in transform)
+        //{
+        //    Destroy(child);
+        //    child = children.gameObject;
+        //}
 
-            weapon.SetUnsheath(weaponObject.transform);
+        weapon.SetUnsheath(weaponObject.transform);
             
-            //weapon.itemObject.transform.localPosition = CurrentWeapon().transform.localPosition;
-            //weapon.itemObject.transform.localRotation = CurrentWeapon().transform.localRotation;
+        //weapon.itemObject.transform.localPosition = CurrentWeapon().transform.localPosition;
+        //weapon.itemObject.transform.localRotation = CurrentWeapon().transform.localRotation;
 
-            savePosition = false;
-        }
+        savePosition = false;
     }
     public void HandleSaveSheathPosition()
     {
@@ -262,7 +268,7 @@ public class EquipmentSlot : MonoBehaviour
     {
         if (!IsWeapon()) { return; }
         if (weaponObject == null) return;
-        var weapon = (Weapon)equipment;
+        
         var sheathPart = bodyParts.BodyPartTransform(weapon.sheathPart);
         var drawPart = bodyParts.BodyPartTransform(weapon.drawPart);
 
@@ -294,6 +300,7 @@ public class EquipmentSlot : MonoBehaviour
             return;
         }
         if (!IsWeapon()) { return; }
+
         if(equipmentSlotType == equipment.equipmentSlotType || equipmentSlotType == equipment.secondarySlotType)
         {
 

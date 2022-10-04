@@ -67,6 +67,7 @@ namespace Architome
         public bool disappeared = false;
         public bool isHover = false;
         public Transform target { get; private set; }
+        public EntityInfo combatTarget { get; private set; }
         public Role role;
         public RoomInfo currentRoom;
         public List<EntityState> states;
@@ -742,7 +743,14 @@ namespace Architome
 
         public bool SetTarget(Transform target)
         {
-            this.target = target;   
+            this.target = target;
+            return true;
+        }
+
+
+        public bool SetCombatTarget(EntityInfo target)
+        {
+            this.combatTarget = target;
             return true;
         }
         public bool IsEnemy(GameObject target)
@@ -844,6 +852,11 @@ namespace Architome
         {
             health = maxHealth;
             mana = maxMana;
+        }
+
+        public void PingThreat(EntityInfo entity)
+        {
+            combatEvents.OnPingThreat?.Invoke(entity, 20);
         }
 
         public NPCType EnemyType()

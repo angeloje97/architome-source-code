@@ -40,7 +40,7 @@ namespace Architome
         {
             bindings = KeyBindings.active;
             gui = IGGUIInfo.active;
-
+            var contextMenu = ContextMenu.current;
             var archSceneManager = ArchSceneManager.active;
 
 
@@ -54,7 +54,14 @@ namespace Architome
             {
                 gui.OnModuleEnableChange += OnModuleEnableChange;
             }
+
+            if (contextMenu)
+            {
+                contextMenu.OnContextActiveChange += OnContextActiveChange;
+            }
         }
+
+
         void Start()
         {
             GetDependencies();
@@ -70,6 +77,21 @@ namespace Architome
             if (!archSceneManager.sceneToLoad.Equals("PostDungeonResults")) return;
             inputMode = ArchInputMode.Inactive;
 
+        }
+
+        public async void OnContextActiveChange(ContextMenu context, bool isActive)
+        {
+            Debugger.Environment(6459, $"ArchInput listening to context menu isActive: {isActive}");
+
+            var original = inputMode;
+            inputMode = ArchInputMode.Inactive;
+
+            while (context.isChoosing)
+            {
+                await Task.Yield();
+            }
+
+            inputMode = original;
         }
 
         async void OnModuleEnableChange(ModuleInfo changed)

@@ -52,7 +52,7 @@ namespace Architome.Tutorial
                 {
                     ArchAction.Delay(() => {
                         HandleNotification(nextListener, notificationManager);
-                    }, delayBetweenDirections);
+                    }, delayBetweenDirections + nextListener.extraSuccessfulTime);
                     
                 };
 
@@ -68,6 +68,7 @@ namespace Architome.Tutorial
                 description = listener.NotificationDescription(),
                 dismissable = false,
             });
+
 
             listener.OnSuccessfulEvent +=  (EventListener listener) => {
                 direction.CompleteDirection();

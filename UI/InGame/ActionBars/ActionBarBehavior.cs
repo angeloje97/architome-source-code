@@ -6,7 +6,10 @@ using UnityEngine.UI;
 using TMPro;
 using System;
 using Architome;
-public class ActionBarBehavior : MonoBehaviour
+using UnityEngine.EventSystems;
+using UltimateClean;
+
+public class ActionBarBehavior : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     // Start is called before the first frame update
     public AbilityInfo abilityInfo;
@@ -33,11 +36,15 @@ public class ActionBarBehavior : MonoBehaviour
     public Action<AbilityInfo, AbilityInfo> OnAbilityChange;
     public Action<AbilityInfo> OnNewAbility;
 
+    [SerializeField] ToolTip currentToolTip;
+    ToolTipManager toolTipManager;
+    public bool blockToolTip { get; set; }
+
     public void GetDependencies()
     {
         keyBindings = KeyBindings.active;
-        
 
+        toolTipManager = ToolTipManager.active;
         ArchInput.active.OnAbilityKey += OnAbilityKey;
 
         if (keyBindings)
@@ -46,6 +53,7 @@ public class ActionBarBehavior : MonoBehaviour
         }
 
         OnAbilityChange += HandleAbilityChange;
+
     }
     void Start()
     {
@@ -242,6 +250,11 @@ public class ActionBarBehavior : MonoBehaviour
         iconDark.color = darkenedColor;
         OnNewAbility?.Invoke(abilityInfo);
         DisplayAbilityActive(abilityInfo.active);
+        ArchAction.Delay(() =>
+        {
+            if (this.abilityInfo != abilityInfo) return;
+            DisplayAbilityActive(abilityInfo.active);
+        }, 1f);
 
         SetImage(true);
 
@@ -264,5 +277,29 @@ public class ActionBarBehavior : MonoBehaviour
 
         //characterPortrait.sprite = entity.entityPortrait;
         //characterPortrait.transform.parent.gameObject.SetActive(true);
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        if (blockToolTip) return;
+
+        if (toolTipManager == null) return;
+        if (abilityInfo == null) return;
+
+        currentToolTip = toolTipManager.GeneralHeader();
+        currentToolTip.adjustToMouse = true;
+        currentToolTip.SetToolTip(abilityInfo.ToolTipData());
+    }
+
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        DestroyToolTip();
+    }
+    public void DestroyToolTip()
+    {
+        if (currentToolTip == null) return;
+        currentToolTip.DestroySelf();
+        currentToolTip = null;
     }
 }

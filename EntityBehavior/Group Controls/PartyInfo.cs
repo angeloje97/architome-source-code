@@ -33,7 +33,7 @@ namespace Architome
             public Action<bool> OnCombatChange;
             public Action<EntityInfo> OnAddMember;
             public Action<EntityInfo> OnRemoveMember;
-            public Action<PartyFormation> OnMoveFormation;
+            public Action<PartyFormation> OnMoveFormation { get; set; }
             public Action<string> OnTransferScene;
             public Action<EntityInfo> OnPartyAttack;
         }
@@ -285,10 +285,10 @@ namespace Architome
 
 
 
-                if (memberInfo.Movement())
+                if (movement)
                 {
-                    memberInfo.Movement().OnTryMove?.Invoke(memberInfo.Movement());
-                    memberInfo.Movement().MoveTo(partyFormation.spots[i].transform);
+                    movement.OnTryMove?.Invoke(movement);
+                    movement.MoveTo(partyFormation.spots[i].transform);
                 }
             }
         }
@@ -299,6 +299,7 @@ namespace Architome
         }
         public void MovePartyTo(Vector3 position)
         {
+            events.OnMoveFormation?.Invoke(partyFormation);
             partyFormation.MoveFormation(position);
             MoveParty();
         }
