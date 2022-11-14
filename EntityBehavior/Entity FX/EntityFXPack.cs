@@ -4,7 +4,7 @@ using UnityEngine;
 using System;
 using Architome.Enums;
 
-[CreateAssetMenu(fileName = "New EntityFX Pack", menuName = "EntityFX")]
+[CreateAssetMenu(fileName = "New EntityFX Pack", menuName = "Architome/Entity/EntityFX")]
 public class EntityFXPack : ScriptableObject
 {
     // Start is called before the first frame update

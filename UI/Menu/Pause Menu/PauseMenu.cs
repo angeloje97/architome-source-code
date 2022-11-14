@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using UnityEngine.SceneManagement;
+using System.Threading.Tasks;
 
 namespace Architome
 {
@@ -13,14 +14,16 @@ namespace Architome
         public bool isActive;
         public bool selfEscape;
 
-        public Action<PauseMenu, bool> OnActiveChange;
 
         bool activeCheck;
 
         public List<CanvasGroup> items;
         public CanvasGroup router;
 
+        public Action<PauseMenu, bool> OnActiveChange;
         public Action<PauseMenu> OnTryOpenPause;
+        public Action<PauseMenu, List<bool>> OnCanOpenCheck;
+        public Action<PauseMenu, List<bool>> OnCanCloseCheck;
 
         public bool pauseBlocked;
 
@@ -42,7 +45,11 @@ namespace Architome
         {
             active = this;
         }
-        
+
+        private void Start()
+        {
+        }
+
         bool ContextMenuActive()
         {
             var contextMenu = ContextMenu.current;
@@ -55,8 +62,6 @@ namespace Architome
         public void PauseMenuBack()
         {
             pauseBlocked = false;
-
-            if (ContextMenuActive()) return;
 
             OnTryOpenPause?.Invoke(this);
 
@@ -90,11 +95,25 @@ namespace Architome
 
         public void SetMenu(bool active)
         {
+
             this.isActive = active;
 
             UpdateMenu();
         }
+        
 
+        bool CanOpen()
+        {
+            var checks = new List<bool>();
+
+            OnCanOpenCheck?.Invoke(this, checks);
+
+            foreach (var check in checks)
+            {
+                if (!check) return false;
+            }
+            return true;
+        }
         
 
         void UpdateMenu()

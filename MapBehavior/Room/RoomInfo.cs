@@ -6,6 +6,8 @@ using System.Linq;
 using System;
 using System.Threading.Tasks;
 using Architome.Enums;
+using DungeonArchitect.RoomDesigner.Editors;
+using static UnityEngine.EventSystems.EventTrigger;
 
 namespace Architome
 {
@@ -126,6 +128,8 @@ namespace Architome
 
             public void HandleEntityEnter(EntityInfo entity)
             {
+                if (!room) return;
+                if (inRoom.Contains(entity)) return;
                 inRoom.Add(entity);
                 OnEntityEnter?.Invoke(entity);
 
@@ -146,6 +150,8 @@ namespace Architome
 
             public void HandleEntityExit(EntityInfo entity)
             {
+                if (!inRoom.Contains(entity)) return;
+                if (!room) return;
                 inRoom.Remove(entity);
                 OnEntityExit?.Invoke(entity);
 
@@ -159,6 +165,8 @@ namespace Architome
                         room.ShowRoom(false, entity.transform.position);
                     }
                 }
+
+                
             }
 
             public bool PlayerIsInRoom()
@@ -173,11 +181,30 @@ namespace Architome
                 return playerInRoom.Count > 0;
             }
 
+            public void Initiate(MapEntityGenerator generator)
+            {
+                for (int i = 0; i < inRoom.Count; i++)
+                {
+                    var entity = inRoom[i];
+
+                    if(entity.currentRoom != room)
+                    {
+                        inRoom.RemoveAt(i);
+                        i--;
+
+                        if (playerInRoom.Contains(entity))
+                        {
+                            playerInRoom.Remove(entity);
+                        }
+                    }
+
+                }
+            }
         }
         public Entities entities;
 
         //Private properties
-        private float percentReveal;
+        [SerializeField] float percentReveal;
 
         private void Awake()
         {
@@ -186,17 +213,34 @@ namespace Architome
         {
             //var badSpawn = await CheckBadSpawn();
             GetDependencies();
-            entities.room = this;
+            
+
+
+            
         }
         void Update()
         {
 
         }
-        public float PercentReveal { get { return percentReveal; } set { percentReveal = value; } }
+
+        public void SuccesfulStart()
+        {
+            HandleOnGenerateEntities();
+            HandleRoomGeneration();
+
+            void HandleRoomGeneration()
+            {
+                var roomGenerator = MapRoomGenerator.active;
+
+                roomGenerator.OnRoomsGenerated += OnRoomsGenerated;
+            }
+        }
 
         protected virtual void GetDependencies()
         {
             mapInfo = MapInfo.active;
+
+            entities.room = this;
 
             if (mapInfo && !spawnedByGenerator)
             {
@@ -204,11 +248,16 @@ namespace Architome
             }
 
             mapInfo.EntityGenerator().OnEntitiesGenerated += OnEntitiesGenerated;
-            entities.room = this;
 
 
             GetAllObjects();
             isRevealed = true;
+
+
+            if (!spawnedByGenerator)
+            {
+                SuccesfulStart();
+            }
         }
         public void GetAllObjects()
         {
@@ -239,15 +288,33 @@ namespace Architome
             }
         }
 
+        void HandleOnGenerateEntities()
+        {
+            var entityGenerator = MapEntityGenerator.active;
+            if (entityGenerator == null) return;
+
+            entityGenerator.OnEntitiesGenerated += (MapEntityGenerator generator) => {
+
+            };
+        }
+
         public virtual void OnEntitiesGenerated(MapEntityGenerator generator)
         {
+            entities.Initiate(generator);
+        }
 
+        public virtual void OnRoomsGenerated(MapRoomGenerator generator)
+        {
+            Debugger.Environment(5621, $"Room reveal percent is {generator.roomRevealPercent}");
+            percentReveal = generator.roomRevealPercent;
         }
 
         public async void ShowRoomAsyncPoint(bool val, Vector3 pointPosition, float percent = .025f)
         {
-
+            if (isRevealed == val) return;
             var orderedRenders = new List<Renderer>();
+
+            UpdatePercentReveal();
 
             GetAllRenderers();
             isRevealed = val;
@@ -272,6 +339,12 @@ namespace Architome
             while (count < orderedRenders.Count)
             {
                 if (isRevealed != val) { break; }
+
+                if (!orderedRenders[count])
+                {
+                    count++;
+                    break;
+                }
 
                 if (orderedRenders[count].enabled == val)
                 {
@@ -301,7 +374,12 @@ namespace Architome
             }
         }
 
+        public void UpdatePercentReveal()
+        {
+            if (percentReveal > 0) return;
 
+            percentReveal = MapRoomGenerator.active.roomRevealPercent;
+        }
         public Transform Misc
         {
             get
@@ -323,7 +401,6 @@ namespace Architome
         {
             if (ignoreCheckRoomCollison)
             {
-                percentReveal = MapInfo.active.RoomGenerator().roomRevealPercent;
                 return true;
             }
 
@@ -345,41 +422,12 @@ namespace Architome
                 }
                 return true;
             }
-
             return false;
-
-            if (badSpawn)
-            {
-                var incompatable = incompatables.Find(incompatable => incompatable.roomPath == Entrance);
-
-                if (incompatable == null)
-                {
-                    incompatable = new() { roomPath = Entrance };
-                    incompatables.Add(incompatable);
-                }
-
-                incompatable.otherPaths.Add(originPath);
-
-                incompatablePaths.Add(originPath);
-                if (mapInfo) { mapInfo.RoomGenerator().badSpawnRooms.Add(gameObject); }
-            }
-
-            foreach (PathInfo path in paths)
-            {
-                if (!path.isEntrance)
-                {
-                    path.isUsed = false;
-                }
-            }
-
-            if (!badSpawn)
-            {
-
-                percentReveal = MapInfo.active.RoomGenerator().roomRevealPercent;
-            }
 
             
         }
+
+        
 
 
         bool CheckAll()

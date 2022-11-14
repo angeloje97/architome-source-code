@@ -83,6 +83,8 @@ namespace Architome
 
             HandleNearTargets();
 
+            catalyst.metrics.ResetStartingPosition();
+
             if (!LookForNewTarget(entity))
             {
                 ReflectCatalyst(catalyst);
@@ -94,6 +96,7 @@ namespace Architome
         void OnCatalystStructureHit(CatalystInfo catalyst, Collider collider)
         {
             SetCatalyst(catalyst, true);
+
 
             if (!LookForNewTarget(null))
             {

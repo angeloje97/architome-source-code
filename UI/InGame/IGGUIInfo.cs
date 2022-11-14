@@ -13,7 +13,10 @@ namespace Architome
         // Start is called before the first frame update
         public List<GameObject> properties;
         public List<GameObject> modules;
+        public List<ModuleInfo> modulesList;
         public Action<ModuleInfo> OnModuleEnableChange;
+
+        public Action<IGGUIInfo, List<bool>> OnClosingModulesCheck;
 
         [Serializable]
         public struct Prefabs
@@ -44,7 +47,10 @@ namespace Architome
         void Start()
         {
             GetProperties();
+            HandlePauseMenu();
         }
+
+
 
         private void Awake()
         {
@@ -56,9 +62,56 @@ namespace Architome
         {
 
         }
+        
+        void HandlePauseMenu()
+        {
+            var pauseMenu = PauseMenu.active;
+            if (!pauseMenu) return;
+            pauseMenu.OnTryOpenPause += (PauseMenu menu) => {
+                foreach (var module in modulesList)
+                {
+                    if (module.isActive)
+                    {
+                        pauseMenu.pauseBlocked = true;
+                        break;
+                    }
+                }
+            };
+
+            pauseMenu.OnActiveChange += (PauseMenu menu, bool isActive) => {
+                if (isActive)
+                {
+                    CloseAll();
+                }
+            };
+        }
+
+
+        public bool CanCloseModules()
+        {
+            var checks = new List<bool>();
+
+            OnClosingModulesCheck?.Invoke(this, checks);
+
+            foreach (var check in checks)
+            {
+                if (!check) return false;
+            }
+
+            return true;
+        }
+
+        public void CloseAll()
+        {
+            SetExtra();
+            SetModules(false);
+            SetWidgets(false);
+        }
 
         public void OnEscape()
         {
+            if (!CanCloseModules()) return;
+
             if (SetExtra())
             {
                 return;
@@ -171,6 +224,11 @@ namespace Architome
             moduleInfo.SetActive(!moduleInfo.isActive);
 
 
+        }
+
+        public void ToggleModule(ModuleInfo module)
+        {
+            module.SetActive(!module.isActive);
         }
         
         public bool BlockingInput()

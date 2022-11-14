@@ -1,3 +1,4 @@
+using Architome.Enums;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,8 +11,8 @@ namespace Architome.Tutorial
         [Header("Ability Listener Properties")]
         public AbilityInfo ability;
         public EntityInfo particularTarget;
-        public string keybindName;
-        public bool deactiveAbilityUntilActive;
+        public bool fastCoolDown;
+        public CatalystEvent completionEvent;
 
         ActionBarBehavior currentActionBarBehavior;
 
@@ -24,33 +25,30 @@ namespace Architome.Tutorial
             if (ability == null) return;
 
             HandleStart();
-            ArchAction.Delay(() => {
-                HandleDeactivateAbility();
-            }, 3f);
-            HandleDeactivateAbility();
+
+            HandleFastCoolDown();
         }
 
-        void HandleDeactivateAbility()
+        void HandleFastCoolDown()
         {
-            if (!deactiveAbilityUntilActive) return;
-
-            Action<AbilityInfo, bool> action = (AbilityInfo ability, bool active) => {
-                if (active)
+            if (!fastCoolDown) return;
+            Action<AbilityInfo> OnSuccessfulCast = (AbilityInfo ability) => {
+                ArchAction.Delay(() => {
+                if (completed) return;
+                if (ability.coolDown.timer < 1f)
                 {
-                    ability.active = false;
-                }
-            }; 
-
-            ability.active = false;
-
-            ability.OnActiveChange += action;
-
-            OnStartEvent += (EventListener listener) => {
-                ability.OnActiveChange -= action;
-                ability.active = true;
-
+                        ability.coolDown.timer = 1f;
+                    }
+                }, 1f);
             };
 
+            OnStartEvent +=  (EventListener lisntener) => {
+                ability.OnSuccessfulCast += OnSuccessfulCast;
+            };
+
+            OnEndEvent += (EventListener listener) => {
+                ability.OnSuccessfulCast -= OnSuccessfulCast;
+            };
         }
 
         public override void StartEventListener()
@@ -58,11 +56,6 @@ namespace Architome.Tutorial
             //if (ability == null) return;
             base.StartEventListener();
             ability.OnCatalystRelease += OnCatalystRelease;
-
-            if (particularTarget)
-            {
-                PreventEntityDeath(particularTarget);
-            }
 
 
             OnSuccessfulEvent += (EventListener listener) => {
@@ -119,28 +112,29 @@ namespace Architome.Tutorial
                 return;
             }
 
+            catalyst.AddEventAction(completionEvent, CompleteEventListener);
 
             
-            if (particularTarget)
-            {
-                Action<bool> action = delegate (bool isAlive)
-                {
-                    if (!isAlive)
-                    {
-                        CompleteEventListener();
-                    }
-                };
+            //if (particularTarget)
+            //{
+            //    Action<bool> action = delegate (bool isAlive)
+            //    {
+            //        if (!isAlive)
+            //        {
+            //            CompleteEventListener();
+            //        }
+            //    };
 
-                particularTarget.OnLifeChange += action;
+            //    particularTarget.OnLifeChange += action;
 
-                OnSuccessfulEvent += delegate (EventListener listener) {
-                    particularTarget.OnLifeChange -= action;
-                };
+            //    OnSuccessfulEvent += delegate (EventListener listener) {
+            //        particularTarget.OnLifeChange -= action;
+            //    };
 
-                return;
-            }
+            //    return;
+            //}
 
-            CompleteEventListener();
+            //CompleteEventListener();
         }
     }
 }

@@ -12,39 +12,42 @@ namespace Architome
     {
         // Start is called before the first frame update
 
-        public WorldPopupTextManager popUpManager;
+        public PopupTextManager popUpManager;
         public List<EntityState> previousStates;
 
         new void GetDependencies()
         {
             base.GetDependencies();
 
-            popUpManager = WorldPopupTextManager.active;
+            popUpManager = PopupTextManager.active;
 
             if (popUpManager == null) return;
 
-            if (entityInfo)
-            {
-                if (entityInfo.rarity == EntityRarity.Player)
+
+            ArchAction.Delay(() => {
+                if (entityInfo)
                 {
-                    entityInfo.OnLifeChange += OnLifeChange;
-                    entityInfo.combatEvents.OnFixate += OnFixate;
-                    entityInfo.OnLevelUp += OnLevelUp;
-                    entityInfo.OnNewBuff += OnNewBuff;
-                }
-                else
-                {
-                    entityInfo.OnDamageTaken += OnDamageTaken;
-                    entityInfo.combatEvents.OnImmuneDamage += OnImmuneDamage;
+                    if (entityInfo.rarity == EntityRarity.Player)
+                    {
+                        entityInfo.OnLifeChange += OnLifeChange;
+                        entityInfo.combatEvents.OnFixate += OnFixate;
+                        entityInfo.OnLevelUp += OnLevelUp;
+                        entityInfo.OnNewBuff += OnNewBuff;
+                    }
+                    else
+                    {
+                        entityInfo.OnDamageTaken += OnDamageTaken;
+                        entityInfo.combatEvents.OnImmuneDamage += OnImmuneDamage;
+
+                    }
+
+                    entityInfo.infoEvents.OnRarityChange += OnRarityChange;
+
+                    entityInfo.combatEvents.OnStateNegated += OnStateNegated;
+                    entityInfo.combatEvents.OnStatesChange += OnStatesChange;
 
                 }
-
-                entityInfo.infoEvents.OnRarityChange += OnRarityChange;
-
-                entityInfo.combatEvents.OnStateNegated += OnStateNegated;
-                entityInfo.combatEvents.OnStatesChange += OnStatesChange;
-
-            }
+            }, .25f);
         }
 
 

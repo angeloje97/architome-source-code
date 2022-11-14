@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using System.Runtime.CompilerServices;
+using UnityEditor;
 
 namespace Architome.Tutorial
 {
@@ -29,6 +30,20 @@ namespace Architome.Tutorial
         {
             public UnityEvent OnSuccessfulEvent, OnFailEvent, OnStartEvent, OnEndEvent;
         }
+
+        [Serializable]
+        public struct Settings
+        {
+            public List<EntityInfo> preventEntitiesDeath;
+            public List<EntityInfo> preventEntityDeathBeforeStart;
+            public List<EntityInfo> preventEntitiesDamage;
+            public List<EntityInfo> preventEntitiesTargetedBeforeStart;
+            public List<AbilityInfo> preventAbilitiesUntilStart;
+
+            public float entityDeathPreventionDelay;
+        }
+
+        public Settings settings;
 
         public UnityEvents events;
 
@@ -73,6 +88,74 @@ namespace Architome.Tutorial
             {
                 StartEventListener();
             }
+
+            HandleSettings();
+        }
+
+        void HandleSettings()
+        {
+            if (settings.preventEntitiesDeath != null)
+            {
+                foreach (var entity in settings.preventEntitiesDeath)
+                {
+                    PreventEntityDeath(entity);
+                }
+            }
+
+            if (settings.preventEntityDeathBeforeStart != null)
+            {
+                foreach(var entity in settings.preventEntityDeathBeforeStart)
+                {
+                    PreventEntityDeathBeforeStart(entity);
+                }
+            }
+
+            if(settings.preventEntitiesDamage != null)
+            {
+                foreach (var entity in settings.preventEntitiesDamage)
+                {
+                    PreventEntityDamage(entity);
+                }
+            }
+
+            if (settings.preventAbilitiesUntilStart != null)
+            {
+                foreach (var ability in settings.preventAbilitiesUntilStart)
+                {
+                    ArchAction.Delay(() => {
+                        PreventAbilityBeforeStart(ability);
+                    }, 3f);
+                }
+            }
+
+            if(settings.preventEntitiesTargetedBeforeStart != null)
+            {
+                foreach(var entity in settings.preventEntitiesTargetedBeforeStart)
+                {
+                    PreventEntityTargetedBeforeStart(entity);
+                }
+            }
+        }
+
+        public void PreventAbilityBeforeStart(AbilityInfo ability)
+        {
+            ability.active = false;
+
+            Action<AbilityInfo, bool> action = delegate (AbilityInfo current, bool active)
+            {
+                if (active)
+                {
+                    current.active = false;
+                }
+            };
+
+            ability.OnActiveChange += action;
+
+            OnStartEvent += (EventListener listener) =>
+            {
+                ability.OnActiveChange -= action;
+                ability.active = true;
+            };
         }
 
         public void PreventEntityDeath(EntityInfo entity)
@@ -89,12 +172,45 @@ namespace Architome.Tutorial
                     if (completed) return;
                     actions.Revive(entity, entity.transform.position);
                 
-                }, 2f);
+                }, settings.entityDeathPreventionDelay > 0 ? settings.entityDeathPreventionDelay : 2f);
             }
+        }
+
+        public void PreventEntityTargetedBeforeStart(EntityInfo entity)
+        {
+            if (initiated) return;
+            Action<List<bool>> action = (List<bool> checks) => {
+                checks.Add(false);
+            };
+
+            entity.combatEvents.OnCanBeAttackedCheck += action;
+            entity.combatEvents.OnCanBeHelpedCheck += action;
+
+            OnStartEvent += (EventListener listener) => {
+                entity.combatEvents.OnCanBeAttackedCheck -= action;
+                entity.combatEvents.OnCanBeHelpedCheck -= action;
+            };
+        }
+
+        public void PreventEntityDamage(EntityInfo entity)
+        {
+            Action<CombatEventData> action = (CombatEventData eventData) => {
+                eventData.value = 0f;
+            };
+
+            entity.combatEvents.BeforeDamageDone += action;
+            entity.combatEvents.BeforeDamageTaken += action;
+
+            OnEndEvent += (EventListener listener) => {
+                entity.combatEvents.BeforeDamageTaken -= action;
+                entity.combatEvents.BeforeDamageDone -= action;
+            
+            };
         }
 
         public void PreventEntityDeathBeforeStart(EntityInfo entity)
         {
+            if (initiated) return;
             entity.OnLifeChange += OnEntityLifeChange;
 
             OnStartEvent += (EventListener listener) => {
@@ -107,7 +223,7 @@ namespace Architome.Tutorial
                     if (initiated) return;
                     actions.Revive(entity, entity.transform.position);
 
-                }, 2f);
+                }, settings.entityDeathPreventionDelay > 0 ? settings.entityDeathPreventionDelay : 2f);
             }
         }
 
@@ -136,7 +252,7 @@ namespace Architome.Tutorial
 
         public virtual string Directions()
         {
-            return "";
+            return description;
         }
 
         public virtual string Tips()
@@ -148,7 +264,6 @@ namespace Architome.Tutorial
         public string NotificationDescription()
         {
             var stringList = new List<string>() {
-                description,
                 Directions(),
                 Tips()
             };

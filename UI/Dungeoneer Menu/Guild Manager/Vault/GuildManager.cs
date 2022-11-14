@@ -59,6 +59,29 @@ namespace Architome
         public Action<EntityInfo> OnSelectEntity { get; set; }
         public Action<List<ItemData>> OnCurrenciesChange { get; set; }
 
+        public Action<Currency, int, List<bool>> OnCanSpendCheck { get; set; }
+
+        [Serializable]
+        public struct States
+        {
+            public bool choosingCardAction;
+
+
+            bool choosingCardActionCheck;
+            public Action<bool> OnChoosingActionChange;
+
+            public void HandleEvents()
+            {
+                if (choosingCardActionCheck != choosingCardAction)
+                {
+                    choosingCardActionCheck = choosingCardAction;
+                    OnChoosingActionChange?.Invoke(choosingCardAction);
+                }
+            }
+        }
+
+        public States states;
+
         private void Awake()
         {
             active = this;
@@ -94,6 +117,11 @@ namespace Architome
 
                 }
             }
+        }
+
+        private void Update()
+        {
+            states.HandleEvents();
         }
 
         void GetDependencies()
@@ -190,8 +218,7 @@ namespace Architome
 
         public void GainCurrency(Currency currency, int amount)
         {
-            if (guildInfo.currencies == null) guildInfo.currencies = new();
-
+            guildInfo.currencies ??= new();
             HandleCurrency();
             //OnCurrenciesChange?.Invoke(guildInfo.currencies);
             ArchAction.Yield(() => OnCurrenciesChange?.Invoke(guildInfo.currencies));
@@ -217,7 +244,19 @@ namespace Architome
 
         public bool SpendCurrency(Currency currency, int amount)
         {
-            if (guildInfo.currencies == null) guildInfo.currencies = new();
+            guildInfo.currencies ??= new();
+            var checks = new List<bool>();
+
+            OnCanSpendCheck?.Invoke(currency, amount, checks);
+
+            foreach(var check in checks)
+            {
+                if (check)
+                {
+                    return true;
+                }
+            }
+
             var success = HandleCurrency();
 
             ArchAction.Yield(() => OnCurrenciesChange?.Invoke(guildInfo.currencies));
@@ -320,8 +359,14 @@ namespace Architome
             if (entityData == null) return;
             if (entityData.GetType() != typeof(EntityInfo)) return;
             var entity = (EntityInfo)entityData;
-
             if (entity == null) return;
+
+            while (states.choosingCardAction)
+            {
+                await Task.Yield();
+            }
+
+            states.choosingCardAction = true;
 
             var firstChoice = InParty(entity) ? "Remove from party" : "Add to party";
 
@@ -339,12 +384,16 @@ namespace Architome
 
             var userOption = response.index;
 
+            states.choosingCardAction = false;
+
             if (userOption == -1) return;
 
             HandleAddToParty();
             HandleRemoveFromParty();
             HandleEquipment();
             UpdatePartyManager(true);
+
+            
 
             void HandleAddToParty()
             {

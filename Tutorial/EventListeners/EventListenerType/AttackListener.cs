@@ -10,49 +10,32 @@ namespace Architome.Tutorial
     {
         [Header("Kill Listener Properties")]
         public EntityInfo sourceInfo;
-        public EntityInfo targetInfo;
         public List<EntityInfo> targets;
 
         void Start()
         {
             GetDependencies();
             HandleStart();
-            HandleTargetsBeforeStart();
-        }
-
-        void HandleTargetsBeforeStart()
-        {
-            
-            if (targets != null)
-            {
-                foreach (var target in targets)
-                {
-                    PreventEntityDeathBeforeStart(target);
-                }
-            }
-
-            if (targetInfo)
-            {
-                PreventEntityDeathBeforeStart(targetInfo);
-            }
         }
 
         public override void StartEventListener()
         {
             base.StartEventListener();
 
-            if (targetInfo)
-            {
-                targetInfo.OnDeath += (CombatEventData eventData) => {
-                    CompleteEventListener();
-                };
-
-            }
-
             if (targets == null) return;
 
             int targetCounts = 0;
             var deadTargets = new List<EntityInfo>();
+
+            ArchAction.Delay(() => {
+                if (completed) return;
+                foreach(var target in targets)
+                {
+                    if (target.isAlive) return;
+                }
+
+                CompleteEventListener();
+            }, 2f);
             
 
 
@@ -87,29 +70,32 @@ namespace Architome.Tutorial
             var stringList = new List<string>();
 
 
-            if (targetInfo)
-            {
-                stringList.Add($"Defeat {targetInfo}.");
-            }
 
             if (targets != null && targets.Count > 0)
             {
                 var newString = "Defeat ";
                 var targetList = new List<string>();
+                var targets = new List<string>();
 
-                foreach (var target in targets)
+                foreach (var target in this.targets)
                 {
 
                     bool contains = false;
                     
-                    for (int i = 0; i < targetList.Count; i++)
+                    for (int i = 0; i < targets.Count; i++)
                     {
-                        if ($"{target}".Equals(targetList[i]))
+                        if ($"{target}".Equals(targets[i]))
                         {
-                            targetList[i] += "s";
+                            if (!targetList.Contains($"{target}s"))
+                            {
+                                targetList[i] += "s";
+                            }
                             contains = true;
+                            break;
                         }
                     }
+
+                    targets.Add(target.entityName);
 
                     if (!contains)
                     {
@@ -138,20 +124,23 @@ namespace Architome.Tutorial
             var result = new List<string>() { base.Tips() };
             var memberIndex = 0;
 
-            var members = sourceInfo.GetComponentInParent<PartyInfo>().GetComponentsInChildren<EntityInfo>();
 
-            for (int i = 0; i < members.Length; i++)
-            {
-                if (members[i] != sourceInfo) continue;
-                memberIndex = 0;
-
-                break;
-            }
+            
 
             var memberActionIndex = keyBindData.SpriteIndex($"AlternateAction{memberIndex}");
 
             if (!simple)
             {
+                var members = sourceInfo.GetComponentInParent<PartyInfo>().GetComponentsInChildren<EntityInfo>();
+
+                for (int i = 0; i < members.Length; i++)
+                {
+                    if (members[i] != sourceInfo) continue;
+                    memberIndex = 0;
+
+                    break;
+                }
+
                 result.Add($"You can also use the (Member Action {memberIndex + 1} <sprite={memberActionIndex}> ) to attack a target without needing to select the member");
 
             }

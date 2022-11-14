@@ -89,6 +89,14 @@ namespace Architome
             ShowCanvases(!isHidden);
         }
 
+        public void ShowGraphics()
+        {
+            foreach (var canvas in GetComponentsInChildren<Canvas>())
+            {
+                canvas.enabled = true;
+            }
+        }
+
         async void ShowCanvases(bool val)
         {
             foreach (var canvas in GetComponentsInChildren<Canvas>())

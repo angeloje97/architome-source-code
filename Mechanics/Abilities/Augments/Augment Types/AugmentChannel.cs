@@ -87,6 +87,7 @@ namespace Architome
                 timer -= Time.deltaTime;
                 Debugger.Combat(2945, $"{ability} channel timer : {timer}");
                 ability.progress = (timer / startTime);
+                ability.progressTimer = timer;
 
                 WhileChanneling();
 

@@ -57,6 +57,8 @@ namespace Architome
         {
             var playerSpawnBeacon = GMHelper.WorldInfo().currentSpawnBeacon;
 
+            if (playerSpawnBeacon == null) return;
+
             var spawnBeaconHandler = playerSpawnBeacon.GetComponentInChildren<PlayerSpawnBeaconHandler>();
 
             spawnBeaconHandler.ReviveDeadPartyMembers();

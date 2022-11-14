@@ -12,15 +12,17 @@ public class AbilityAnimation
     public EntityInfo entityInfo;
     public AbilityManager abilityManager;
     public Animator animator;
-    public Anim anim;
+    //public Anim anim;
     public CatalystInfo currentCatalyst;
     public CharacterInfo character;
 
-    public void ProcessData(EntityInfo entity, Anim anim)
+    public Weapon weapon;
+
+    public void ProcessData(EntityInfo entity, Animator animator)
     {
         var abilityManager = entity.AbilityManager();
-        this.entityInfo = entity;
-        this.animator = anim.anim;
+        entityInfo = entity;
+        this.animator = animator;
         character = entity.CharacterInfo();
         abilityManager = entityInfo.AbilityManager();
         abilityManager.OnCastStart += OnCastStart;
@@ -36,8 +38,36 @@ public class AbilityAnimation
         abilityManager.OnAbilityStart += OnAbilityStart;
         abilityManager.OnAbilityEnd += OnAbilityEnd;
 
-        this.anim = anim;
-        this.animator = anim.anim;
+        if (character)
+        {
+            character.OnChangeEquipment += OnChangeEquipment;
+            var mainSlot = character.EquipmentSlot(EquipmentSlotType.MainHand);
+            var equipment = mainSlot.equipment;
+
+            if (equipment && Item.IsWeapon(equipment))
+            {
+                weapon = (Weapon) equipment;
+            }
+        }
+    }
+
+    public void OnChangeEquipment(EquipmentSlot slot, Equipment before, Equipment after)
+    {
+        if (slot.equipmentSlotType != EquipmentSlotType.MainHand) return;
+        if (after == null)
+        {
+            weapon = null;
+            return;
+        }
+
+        if (!Item.IsWeapon(after))
+        {
+            weapon = null;
+            return;
+        }
+
+        weapon = (Weapon)after;
+
     }
 
     public void OnCastChange(AbilityInfo info, bool isCasting)
@@ -45,9 +75,11 @@ public class AbilityAnimation
     }
     public void OnCastStart(AbilityInfo ability)
     {
-        var catalystInfo = ability.catalyst ? ability.catalyst.GetComponent<CatalystInfo>() : null;
+        var catalystInfo = ability.catalystInfo;
         if(catalystInfo == null) { return; }
         currentCatalyst = catalystInfo;
+
+        Debugger.Combat(6418, $"{ability} animation");
 
         animator.SetTrigger("CancelAttack");
         animator.SetTrigger("CancelAbility");
@@ -61,16 +93,14 @@ public class AbilityAnimation
             SetAbilityAnimation(catalystInfo, 0, true);
         }
 
-        SetCast(true);
+        //SetCast(true);
     }
 
     public void OnCastReleasePercent(AbilityInfo ability)
     {
         if (ability.isAttack) return;
-        //if (ability.HasChannel()) return;
 
         animator.SetTrigger("ReleaseAbility");
-        //SetCast(false);
     }
     public void OnCastRelease(AbilityInfo ability)
     {
@@ -78,23 +108,14 @@ public class AbilityAnimation
     }
     public void OnChannelStart(AbilityInfo ability, AugmentChannel augment)
     {
-        //SetAnimTrigger(currentCatalyst, 2, false);
-        //if (2 >= currentCatalyst.animationSequence.Count) return;
-
-
-
-        //animator.SetInteger("AbilityIndex", currentCatalyst.animationSequence[2]);
-        //animator.SetTrigger("ActivateAbility");
 
     }
     public void OnChannelInterval(AbilityInfo ability, AugmentChannel augment)
     {
-        //animator.SetTrigger("Repeat");
         animator.SetTrigger("ReleaseAbility");
     }
     public void OnCastChannelEnd(AbilityInfo ability, AugmentChannel augment)
     {
-        //SetAnimTrigger(currentCatalyst, 3, false);
     }
 
     public void OnAbilityStart(AbilityInfo ability)
@@ -137,11 +158,8 @@ public class AbilityAnimation
 
     public void SetAnimTrigger(CatalystInfo catalyst, int index, bool val)
     {
-        
         if(catalyst == null || catalyst.animationSequence == null) { return; }
         if(index >= catalyst.animationSequence.Count) { return; }
-
-
     }
 
 
@@ -164,7 +182,8 @@ public class AbilityAnimation
 
         if (UsesFixedAttackAnimation()) return;
 
-        var weapon = entityInfo.CharacterInfo().WeaponItem(EquipmentSlotType.MainHand);
+        //var weapon = character.WeaponItem(EquipmentSlotType.MainHand);
+        
         if(weapon == null)
         {
             animator.SetInteger("AttackX", 1);

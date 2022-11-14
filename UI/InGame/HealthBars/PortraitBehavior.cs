@@ -282,11 +282,11 @@ public class PortraitBehavior : MonoBehaviour, IPointerEnterHandler, IPointerExi
         entity.infoEvents.OnMouseHover?.Invoke(entity, false, gameObject);
 
     }
-    public void OnNewTargetedBy(GameObject newTarget, List<GameObject> targetedBy)
+    public void OnNewTargetedBy(EntityInfo newTarget, HashSet<EntityInfo> targetedBy)
     {
 
     }
-    public void OnTargetedByRemove(GameObject newTarget, List<GameObject> targetedBy)
+    public void OnTargetedByRemove(EntityInfo newTarget, HashSet<EntityInfo> targetedBy)
     {
 
     }

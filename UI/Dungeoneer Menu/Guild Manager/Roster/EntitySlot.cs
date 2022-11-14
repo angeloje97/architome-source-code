@@ -22,6 +22,7 @@ namespace Architome
         public UnityEvent OnNoIcon;
 
 
+
         [Serializable]
         public struct Info
         {

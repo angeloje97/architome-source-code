@@ -120,23 +120,10 @@ namespace Architome
                 {
                     continue;
                 }
-
-                //if (results[i].gameObject.GetComponent<IgnoreRayCast>())
-                //{
-                //    results.RemoveAt(i);
-                //    i--;
-                //}
-
                 if (results[i].gameObject.GetComponentInParent<ProgressBarsBehavior>())
                 {
                     continue;
                 }
-                //if (results[i].gameObject.GetComponentInParent<ProgressBarsBehavior>())
-                //{
-                //    results.RemoveAt(i);
-                //    i--;
-                //}
-
                 return true;
             }
 

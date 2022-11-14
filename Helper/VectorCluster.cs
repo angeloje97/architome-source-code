@@ -1,6 +1,8 @@
+using Microsoft.Win32.SafeHandles;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Animations.Rigging;
 using UnityEngine;
 
 namespace Architome
@@ -10,7 +12,7 @@ namespace Architome
     {
 
         public List<T> components;
-        public Vector3 min, max;
+        public Vector3 min, max, average;
         public Vector3 dimensions, midPoint, bottom, top, left, right, front, back;
         public float height, width, depth;
         public T heighest, lowest, leftMost, rightMost, frontMost, backMost;
@@ -29,10 +31,12 @@ namespace Architome
         {
             min = V3Helper.PositiveInfinity();
             max = V3Helper.NegativeInfinity();
+            var total = new Vector3();
 
             foreach (var component in components)
             {
                 var position = component.transform.position;
+                total += position;
 
                 if (position.x < min.x)
                 {
@@ -72,6 +76,7 @@ namespace Architome
             height = dimensions.y;
             depth = dimensions.z;
 
+            average = total / components.Count;
             midPoint = (max + min) / 2;
             bottom = new Vector3(midPoint.x, min.y, midPoint.z);
             top = new Vector3(midPoint.x, max.y, midPoint.z);

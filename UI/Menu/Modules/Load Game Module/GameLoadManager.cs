@@ -13,7 +13,7 @@ namespace Architome
         public SaveGame hoverSave;
         public SaveGameSlot selectedSlot;
         public MenuModule module;
-        public bool selectedSaveExists;
+        public bool selectedSaveExists { get; set; }
 
         [Serializable]
         public struct Prefabs
@@ -100,13 +100,15 @@ namespace Architome
             {
                 title = "Delete Save Game",
                 question = $"Are you sure you want to delete {selectedSave.saveName}?",
-                option1 = "Confirm",
-                option2 = "Cancel",
+                
+                options = new() {
+                    "Confirm",
+                    "Cancel"
+                },
                 blocksScreen = true
             });
 
             if (userChoice.optionString != "Confirm") return;
-
 
             slots.Remove(selectedSlot);
             selectedSlot.DestroySelf();
@@ -131,6 +133,7 @@ namespace Architome
         }
         public void UpdateButtons()
         {
+            selectedSaveExists = selectedSlot != null;
             foreach (var save in slots)
             {
                 var isSelected = selectedSaveExists && save.saveGame == selectedSave;
@@ -155,11 +158,19 @@ namespace Architome
             var userInput = await PromptHandler.active.InputPrompt(new() {
                 title = selectedSave.saveName,
                 question = $"New name for {selectedSave.saveName}",
-                option1 = "Apply",
-                option2 = "Cancel",
+                
+                options = new List<string>()
+                {
+                    "Apply",
+                    "Cancel",
+                },
+                optionsAffectedByInvalidInput = new() { 0 },
+                IsValidInput = CheckValidInput,
                 blocksScreen = true,
                 maxInputLength = 30
             });
+
+            if (userInput.optionString == "Cancel") return;
 
             var newName = userInput.userInput;
 
@@ -168,6 +179,16 @@ namespace Architome
 
             selectedSave.Save();
             
+            bool CheckValidInput(string input)
+            {
+                var length = input.Length;
+
+                if (length <= 0) return false;
+                if (length >= 30) return false;
+                if (input == selectedSave.saveName) return false;
+
+                return true;
+            }
         }
 
         public void UpdateSlots()

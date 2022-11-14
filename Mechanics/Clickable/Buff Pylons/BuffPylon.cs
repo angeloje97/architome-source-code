@@ -2,6 +2,8 @@ using System.Collections;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
+using Architome.Enums;
+using System;
 
 namespace Architome
 {
@@ -19,12 +21,37 @@ namespace Architome
         LayerMask entityLayerMask;
         LayerMask structureLayerMask;
         CapsuleCollider capsuleCollider;
+
+        public List<NPCType> auraTargets = new();
+
+        public Action<BuffPylon, bool> OnAuraActiveChange;
+        public Action<BuffPylon, List<EntityInfo>> OnApplyBuffs;
         
 
         private void Start()
         {
             GetDependencies();
             HandleAura();
+            HandleEvents();
+        }
+
+        async void HandleEvents()
+        {
+            if (aura == null) return;
+            if (aura.Count == 0) return;
+
+            var activeCheck = !auraActive;
+
+            while (this)
+            {
+                if(activeCheck != auraActive)
+                {
+                    activeCheck = auraActive;
+                    OnAuraActiveChange?.Invoke(this, auraActive);
+                }
+
+                await Task.Yield();
+            }
         }
 
         void GetDependencies()
@@ -57,11 +84,14 @@ namespace Architome
         {
             if (workStation == null) return;
             if (buffs == null || buffs.Count == 0) return;
-            foreach (var worker in workStation.Workers())
+            var appliedBuffs = false;
+
+            var workers = workStation.Workers();
+
+            foreach (var worker in workers)
             {
                 var buffManager = worker.Buffs();
-
-
+                appliedBuffs = true;
                 foreach (var buff in buffs)
                 {
                     var newBuff = buffManager.ApplyBuff(new(buff) { sourceInfo = worker });
@@ -72,6 +102,11 @@ namespace Architome
                         }
                     });
                 }
+            }
+
+            if (appliedBuffs)
+            {
+                OnApplyBuffs?.Invoke(this, workers);
             }
         }
 
@@ -97,7 +132,7 @@ namespace Architome
         public void AddEntity(EntityInfo entity)
         {
             if (entity == null) return;
-            if (entitiesWithinAura == null) entitiesWithinAura = new();
+            entitiesWithinAura ??= new();
             if (entitiesWithinAura.Contains(entity)) return;
             ApplyBuffs(entity);
             entitiesWithinAura.Add(entity);
@@ -106,7 +141,7 @@ namespace Architome
         public void RemoveEntity(EntityInfo entity)
         {
             if (entity == null) return;
-            if (entitiesWithinAura == null) entitiesWithinAura = new();
+            entitiesWithinAura ??= new();
             if (!entitiesWithinAura.Contains(entity)) return;
             RemoveBuffs(entity);
             entitiesWithinAura.Remove(entity);
@@ -158,7 +193,7 @@ namespace Architome
             while (Application.isPlaying)
             {
                 await Task.Delay(2000);
-                if (entitiesWithinAura == null) entitiesWithinAura = new();
+                entitiesWithinAura ??= new();
 
                 if (!auraActive) break;
 
@@ -170,6 +205,8 @@ namespace Architome
                 {
                     var info = entity.GetComponent<EntityInfo>();
                     if (info == null) continue;
+
+                    if (!auraTargets.Contains(info.npcType)) continue;
 
                     if (requiresLos)
                     {
@@ -184,10 +221,7 @@ namespace Architome
                         }
                     }
 
-                    if (!entitiesWithinAura.Contains(info))
-                    {
-                        AddEntity(info);
-                    }
+                    AddEntity(info);
 
                     validEntities.Add(info);
                 }

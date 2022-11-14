@@ -30,7 +30,7 @@ namespace Architome
             this.catalyst = catalyst;
 
             HandleStartKinematics();
-            HandleCatalystKinematics();
+            //HandleCatalystKinematics();
         }
 
         void HandleStartKinematics()
@@ -81,6 +81,18 @@ namespace Architome
 
         }
 
+        public void Update()
+        {
+            if (!catalyst) return;
+            if (catalyst.isDestroyed) return;
+
+            HandleStop();
+            HandleAcceleration();
+            HandleMaxSpeed();
+
+            catalyst.transform.Translate(speed * Time.deltaTime * Vector3.forward);
+        }
+
 
         async void HandleCatalystKinematics()
         {
@@ -102,7 +114,7 @@ namespace Architome
                 HandleAcceleration();
                 HandleMaxSpeed();
 
-                catalyst.transform.Translate(Vector3.forward * speed * Time.deltaTime);
+                catalyst.transform.Translate(speed * Time.deltaTime * Vector3.forward);
                 await Task.Yield();
             }
 

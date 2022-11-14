@@ -212,7 +212,7 @@ namespace Architome
             {
                 var entity = catalyst.lastTargetHit != null ? catalyst.lastTargetHit : catalyst.entityInfo;
                 var bodyPart = entity.GetComponentInChildren<CharacterBodyParts>().BodyPartTransform(effect.bodyPart);
-
+                
                 system.transform.SetParent(bodyPart);
                 system.transform.localPosition = new();
             }

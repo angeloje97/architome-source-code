@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using UnityEngine.Events;
+using Architome.Enums;
 
 namespace Architome
 {
@@ -12,9 +13,9 @@ namespace Architome
         public static List<PortalInfo> portals;
         public ArchSceneManager sceneManager;
         public bool entryPortal;
-
         public List<PortalInfo> portalList;
         public List<EntityInfo> entitiesInPortal = new();
+        
         public Transform portalSpot;
         public Transform exitSpot;
         public Clickable clickable;
@@ -29,6 +30,7 @@ namespace Architome
         public struct Info
         {
             public string sceneName;
+            public PortalType portalType;
             public RoomInfo room;
             public int portalID;
             public AudioClip portalEnterSound;
@@ -92,7 +94,7 @@ namespace Architome
         }
         private void Awake()
         {
-            if (portals == null) portals = new();
+            portals ??= new();
             if (entryPortal)
             {
                 EntryPortal = this;
@@ -111,7 +113,7 @@ namespace Architome
 
         void HandlePortalList()
         {
-            if (portalList == null) portalList = new();
+            portalList ??= new();
 
             for (int i = 0; i < portalList.Count; i++)
             {
@@ -139,18 +141,6 @@ namespace Architome
 
             this.setScene = setScene;
 
-            //if (Core.currentDungeon == null) return;
-            //if (Core.currentDungeon.Count == 0) return;
-
-            //Core.dungeonIndex++;
-
-            //if (Core.dungeonIndex < 0 || Core.dungeonIndex >= Core.currentDungeon.Count)
-            //{
-            //    setScene = "PostDungeonResults";
-            //    return;
-            //}
-
-            //setScene = "Map Template Continue";
 
             void HandleDungeonLevels()
             {

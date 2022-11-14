@@ -194,13 +194,14 @@ namespace Architome
 
             if (status)
             {
+                var volume = effect.volume != 0 ? effect.volume : 1;
                 if (effect.loops)
                 {
-                    audioManager.PlaySoundLoop(effect.audioClip);
+                    audioManager.PlaySoundLoop(effect.audioClip, 0, volume);
                 }
                 else
                 {
-                    audioManager.PlaySound(effect.audioClip);
+                    audioManager.PlaySound(effect.audioClip, volume);
                 }
 
                 return;
@@ -302,11 +303,14 @@ namespace Architome
             {
                 particle.transform.position = V3Helper.GroundPosition(transform.position, layers.walkableLayer);
                 particle.transform.SetParent(CatalystManager.active.transform, true);
+
             }
 
             if (effect.target == CatalystParticleTarget.BodyPart)
             {
                 particle.transform.SetParent(bodyPart.BodyPartTransform(effect.bodyPart));
+                particle.transform.localPosition = new Vector3(0, 0, 0);
+                return;
             }
 
             if (!effect.looksAtTarget && effect.target != CatalystParticleTarget.BetweenBodyParts && effect.target != CatalystParticleTarget.Location) return;

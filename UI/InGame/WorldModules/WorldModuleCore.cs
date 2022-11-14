@@ -12,6 +12,8 @@ namespace Architome
 
         public Action<ArchChest> OnChestOpen;
 
+        public List<ModuleInfo> activeModules;
+
 
         [Serializable]
         public struct Prefabs
@@ -24,10 +26,14 @@ namespace Architome
         public ModuleInfo CreateModule(GameObject module, Vector3 location)
         {
             if (!module.GetComponent<ModuleInfo>()) return null;
+            activeModules ??= new();
 
             var moduleInfo = Instantiate(module, transform).GetComponent<ModuleInfo>();
 
+
             moduleInfo.transform.position = location;
+
+            activeModules.Add(moduleInfo);
 
             return moduleInfo;
 
@@ -37,6 +43,12 @@ namespace Architome
         {
             active = this;
         }
+
+        void HandleIGGUI()
+        {
+
+        }
+
 
         public void HandleChest(ArchChest chest)
         {

@@ -5,7 +5,7 @@ using Architome.Enums;
 
 namespace Architome
 {
-    [CreateAssetMenu(fileName = "New Equipment", menuName = "Equipment")]
+    [CreateAssetMenu(fileName = "New Equipment", menuName = "Architome/Item/Equipment/New Equipment")]
     public class Equipment : Item
     {
         [Header("Equipment Info")]

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Architome
 {
-    public class WorldPopUpText : MonoBehaviour
+    public class PopupText : MonoBehaviour
     {
         [Serializable]
         public struct Info
@@ -35,10 +35,27 @@ namespace Architome
 
         public class PopUpParameters
         {
+            //Animation Parameters
             public bool healthChange;
             public bool stateChange;
             public bool stateImmunity;
+            public bool currencyTop;
+            public bool currency;
+
+
+            public bool screenPosition;
         }
+
+        readonly HashSet<string> animatorFields = new HashSet<string>() {
+            "healthChange",
+            "stateChange",
+            "stateImmunity",
+            "currencyTop",
+            "currecy"
+            
+        };
+
+        [SerializeField] PopUpParameters parameters;
 
 
         // Start is called before the first frame update
@@ -60,14 +77,21 @@ namespace Architome
 
         public void SetAnimation(PopUpParameters bools)
         {
+            parameters = bools;
             foreach (var field in bools.GetType().GetFields())
             {
+                if (!animatorFields.Contains(field.Name)) continue;
                 info.animator.SetBool(field.Name, (bool)field.GetValue(bools));
             }
         }
 
-        public Vector3 WorldToScreenPoint(Vector3 position)
+        public Vector3 TargetPosition(Vector3 position)
         {
+            if (parameters != null && parameters.screenPosition)
+            {
+                return position;
+            }
+
             if (mainCamera == null)
             {
                 mainCamera = MainCamera3.active;
@@ -85,7 +109,7 @@ namespace Architome
                 lastLocation = target.position;
             }
 
-            var position = WorldToScreenPoint(target ? target.position : lastLocation);
+            var position = TargetPosition(target ? target.position : lastLocation);
 
             position = new Vector3(position.x, position.y, 0);
             position += offset;
@@ -104,7 +128,6 @@ namespace Architome
             
             
 
-            Play();
         }
 
         public void SetOffset(Vector3 offset)
@@ -112,39 +135,10 @@ namespace Architome
             this.offset = offset;
         }
 
-        async void Play()
-        {
-            return;
-            var startXPos = UnityEngine.Random.Range(-info.startXPositionRange, info.startXPositionRange);
-
-            info.text.transform.localPosition = new Vector3(startXPos, 0, 0);
-
-
-            var xSpeed = UnityEngine.Random.Range(-info.xSpeedRange, info.xSpeedRange);
-            var timer = info.fadeDelay;
-            var xPosition = 0f;
-            while ( info.canvasGroup.alpha > 0)
-            {
-                await Task.Yield();
-                info.height += info.speed * Time.deltaTime;
-                xPosition += xSpeed * Time.deltaTime;
-                info.textTransform.localPosition = new Vector3(startXPos + xPosition, info.height, 0);
-
-                if (timer <= 0)
-                {
-                    info.canvasGroup.alpha -= info.fadeSpeed * Time.deltaTime;
-                }
-                else
-                {
-                    timer -= Time.deltaTime;
-                }
-
-            }
-            Destroy(gameObject);
-        }
 
         public void EndAnimation()
         {
+            if (!this) return;
             Destroy(gameObject);
         }
 

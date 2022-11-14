@@ -26,6 +26,7 @@ namespace Architome
         [Header("Catalyst Animations")]
         public List<int> animationSequence;
         public Vector2 catalystStyle;
+        public bool useAlternateCasting;
         [Range(0, 1)]
         public float releasePercent;
 
@@ -36,9 +37,6 @@ namespace Architome
         public AbilityInfo abilityInfo;
 
         private int ticks;
-        public float currentRange;
-        public float liveTime;
-        public float distanceFromTarget;
 
         public List<EntityInfo> enemiesHit;
         public List<EntityInfo> alliesHealed;
@@ -50,62 +48,14 @@ namespace Architome
         LayerMask entityLayer { get; set; }
         LayerMask structureLayer { get; set; }
 
+        public float liveTime { get { return metrics.liveTime; } set { metrics.liveTime = value; } }
+        public float distanceFromTarget { get { return metrics.distanceFromTarget; } set { metrics.distanceFromTarget = value; } }  
         public float value { get { return metrics.value; } set { metrics.value = value; } }
         public bool requiresLockOnTarget { get; set; }
         public GameObject target { get { return metrics.target; } set { metrics.target = value; } }
         public Vector3 location { get { return metrics.location; } set { metrics.location = value; } }
 
-        [Serializable]
-        public struct Metrics
-        {
-            [Serializable]
-            public struct AccelerationBenchmark
-            {
-                [Range(0, 1)]
-                public float benchmark;
-                [Range(0, 1)]
-                public float smoothness;
-            }
-
-            public GameObject target;
-
-            public bool lockOn;
-
-            public Vector3 location, startingLocation, startDirectionRange, currentPosition;
-
-            public float value, startingHeight, currentRange, liveTime, inertia, inertiaFallOff;
-
-            public CatalystEvent intervalTrigger;
-            
-            public float intervals;
-
-
-            [Header("Growing Properties")]
-
-            public Vector3 growthDirection;
-
-            public float maxGrowth, growthSpeed, startSpeed;
-
-            public float startDistance;
-
-
-            [Header("Change of Speed")]
-
-            public bool stops;
-
-            public List<AccelerationBenchmark> accelBenchmarks;
-
-
-            public Vector3 targetLocation
-            {
-                get
-                {
-                    return lockOn ? target.transform.position : location;
-                }
-            }
-        }
-
-        public Metrics metrics;
+        public CMetrics metrics;
         [SerializeField] CatalystKinematics kinematics;
 
         [Header("Catalyst Set Values")]
@@ -170,7 +120,7 @@ namespace Architome
             public CatalystLight light;
             
 
-            public BodyPart startingBodyPart;
+            public BodyPart startingBodyPart { get; set; }
 
             [Header("Transform Effects")]
             public bool collapseOnDeath;
@@ -360,28 +310,38 @@ namespace Architome
         private void Start()
         {
             SpawnCatalystAudio();
-            SpawnBodyPart();
             kinematics.SetKinematics(this);
-            HandleIntervals();
+            metrics.Initialize(this);
+            
 
         }
-        void SpawnBodyPart()
+
+        void Update()
         {
-            if (isCataling) return;
-            if (entityObject == target) return;
-            if (effects.startingBodyPart == BodyPart.Root) return;
-            if (abilityInfo.abilityType == AbilityType.Spawn) return;
+            //UpdateMetrics();
+            metrics.Update();
+            kinematics.Update();
+            HandleEvents();
+        }
+        
+        //void SpawnBodyPart()
+        //{
+        //    return;
+        //    if (isCataling) return;
+        //    if (entityObject == target) return;
+        //    if (effects.startingBodyPart == BodyPart.Root) return;
+        //    if (abilityInfo.abilityType == AbilityType.Spawn) return;
 
-            var bodyPart = entityInfo.GetComponentInChildren<CharacterBodyParts>();
+        //    var bodyPart = entityInfo.GetComponentInChildren<CharacterBodyParts>();
 
-            if (bodyPart == null) return;
+        //    if (bodyPart == null) return;
 
-            var trans = bodyPart.BodyPartTransform(effects.startingBodyPart);
+        //    var trans = bodyPart.BodyPartTransform(effects.startingBodyPart);
 
             
-            transform.position = trans.position;
-            transform.LookAt(location);
-        }
+        //    transform.position = trans.position;
+        //    transform.LookAt(location);
+        //}
 
         public void DisableKinematics()
         {
@@ -407,22 +367,6 @@ namespace Architome
             if (catalystPrefab)
             {
                 catalystPrefab.GetComponent<CatalystAudio>().Activate(this);
-            }
-        }
-        void Update()
-        {
-            UpdateMetrics();
-            HandleEvents();
-        }
-        public void UpdateMetrics()
-        {
-            metrics.currentRange = V3Helper.Distance(metrics.startingLocation, transform.position);
-            
-            liveTime += Time.deltaTime;
-
-            if (target)
-            {
-                distanceFromTarget = V3Helper.Distance(target.transform.position, transform.position);
             }
         }
         public void HandleEvents()
@@ -605,28 +549,7 @@ namespace Architome
             }
         }
 
-        public void HandleIntervals()
-        {
-            if (metrics.intervals <= 0f) return;
-            if (metrics.intervalTrigger == CatalystEvent.OnInterval) return;
-
-            bool intervalsActive = false;
-
-            AddEventAction(metrics.intervalTrigger, () => {
-                StartIntervals();
-            });
-
-            async void StartIntervals()
-            {
-                if (intervalsActive) return;
-                intervalsActive = true;
-                while (!isDestroyed)
-                {
-                    OnInterval?.Invoke(this);
-                    await Task.Delay((int)(1000 * metrics.intervals));
-                }
-            }
-        }
+        
     }
 
 }

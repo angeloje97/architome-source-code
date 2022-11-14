@@ -57,8 +57,9 @@ namespace Architome
         public EntityControlType entityControlType;
         [SerializeField] public NPCType npcType;
         [Header("Entity Properties")]
-        public EntityRarity rarity;
+
         public List<EntityState> stateImmunities;
+        public EntityRarity rarity;
         public List<string> objectives;
         public bool isAlive;
         public bool isInCombat;
@@ -67,7 +68,7 @@ namespace Architome
         public bool disappeared = false;
         public bool isHover = false;
         public Transform target { get; private set; }
-        public EntityInfo combatTarget { get; private set; }
+        public EntityInfo combatTarget;
         public Role role;
         public RoomInfo currentRoom;
         public List<EntityState> states;
@@ -126,12 +127,16 @@ namespace Architome
             public Action<List<string>> OnUpdateObjectives;
             public Action<Quest> OnQuestComplete;
             public Action<Inventory.LootEventData> OnLootItem { get; set; }
+            public Action<Inventory.LootEventData, List<bool>> OnLootItemCheck { get; set; }
             public Action<Inventory.LootEventData> OnLootItemFromWorld { get; set; }
             public Action<EntityInfo, bool, GameObject> OnMouseHover;
+            public Action<EntityInfo, List<bool>> OnIsPlayerCheck { get; set; }
             public Action<Vector3> OnSignificantMovementChange { get; set; }
-            public Action<EntityRarity, EntityRarity> OnRarityChange;
+            public Action<EntityRarity, EntityRarity> OnRarityChange { get; set; }
             public Action<EntityInfo> OnNullPortraitCheck;
-            public Action<Currency, int, List<bool>> OnCanSpendCheck;
+            public Action<Currency, int, List<bool>> OnCanSpendCheck { get; set; }
+            public Action<ItemData, List<bool>> OnCanPickUpCheck { get; set; }
+            
         }
 
         public struct CombatEvents
@@ -144,18 +149,26 @@ namespace Architome
             public Action<EntityInfo, float> OnPingThreat { get; set; }
             public Action<CombatEventData> OnImmuneDamage;
             public Action<EntityInfo> OnSummonEntity;
+            public Action<EntityInfo, EntityInfo> OnNewCombatTarget { get; set; }
             public Action<CombatEventData> BeforeDamageTaken { get; set; }
             public Action<CombatEventData> BeforeDamageDone { get; set; }
             public Action<CombatEventData> BeforeHealingTaken { get; set; }
             public Action<CombatEventData> BeforeHealingDone { get; set; }
+            public Action<EntityInfo, List<bool>> OnCanAttackCheck { get; set; }
+            public Action<EntityInfo, List<bool>> OnCanHelpCheck { get; set; }
+            public Action<List<bool>> OnCanBeAttackedCheck { get; set; }
+            public Action<List<bool>> OnCanBeHelpedCheck { get; set; }
         }
 
         public struct PartyEvents
         {
-            public Action<GroupFormationBehavior> OnRotationFormationStart;
-            public Action<GroupFormationBehavior> OnRotateFormationEnd;
-            public Action<PartyInfo> OnSelectedAction;
-            public Action<PartyInfo> OnAddedToParty;
+            public Action<GroupFormationBehavior> OnRotationFormationStart { get; set; }
+            public Action<GroupFormationBehavior> OnRotateFormationEnd { get; set; }
+
+            public Action<PartyInfo> OnSelectedAction { get; set; }
+            public Action<PartyInfo> OnAddedToParty { get; set; }
+            public Action<PartyInfo> OnRemovedFromParty { get; set; }
+
         }
 
         public struct SceneEvents
@@ -181,8 +194,8 @@ namespace Architome
         public Action<float, float, float> OnHealthChange { get; set; }
         public Action<float, float> OnManaChange;
         public Action<bool> OnCombatChange;
-        public Action<bool> OnLifeChange;
-        public Action<bool> OnHiddenChange;
+        public Action<bool> OnLifeChange { get; set; }
+        public Action<bool> OnHiddenChange { get; set; }
         //public Action<SocialEventData> OnReceiveInteraction;
         //public Action<SocialEventData> OnReactToInteraction;
         public Action<RoomInfo, RoomInfo> OnRoomChange;
@@ -192,7 +205,7 @@ namespace Architome
         public Action<EntityInfo, Collider, bool> OnTriggerEvent;
         public Action<EntityInfo, Collision, bool> OnCollisionEvent;
         public Action<EntityInfo, GameObject, bool> OnPhysicsEvent;
-        public Action<EntityInfo> OnChangeStats;
+        public Action<EntityInfo> OnChangeStats { get; set; }
         public PartyEvents partyEvents;
         public InfoEvents infoEvents;
         public TaskEvents taskEvents = new();
@@ -216,6 +229,7 @@ namespace Architome
         private float shieldCheck;
         private bool combatCheck;
         private bool isAliveCheck;
+        EntityInfo combatTargetCheck;
         private NPCType npcTypeCheck;
 
 
@@ -284,9 +298,20 @@ namespace Architome
             SetEntityStats();
             UpdateCurrentStats();
 
-            if(rarity != EntityRarity.Player)
+            
+
+            UpdateHealthRegen();
+        }
+
+        public void UpdateHealthRegen()
+        {
+            if (rarity != EntityRarity.Player)
             {
                 healthRegenPercent = .25f;
+            }
+            else
+            {
+                healthRegenPercent = .01f;
             }
         }
 
@@ -344,6 +369,14 @@ namespace Architome
         {
             EntityStart();
             HandleFalling();
+            HandleRarityEvents();
+        }
+
+        void HandleRarityEvents()
+        {
+            infoEvents.OnRarityChange += (EntityRarity before, EntityRarity after) => {
+                ArchAction.Yield(() => UpdateHealthRegen());
+            };
         }
 
         public virtual void EntityStart()
@@ -399,6 +432,12 @@ namespace Architome
                 }
 
                 OnLifeChange?.Invoke(isAliveCheck);
+            }
+
+            if (combatTargetCheck != combatTarget)
+            {
+                combatEvents.OnNewCombatTarget?.Invoke(combatTargetCheck, combatTarget);
+                combatTargetCheck = combatTarget;
             }
 
             if(npcType != npcTypeCheck)
@@ -723,8 +762,8 @@ namespace Architome
         {
             if (this.rarity == rarity) return false;
             infoEvents.OnRarityChange?.Invoke(this.rarity, rarity);
-
             this.rarity = rarity;
+
 
             return true;
         }
@@ -891,7 +930,23 @@ namespace Architome
         }
         public bool LootItem(ItemInfo itemInfo, bool fromWorld = false)
         {
-            var lootData = new Inventory.LootEventData() { item = itemInfo, succesful = true, fromWorld = fromWorld };
+            var lootData = new Inventory.LootEventData(itemInfo) { fromWorld = fromWorld };
+
+            var checks = new List<bool>();
+
+
+            infoEvents.OnLootItemCheck?.Invoke(lootData, checks);
+
+            Debugger.UI(8715, $"Loot item checks Count: {checks.Count}");
+            foreach(var check in checks)
+            {
+                
+                if (!check)
+                {
+                    return lootData.succesful;
+                }
+            }
+
             infoEvents.OnLootItem?.Invoke(lootData);
 
             if (fromWorld)
@@ -899,7 +954,31 @@ namespace Architome
                 infoEvents.OnLootItemFromWorld?.Invoke(lootData);
             }
 
+
+
             return lootData.succesful;
+        }
+        public async void KillSelf (EntityInfo source = null)
+        {
+            if (!isAlive) return;
+            int tries = 3;
+            while (isAlive)
+            {
+                Damage(new(source? source: this)
+                {
+                    value = maxHealth + shield
+                });
+
+                await Task.Yield();
+
+                tries -= 1;
+                if (tries <= 0) break;
+            }
+
+            if (!isAlive) return;
+
+            health = 0;
+            isAlive = false;
         }
         public void Revive(CombatEventData combatData)
         {
@@ -937,6 +1016,18 @@ namespace Architome
         {
             if (target == null) return false;
 
+            var checks = new List<bool>();
+
+            if (!target.CanBeAttacked()) return false;
+            combatEvents.OnCanAttackCheck?.Invoke(target, checks);
+
+            foreach (var check in checks)
+            {
+                if (!check) return false;
+            }
+
+
+
             if (target.npcType == NPCType.Untargetable) { return false; }
 
             if (npcType == NPCType.Neutral) { return true; }
@@ -951,6 +1042,18 @@ namespace Architome
         {
             if (target == null) return false;
 
+
+            if (!target.CanBeHelped()) return false;
+
+            var checks = new List<bool>();
+
+            combatEvents.OnCanHelpCheck?.Invoke(target, checks);
+
+            foreach(var check in checks)
+            {
+                if (!check) return false;
+            }
+
             if (target.npcType == NPCType.Untargetable) { return false; }
 
             if (npcType == NPCType.Neutral) { return true; }
@@ -961,6 +1064,12 @@ namespace Architome
             }
 
             return true;
+        }
+
+        public void Move(Vector3 position)
+        {
+            transform.position = position;
+            infoEvents.OnSignificantMovementChange?.Invoke(position);
         }
 
         public override string ToString()
@@ -989,38 +1098,31 @@ namespace Architome
 
             return false;
         }
+        public bool CanPickUp(ItemData itemData)
+        {
+            var checks = new List<bool>();
+            infoEvents.OnCanPickUpCheck?.Invoke(itemData, checks);
+
+            foreach (var check in checks)
+            {
+                if (!check) continue;
+                return true;
+            }
+            return false;
+        }
         public bool CanAttack(GameObject target)
         {
             if(target == null) { return false; }
             var targetInfo = target.GetComponent<EntityInfo>();
-            if (targetInfo == null) return false;
 
-            if(targetInfo.npcType == NPCType.Untargetable) { return false; }
-
-            if(npcType == NPCType.Neutral) { return true; }
-
-
-            if (targetInfo.npcType != this.npcType) { return true; }
-            else { return false; }
+            return CanAttack(targetInfo);
         }
         public bool CanHelp(GameObject target)
         {
             if(target == null) { return false; }
-            if (target.GetComponent<EntityInfo>() == null) { return false; }
             var targetInfo = target.GetComponent<EntityInfo>();
-            
-            if(targetInfo.npcType == NPCType.Untargetable) { return false; }
 
-            if(npcType == NPCType.Neutral) { return true; }
-
-            if (targetInfo.npcType != npcType)
-            {
-                return false;
-            }
-            else
-            {
-                return true;
-            }
+            return CanHelp(targetInfo);
 
         }
         public bool CanAttack(NPCType npcType)
@@ -1044,6 +1146,53 @@ namespace Architome
                 return false;
             }
 
+            return true;
+        }
+
+        public bool CanBeAttacked()
+        {
+            var checks = new List<bool>();
+
+            combatEvents.OnCanBeAttackedCheck?.Invoke(checks);
+
+            foreach(var check in checks)
+            {
+                if (!check)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public bool IsPlayer()
+        {
+
+            var checks = new List<bool>();
+
+            infoEvents.OnIsPlayerCheck?.Invoke(this, checks);
+
+            foreach (var check in checks)
+            {
+                if (check) return true;
+            }
+
+            return false;
+        }
+
+        public bool CanBeHelped()
+        {
+            var checks = new List<bool>();
+
+            combatEvents.OnCanBeHelpedCheck?.Invoke(checks);
+
+            foreach (var check in checks)
+            {
+                if (!check)
+                {
+                    return false;
+                }
+            }
             return true;
         }
         public void SetSummoned(SpawnerInfo.SummonData summonData)
@@ -1313,11 +1462,6 @@ namespace Architome
         public CombatBehavior CombatBehavior()
         {
             return EntityComponent<CombatBehavior>();
-            //if (AIBehavior() && AIBehavior().CombatBehavior())
-            //{
-            //    return AIBehavior().CombatBehavior();
-            //}
-            //return null;
         }
         public RoomInfo CurrentRoom()
         {
@@ -1336,6 +1480,17 @@ namespace Architome
         public ETaskHandler TaskHandler()
         {
             return EntityComponent<ETaskHandler>();
+        }
+
+        [SerializeField] bool showEntity;
+        private void OnValidate()
+        {
+            if (!showEntity) return;
+            showEntity = false;
+            var character = GetComponentInChildren<CharacterInfo>();
+            character.ShowCharacter();
+            var graphicsInfo = GetComponentInChildren<GraphicsInfo>();
+            graphicsInfo.ShowGraphics();
         }
         public async void ShowEntity(bool val, bool hideLights = true, bool destroys = false)
         {

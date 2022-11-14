@@ -53,10 +53,7 @@ namespace Architome
         }
         protected void EnableAugmentAbility()
         {
-            if (ability.augmentAbilities == null)
-            {
-                ability.augmentAbilities = new();
-            }
+            ability.augmentAbilities ??= new();
 
             ability.augmentAbilities.Add(this);
 
@@ -92,6 +89,21 @@ namespace Architome
             augment.OnRemove += (Augment augment) => {
                 ability.WhileCasting -= WhileCasting;
             };
+        }
+
+        protected void EnablePlayableParty()
+        {
+            var gameManager = GameManager.active;
+
+            if (gameManager)
+            {
+                gameManager.OnNewPlayableParty += HandleNewPlayableParty;
+            }
+
+            augment.OnRemove += delegate (Augment augment) {
+                gameManager.OnNewPlayableParty -= HandleNewPlayableParty;
+            };
+
         }
         protected void EnableSuccesfulCast()
         {
@@ -141,6 +153,11 @@ namespace Architome
         }
 
         public virtual void HandleCancelAbility(AugmentType augment)
+        {
+
+        }
+
+        public virtual void HandleNewPlayableParty(PartyInfo party, int index)
         {
 
         }

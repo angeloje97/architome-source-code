@@ -8,7 +8,7 @@ namespace Architome
     public class SizeFitter : MonoBehaviour
     {
         public Transform target;
-        public List<Transform> targetWidths, targetHeights;
+        public List<Transform> targetWidths, targetHeights, targetHeightParents, targetWidthParents;
 
         public bool manifestMaxX;
         public bool manifestMaxY;
@@ -37,6 +37,11 @@ namespace Architome
 
             var height = V3Helper.Height(targetHeights) + offSet.y;
             var width = V3Helper.Width(targetWidths) + offSet.x;
+
+            height += V3Helper.ChildrenHeight(targetHeightParents);
+            width += V3Helper.ChildrenWidth(targetWidthParents);
+
+
 
             if (manifestMaxX)
             {

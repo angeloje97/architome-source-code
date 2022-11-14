@@ -5,7 +5,7 @@ using Architome.Enums;
 
 namespace Architome
 {
-    [CreateAssetMenu(fileName = "New Catalyst", menuName = "Catalyst")]
+    [CreateAssetMenu(fileName = "New Catalyst", menuName = "Architome/Item/Catalyst")]
     public class Catalyst : Item
     {
         public new string name;

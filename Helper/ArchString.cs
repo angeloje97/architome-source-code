@@ -192,6 +192,33 @@ namespace Architome
             return text;
         }
 
+        public static string RoundedTime(int seconds, bool showMinuteSeconds = false)
+        {
+            var result = "";
+
+            if (seconds > 3600)
+            {
+                result += $"{seconds / 3600}hr";
+
+            }
+            else if (seconds > 60)
+            {
+                result += $"{seconds / 60}m";
+                if (showMinuteSeconds)
+                {
+                    result += $"{seconds%60}s";
+                }
+            }
+            else
+            {
+                result += $"{seconds}s";
+            }
+
+            return result;
+        }
+
+
+
     }
 
 }

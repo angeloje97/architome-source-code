@@ -2,6 +2,7 @@ using Architome.Tutorial;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Architome.Enums;
 
 namespace Architome.Tutorial
 {
@@ -14,6 +15,7 @@ namespace Architome.Tutorial
 
         public bool stopNaturalRegeneration;
         public bool hurtOnStart;
+        public bool cleanseBuffs;
         [Range(0, 1)] public float hurtPercent;
 
         void Start()
@@ -29,6 +31,7 @@ namespace Architome.Tutorial
             {
                 HandleStopRegen(member);
                 HandleHurt(member);
+                HandleCleanseBuffs(member);
 
                 member.OnHealthChange += OnMemberHealthChange;
             }
@@ -65,9 +68,30 @@ namespace Architome.Tutorial
             if (!hurtOnStart) return;
             member.health = member.maxHealth - (member.maxHealth * hurtPercent);
         }
+
+        void HandleCleanseBuffs(EntityInfo member)
+        {
+            if (!cleanseBuffs) return;
+
+            var buffsManager = member.Buffs();
+
+            buffsManager.CleanseBuffs((buff) => { return true; });
+        }
         public override string Directions()
         {
-            return base.Directions();
+            var result = new List<string>()
+            {
+                base.Directions()
+            };
+
+            if (!simple)
+            {
+                var newDirection = $"To heal your allies, use the action move from your healer onto any ally (or themself) that needs healing same way you send out a party member to attack an enemy.";
+                result.Add(newDirection);
+
+            }
+
+            return ArchString.NextLineList(result);
         }
 
         public override string Tips()

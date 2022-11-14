@@ -6,6 +6,7 @@ using Architome;
 using UnityEngine.UI;
 using System;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 public class AbilityInfo : MonoBehaviour
 {
@@ -144,8 +145,8 @@ public class AbilityInfo : MonoBehaviour
     [Serializable]
     public class CoolDownProperties
     {
+        public float timer;
         public float timePerCharge = 1;
-        public float progressTimer;
         public float progress = 1;
         public bool isActive;
         public bool globalCoolDownActive;
@@ -155,6 +156,8 @@ public class AbilityInfo : MonoBehaviour
         public int charges;
         public int maxCharges = 1;
 
+        EntityInfo entity;
+        float currentHaste;
         public void Initiate(AbilityInfo ability)
         {
             if (interruptConsumesCharge)
@@ -162,8 +165,43 @@ public class AbilityInfo : MonoBehaviour
                 ability.OnInterrupt += OnInterrupt;
             }
 
+            entity = ability.entityInfo;
+
+            entity.OnChangeStats += OnChangeStats;
+
+            ability.OnRemoveAbility += delegate (AbilityInfo ability)
+            {
+                entity.OnChangeStats -= OnChangeStats;
+            };
+
+            currentHaste = entity.stats.haste;
+
             ability.OnReadyCheck += OnReadyCheck;
             ability.OnSuccessfulCast += OnSuccesfulCast;
+
+            if (maxChargesOnStart)
+            {
+                charges = maxCharges;
+            }
+
+            HandleCooldownTimer();
+        }
+
+        void OnChangeStats(EntityInfo entity)
+        {
+            var difference = entity.stats.haste - currentHaste;
+            currentHaste = entity.stats.haste;
+            if (!isActive) return;
+
+            timer -= (timePerCharge * difference);
+
+            if(timer < 0)
+            {
+                timer = 0;
+            }
+
+
+
         }
 
         void OnInterrupt(AbilityInfo ability)
@@ -172,6 +210,8 @@ public class AbilityInfo : MonoBehaviour
             {
                 charges -= 1;
             }
+
+            HandleCooldownTimer();
         }
         void OnReadyCheck(AbilityInfo ability, List<(string, bool)> andChecks)
         {
@@ -181,6 +221,51 @@ public class AbilityInfo : MonoBehaviour
         void OnSuccesfulCast(AbilityInfo ability)
         {
             charges--;
+
+            HandleCooldownTimer();
+        }
+
+        float Haste()
+        {
+            return currentHaste;
+
+        }
+
+        async void HandleCooldownTimer()
+        {
+            if (isActive) return;
+            if (charges >= maxCharges) return;
+
+            isActive = true;
+
+            timer = timePerCharge - timePerCharge * Haste();
+
+            while (charges < maxCharges)
+            {
+                await Task.Yield();
+                timer -= Time.deltaTime;
+
+                if (!globalCoolDownActive)
+                {
+                    progress = 1 - (timer / timePerCharge);
+                }
+
+
+                if (timer < 0)
+                {
+                    timer = timePerCharge;
+                    charges++;
+                }
+            }
+
+            progress = 1;
+
+            isActive = false;
+        }
+
+        public void SetCharges(int newCharges)
+        {
+            this.charges = newCharges;
         }
     }
     public CoolDownProperties coolDown;
@@ -264,6 +349,8 @@ public class AbilityInfo : MonoBehaviour
     public bool canceledCast;
     public bool isCasting;
     public bool timerPercentActivated;
+    public bool alternateCastingActive;
+    public bool cancelAlternateCasting;
     public float progress;
     public float progressTimer;
 
@@ -286,6 +373,9 @@ public class AbilityInfo : MonoBehaviour
     public Action<AbilityInfo, bool> OnActiveChange;
     public Action<AbilityInfo, int> OnChargesChange;
     public Action<AbilityInfo, ToolTipData> OnAcquireToolTip;
+    public Action<AbilityInfo> OnRemoveAbility;
+    public Action<AbilityInfo, List<bool>> OnAlternativeCastCheck { get; set; }
+    public Action<AbilityInfo, List<Task<bool>>> OnAugmentAbilityStart;
 
 
     //Augments
@@ -331,11 +421,6 @@ public class AbilityInfo : MonoBehaviour
                 abilityIcon = catalystInfo.catalystIcon ? catalystInfo.catalystIcon : abilityIcon;
             }
 
-            if(coolDown.maxChargesOnStart)
-            {
-                coolDown.charges = coolDown.maxCharges;
-            }
-
         }
 
         UpdateAbility();
@@ -357,7 +442,6 @@ public class AbilityInfo : MonoBehaviour
 
     void Update()
     {
-        HandleTimers();
         HandleWantsToCast();
         HandleDeadTarget();
         HandleAutoAttack();
@@ -490,10 +574,6 @@ public class AbilityInfo : MonoBehaviour
         //        isAutoAttacking = false;
         //    }
         //}
-    }
-    public void HandleTimers()
-    {
-        SetCoolDownTimer();
     }
 
 
@@ -999,14 +1079,6 @@ public class AbilityInfo : MonoBehaviour
     }
     public bool CanCast()
     {
-        if (!HandleRequiresTargetLocked()) { return false; }
-        if(!HasManaRequired()) { return false; }
-        if(entityInfo.isInCombat && onlyCastOutOfCombat) { return false; }
-
-        return true;
-    }
-    public bool CanCast2()
-    {
         if (!IsReady())
         {
             CantCastReason("Not Ready");
@@ -1200,6 +1272,26 @@ public class AbilityInfo : MonoBehaviour
     }
     public bool CanCastAt(GameObject target)
     {
+        if (entityInfo.CanAttack(target) && isHarming)
+        {
+            return true;
+        }
+
+        if (entityInfo.CanHelp(target) && (isHealing || isAssisting))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public bool CanCastAt(EntityInfo target)
+    {
+        if (!target.isAlive && !targetsDead)
+        {
+            return false;
+        }
+
         if (entityInfo.CanAttack(target) && isHarming)
         {
             return true;
@@ -1504,7 +1596,7 @@ public class AbilityInfo : MonoBehaviour
         }
 
 
-        if (!target.GetComponent<EntityInfo>().isAlive && !targetsDead) {
+        if (!target.isAlive && !targetsDead) {
             abilityManager.OnDeadTarget?.Invoke(this);
             DeactivateWantsToCast("Target Died", true);
             return; }
@@ -1578,6 +1670,12 @@ public class AbilityInfo : MonoBehaviour
                 requiresLineOfSight = true;
                 requiresLockOnTarget = true;
             }
+
+        }
+
+        if (abilityManager)
+        {
+            abilityManager.OnAbilityUpdate?.Invoke(this);
 
         }
     }
@@ -1724,7 +1822,7 @@ public class AbilityInfo : MonoBehaviour
     public async Task<bool> Activate()
     {
         if (activated) return false;
-        if (!CanCast2()) return false;
+        if (!CanCast()) return false;
         DeactivateWantsToCast("From Start Cast");
         activated = true;
 
@@ -1752,9 +1850,6 @@ public class AbilityInfo : MonoBehaviour
         }
 
         OnAbilityStartEnd?.Invoke(this, false);
-
-        SetCoolDownTimer();
-        //SetCoolDownTimer();
         
 
         if (!isAutoAttacking)
@@ -1771,7 +1866,14 @@ public class AbilityInfo : MonoBehaviour
         {
             var success = true;
 
-            
+            if (UseAlternateCasting())
+            {
+                BeginCast();
+                success = await AlternateCasting();
+                EndCasting();
+                return success;
+            }
+
 
             var timer = castTime - castTime * Haste();
             var startTime = timer;
@@ -1788,7 +1890,7 @@ public class AbilityInfo : MonoBehaviour
                 progress = 1 - (timer / startTime);
                 progressTimer = timer;
 
-                WhileCasting1();
+                WhileCastingAbility();
 
                 if (!CanContinue())
                 {
@@ -1798,7 +1900,7 @@ public class AbilityInfo : MonoBehaviour
             }
 
 
-            EndCast1();
+            EndCasting();
 
             return success;
 
@@ -1809,7 +1911,7 @@ public class AbilityInfo : MonoBehaviour
                 abilityManager.OnCastStart?.Invoke(this);
             }
 
-            void EndCast1()
+            void EndCasting()
             {
                 if (success)
                 {
@@ -1822,7 +1924,7 @@ public class AbilityInfo : MonoBehaviour
                 
             }
 
-            void WhileCasting1()
+            void WhileCastingAbility()
             {
 
                 abilityManager.WhileCasting?.Invoke(this);
@@ -1848,89 +1950,55 @@ public class AbilityInfo : MonoBehaviour
                     abilityManager.OnCastReleasePercent?.Invoke(this);
                 }
             }
+
+            bool UseAlternateCasting()
+            {
+                var checks = new List<bool>();
+
+                OnAlternativeCastCheck?.Invoke(this, checks);
+
+                foreach (var check in checks)
+                {
+                    if (check)
+                    {
+                        return true;
+
+                    }
+                }
+
+                return false;
+            }
+
+            async Task<bool> AlternateCasting()
+            {
+                alternateCastingActive = true;
+                cancelAlternateCasting = false;
+
+                var successful = true;
+
+                while (alternateCastingActive)
+                {
+                    if (cancelAlternateCasting)
+                    {
+                        successful = false;
+                    }
+                    await Task.Yield();
+                }
+
+                return successful;
+            }
         }
 
         async Task AugmentAbilities()
         {
             if (augmentAbilities == null) return;
+
             foreach (var augment in augmentAbilities)
             {
                 var success = await augment.Ability();
                 if (!success) break;
             }
         }
-
-        //async Task Channeling()
-        //{
-        //    if (!channel.enabled) return;
-        //    if (channel.active) return;
-
-
-        //    StartChannel();
-
-        //    var timer = channel.time - channel.time * Haste();
-        //    var startTime = timer;
-
-
-        //    Debugger.InConsole(3245, $"Timer is {timer}");
-
-        //    float progressPerInvoke = (1f / channel.invokeAmount);
-        //    float progressBlock = 1 - progressPerInvoke;
-
-        //    while (timer > 0)
-        //    {
-        //        await Task.Yield();
-        //        timer -= Time.deltaTime;
-        //        progress = (timer / startTime);
-        //        progressTimer = timer;
-
-        //        WhileChanneling();
-
-        //        if (!CanContinue())
-        //        {
-        //            break;
-        //        }
-
-        //        if (progressBlock > progress)
-        //        {
-        //            HandleAbilityType();
-        //            abilityManager.OnChannelInterval?.Invoke(this);
-        //            progressBlock -= progressPerInvoke;
-        //        }
-
-        //    }
-
-        //    EndChannel();
-
-            
-
-        //    void StartChannel()
-        //    {
-        //        progress = 1;
-        //        channel.active = true;
-        //        abilityManager.OnChannelStart?.Invoke(this);
-        //    }
-
-        //    void WhileChanneling()
-        //    {
-        //        abilityManager.WhileCasting?.Invoke(this);
-        //        HandleTracking();
-        //        if (isAttack) return;
-
-
-        //        if (targetLocked != target)
-        //        {
-        //            targetLocked = target;
-        //        }
-        //    }
-
-        //    void EndChannel()
-        //    {
-        //        progress = 0;
-        //        channel.active = false;
-        //        abilityManager.OnChannelEnd?.Invoke(this);
-        //    }
-        //}
     }
 
     public async Task<AbilityInfo> EndActivation()
@@ -2003,38 +2071,6 @@ public class AbilityInfo : MonoBehaviour
     {
         Debugger.Combat(9536, $"{entityInfo} stopped casting {this} because {reason}");
     }
-    async void SetCoolDownTimer()
-    {
-        if (coolDown.isActive) return;
-        if (coolDown.charges >= coolDown.maxCharges) return;
-
-        coolDown.isActive = true;
-
-        var timer = coolDown.timePerCharge - coolDown.timePerCharge * Haste();
-
-        while (coolDown.charges < coolDown.maxCharges)
-        {
-            await Task.Yield();
-            timer -= Time.deltaTime;
-
-            if (!coolDown.globalCoolDownActive)
-            {
-                coolDown.progress = 1 - (timer / coolDown.timePerCharge);
-            }
-
-            coolDown.progressTimer = timer;
-
-            if (timer < 0)
-            {
-                timer = coolDown.timePerCharge;
-                coolDown.charges++;
-            }
-        }
-
-        coolDown.progress = 1;
-
-        coolDown.isActive = false;
-    }
     public void ActivateGlobalCoolDown()
     {
         if (!coolDown.usesGlobal) return;
@@ -2049,39 +2085,15 @@ public class AbilityInfo : MonoBehaviour
     }
     public void HandleTracking()
     {
-        //if (targetLocked == null) return;
+        /*
+         * This function has been implemented as AugmentTracking.
+         */
+    }
 
-        //if (tracking.tracksTarget)
-        //{
-        //    locationLocked = Vector3.Lerp(locationLocked, targetLocked.transform.position, tracking.trackingInterpolation);
-        //}
-
-        //if (tracking.predictsTarget)
-        //{
-        //    PredictTarget(targetLocked);
-        //}
-
-        //async void PredictTarget(GameObject target)
-        //{
-        //    if (tracking.predicting) return;
-
-        //    tracking.predicting = true;
-        //    var movement = target.GetComponentInChildren<Movement>();
-        //    while (isCasting)
-        //    {
-        //        var distance = V3Helper.Distance(target.transform.position, entityObject.transform.position);
-
-        //        var travelTime = distance / catalystInfo.speed;
-
-        //        locationLocked = target.transform.position + (travelTime * movement.velocity);
-
-        //        await Task.Yield();
-        //    }
-
-        //    tracking.predicting = false;
-
-
-        //}
+    public void RemoveSelf()
+    {
+        OnRemoveAbility?.Invoke(this);
+        Destroy(gameObject);
     }
     public float Radius(RadiusType type)
     {

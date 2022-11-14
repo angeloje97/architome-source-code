@@ -5,6 +5,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using System;
 using Architome.Enums;
+using DungeonArchitect.Editors.LaunchPad;
+
 namespace Architome
 {
     public class GameManager : MonoBehaviour
@@ -20,7 +22,7 @@ namespace Architome
         public List<EntityInfo> playableEntities;
         public List<PartyInfo> playableParties;
         public RaidInfo playableRaid;
-
+        ArchSceneManager sceneManager;
         public GameObject pauseMenu;
         public IGGUIInfo InGameUI;
 
@@ -43,7 +45,8 @@ namespace Architome
 
         void Awake()
         {
-
+            HandlePlayableEntities();
+            
             if (gameState == GameState.Play)
             {
                 if (active != null && active.gameState == GameState.Play)
@@ -64,7 +67,6 @@ namespace Architome
 
             //}
 
-           
 
 
             data.SetData();
@@ -80,6 +82,7 @@ namespace Architome
         private void Start()
         {
             HandleDungeoneer();
+            sceneManager = ArchSceneManager.active;
         }
 
         void HandleDungeoneer()
@@ -88,12 +91,12 @@ namespace Architome
 
             if (gameState == GameState.Play)
             {
-                DontDestroyOnLoad(gameObject);
+                ArchGeneric.DontDestroyOnLoad(gameObject);
 
                 var archSceneManager = ArchSceneManager.active;
 
                 archSceneManager.BeforeLoadScene += (ArchSceneManager manager) => {
-                    var validScenes = new List<string>() {
+                    var validScenes = new HashSet<string>() {
                         "Map Template Continue",
                         "PostDungeonResults",
                     };
@@ -104,6 +107,27 @@ namespace Architome
                         ArchGeneric.DestroyOnLoad(gameObject);
                     }
                 };
+            }
+        }
+
+        public void LoadScene(string sceneName)
+        {
+            sceneManager.LoadScene(sceneName, true);
+        }
+
+        void HandlePlayableEntities()
+        {
+            OnNewPlayableEntity += (EntityInfo entity, int index) => {
+                entity.infoEvents.OnIsPlayerCheck += HandleIsPlayerCheck;
+            };
+
+            OnRemoveEntitiy += (EntityInfo entity) => {
+                entity.infoEvents.OnIsPlayerCheck -= HandleIsPlayerCheck;
+            };
+
+            void HandleIsPlayerCheck(EntityInfo entity, List<bool> checks)
+            {
+                checks.Add(true);
             }
         }
 

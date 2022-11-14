@@ -170,7 +170,7 @@ namespace Architome
             if (world == null) return;
             foreach (var item in info.items)
             {
-                world.DropItem(item, transform.position + new Vector3(0, 1.5F, 0), false, true);
+                world.DropItem(item, transform.position + new Vector3(0, 1.5F, 0), true, true);
 
                 await Task.Delay(333);
             }

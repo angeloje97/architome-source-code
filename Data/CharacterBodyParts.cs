@@ -10,6 +10,7 @@ namespace Architome
     public class CharacterBodyParts : MonoBehaviour
     {
         public EntityInfo entity;
+        BodyPartCatalystHandler catalystHandler;
         [Serializable]
         public class VectorBodyPart
         {
@@ -18,6 +19,7 @@ namespace Architome
         }
 
         public List<VectorBodyPart> partPairs;
+        public Dictionary<BodyPart, Transform> partDict;
         public Sprite characterIcon;
 
         //public GameObject rightHand;
@@ -48,9 +50,25 @@ namespace Architome
             }
         }
 
+        private void Awake()
+        {
+            CreateDictionary();
+        }
+
         private void Start()
         {
             GetDepedencies();
+        }
+
+        void CreateDictionary()
+        {
+            if (partPairs == null) return;
+            partDict = new();
+            foreach (var pair in partPairs)
+            {
+                if (partDict.ContainsKey(pair.part)) continue;
+                partDict.Add(pair.part, pair.target);
+            }
         }
 
         void GetDepedencies()
@@ -66,6 +84,8 @@ namespace Architome
                     };
                 }
             }
+
+            catalystHandler = new(this);
         }
 
         public VectorBodyPart GetPair(BodyPart check)
@@ -83,16 +103,16 @@ namespace Architome
 
         public Transform BodyPartTransform(BodyPart check)
         {
+            return partDict[check];
+            //foreach (var pair in partPairs)
+            //{
+            //    if (pair.part == check)
+            //    {
+            //        return pair.target;
+            //    }
+            //}
 
-            foreach (var pair in partPairs)
-            {
-                if (pair.part == check)
-                {
-                    return pair.target;
-                }
-            }
-
-            return transform;
+            //return transform;
         }
     }
 

@@ -5,7 +5,7 @@ using Architome.Enums;
 
 namespace Architome
 {
-    [CreateAssetMenu(fileName = "New Currency", menuName = "Create new Currency")]
+    [CreateAssetMenu(fileName = "New Currency", menuName = "Architome/Item/Currency")]
     public class Currency : Item
     {
         public string fieldStringValue;

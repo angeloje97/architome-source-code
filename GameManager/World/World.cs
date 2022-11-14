@@ -14,6 +14,8 @@ namespace Architome
 
         public static World active;
 
+        public static float deltaTime { get; private set; }
+
         public ArchitomeID database;
         // Start is called before the first frame update
         public GameObject defaultCatalyst;
@@ -128,6 +130,7 @@ namespace Architome
         }
         void Update()
         {
+            deltaTime = time.timeScale * UnityEngine.Time.deltaTime;
         }
 
         public void SetSpawnBeacon(SpawnerInfo spawner)
@@ -270,6 +273,8 @@ namespace Architome
 
             public float clockHour;
             public float clockMinute;
+
+            public Action<int, int> OnNewTimeScale { get; set; }
             async public void HandleTimer()
             {
 
@@ -290,6 +295,15 @@ namespace Architome
 
                     await Task.Yield();
                 }
+            }
+
+            public void ChangeTimeScale(int newTimeScale)
+            {
+                if (timeScale == newTimeScale) return;
+
+                OnNewTimeScale?.Invoke(timeScale, newTimeScale);
+
+                timeScale = newTimeScale;
             }
         }
     }

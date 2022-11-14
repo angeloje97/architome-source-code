@@ -6,19 +6,14 @@ using Architome.Enums;
 
 namespace Architome
 {
+    [CreateAssetMenu(fileName = "New Item Pool", menuName = "Architome/Item/Item Pool")]
     public class ItemPool : ScriptableObject
     {
-
+        [SerializeField] bool update;
         [System.Serializable]
         public class EntityRarityPool
         {
-            public string name
-            {
-                get
-                {
-                    return rarity.ToString();
-                }
-            }
+            public string name;
 
             public EntityRarity rarity;
             public List<PossibleItem> possibleItems;
@@ -28,13 +23,7 @@ namespace Architome
         [System.Serializable]
         public class RarityPool
         {
-            public string name
-            {
-                get
-                {
-                    return rarity.ToString();
-                }
-            }
+            public string name;
 
             public Rarity rarity;
             public List<PossibleItem> possibleItems;
@@ -44,12 +33,18 @@ namespace Architome
         [System.Serializable]
         public class PossibleItem
         {
+            public string name;
             public Item item;
 
             public int minAmount = 1;
             public int maxAmount = 100;
             [Range(0f, 100f)]
             public float chance;
+
+            public void OnValidate()
+            {
+
+            }
         }
 
         public List<EntityRarityPool> entityItems;
@@ -185,18 +180,6 @@ namespace Architome
                     });
 
                     if (itemDatas.Count >= targetCount) break;
-                    //if (itemDatas.Count >= items) return;
-                    //if (data.item.count >= data.item.maxStacks )
-                    //{
-                    //    itemDatas.Add(new() { item = data.item, amount = data.item.maxStacks });
-                    //    count -= data.item.maxStacks;
-                    //}
-                    //else
-                    //{
-                    //    itemDatas.Add(new() { item = data.item, amount = count });
-                    //    count = 0;
-                    //    break;
-                    //}
                 }
 
             }
@@ -263,5 +246,55 @@ namespace Architome
             public List<PossibleItem> possibleItems;
             public List<PossibleItem> guaranteedItems;
         }
+
+        private void OnValidate()
+        {
+            if (!update) return;
+            update = false;
+
+            UpdatePossibleItems(possibleItems);
+            UpdatePossibleItems(guaranteedItems);
+
+            UpdateEntityItems(entityItems);
+            UpdateRarityItems(rarityItems);
+        }
+
+        public void UpdatePossibleItems(List<PossibleItem> possibleItems)
+        {
+            if (possibleItems == null) return;
+            foreach(var item in possibleItems)
+            {
+                var range = item.minAmount == item.maxAmount ? $"({item.minAmount})" : $"({item.minAmount}-{item.maxAmount})";
+                item.name = $"{item.item} {range} ({item.chance}%)";
+            }
+        }
+
+        public void UpdateEntityItems(List<EntityRarityPool> rarityPool)
+        {
+            if (rarityPool == null) return;
+
+            foreach(var rarity in rarityPool)
+            {
+                rarity.name = rarity.rarity.ToString();
+
+                UpdatePossibleItems(rarity.possibleItems);
+                UpdatePossibleItems(rarity.guaranteedItems);
+            }
+        }
+
+        public void UpdateRarityItems(List<RarityPool> rarityPool)
+        {
+            if (rarityPool == null) return;
+
+            foreach(var pool in rarityPool)
+            {
+                pool.name = pool.rarity.ToString();
+
+                UpdatePossibleItems(pool.possibleItems);
+                UpdatePossibleItems(pool.guaranteedItems);
+            }
+        }
+
+
     }
 }

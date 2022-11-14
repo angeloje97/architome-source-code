@@ -68,6 +68,25 @@ namespace Architome
             return (max + min) / 2;
         }
 
+        public static Vector3 Average<T>(List<T> list) where T : Component
+        {
+            var total = new Vector3();
+            int count = 0;
+
+            foreach (var item in list)
+            {
+                var pos = item.transform.position;
+
+                total += pos;
+                count++;
+
+            }
+
+            if (count == 0) return new Vector3();
+
+            return total / count;
+        }
+
 
         public static float Height(Transform trans)
         {
@@ -104,6 +123,8 @@ namespace Architome
             return height;
         }
 
+        
+
         public static float Width(List<Transform> trans)
         {
             var width = 0f;
@@ -116,6 +137,82 @@ namespace Architome
 
                 width += rect.rect.width;
             }
+
+            return width;
+        }
+
+        public static float ChildrenHeight(Transform trans)
+        {
+            if (trans == null) return 0f;
+            var height = 0f;
+
+            foreach(Transform child in trans)
+            {
+                if (child == trans) continue;
+                var rect = child.GetComponent<RectTransform>();
+                if (rect == null) continue;
+                height += rect.rect.height;
+            }
+
+
+            return height;
+        }
+
+        public static float ChildrenWidth(Transform trans)
+        {
+            if (trans == null) return 0f;
+
+            var width = 0f;
+
+            foreach(Transform child in trans)
+            {
+                if (child == trans) continue;
+                var rect = child.GetComponent<RectTransform>();
+                if (rect == null) continue;
+                width += rect.rect.width;
+            }
+
+
+            return width;
+        }
+
+        public static float ChildrenHeight(List<Transform> transGroup)
+        {
+
+            if (transGroup == null) return 0f;
+            var height = 0f;
+            foreach (var trans in transGroup)
+            {
+                foreach (Transform child in trans)
+                {
+                    if (child == trans) continue;
+                    var rect = child.GetComponent<RectTransform>();
+                    if (rect == null) continue;
+                    height += rect.rect.height;
+                }
+            }
+
+
+            return height;
+        }
+
+        public static float ChildrenWidth(List<Transform> transGroup)
+        {
+            if (transGroup == null) return 0f;
+
+            var width = 0f;
+
+            foreach (var trans in transGroup)
+            {
+                foreach (Transform child in trans)
+                {
+                    if (child == trans) continue;
+                    var rect = child.GetComponent<RectTransform>();
+                    if (rect == null) continue;
+                    width += rect.rect.width;
+                }
+            }
+
 
             return width;
         }
@@ -182,6 +279,8 @@ namespace Architome
 
             return (min + max) / 2;
         }
+        
+
 
         public static float MaxDistance(Vector3 point, List<Transform> transforms)
         {

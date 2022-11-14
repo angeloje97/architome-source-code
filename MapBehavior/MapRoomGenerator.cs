@@ -320,7 +320,6 @@ namespace Architome
                 }
 
                 AddRoom(newRoom);
-                newRoom.PercentReveal = roomRevealPercent;
                 OnSpawnRoom?.Invoke(this, newRoom);
             }
         }
@@ -392,7 +391,6 @@ namespace Architome
                 }
 
                 AddRoom(newRoom);
-                newRoom.PercentReveal = roomRevealPercent;
                 OnSpawnRoom?.Invoke(this, newRoom);
 
             }
@@ -592,6 +590,7 @@ namespace Architome
             {
                 yield return new WaitForSeconds(hideDelay);
                 ClearNullRooms();
+                yield return new WaitForSeconds(.125f);
                 foreach (GameObject room in roomsInUse)
                 {
                     var roomInfo = room.GetComponent<RoomInfo>();

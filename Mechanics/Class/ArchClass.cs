@@ -5,7 +5,7 @@ using Architome.Enums;
 
 namespace Architome
 {
-    [CreateAssetMenu(fileName = "New Class", menuName = "Create New Class")]
+    [CreateAssetMenu(fileName = "New Class", menuName = "Architome/Entity/Class")]
     public class ArchClass : ScriptableObject
     {
         [SerializeField]int id;
@@ -33,6 +33,7 @@ namespace Architome
 
         public ClassType classType;
         public int equipableArmorLevel;
+        public ArmorType highestArmorLevel;
         public List<WeaponType> equipableWeapons;
         public List<Role> possibleRoles;
 
@@ -65,9 +66,15 @@ namespace Architome
             {
                 var equipment = (Equipment)item;
 
-                if (equipableArmorLevel < (int)equipment.armorType)
+                //if (equipableArmorLevel < (int)equipment.armorType)
+                //{
+                //    reason = $"{className} can't equipment {equipment.armorType}";
+                //    return false;
+                //}
+
+                if(highestArmorLevel < equipment.armorType)
                 {
-                    reason = $"{className} can't equipment {equipment.armorType}";
+                    reason = $"{className} can't equip {equipment.armorType}";
                     return false;
                 }
 

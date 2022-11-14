@@ -94,7 +94,7 @@ public class BuffInfo : MonoBehaviour
     [Header("Buff Properties")]
     public DamageType damageType;
     public int stacks = 0;
-    bool buffTimeComplete = false;
+    public bool buffTimeComplete { get; private set; }
     public float buffTimer;
     public float progress;
 
@@ -480,7 +480,6 @@ public class BuffInfo : MonoBehaviour
                     return;
                 }
                 buffTimer = 0;
-                buffTimeComplete = true;
                 OnBuffCompletion?.Invoke(this);
                 Expire();
             }
@@ -503,6 +502,7 @@ public class BuffInfo : MonoBehaviour
     }
     public async void Expire()
     {
+        if (buffTimeComplete) return;
         OnBuffEnd?.Invoke(this);
         buffTimeComplete = true;
 
@@ -550,6 +550,8 @@ public class BuffInfo : MonoBehaviour
         Action<CombatEventData> combatAction = (CombatEventData eventData) => {
             action();
         };
+
+        if (buffTimeComplete && trigger != BuffEvents.OnEnd) return;
 
         switch (trigger)
         {

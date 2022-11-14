@@ -47,12 +47,13 @@ namespace Architome.Tutorial
             {
 
                 var nextListener = eventListeners[i + 1];
+                var current = eventListeners[i];
                 
                 eventListeners[i].OnSuccessfulEvent += (EventListener listener) =>
                 {
                     ArchAction.Delay(() => {
                         HandleNotification(nextListener, notificationManager);
-                    }, delayBetweenDirections + nextListener.extraSuccessfulTime);
+                    }, delayBetweenDirections + current.extraSuccessfulTime);
                     
                 };
 

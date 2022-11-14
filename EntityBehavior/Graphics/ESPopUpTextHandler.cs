@@ -12,7 +12,7 @@ namespace Architome
         public struct Info
         {
             public SpawnerInfo spawner;
-            public WorldPopupTextManager popUpManager;
+            public PopupTextManager popUpManager;
         }
 
         public Info info;
@@ -20,7 +20,7 @@ namespace Architome
         void GetDependencies()
         {
             info.spawner = GetComponentInParent<SpawnerInfo>();
-            info.popUpManager = WorldPopupTextManager.active;
+            info.popUpManager = PopupTextManager.active;
 
             if (info.spawner)
             {

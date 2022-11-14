@@ -107,7 +107,7 @@ public class RevealSelf : MonoBehaviour
     {
         if (entityInfo == null) return;
         if (entityInfo.gameObject == null) return;
-        if (Entity.IsPlayer(entityInfo.gameObject)) { return; }
+        if (Entity.IsPlayer(entityInfo)) { return; }
 
         entityInfo.ShowEntity(val);
     }
@@ -123,7 +123,7 @@ public class RevealSelf : MonoBehaviour
         void HandleNonPlayer()
         {
             if(!entityInfo.isAlive) { return; }
-            if (Entity.IsPlayer(entityInfo.gameObject)) { return; }
+            if (Entity.IsPlayer(entityInfo)) { return; }
 
             if(current != null)
             {
@@ -134,7 +134,7 @@ public class RevealSelf : MonoBehaviour
         
         void HandlePlayer()
         {
-            if (!Entity.IsPlayer(entityInfo.gameObject)) { return; }
+            if (!Entity.IsPlayer(entityInfo)) { return; }
             if(previous == null) { return; }
         }
 

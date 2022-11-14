@@ -208,6 +208,7 @@ namespace Architome
             info.spawnedByGenerator = true;
 
             otherRoom.transform.SetParent(parent);
+            info.SuccesfulStart();
             info.originPath = this;
             activePath = null;
             isUsed = true;

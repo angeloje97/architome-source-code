@@ -12,7 +12,7 @@ namespace Architome
         [SerializeField] AudioManager audioManager;
         [SerializeField] ParticleManager particleManager;
         [SerializeField] ItemSlotHandler itemSlotHandler;
-        [SerializeField] WorldPopupTextManager popUpManager;
+        [SerializeField] PopupTextManager popUpManager;
 
         public ItemInfo worldItemInfo;
 
@@ -52,7 +52,7 @@ namespace Architome
             }
             if (!worldItemInfo) return;
             if (worldItemInfo.isUI) return;
-            popUpManager = WorldPopupTextManager.active;
+            popUpManager = PopupTextManager.active;
 
 
             HandleStart();

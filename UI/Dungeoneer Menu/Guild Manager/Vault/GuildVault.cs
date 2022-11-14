@@ -76,8 +76,11 @@ namespace Architome
         }
         public bool VaultItem(ItemInfo item)
         {
-            return item.InsertIntoSlots(slots);
+            var stored =  item.InsertIntoSlots(slots);
 
+            Debugger.UI(8719, $"Successfully stored {item} in vault: {stored}");
+
+            return stored;
             //Debugger.UI(9024, $"Stackable item : {stackableItem}");
 
             //while (stackableItem)

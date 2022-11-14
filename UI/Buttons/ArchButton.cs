@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace Architome
 {
     [RequireComponent(typeof(AudioSource))]
-    public class ArchButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
+    public class ArchButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
     {
         public bool interactable = true;
         public TextMeshProUGUI buttonName;
@@ -117,7 +117,12 @@ namespace Architome
             MouseExit?.Invoke();
         }
 
-        public void OnPointerDown(PointerEventData eventData)
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            HandleClick();
+        }
+
+        void HandleClick()
         {
             if (!interactable) return;
             //OnUnityClick?.Invoke();
@@ -132,7 +137,7 @@ namespace Architome
 
             async void HandleLeftClick()
             {
-                if (!Input.GetKeyDown(KeyCode.Mouse0)) return;
+                if (!Input.GetKeyUp(KeyCode.Mouse0)) return;
                 if (leftClicked)
                 {
                     leftClicked = false;
@@ -167,9 +172,13 @@ namespace Architome
 
             void HandleRightClick()
             {
-                if (!Input.GetKeyDown(KeyCode.Mouse1)) return;
+                if (!Input.GetKeyUp(KeyCode.Mouse1)) return;
                 OnRightClick?.Invoke();
             }
+        }
+
+        public void OnPointerDown(PointerEventData eventData)
+        {
         }
 
     }

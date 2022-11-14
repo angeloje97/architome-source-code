@@ -12,6 +12,7 @@ namespace Architome
         public Transform menuItems;
         public Transform defaultCameraPosition;
         AudioManager audioManager;
+        ArchSceneManager sceneManager;
 
         public Action<MenuModule> OnOpenMenu;
 

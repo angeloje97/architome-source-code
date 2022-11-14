@@ -241,8 +241,10 @@ namespace Architome
 
             var groundPosition = V3Helper.GroundPosition(newPosition, groundLayer, 0, offset);
 
-            entity.transform.position = groundPosition;
-            entity.infoEvents.OnSignificantMovementChange?.Invoke(position);
+
+            entity.Move(groundPosition);
+            //entity.transform.position = groundPosition;
+            //entity.infoEvents.OnSignificantMovementChange?.Invoke(position);
 
             return entity;
         }

@@ -35,7 +35,7 @@ namespace Architome
             public Action<EntityInfo> OnRemoveMember;
             public Action<PartyFormation> OnMoveFormation { get; set; }
             public Action<string> OnTransferScene;
-            public Action<EntityInfo> OnPartyAttack;
+            public Action<EntityInfo> OnPartyFocus { get; set; }
         }
 
         public struct EventHandlers
@@ -144,6 +144,8 @@ namespace Architome
         void ProcessMember(EntityInfo info)
         {
             info.entityControlType = partyControl;
+            
+
 
 
             info.OnDeath += OnEntityDeath;
@@ -156,39 +158,14 @@ namespace Architome
                 info.OnReviveThis -= OnEntityRevive;
                 info.OnLifeChange -= OnEntityLifeChange;
                 info.OnCombatChange -= OnEntityCombatChange;
-            };
 
-            if (info.role == Role.Healer) return;
-
-            var abilityManager = info.AbilityManager();
-            var combatBehavior = info.CombatBehavior();
-
-
-            Action<EntityInfo> partyAttackAction = (EntityInfo target) =>
-            {
-                if (abilityManager)
-                {
-                    abilityManager.target = target;
-                    abilityManager.Attack();
-                    abilityManager.target = null;
-                }
-
-                if (combatBehavior)
-                {
-                    combatBehavior.SetFocus(target);
-                }
-            };
-
-            events.OnPartyAttack += partyAttackAction;
-
-            events.OnRemoveMember += (EntityInfo member) => {
-                events.OnPartyAttack -= partyAttackAction;
             };
         }
 
         public void AddMember(EntityInfo entity)
         {
-            if (members == null) members = new();
+            members ??= new();
+
             if (members.Contains(entity)) return;
 
             if (entity.transform.parent != transform)
@@ -217,6 +194,7 @@ namespace Architome
             if (!members.Contains(entity)) return;
 
             events.OnRemoveMember?.Invoke(entity);
+            entity.partyEvents.OnRemovedFromParty?.Invoke(this);
 
             members.Remove(entity);
             entity.transform.SetParent(newParent);
@@ -228,7 +206,7 @@ namespace Architome
             if (index >= members.Count) return;
             if (partyControl != EntityControlType.PartyControl) return;
 
-            members[index].GetComponent<EntityInfo>().PlayerController().HandleActionButton(true);
+            members[index].PlayerController().HandleActionButton(true);
         }
         void OnActionMultiple()
         {
@@ -248,9 +226,9 @@ namespace Architome
                 }
                 else if (targetManager.currentHover != null)
                 {
-                    if (members[0].GetComponent<EntityInfo>().CanAttack(targetManager.currentHover))
+                    if (members[0].CanAttack(targetManager.currentHover))
                     {
-                        Attack(targetManager.currentHover);
+                        Focus(targetManager.currentHover);
 
                     }
                 }
@@ -303,15 +281,15 @@ namespace Architome
             partyFormation.MoveFormation(position);
             MoveParty();
         }
-        void Attack(GameObject target)
+        void Focus(GameObject target)
         {
             var targetInfo = target.GetComponent<EntityInfo>();
-            events.OnPartyAttack?.Invoke(targetInfo);
+            events.OnPartyFocus?.Invoke(targetInfo);
         }
         void UpdateMidPoint()
         {
             if (liveMembers.Count <= 0) { return; }
-            midPoint = V3Helper.MidPoint(liveMembers);
+            midPoint = V3Helper.Average(liveMembers);
             
             center.transform.position = midPoint;
         }

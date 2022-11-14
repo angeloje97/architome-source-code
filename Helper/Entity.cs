@@ -227,17 +227,6 @@ namespace Architome
 
 
             return false;
-            //if (IsEntity(objectCheck))
-            //{
-            //    var info = objectCheck.GetComponent<EntityInfo>();
-
-            //    if (GMHelper.GameManager().playableEntities.Contains(info))
-            //    {
-            //        return true;
-            //    }
-            //}
-
-            //return false;
         }
 
         public static bool IsPlayer(EntityInfo entity)

@@ -464,6 +464,8 @@ namespace Architome
             {
                 if (response.stringValue != "Store in Vault") return;
 
+                Debugger.UI(8718, $"Trying to store {info} in vault");
+
                 var guildVault = GuildVault.active;
 
                 guildVault.VaultItem(info);

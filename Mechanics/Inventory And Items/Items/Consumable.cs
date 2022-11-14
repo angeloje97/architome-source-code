@@ -9,7 +9,7 @@ namespace Architome
     public class Consumable : Item
     {
         public List<GameObject> consumableBuffs = new();
-        public float value;
+        public float power;
         public float coolDown = 1f;
         private void OnValidate()
         {

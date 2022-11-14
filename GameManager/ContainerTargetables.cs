@@ -47,6 +47,13 @@ namespace Architome
             ArchInput.active.OnSelect += OnSelect;
 
             input = ArchInput.active;
+
+            var cursorBehavior = CursorBehavior.active;
+
+            if (cursorBehavior)
+            {
+                cursorBehavior.WhileCursorMove += WhileCursorMove;
+            }
         }
         void Start()
         {
@@ -64,12 +71,17 @@ namespace Architome
         {
             active = this;
         }
-        void Update()
+
+        void WhileCursorMove(Vector3 mousePosition)
         {
             if (input.Mode == ArchInputMode.Inactive) return;
             HandleUserMouseOvers();
             HandleNullMouseOver();
             HandleEvents();
+        }
+        void FixedUpdate()
+        {
+            
         }
         public void HandleEvents()
         {
@@ -102,7 +114,7 @@ namespace Architome
                 if (entity)
                 {
 
-                    Hover(entity.gameObject);
+                    Hover(entity);
 
                     return true;
                     //if (result)

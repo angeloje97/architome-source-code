@@ -90,6 +90,10 @@ namespace Architome
                 entityInfo.OnCombatChange += OnCombatChange;
                 entityInfo.OnHealingDone += OnHealingDone;
 
+                
+
+
+
                 movement = entityInfo.Movement();
 
 
@@ -112,8 +116,15 @@ namespace Architome
                     playerController.OnPlayerTargetting += OnPlayerAbilityTargetting;
                 }
 
+                entityInfo.partyEvents.OnAddedToParty += delegate (PartyInfo party) {
+                    party.events.OnPartyFocus += OnPartyFocus;
 
-                //OnCombatChange(entityInfo.isInCombat);
+                };
+
+                entityInfo.partyEvents.OnRemovedFromParty += delegate (PartyInfo party)
+                {
+                    party.events.OnPartyFocus -= OnPartyFocus;
+                };
             }
 
             if (behavior)
@@ -171,6 +182,19 @@ namespace Architome
             if (isAlive) { return; }
             target = null;
             SetFocus(null);
+        }
+
+        void OnPartyFocus(EntityInfo target)
+        {
+            var attackAbility = abilityManager.attackAbility;
+
+            if (!attackAbility.CanCastAt(target)) return;
+
+            abilityManager.target = target;
+            abilityManager.Attack();
+            abilityManager.target = null;
+
+            SetFocus(target, "Party Focus");
         }
 
         public void OnTryCast(AbilityInfo ability)
@@ -263,7 +287,7 @@ namespace Architome
                 return;
             }
 
-            if (!Entity.IsPlayer(entityObject))
+            if (!Entity.IsPlayer(entityInfo))
             {
                 proactiveTank = false;
                 return;
@@ -304,14 +328,17 @@ namespace Architome
         {
             foreach (var combatType in GetComponentsInChildren<CombatType>())
             {
-                Destroy(combatType.gameObject);
+
+                combatType.DestroySelf();
+                //Destroy(combatType.gameObject);
             }
         }
         public void SetFocus(EntityInfo target, string reason = "")
         {
-            //if (entityInfo.states.Contains(EntityState.Taunted)) return;
 
             var canFocus = CanFocus(target);
+
+            Debugger.Combat(5439, $"Can focus: {canFocus}");
             
             if (!canFocus) return;
          
@@ -421,15 +448,20 @@ namespace Architome
             {
                 if (previousTarget != target)
                 {
-                    OnNewTarget?.Invoke(previousTarget, target);
-                    entityInfo.SetCombatTarget(target);
+                    if (!focusTarget)
+                    {
+                        OnNewTarget?.Invoke(previousTarget, target);
+                        entityInfo.SetCombatTarget(target);
+                    }
                     previousTarget = target;
                 }
 
                 if (previousFocusTarget != focusTarget)
                 {
+                    var nextTarget = focusTarget ? focusTarget : target;
 
                     OnNewTarget?.Invoke(previousFocusTarget, focusTarget);
+                    entityInfo.SetCombatTarget(nextTarget);
                     previousFocusTarget = focusTarget;
                 }
             }

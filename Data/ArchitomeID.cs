@@ -9,7 +9,7 @@ using UnityEditor;
 
 namespace Architome
 {
-    [CreateAssetMenu(fileName = "Architome ID", menuName = "Create Architome ID")]
+    [CreateAssetMenu(fileName = "New Database", menuName = "Architome/Database")]
     public class ArchitomeID : ScriptableObject
     {
         public bool updateData;
@@ -42,10 +42,8 @@ namespace Architome
             public bool searchAnyBuff;
             public bool emptyName;
             public bool noIcon;
-            
             public BuffTargetType buffTargetType;
             public List<BuffInfo> results;
-
             public void Update()
             {
                 if (!idDataBase) return;
@@ -54,7 +52,6 @@ namespace Architome
                 HandleUpdateID();
                 HandleSearch();
             }
-
             void HandleUpdateID()
             {
                 if (!updateID) return;
@@ -70,7 +67,6 @@ namespace Architome
                     
                 }
             }
-
             void HandleSearch()
             {
                 results = idDataBase.Buffs.Where(buff => buff.name.ToLower().Contains(searchQuery.ToLower())).ToList();
@@ -91,11 +87,6 @@ namespace Architome
                     results = results.Where(buff => buff.buffIcon == null).ToList();
                 }
             }
-
-
-
-
-
         }
         [Serializable]
         public class ItemIDSearch
@@ -108,7 +99,6 @@ namespace Architome
             public bool missingName;
             public ItemType itemType;
             public string searchQuery;
-            public bool updateId;
 
             public List<Item> results;
 
@@ -116,14 +106,17 @@ namespace Architome
             public bool setDefaultEffects;
             public bool clearDefaultEffects;
 
-
+            [Header("Actions")]
+            public bool updateId;
+            public bool updateMaxStacks;
 
             public void Update()
             {
-                if (!search) return;
                 if (idDatabase == null) return;
-
                 UpdateId();
+                UpdateMaxStacks();
+                if (!search) return;
+
                 SetDefaultFX();
                 ClearDefaultEffects();
 
@@ -164,6 +157,12 @@ namespace Architome
                 }
             }
 
+            void HandleActions()
+            {
+                UpdateId();
+                UpdateMaxStacks();
+            }
+
             public void UpdateId()
             {
                 if (!updateId) return;
@@ -174,6 +173,21 @@ namespace Architome
                 for (int i = 0; i < items.Count; i++)
                 {
                     items[i].SetId(i + 1, idDatabase.forceID);
+                }
+            }
+
+            void UpdateMaxStacks()
+            {
+                if (!updateMaxStacks) return;
+                updateMaxStacks = false;
+                var items = idDatabase.Items;
+
+                foreach(var item in items)
+                {
+                    if (item.MaxStacks == 0)
+                    {
+                        item.SetMaxStacks(1);
+                    }
                 }
             }
 

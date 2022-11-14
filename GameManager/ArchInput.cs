@@ -65,6 +65,7 @@ namespace Architome
         void Start()
         {
             GetDependencies();
+            HandlePauseMenu();
         }
 
         private void Awake()
@@ -92,6 +93,27 @@ namespace Architome
             }
 
             inputMode = original;
+        }
+
+        void HandlePauseMenu()
+        {
+            var pauseMenu = PauseMenu.active;
+            if (!pauseMenu) return;
+
+            pauseMenu.OnActiveChange += HandleActiveChange;
+
+            async void HandleActiveChange(PauseMenu menu, bool state)
+            {
+                if (!state) return;
+                var originalInputMode = inputMode;
+                inputMode = ArchInputMode.Inactive;
+                while (menu.isActive)
+                {
+                    await Task.Yield();
+                }
+
+                inputMode = originalInputMode;
+            }
         }
 
         async void OnModuleEnableChange(ModuleInfo changed)

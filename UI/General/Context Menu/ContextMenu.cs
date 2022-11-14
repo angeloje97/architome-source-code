@@ -34,9 +34,11 @@ namespace Architome
         RectTransform rectTransform;
         KeyBindings keyBindData;
         bool exitKeysActive;
+        bool isChoosingCheck;
 
 
         public Action<ContextMenu, bool> OnContextActiveChange;
+        public Action<ContextMenu, bool> OnChoosingChange;
 
         void GetDependencies()
         {
@@ -57,8 +59,53 @@ namespace Architome
         public void Start()
         {
             GetDependencies();
+            HandlePauseMenu();
+            HandleModuleVisiblity();
         }
 
+        private void Update()
+        {
+            HandleEvents();
+        }
+
+
+        void HandleEvents()
+        {
+            if (isChoosingCheck != isChoosing)
+            {
+                isChoosingCheck = isChoosing;
+                OnChoosingChange?.Invoke(this, isChoosing);
+            }
+        }
+
+        void HandleModuleVisiblity()
+        {
+            OnChoosingChange += (ContextMenu menu, bool isChoosing) => {
+                module.SetActive(isChoosing);
+            };
+        }
+
+        void HandlePauseMenu()
+        {
+            var pauseMenu = PauseMenu.active;
+            if (pauseMenu == null) return;
+
+            pauseMenu.OnCanOpenCheck += (pause, checks) =>
+            {
+                if (isChoosing)
+                {
+                    checks.Add(false);
+                }
+            };
+
+            pauseMenu.OnTryOpenPause += (pause) => {
+                if (isChoosing)
+                {
+                    pauseMenu.pauseBlocked = true;
+
+                }
+            };
+        }
         public async Task HandleInput()
         {
 
@@ -68,27 +115,6 @@ namespace Architome
             {
                 CancelOptions();
             }
-
-            //var cancelKeys = new List<KeyCode>()
-            //{
-            //    KeyCode.Mouse0,
-            //    KeyCode.Mouse1,
-            //    KeyCode.Escape
-            //};
-
-            //foreach (var key in cancelKeys)
-            //{
-            //    if (!Input.GetKeyUp(key)) continue;
-            //    CancelOptions();
-            //}
-
-            //if (Input.GetKeyDown(KeyCode.Mouse0) || Input.GetKeyDown(KeyCode.Mouse1) || Input.GetKeyDown(KeyCode.Escape)))
-            //{
-            //    if (currentHover == null)
-            //    {
-            //        CancelOptions();
-            //    }
-            //}
         }
 
         public async Task ExitKeys()
@@ -102,24 +128,44 @@ namespace Architome
                 alternateActionsName.Add($"AlternateAction{i}");
             }
 
-            var exitKeys = new List<KeyCode>() { 
+            var exitKeyUps = new List<KeyCode>() { 
                 KeyCode.Mouse0,
-                KeyCode.Mouse1,
+                //KeyCode.Mouse1,
                 KeyCode.Escape
             };
 
+
+            var exitKeyDowns = new List<KeyCode>() { KeyCode.Mouse1 };
+
+            var keyDownTimers = .25f;
+
             foreach (var action in alternateActionsName)
             {
-                exitKeys.Add(keyBindData.keyBinds[action]);
+                exitKeyUps.Add(keyBindData.keyBinds[action]);
             }
+
+            await KeyBindings.LetGoKeys(exitKeyDowns);
+            await KeyBindings.LetGoKeys(exitKeyUps);
 
 
             while (exitKeysActive)
             {
                 if (!isChoosing) break;
-                foreach (var key in exitKeys)
+                foreach (var key in exitKeyUps)
                 {
                     if (Input.GetKeyUp(key))
+                    {
+                        exitKeysActive = false;
+                    }
+                }
+
+                foreach (var key in exitKeyDowns)
+                {
+                    if (keyDownTimers > 0)
+                    {
+                        keyDownTimers -= Time.deltaTime;
+                    }
+                    else if (Input.GetKeyDown(key))
                     {
                         exitKeysActive = false;
                     }
@@ -164,18 +210,19 @@ namespace Architome
 
             ClearOptions();
 
-            isChoosing = true;
             OnContextActiveChange?.Invoke(this, true);
             pickedOption = -1;
 
             info.title.text = contextData.title;
-            CreateOptions(contextData.options);
 
-            await ExitKeys();
+
+            await CreateOptions(contextData.options);
+
+            isChoosing = true;
 
             await HandleInput();
 
-            module.SetActive(false);
+            isChoosing = false;
 
 
             var response = new ContextMenuResponse();
@@ -196,7 +243,7 @@ namespace Architome
             return response;
         }
 
-        void CreateOptions(List<string> options)
+        async Task CreateOptions(List<string> options)
         {
             for (int i = 0; i < options.Count; i++)
             {
@@ -207,8 +254,10 @@ namespace Architome
 
             layoutGroup.enabled = true;
 
-            ArchAction.Delay(() => { AdjustPosition(); }, .0625f);
-            ArchAction.Delay(() => { module.SetActive(true); }, .0625f);
+            await Task.Delay(62);
+
+            AdjustPosition();
+
         }
 
         void ClearOptions()

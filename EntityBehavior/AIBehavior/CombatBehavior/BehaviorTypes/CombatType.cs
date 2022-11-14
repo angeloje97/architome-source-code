@@ -38,6 +38,11 @@ namespace Architome
 
         }
 
+        public virtual void DestroySelf()
+        {
+            Destroy(gameObject);
+        }
+
         public virtual void CombatRoutine()
         {
 

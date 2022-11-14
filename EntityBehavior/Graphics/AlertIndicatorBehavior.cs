@@ -25,6 +25,8 @@ namespace Architome
         public bool isPortrait;
         public CanvasGroup cGroup;
 
+        int flashingCount = 0;
+
         void GetDependencies()
         {
             portraitBehavior = GetComponentInParent<PortraitBehavior>();
@@ -68,12 +70,15 @@ namespace Architome
 
         async void FlashingRoutine()
         {
+
             while (isFlashing)
             {
                 await Task.Delay(250);
+                Debugger.Combat(9045, $"{entityInfo} flashing {flashingCount}");
 
                 show = !show;
                 UpdateImage();
+                flashingCount++;
             }
 
             show = false;

@@ -59,11 +59,7 @@ namespace Architome
             GetDependencies();
             HandleLastLevel();
 
-            ArchAction.Delay(() => {
-                TransferUnitsToEntrancePortal();
-                StopMovingEntities();
-                
-            }, .50f);
+            OnSceneStart();
             //HandleMoveOutOfPortal();
         }
 
@@ -84,9 +80,6 @@ namespace Architome
         {
             if (party == null) return;
             if (!LastLevel()) return;
-
-            //var destroyOnLoad = new GameObject("DestroyOnLoad");
-            //party.transform.SetParent(destroyOnLoad.transform);
         }
         void Update()
         {
@@ -111,29 +104,7 @@ namespace Architome
 
             if (currentSave == null) return;
 
-            if (partyObject != null)
-            {
-                
-
-                //Destroy(party.gameObject);
-
-                //party = partyObject.GetComponent<PartyInfo>();
-
-
-                //ArchAction.Delay(() => {
-                //    foreach (var member in party.GetComponentsInChildren<EntityInfo>())
-                //    {
-                //        member.transform.localPosition = new();
-                //        member.sceneEvents.OnTransferScene?.Invoke(sceneManager.CurrentScene());
-                //        GMHelper.GameManager().AddPlayableParty(party);
-                //    }
-
-                //    party.HandleTransferScene(sceneManager.CurrentScene());
-                //}, .250f);
-                
-
-                return;
-            }
+            if (partyObject != null) return;
 
             partyObject = party.gameObject;
             //DontDestroyOnLoad(party);
@@ -166,20 +137,55 @@ namespace Architome
             
         }
 
-        void OnLoadScene(ArchSceneManager sceneManager)
+
+        void OnSceneStart()
         {
             ArchAction.Delay(() => {
                 TransferUnitsToEntrancePortal();
                 StopMovingEntities();
+                HandlePortals();
             }, .50f);
-            
+        }
+        void OnLoadScene(ArchSceneManager sceneManager)
+        {
+            OnSceneStart();
+        }
 
+        void HandlePortals()
+        {
+            if (Core.currentDungeon == null) return;
+            if (Core.currentDungeon.Count == 0) return;
+            var mapRoomGenerator = MapRoomGenerator.active;
+
+            mapRoomGenerator.OnRoomsGenerated += (generator) => {
+                var portals = PortalInfo.portals;
+
+                foreach (var portal in portals)
+                {
+                    if (portal.info.portalType != PortalType.NextLevel) continue;
+                    portal.events.OnAllPartyMembersInPortal += HandleSceneTransfer;
+                }
+            };
+
+            void HandleSceneTransfer(PortalInfo info, List<EntityInfo> entities)
+            {
+                var nextLevel = "Map Template Continue";
+                var postDungeon = "PostDungeonResults";
+                Core.dungeonIndex++;
+
+                if (Core.dungeonIndex >= Core.currentDungeon.Count)
+                {
+                    sceneManager.LoadScene(postDungeon, true);
+                    return;
+                }
+                sceneManager.LoadScene(nextLevel, true);
+            }
         }
         void OnQuestEnd(Quest quest)
         {
             if (quest.info.state != QuestState.Completed) return;
             
-            foreach (var entity in party.GetComponentsInChildren<EntityInfo>())
+            foreach (var entity in party.members)
             {
                 entity.CompleteQuest(quest);
             }
@@ -191,36 +197,39 @@ namespace Architome
                 movement.StopMoving(true);
             }
         }
-        void TransferUnitsToEntrancePortal()
+        async void TransferUnitsToEntrancePortal()
         {
             var entryPortal = PortalInfo.EntryPortal;
-
-            if (entryPortal == null) return;
-
-            foreach (var entity in party.GetComponentsInChildren<EntityInfo>())
+            
+            while (entryPortal == null)
             {
-                entity.transform.position = entryPortal.portalSpot.position + new Vector3(0, .25f, 0);
+                if (PortalInfo.portals == null)
+                {
+                    await Task.Yield();
+                    continue;
+                }
+                foreach (var portal in PortalInfo.portals)
+                {
+                    if (portal == null) continue;
+                    if (portal.info.portalType == PortalType.Entrance)
+                    {
+                        entryPortal = portal;
+                    }
+                }
+
+                await Task.Yield();
+            }
+
+            foreach (var entity in party.members)
+            {
+                entity.Move(entryPortal.portalSpot.position + new Vector3(0, .25f, 0));
+                //entity.transform.position = entryPortal.portalSpot.position + new Vector3(0, .25f, 0);
+                //entity.infoEvents.OnSignificantMovementChange?.Invoke(entity.transform.position);
+                //entity.
             }
 
             HandleMoveOutOfPortal(entryPortal);
 
-
-            //if (portals == null || portals.Count == 0) return;
-            //foreach (var portal in portals)
-            //{
-            //    if (portal == null) continue;
-            //    if (!portal.entryPortal) continue;
-                
-            //    foreach (var entity in party.GetComponentsInChildren<EntityInfo>())
-            //    {
-            //        entity.transform.position = portal.portalSpot.position + new Vector3(0, .25f, 0);
-            //    }
-
-            //    HandleMoveOutOfPortal(portal);
-            //    break;
-                
-            //}
-            
         }
         void BeforeSave(SaveGame save)
         {

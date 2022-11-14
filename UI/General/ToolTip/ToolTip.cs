@@ -46,6 +46,9 @@ namespace Architome
         public bool adjustToMouse;
         public bool adjustToSide;
         public bool followMouse;
+
+        public bool formatting;
+        public bool visible;
         
         public Components components;
         public RarityInfo rarityInfo;
@@ -54,7 +57,7 @@ namespace Architome
 
         [SerializeField] float minXAnchor, maxXAnchor, minYAnchor, maxYAnchor;
         [SerializeField] int adjustSizeIterations = 3;
-        bool canDestroySelf;
+        bool canDestroySelf { get; set; }
         bool destroyedSelf;
 
         void GetDependencies()
@@ -73,6 +76,7 @@ namespace Architome
             if (components.canvasGroup == null) return;
 
             var group = components.canvasGroup;
+            formatting = true;
 
             group.interactable = false;
             group.blocksRaycasts = false;
@@ -111,9 +115,15 @@ namespace Architome
 
             if (destroyedSelf) return;
 
-            group.interactable = true;
-            group.blocksRaycasts = false;
-            group.alpha = 1;
+            if (visible)
+            {
+                group.interactable = true;
+                group.blocksRaycasts = false;
+                group.alpha = 1;
+
+            }
+
+            formatting = false;
         }
 
         async public void DestroySelf()
@@ -157,6 +167,7 @@ namespace Architome
             components.attributes.text = data.attributes;
             components.requirements.text = data.requirements;
             components.value.text = data.value;
+            visible = true;
 
             components.icon.SetIcon(new() { sprite = data.icon });
             //components.icon.SetIconImage(data.icon);
@@ -236,6 +247,18 @@ namespace Architome
             AdjustToPosition(manager.sideToolBarPosition.position);
         }
 
+        public async void SetVisibility(bool visible)
+        {
+            this.visible = visible;
+
+            while (formatting)
+            {
+                await Task.Yield();
+            }
+
+            ArchUI.SetCanvas(components.canvasGroup, visible);
+        }
+
         public async void FollowMouse()
         {
             if (!followMouse) return;
@@ -267,28 +290,6 @@ namespace Architome
             }
             components.sizeFitter.AdjustToSize();
             return;
-            //var height = V3Helper.Height(components.manifestHeight) + heightOffSet;
-            //var width = V3Helper.Width(components.manifestWidth) + widthOffset;
-
-            //if (height < minHeight)
-            //{
-            //    height = minHeight;
-            //}
-
-            //if (width < minWidth)
-            //{
-            //    width = minWidth;
-            //}
-
-            //components.rectTransform.sizeDelta = new(width, height);
-
-            //foreach (var sizeFitter in GetComponentsInChildren<ContentSizeFitter>())
-            //{
-            //    sizeFitter.enabled = false;
-            //    sizeFitter.enabled = true;
-            //}
-
-            //AdjustToMouse();
         }
     }
 

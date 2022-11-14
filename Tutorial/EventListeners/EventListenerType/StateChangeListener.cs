@@ -28,7 +28,6 @@ namespace Architome.Tutorial
             foreach (var target in targetEntities)
             {
                 target.combatEvents.OnStatesChange += HandleStateChange;
-                PreventEntityDeath(target);
             }
 
             if (!sourceAbility)

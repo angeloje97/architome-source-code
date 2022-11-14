@@ -5,7 +5,7 @@ using Architome.Enums;
 
 namespace Architome
 {
-    [CreateAssetMenu(fileName = "New Preset Stats", menuName = "Preset Stats")]
+    [CreateAssetMenu(fileName = "New Preset Stats", menuName = "Architome/Entity/Preset Stats")]
     public class PresetStats : ScriptableObject
     {
         public new string name;

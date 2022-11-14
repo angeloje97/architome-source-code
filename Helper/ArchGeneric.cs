@@ -48,6 +48,11 @@ namespace Architome
             UnityEngine.Object.Destroy(tempObject);
         }
 
+        public static void DontDestroyOnLoad(GameObject gameObject)
+        {
+            UnityEngine.Object.DontDestroyOnLoad(gameObject);
+        }
+
         public static string StateDescription(EntityState state)
         {
             var stateDescription = new Dictionary<EntityState, string>() {

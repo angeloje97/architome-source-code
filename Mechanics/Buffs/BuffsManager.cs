@@ -35,7 +35,7 @@ namespace Architome
                 entityInfo.OnCombatChange += OnCombatChange;
                 entityInfo.OnDamageTaken += OnDamageTaken;
 
-                
+
             }
 
             if (movement)
@@ -62,7 +62,7 @@ namespace Architome
         }
         public void OnCombatChange(bool isInCombat)
         {
-            
+
             foreach (Transform child in transform)
             {
                 var buff = child.GetComponent<BuffInfo>();
@@ -71,7 +71,7 @@ namespace Architome
                 HandleExitCombat(buff);
                 HandleEnterCombat(buff);
             }
-            
+
 
             void HandleExitCombat(BuffInfo buff)
             {
@@ -117,7 +117,7 @@ namespace Architome
                 if (after.equipmentEffects == null) return;
                 foreach (var buff in after.equipmentEffects)
                 {
-                    
+
                     ApplyBuff(new(buff, after, entityInfo));
                 }
             }
@@ -182,6 +182,36 @@ namespace Architome
                 if (!entityInfo.stateImmunities.Contains(stateChanger.stateToChange)) continue;
 
                 buff.Cleanse();
+            }
+        }
+
+        public void CleanseBuffs(BuffCategory category, string reason = "")
+        {
+
+            foreach (var buff in Buffs())
+            {
+                if (IsCategory(buff.buffTargetType))
+                {
+                    buff.Cleanse(reason);
+                }
+            }
+
+            bool IsCategory(BuffTargetType targetType)
+            {
+                if (category == BuffCategory.All) return true;
+                if (targetType.ToString() == category.ToString()) return true;
+                return false;
+            }
+        }
+
+        public void CleanseBuffs(Predicate<BuffInfo> predicate)
+        {
+            foreach (var buff in Buffs())
+            {
+                if (predicate(buff))
+                {
+                    buff.Cleanse();
+                }
             }
         }
 

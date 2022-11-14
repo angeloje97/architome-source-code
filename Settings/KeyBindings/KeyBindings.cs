@@ -2,8 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Linq;
 using System.IO;
-
+using System.Threading.Tasks;
 
 namespace Architome
 {
@@ -157,7 +158,47 @@ namespace Architome
             HandleLoad();
         }
 
+        public static async Task LetGoKeys()
+        {
+            var keys = Enum.GetValues(typeof(KeyCode));
+            while(true)
+            {
+                var pressing = false;
+                foreach (KeyCode key in keys)
+                {
+                    if (Input.GetKey(key)) pressing = true;
+                    break;
+                }
 
+                if (!pressing)
+                {
+                    break;
+                }
+
+                await Task.Yield();
+            }
+
+        }
+
+        public static async Task LetGoKeys(List<KeyCode> keyCodes)
+        {
+            while (true)
+            {
+                var pressing = false;
+                foreach (var key in keyCodes)
+                {
+                    if (Input.GetKey(key)) pressing = true;
+                    break;
+                }
+
+                if (!pressing)
+                {
+                    break;
+                }
+
+                await Task.Yield();
+            }
+        }
 
         private void OnValidate()
         {

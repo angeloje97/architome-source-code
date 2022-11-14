@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using Architome;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
+
 public class CatalystLockOn : MonoBehaviour
 {
     // Start is called before the first frame update
     public CatalystInfo catalystInfo;
     public AbilityInfo abilityInfo;
+
+    public CatalystHit catalystHit;
 
     public GameObject target;
 
@@ -18,9 +22,13 @@ public class CatalystLockOn : MonoBehaviour
 
     public bool isAlive = true;
 
+    [Header("Settings")]
+    public bool disableLockOn;
+
     public void GetDependencies()
     {
         catalystInfo = GetComponent<CatalystInfo>();
+        catalystHit = GetComponent<CatalystHit>();
         if (catalystInfo)
         {
             abilityInfo = catalystInfo.abilityInfo;
@@ -85,6 +93,7 @@ public class CatalystLockOn : MonoBehaviour
     void Update()
     {
         if (target == null) return;
+        if (disableLockOn) return;
         TravelToTarget();
         HandleDeadTarget();
         TravelToTargetInertia();
@@ -124,9 +133,9 @@ public class CatalystLockOn : MonoBehaviour
         if(speed == -1)
         {
             transform.position = target.transform.position;
-            if(GetComponent<CatalystHit>())
+            if(catalystHit)
             {
-                GetComponent<CatalystHit>().HandleTargetHit(target.GetComponent<EntityInfo>());
+                catalystHit.HandleTargetHit(target.GetComponent<EntityInfo>());
             }
         }
     }

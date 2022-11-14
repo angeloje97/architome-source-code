@@ -40,7 +40,7 @@ namespace Architome
                 moduleManager.OnEquipItem += OnTryEquip;
             }
 
-            if (module)
+            if (module && !moduleManager.seperateEntities)
             {
                 module.OnSelectEntity += OnSelectEntity;
             }
@@ -60,7 +60,14 @@ namespace Architome
 
         void OnSelectEntity(EntityInfo entity)
         {
+            SetEntity(entity);
+        }
+
+
+        public void SetEntity(EntityInfo entity)
+        {
             if (entity == null) return;
+            if (entityInfo && moduleManager.seperateEntities) return;
 
             entityInfo = entity;
             SetGearSlots();
@@ -144,6 +151,10 @@ namespace Architome
 
         void DestroyItems()
         {
+            if (module == null)
+            {
+                module = GetComponentInParent<ModuleInfo>();
+            }
             module.ReturnAllItemsFromBin();
 
             foreach (var itemInfo in GetComponentsInChildren<ItemInfo>())
@@ -240,6 +251,11 @@ namespace Architome
         public GameObject CreateEquipment(Equipment equipment, GearSlot slot)
         {
             var itemTemplate = module.prefabs.item;
+
+            if (equipmentBin == null)
+            {
+                equipmentBin = GetComponentInParent<ModuleInfo>().itemBin;
+            }
 
             if (equipmentBin != null)
             {

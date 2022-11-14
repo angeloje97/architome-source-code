@@ -8,12 +8,15 @@ using System;
 
 namespace Architome
 {
+    [RequireComponent(typeof(CurrencyDisplayFX))]
     public class CurrencyDisplay : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         [Header("Components")]
         public Image currencyImage;
         public TextMeshProUGUI amount;
-        
+        public Currency currentCurrency;
+
+
 
         ToolTip currentLabel;
         ToolTipManager toolTipManager;
@@ -22,6 +25,9 @@ namespace Architome
         float currentAmount;
 
         public Action<float, float> OnAmountChange;
+
+
+        public float mostRecentChange;
 
         void Start()
         {
@@ -33,9 +39,11 @@ namespace Architome
             toolTipManager = ToolTipManager.active;
         }
 
+
         public void SetCurrencyDisplay(Currency currency, float amount)
         {
             currencyImage.sprite = currency.itemIcon;
+            currentCurrency = currency;
             this.amount.text = ArchString.FloatToSimple(amount);
             currencyName = currency.itemName;
         }
@@ -45,6 +53,8 @@ namespace Architome
             if (amount == currentAmount) return;
 
             var simple = ArchString.FloatToSimple(amount);
+
+            mostRecentChange = amount - currentAmount;
 
             OnAmountChange?.Invoke(currentAmount, amount);
             currentAmount = amount;

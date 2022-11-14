@@ -162,7 +162,7 @@ public class CatalystHit : MonoBehaviour
         {
             if(!CanHarm(targetHit)) { return; }
 
-            if (catalystInfo.entityInfo.CanAttack(targetHit.gameObject))
+            if (catalystInfo.entityInfo.CanAttack(targetHit))
             {
                 var combatData = new CombatEventData(catalystInfo, catalystInfo.entityInfo, value);
                 targetHit.Damage(combatData);

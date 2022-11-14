@@ -148,64 +148,6 @@ namespace Architome
 
                 lastSlot.OnLoadEquipment?.Invoke(lastSlot.equipment);
 
-                //foreach (var itemData in itemDatas)
-                //{
-                //    var equipment = (Equipment)itemData.item;
-
-                //    var lastSlot = itemDatas.IndexOf(itemData) == itemDatas.Count - 1;
-
-                //    foreach (var slot in equipmentSlots)
-                //    {
-                //        if (equipment.equipmentSlotType != slot.equipmentSlotType) continue;
-
-                //        slot.equipment = equipment;
-
-                //        if (lastSlot)
-                //        {
-                //            slot.OnLoadEquipment?.Invoke(equipment);
-                //        }
-                //    }
-
-                //}
-
-                //var slotMap = data.equipment.slots.ToDictionary(x => x.slotType, x => x);
-
-
-                //var lastSlot = equipmentSlots[0];
-
-                //foreach (var slot in equipmentSlots)
-                //{
-                //    slot.equipment = null;
-
-                //    if (!slotMap.ContainsKey(slot.equipmentSlotType)) continue;
-
-                //    var equipmentData = slotMap[slot.equipmentSlotType];
-
-                //    var item = _maps.items[equipmentData.itemId];
-
-                //    if (!Item.Equipable(item)) continue;
-
-                //    slot.equipment = (Equipment)item;
-
-                //    lastSlot = slot;
-
-                //    //foreach (var equipmentData in data.equipment.slots)
-                //    //{
-                //    //    if (equipmentData.slotType != slot.equipmentSlotType) continue;
-                //    //    var item = _maps.items[equipmentData.itemId];
-
-                //    //    if (!Item.Equipable(item)) break;
-                //    //    slot.equipment = (Equipment) item;
-
-                //    //    lastSlot = slot;
-                //    //    break;
-
-                //    //}
-                //}
-
-
-                //lastSlot.OnLoadEquipment?.Invoke(lastSlot.equipment);
-
             }
             void LoadInventory()
             {
@@ -217,44 +159,6 @@ namespace Architome
 
 
                 inventory.inventoryItems = data.inventory.ItemDatas(_maps);
-
-                //foreach (var itemData in data.inventory.items)
-                //{
-                //    if (itemData.slotNumber >= inventory.inventoryItems.Count) continue;
-                //    if (!_maps.items.ContainsKey(itemData.id)) continue;
-
-                //    var item = Object.Instantiate(_maps.items[itemData.id]);
-
-                //    if (Item.Equipable(item))
-                //    {
-                //        var equipment = (Equipment)item;
-                //        equipment.stats = itemData.stats;
-                //    }
-
-                //    inventory.inventoryItems[itemData.slotNumber] = new() { amount = itemData.amount, item = item };
-                    
-                //}
-
-
-                //var items = new Dictionary<EntityData.InventoryData.ItemData, Item>();
-
-                //foreach (var itemData in data.inventory.items)
-                //{
-                //    var item = _maps.items[itemData.itemId];
-
-                //    if (item == null) continue;
-
-                //    Debugger.InConsole(45389, $"Loaded item is {item}");
-                //    items.Add(itemData, item);
-                //}
-
-                //foreach (KeyValuePair<EntityData.InventoryData.ItemData, Item> itemData in items)
-                //{
-                //    var data = itemData.Key;
-                //    if (data.slotNumber >=  inventory.inventoryItems.Count) continue;
-
-                //    inventory.inventoryItems[data.slotNumber] = new() { item = itemData.Value, amount = data.amount };
-                //}
 
                 inventory.OnLoadInventory?.Invoke(inventory);
             }

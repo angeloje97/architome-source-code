@@ -202,11 +202,12 @@ namespace Architome
         }
         public static async Task<KeyCode> NewKey()
         {
+            var keyCodes = Enum.GetValues(typeof(KeyCode));
             while (true)
             {
                 await Task.Yield();
 
-                foreach (KeyCode keyCode in Enum.GetValues(typeof(KeyCode)))
+                foreach (KeyCode keyCode in keyCodes)
                 {
                     if (Input.GetKeyDown(keyCode))
                     {

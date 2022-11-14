@@ -118,6 +118,7 @@ namespace Architome
             foreach (var source in audioSources)
             {
                 await Task.Yield();
+                if (!source) break;
                 if (source.isPlaying)
                 {
                     return true;
@@ -206,9 +207,9 @@ namespace Architome
             if (clips.Count == 0) { return null; }
             return PlaySound(ArchGeneric.RandomItem(clips));
         }
-        public AudioSource PlaySoundLoop(AudioClip clip, float maxLength = 0f)
+        public AudioSource PlaySoundLoop(AudioClip clip, float maxLength = 0f, float volume = 1)
         {
-            var audioSource = PlaySound(clip);
+            var audioSource = PlaySound(clip, volume);
             audioSource.Stop();
             audioSource.loop = true;
             audioSource.Play();

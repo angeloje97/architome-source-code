@@ -171,6 +171,14 @@ public class CharacterInfo : EntityProp
         }
     }
 
+    public void ShowCharacter()
+    {
+        foreach (var renderer in GetComponentsInChildren<Renderer>())
+        {
+            renderer.enabled = true;
+        }
+    }
+
 
     void HandleMetrics()
     {

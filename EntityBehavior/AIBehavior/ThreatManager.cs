@@ -49,14 +49,14 @@ public class ThreatManager : MonoBehaviour
             threatInfo = threat;
 
             threatManager.OnClearThreats += OnClearThreats;
-            source.OnDeath += OnSourceDeath;
-            threat.OnDeath += OnThreatDeath;
+            //source.OnDeath += OnSourceDeath;
+            //threat.OnDeath += OnThreatDeath;
 
             OnThreatEnd += delegate (ThreatInfo threatInfo)
             {
                 threatManager.OnClearThreats -= OnClearThreats;
-                source.OnDeath -= OnSourceDeath;
-                threat.OnDeath -= OnThreatDeath;
+                //source.OnDeath -= OnSourceDeath;
+                //threat.OnDeath -= OnThreatDeath;
             };
             
 
@@ -69,29 +69,21 @@ public class ThreatManager : MonoBehaviour
             while (isActive)
             {
                 if (!Application.isPlaying) return;
-                try
+
+
+                if(!sourceInfo.isAlive)
                 {
-                    if (!threatInfo.isAlive)
-                    {
-                        RemoveThreat();
-                    }
+                    isActive = false;
+                    threatManager.ClearThreats();
+                };
 
-                    if (!sourceInfo.CanAttack(threatObject))
-                    {
-                        RemoveThreat();
-                    }
-
-                    if (!sourceInfo.isAlive)
-                    {
-                        threatManager.ClearThreats();
-                    }
+                if (!threatInfo.isAlive)
+                {
+                    RemoveThreat();
                 }
-                catch { }
+
                 await Task.Delay(1000);
                 timeInCombat += 1;
-                
-                
-
             }
         }
         public void OnThreatDeath(CombatEventData eventData)
@@ -104,21 +96,14 @@ public class ThreatManager : MonoBehaviour
         }
         public void OnSourceDeath(CombatEventData eventData)
         {
+            
             threatManager.ClearThreats();
         }
         public void RemoveThreat()
         {
             isActive = false;
             OnThreatEnd?.Invoke(this);
-            try
-            {
-                threatManager.RemoveThreat(threatInfo);
-            }
-            catch
-            {
-
-            }
-            
+            threatManager.RemoveThreat(threatInfo);
         }
     }
 
@@ -334,8 +319,7 @@ public class ThreatManager : MonoBehaviour
         if (highestNonTargettingThreat == threatInfo) highestNonTargettingThreat = null;
 
         HandleMaxThreat();
-        
-        //HandleMaxThreat();
+
         OnRemoveThreat?.Invoke(threat);
         UpdateCombatActive();
 
@@ -431,7 +415,7 @@ public class ThreatManager : MonoBehaviour
         CheckMaxThreat();
         CheckMaxThreatNonTargetting();
         //HandleMaxThreat();
-        SortThreats();
+        
 
         if (firstThreat && !fromAlert)
         {
@@ -577,7 +561,7 @@ public class ThreatManager : MonoBehaviour
 
             if (info.threatValue > max)
             {
-                if (entityInfo.CanAttack(info.threatObject))
+                if (entityInfo.CanAttack(info.threatInfo))
                 {
                     highestThreat = info.threatInfo;
                     max = info.threatValue;
@@ -686,7 +670,7 @@ public class ThreatManager : MonoBehaviour
     {
         foreach(var info in threats)
         {
-            if(entityInfo.CanAttack(info.threatObject))
+            if(entityInfo.CanAttack(info.threatInfo))
             {
                 return true;
             }

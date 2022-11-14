@@ -24,8 +24,7 @@ namespace Architome
                 {
                     title = "Quit Game",
                     question = "Are you sure you want to quit?",
-                    option1 = "Quit",
-                    option2 = "Cancel",
+                    options = new() { "Quit", "Cancel" },
                     blocksScreen = true,
                 });
 

@@ -47,7 +47,6 @@ namespace Architome.Tutorial
             }
 
             abilityToSilence.OnInterrupt += action2;
-            PreventEntityDeath(abilityToSilence.entityInfo);
 
 
             OnSuccessfulEvent += (EventListener eventListener) => {

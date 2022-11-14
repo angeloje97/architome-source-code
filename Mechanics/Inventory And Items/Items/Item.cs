@@ -8,7 +8,7 @@ using System;
 
 namespace Architome
 {
-    [CreateAssetMenu(fileName = "arch_item", menuName = "Item")]
+    [CreateAssetMenu(fileName = "New Item", menuName = "Architome/Item/New Item")]
     public class Item : ScriptableObject
     {
         // Start is called before the first frame update
@@ -31,12 +31,14 @@ namespace Architome
         [Multiline]
         public string itemDescription;
         public ItemType itemType;
-        public float goldValue = 1f;
+        public float value = 1f;
         public GameObject itemObject;
+        public int spriteIndex = -1;
 
         public int MaxStacks { get { return maxStacks; } }
 
-        [SerializeField] protected int maxStacks;
+        
+        [SerializeField, Min(1)] protected int maxStacks;
         [SerializeField] protected bool infiniteStacks;
 
         private void OnValidate()
@@ -106,16 +108,29 @@ namespace Architome
         {
             return "";
         }
-        public virtual string Value()
+        public virtual string Value(int amount)
         {
-            var value = "";
+            var result = "";
 
-            if (goldValue > 0)
+
+            var totalValue = amount * value;
+
+            Debugger.UI(7568, $"Total Value {totalValue}");
+
+
+            if (totalValue > 0)
             {
-                value += $"{goldValue} gold\n";
+                var primeValues = Economy.active.PrimeValues(totalValue);
+
+                Debugger.UI(7569, $"{primeValues.Count}");
+                foreach (var data in primeValues)
+                {
+                    var sprite = data.item.spriteIndex != -1 ? $"<sprite={data.item.spriteIndex}>" : data.item.ToString()[..1];
+                    result += $"{data.amount} {sprite}";
+                }
             }
 
-            return value;
+            return result;
         }
 
         public void SetId(int id, bool forceSet = false)
@@ -140,7 +155,7 @@ namespace Architome
                 attributes = Attributes(),
                 requirements = Requirements(),
                 description = Description(),
-                value = Value()
+                value = Value(amount)
             };
         }
 
@@ -176,6 +191,11 @@ namespace Architome
             if (item.GetType() == typeof(Consumable)) return true;
             return false;
         }
+
+        public void SetMaxStacks(int newStacks)
+        {
+            maxStacks = newStacks;
+        }
     }
 
     [Serializable]
@@ -193,6 +213,13 @@ namespace Architome
             this.item = info.item;
             this.amount = info.currentStacks;
         }
+
+        public ItemData(Item item, int amount)
+        {
+            this.item = item;
+            this.amount = amount;
+        }
+
         public ItemData() 
         {
             item = null;

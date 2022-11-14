@@ -186,6 +186,13 @@ namespace Architome.Enums
         Catalyst,
     }
 
+    public enum PortalType
+    {
+        Entrance,
+        Exit,
+        NextLevel,
+    }
+
     public enum NotificationEvent
     {
         OnStart,
@@ -222,6 +229,15 @@ namespace Architome.Enums
         Assist = 1,
         Harm = 2,
     }
+
+    public enum BuffCategory
+    {
+        Neutral = 0,
+        Assist = 1,
+        Harm = 2,
+        All = 3,
+    }
+
     public enum CatalystType
     {
         Cast,

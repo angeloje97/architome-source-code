@@ -95,7 +95,7 @@ public class ActionBarBehavior : MonoBehaviour, IPointerEnterHandler, IPointerEx
             
             if(coolDownActive)
             {
-                int timeRemaining = (int)(abilityInfo.coolDown.progressTimer);
+                int timeRemaining = (int)(abilityInfo.coolDown.timer);
 
                 string text = "";
                 switch(timeRemaining)
@@ -112,7 +112,7 @@ public class ActionBarBehavior : MonoBehaviour, IPointerEnterHandler, IPointerEx
                         break;
                 }
 
-                coolDownTimer.text = text;
+                coolDownTimer.text = ArchString.RoundedTime(timeRemaining, true);
             }
 
             

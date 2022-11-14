@@ -30,6 +30,7 @@ namespace Architome
                     while (canvas != null && canvas.alpha != targetAlpha)
                     {
                         canvas.alpha = Mathf.Lerp(canvas.alpha, targetAlpha, lerpValue);
+                        if (Mathf.Abs(canvas.alpha - targetAlpha) < .03125) canvas.alpha = targetAlpha;
                         await Task.Yield();
                     }
                 }
@@ -37,6 +38,14 @@ namespace Architome
                 {
                     canvas.alpha = targetAlpha;
                 }
+            }
+        }
+
+        public static void SetCanvases(List<CanvasGroup> canvasGroups, bool val, float lerpValue = 1f)
+        {
+            foreach (var canvas in canvasGroups)
+            {
+                SetCanvas(canvas, val, lerpValue);
             }
         }
 

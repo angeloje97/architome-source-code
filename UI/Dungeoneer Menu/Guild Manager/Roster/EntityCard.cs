@@ -6,10 +6,11 @@ using TMPro;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
+using System.Threading.Tasks;
 
 namespace Architome
 {
-    public class EntityCard : MonoBehaviour
+    public class EntityCard : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
 
         public EntityInfo entity;
@@ -31,9 +32,68 @@ namespace Architome
         public UnityEvent OnActiveFalse;
         public UnityEvent OnActiveTrue;
 
+        public GuildManager manager;
+        public ToolTipManager toolTipManager;
+        public ToolTip currentToolTip;
+        public KeyBindings keybindManager;
+
+        bool hovering;
+
         void Start()
         {
-        
+            GetDependencies();
+        }
+
+        void GetDependencies()
+        {
+            toolTipManager = ToolTipManager.active;
+
+            keybindManager = KeyBindings.active;
+            manager = GuildManager.active;
+
+        }
+
+        public async void OnPointerEnter(PointerEventData eventData)
+        {
+            if (!toolTipManager) return;
+
+
+            hovering = true;
+
+            var rightClickIndex = keybindManager.SpriteIndex(KeyCode.Mouse1);
+
+            var currentToolTip = toolTipManager.General();
+            currentToolTip.followMouse = true;
+            currentToolTip.SetToolTip(new() {
+                name = $"{entity}",
+                description = $"Use <sprite={rightClickIndex}> for more options."
+            });
+
+            Action<bool> action = delegate (bool isChoosing) {
+                currentToolTip.SetVisibility(!isChoosing);
+            };
+
+            manager.states.OnChoosingActionChange += action;
+            currentToolTip.SetVisibility(!manager.states.choosingCardAction);
+
+
+
+            while (hovering)
+            {
+
+                await Task.Yield();
+            }
+
+
+            manager.states.OnChoosingActionChange -= action;
+
+
+            currentToolTip.DestroySelf();
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            hovering = false;
         }
 
         public void SetEntity(EntityInfo entity)
@@ -51,6 +111,7 @@ namespace Architome
         public void SelectCard()
         {
             if (!isActive) return;
+            OnPointerExit(null);
             OnSelect?.Invoke(this);
         }
 

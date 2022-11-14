@@ -8,6 +8,8 @@ using TMPro;
 using System;
 using Architome;
 using Architome.Enums;
+using System.Runtime.InteropServices.WindowsRuntime;
+
 public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, IDropHandler, IPointerEnterHandler, IPointerExitHandler
 {
     // Start is called before the first frame update
@@ -30,7 +32,7 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
     public TextMeshProUGUI amountText;
     public bool isUI;
     bool manifested;
-    bool blockLooting;
+    bool blockLooting { get; set; }
     bool pickedUp;
     public bool thrown { get; private set; }
 
@@ -83,15 +85,18 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         var entity = other.GetComponent<EntityInfo>();
         if (entity == null) return;
         if (!Entity.IsPlayer(entity.gameObject)) return;
+        if (!entity.CanPickUp(new(this))) return;
 
         var success = entity.LootItem(this, true);
 
-        if (success)
-        {
-            entityPickedUp = entity;
-            pickedUp = true;
-            DestroySelf();
-        }
+        entityPickedUp = entity;
+        pickedUp = true;
+        DestroySelf();
+
+        //if (success)
+        //{
+            
+        //}
     }
 
     private void OnMouseEnter()
@@ -278,12 +283,17 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
     {
         if (manifested) return;
         manifested = true;
+        
+        if(data.amount <= 0)
+        {
+            data.amount = 1;
+        }
 
         item = cloned ? Instantiate(data.item) : data.item;
         currentStacks = data.amount;
 
         if (currentStacks <= 0) currentStacks = 1;
-        if (currentStacks > item.MaxStacks && item.MaxStacks != -1) currentStacks = item.MaxStacks;
+        if (currentStacks > item.MaxStacks && item.MaxStacks != -1 && item.MaxStacks > 0) currentStacks = item.MaxStacks;
 
         name = item.itemName;
 
@@ -617,8 +627,11 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
             icon = item.itemIcon,
             title = $"{item.itemName}",
             question = $"Are you sure you want to destroy {item.itemName}?",
-            option1 = "Destroy",
-            option2 = "Cancel"
+            
+            options = new() {
+                "Destroy",
+                "Cancel"
+            }
         });
 
         if (userChoice.optionString == "Destroy")
@@ -637,11 +650,14 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         var userChoice = await promptHandler.SliderPrompt(new()
         {
             title = $"Split {item.itemName}",
+            question = "Choose amount to split",
             amountMin = 1,
             amountMax = currentStacks - 1,
             icon = item.itemIcon,
-            option1 = "Split",
-            option2 = "Cancel",
+            options = new () {
+                "Split",
+                "Cancel"
+            },
         });
 
         if (userChoice.optionString != "Split") return null;
@@ -739,6 +755,8 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
             if (!slot.currentItemInfo.item.ValidStacks(amount + 1)) continue;
             if (!slot.currentItemInfo.SameItem(this)) continue;
 
+
+            
             items.Add(slot.currentItemInfo);
         }
 

@@ -433,14 +433,41 @@ namespace Architome
             abilities.OnCastEnd += OnCastEnd;
             abilities.OnChannelStart += OnChannelStart;
             abilities.OnChannelEnd += OnChannelEnd;
+            abilities.OnTryAttackTarget += OnTryAttackTarget;
 
 
         }
-        void OnCastStart(AbilityInfo ability)
+
+        void OnTryAttackTarget(AbilityInfo attackAbility, EntityInfo target)
         {
-            if (ability.cancelCastIfMoved)
+            var currentlyCasting = abilities.currentlyCasting;
+
+            if (currentlyCasting && currentlyCasting != attackAbility)
             {
-                movement.StopMoving();
+                return;
+            }
+
+            if (attackAbility.CanCastAt(target))
+            {
+                var range = attackAbility.range;
+                movement.MoveTo(target.transform, range);
+            }
+        }
+        async void OnCastStart(AbilityInfo ability)
+        {
+            if (!ability.cancelCastIfMoved) return;
+            var movementTimer = .25f;
+
+            while (ability.isCasting)
+            {
+                await Task.Yield();
+                movementTimer -= Time.deltaTime;
+
+                if (movementTimer < 0) break;
+                if (movement.isMoving)
+                {
+                    movement.StopMoving();
+                }
             }
         }
         void OnCastEnd(AbilityInfo ability)

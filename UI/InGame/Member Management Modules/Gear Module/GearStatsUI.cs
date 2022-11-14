@@ -75,7 +75,7 @@ public class GearStatsUI : MonoBehaviour
         }
 
 
-        if (module)
+        if (module && !moduleManager.seperateEntities)
         {
             module.OnSelectEntity += OnSelectEntity;
         }
@@ -99,7 +99,13 @@ public class GearStatsUI : MonoBehaviour
 
     void OnSelectEntity(EntityInfo entity)
     {
+        SetEntity(entity);   
+    }
+
+    public void SetEntity(EntityInfo entity)
+    {
         if (entity == null) return;
+        if (entityInfo && moduleManager.seperateEntities) return;
         HandleOldEntity();
         entityInfo = entity;
         entityName.text = entity.entityName;

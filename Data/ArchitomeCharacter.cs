@@ -20,6 +20,7 @@ public class ArchitomeCharacter : MonoBehaviour
 
     [SerializeField]
     bool updateCharacter;
+    [SerializeField] bool loadArmor;
 
     public int currentMaterial = 0;
     public List<Material> materials;
@@ -210,6 +211,17 @@ public class ArchitomeCharacter : MonoBehaviour
         SetMaterial(currentMaterial);
         SetDefault();
         LoadValues();
+        LoadArmor();
+    }
+
+    public void LoadArmor()
+    {
+        if (!loadArmor) return;
+        loadArmor = false;
+        foreach(var part in augmentedParts)
+        {
+            SetPart((int)part.x, (int)part.y, (int)part.z);
+        }
     }
     public void LoadValues()
     {

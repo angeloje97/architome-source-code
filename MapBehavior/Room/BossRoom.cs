@@ -49,7 +49,9 @@ namespace Architome
 
         public override void OnEntitiesGenerated(MapEntityGenerator generator)
         {
+            base.OnEntitiesGenerated(generator);
             if (entities.inRoom == null) return;
+            
             var bosses = 0f;
             foreach (var entity in entities.inRoom)
             {

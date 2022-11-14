@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
+using UnityEditor.Rendering;
+using LootLabels;
 
 namespace Architome
 {
@@ -21,10 +23,12 @@ namespace Architome
 
         [Header("Mob Drops")]
         [SerializeField] ItemPool itemPool;
+        [SerializeField] List<ItemPool> itemPools;
         [SerializeField] bool dropItemsOnDeath;
         [SerializeField] bool generateItemPool;
         [SerializeField] bool variableItemValue;
         [SerializeField] bool testItemPool;
+        [SerializeField] bool migrateItemPool;
         
 
 
@@ -35,6 +39,7 @@ namespace Architome
             if (entityInfo)
             {
                 entityInfo.infoEvents.OnLootItem += OnLootItem;
+                entityInfo.infoEvents.OnCanPickUpCheck += OnCanPickUp;
 
                 if (dropItemsOnDeath)
                 {
@@ -46,7 +51,7 @@ namespace Architome
         void Start()
         {
             GetDependencies();
-            HandleItemPool();
+            HandleItemPools();
         }
 
         private void Update()
@@ -77,43 +82,87 @@ namespace Architome
                 generateItemPool = true;
 
                 entityInfo = GetComponentInParent<EntityInfo>();
-                HandleItemPool();
+                HandleItemPools();
 
                 generateItemPool = temp;
             }
+
+            HandleItemPoolMigration();
+            
         }
-        void HandleItemPool()
+
+        void HandleItemPoolMigration()
+        {
+            if (!migrateItemPool) return;
+            migrateItemPool = false;
+            if (itemPool == null) return;
+            itemPools ??= new();
+            if (itemPools.Contains(itemPool)) return;
+
+            itemPools.Add(itemPool);
+
+        }
+
+        void HandleItemPools()
         {
             if (!generateItemPool) return;
-            if (itemPool == null) return;
-
+            if (itemPools == null) return;
+            inventoryItems = new();
             var rarity = entityInfo != null ? entityInfo.rarity : EntityRarity.Common;
 
-            inventoryItems = itemPool.ItemsFromEntityRarity(rarity, new() {
-                maxItems = maxSlots 
-            });
-
-            if (!variableItemValue) return;
-            var world = World.active;
-            if (world == null) return;
-            foreach (var itemData in inventoryItems)
+            foreach (var itemPool in itemPools)
             {
-                if (!Item.Equipable(itemData.item)) continue;
-
-                var equipment = (Equipment)itemData.item;
-
-                var rolledRarity = world.RarityRoll(rarity);
-
-                var level = entityInfo != null ? entityInfo.stats.Level : 1;
-
-                var itemLevel = (int)(level * rolledRarity.valueMultiplier);
-
-
-                if (itemLevel <= 0) itemLevel = 1;
-
-                equipment.SetPower(level, itemLevel, rolledRarity.name);
+                HandleItemPool(itemPool);
             }
+
+            HandleVariableValues();
+
+
+            void HandleItemPool(ItemPool itemPool)
+            {
+                if (!generateItemPool) return;
+                if (itemPool == null) return;
+
+                var pooledItems = itemPool.ItemsFromEntityRarity(rarity, new()
+                {
+                    maxItems = maxSlots
+                });
+
+                foreach (var item in pooledItems)
+                {
+                    inventoryItems.Add(item);
+                }
+
+                
+            }
+
+            void HandleVariableValues()
+            {
+                if (!variableItemValue) return;
+                var world = World.active;
+                if (world == null) return;
+                foreach (var itemData in inventoryItems)
+                {
+                    if (!Item.Equipable(itemData.item)) continue;
+
+                    var equipment = (Equipment)itemData.item;
+
+                    var rolledRarity = world.RarityRoll(rarity);
+
+                    var level = entityInfo != null ? entityInfo.stats.Level : 1;
+
+                    var itemLevel = (int)(level * rolledRarity.valueMultiplier);
+
+
+                    if (itemLevel <= 0) itemLevel = 1;
+
+                    equipment.SetPower(level, itemLevel, rolledRarity.name);
+                }
+            }
+
         }
+        
+
 
         async void OnEntityDeath(CombatEventData eventData)
         {
@@ -123,7 +172,7 @@ namespace Architome
             foreach (var data in inventoryItems)
             {
                 if (data.item == null) continue;
-                worldActions.DropItem(data, entityInfo.transform.position, false, true);
+                worldActions.DropItem(data, entityInfo.transform.position, true, true);
                 await Task.Delay(333);
             }
         }
@@ -177,10 +226,43 @@ namespace Architome
             return count;
         }
 
+        public void OnCanPickUp(ItemData itemData, List<bool> checks)
+        {
+            foreach (var check in checks)
+            {
+                if (check) return;
+            }
+
+
+            float amount = itemData.amount;
+            int availableSlots = 0;
+            foreach (var invData in inventoryItems)
+            {
+                if (invData.item == null)
+                {
+                    availableSlots++;
+                    continue;
+                }
+                var item = invData.item;
+                if (!item.Equals(itemData.item)) continue;
+
+                var space = item.MaxStacks - itemData.amount;
+                amount -= space;
+            }
+
+            if (amount <= 0) checks.Add(true);
+            else if(availableSlots > 0) checks.Add(true);
+
+        }
+
 
         public void OnLootItem(LootEventData eventData)
         {
-            eventData.succesful = LootItem(eventData.item);
+            Debugger.UI(8716, $"Item is mutable {eventData.isMutable}");
+            if (!eventData.isMutable) return;
+
+            eventData.SetSuccessful(LootItem(eventData.itemInfo));
+
         }
 
 
@@ -189,6 +271,7 @@ namespace Architome
             if (info == null) return false;
             if (LootViaModule())
             {
+                Debugger.UI(8717, $"Successfuly Looted Item via module");
                 return true;
             }
 
@@ -251,14 +334,50 @@ namespace Architome
                 return true;
             }
         }
-        // Update is called once per frame
+
+        
 
         public class LootEventData
         {
-            public ItemInfo item;
-            public bool succesful;
+            public ItemInfo itemInfo;
             public bool fromWorld;
             public string failReason;
+
+            public bool succesful { get; private set; }
+            public  bool successfulSet { get; private set; }
+
+            public bool isMutable 
+            { 
+                get 
+                {
+                    if (!succesful && successfulSet)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                } 
+            }
+
+            public bool SetSuccessful(bool val)
+            {
+                if (successfulSet) return false;
+                successfulSet = true;
+
+                succesful = val;
+
+
+                return true;
+            }
+
+
+
+            public LootEventData(ItemInfo itemInfo)
+            {
+                this.itemInfo = itemInfo;
+                succesful = true;
+                successfulSet = false;
+            }
         }
     }
 

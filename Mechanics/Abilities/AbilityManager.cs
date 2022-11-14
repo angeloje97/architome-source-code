@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
+using JetBrains.Annotations;
 
 namespace Architome
 {
@@ -77,6 +78,8 @@ namespace Architome
         public Action<AbilityInfo> OnDeadTarget;
         public Action<AbilityInfo, bool> OnWantsToCastChange;
         public Action<AbilityInfo, bool> OnCastChange;
+        public Action<AbilityInfo, EntityInfo> OnTryAttackTarget;
+        public Action<AbilityInfo> OnAbilityUpdate { get; set; }
 
         //Event Handlers
         bool isCasting;
@@ -151,7 +154,8 @@ namespace Architome
             if (attackAbility)
             {
                 Debugger.InConsole(4329, $"Destroying {attackAbility}");
-                Destroy(attackAbility.gameObject);
+
+                attackAbility.RemoveSelf();
             }
 
             if (!Item.IsWeapon(weaponItem)) return;
@@ -252,6 +256,11 @@ namespace Architome
 
                 ability.active = val;
             }
+        }
+
+        public void DisableAbilities()
+        {
+            SetAbilities(false, false);
         }
 
         public void OnChangeEquipment(EquipmentSlot slot, Equipment before, Equipment after)
@@ -422,7 +431,10 @@ namespace Architome
         public void Attack()
         {
             if (attackAbility == null) return;
-            if (target) { attackAbility.target = target; }
+            if (target) {
+                attackAbility.target = target;
+                OnTryAttackTarget(attackAbility, target);
+            }
             else { attackAbility.target = null; }
 
             if (location != null) { attackAbility.location = location; }

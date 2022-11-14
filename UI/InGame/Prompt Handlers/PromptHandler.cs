@@ -4,6 +4,7 @@ using UnityEngine;
 using System;
 using System.Threading.Tasks;
 using UnityEngine.UI;
+using System.Runtime.Serialization;
 
 namespace Architome
 {
@@ -22,9 +23,15 @@ namespace Architome
             public GameObject sliderPrompt;
         }
 
+        public Sprite allDeathIcon;
+
         public Prefabs prefabs;
 
         public Vector3 position;
+
+        [Header("Settings")]
+        public bool ignoreAllPartyMembersDead;
+        public bool ignoreDeadMembersIfNoBeacon;
 
         PromptInfo ActivatePrompt(GameObject prompt, Vector3 position = new Vector3())
         {
@@ -53,7 +60,11 @@ namespace Architome
 
             try
             {
-                entityDeathHandler.OnAllPlayableEntityDeath += OnAllPlayableEntityDeath;
+                if (!ignoreAllPartyMembersDead)
+                {
+                    entityDeathHandler.OnAllPlayableEntityDeath += OnAllPlayableEntityDeath;
+
+                }
             }
             catch
             {
@@ -70,11 +81,45 @@ namespace Architome
             active = this;
         }
 
-        public void OnAllPlayableEntityDeath(List<EntityInfo> members)
+        public async void OnAllPlayableEntityDeath(List<EntityInfo> members)
         {
-            //ActivatePrompt(prefabs.allDeathPrompt, new Vector3(0, 270, 0));
+            var playerSpawnBeacon = GMHelper.WorldInfo().currentSpawnBeacon;
 
-            var prompt = ActivatePrompt(prefabs.allDeathPrompt, new Vector3(0, 270, 0));
+            if (!playerSpawnBeacon && ignoreDeadMembersIfNoBeacon) return;
+
+            var userChoice = await GeneralPrompt(new() {
+                icon = allDeathIcon,
+                title = "Party Members Dead",
+                blocksScreen = true,
+                options = new()
+                {
+                    "Revive",
+                    "Quit"
+                },
+                question = "All party members are dead." + playerSpawnBeacon != null ? "Do you wish to revive at the most recent spawn beacon?" : "",
+                optionsAffectedByTimer = new() { 0 },
+            });
+
+            if (userChoice.optionString != "Revive") return;
+
+            
+
+            if (playerSpawnBeacon == null)
+            {
+                var worldActions = WorldActions.active;
+                if (worldActions)
+                {
+                    foreach(var member in members)
+                    {
+                        worldActions.Revive(member, member.transform.position, .50f, .50f);
+                    }
+                }
+                return;
+            }
+
+            var spawnBeaconHandler = playerSpawnBeacon.GetComponentInChildren<PlayerSpawnBeaconHandler>();
+
+            spawnBeaconHandler.ReviveDeadPartyMembers();
         }
 
         async Task<PromptChoiceData> UserChoice(PromptInfo prompt)
@@ -91,6 +136,8 @@ namespace Architome
                 if (!prompt) break;
                 if (!prompt.isActive) break;
             }
+
+
             
             return prompt.choiceData;
         }

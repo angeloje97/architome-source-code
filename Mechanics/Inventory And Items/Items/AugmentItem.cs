@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Architome
 {
-    [CreateAssetMenu(fileName = "New Augment", menuName = "Create new augment")]
+    [CreateAssetMenu(fileName = "New Augment", menuName = "Architome/Item/Augment")]
     public class AugmentItem : Item
     {
         public Augment augment;

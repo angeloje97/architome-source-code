@@ -6,7 +6,7 @@ using UnityEngine.Animations;
 
 namespace Architome
 {
-    [CreateAssetMenu(fileName = "New Weapon", menuName = "Weapon")]
+    [CreateAssetMenu(fileName = "New Weapon", menuName = "Architome/Item/Equipment/Weapon")]
     public class Weapon : Equipment
     {
 
