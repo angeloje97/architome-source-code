@@ -14,7 +14,6 @@ namespace Architome
 
             for (int i = 0; i < text.Length; i++)
             {
-
                 if (i == 0)
                 {
                     newText += $"{text[i]}".ToUpper();
@@ -27,6 +26,16 @@ namespace Architome
                         continue;
                     }
 
+
+                    if(i > 0 && text[i-1].Equals(" "))
+                    {
+                        newText += text[i];
+                        continue;
+                    }
+                    if (text[i].Equals(" "))
+                    {
+                        continue;
+                    }
 
                     newText += $" {text[i]}";
                 }

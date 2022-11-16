@@ -32,6 +32,7 @@ namespace Architome
             return component;
         }
 
+
         public static T RandomItem<T>(List<T> items)
         {
             var randomIndex = UnityEngine.Random.Range(0, items.Count);

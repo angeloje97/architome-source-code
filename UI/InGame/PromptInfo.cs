@@ -19,8 +19,10 @@ namespace Architome
         public bool optionEnded;
         public int amount;
         public List<ArchButton> buttonOptions;
+        public List<string> choices;
+        public Action<PromptInfo> OnPickChoice { get; set; }
+        public Action<PromptInfo> OnEndOptions { get; set; }
 
-        public Action<PromptInfo> OnPickChoice;
         
         public PromptChoiceData choiceData;
         public PromptInfoData promptData;
@@ -72,11 +74,72 @@ namespace Architome
             optionEnded = true;
             PlaySound(false);
             SetActive(false);
+            OnEndOptions?.Invoke(this);
             ArchAction.Delay(() => { Destroy(gameObject); }, 1f);
         }
         void Start()
         {
             PlaySound(true);
+            HandlePauseMenu();
+            HandleIGGUI();
+        }
+
+        void HandlePauseMenu()
+        {
+            var pauseMenu = PauseMenu.active;
+            if (!pauseMenu) return;
+
+            pauseMenu.OnTryOpenPause += HandleTryPause;
+
+            OnEndOptions += (PromptInfo prompt) => {
+                pauseMenu.OnTryOpenPause -= HandleTryPause;
+            };
+
+            void HandleTryPause(PauseMenu menu)
+            {
+                menu.pauseBlocked = true;
+            }
+        }
+
+        void HandleIGGUI()
+        {
+            var gui = IGGUIInfo.active;
+            if (gui == null) return;
+
+            gui.OnClosingModulesCheck += OnCloseCheck;
+
+            OnEndOptions += (info) => {
+                gui.OnClosingModulesCheck -= OnCloseCheck;
+            };
+
+            void OnCloseCheck(IGGUIInfo info, List<bool> checks)
+            {
+                checks.Add(false);
+            }
+        }
+
+
+
+
+        private void Update()
+        {
+            HandleEscape();
+
+            void HandleEscape()
+            {
+                if (!Input.GetKeyUp(KeyCode.Escape)) return;
+                if (promptData.forcePick) return;
+                if(promptData.escapeOption != "")
+                {
+                    for (int i = 0; i < buttonOptions.Count; i++)
+                    {
+                        if (choices[i] != promptData.escapeOption) continue;
+                        PickOption(i);
+                    }
+                }
+
+
+            }
         }
         public void PlaySound(bool open)
         {
@@ -232,7 +295,7 @@ namespace Architome
             }
 
             buttonOptions = new List<ArchButton>();
-
+            choices = new();
 
             for (int i = 0; i < promptData.options.Count; i++)
             {
@@ -240,6 +303,7 @@ namespace Architome
                 var newButton = Instantiate(button, info.choicesParents).GetComponent<ArchButton>();
 
                 buttonOptions.Add(newButton);
+                choices.Add(option);
 
                 newButton.SetName(option);
 
@@ -338,6 +402,7 @@ namespace Architome
     {
         public string title;
         public string question;
+        public string escapeOption;
         public List<int> optionsAffectedByInvalidInput;
         public List<int> optionsAffectedByTimer;
         public Predicate<string> IsValidInput;

@@ -16,10 +16,30 @@ namespace Architome
 
         public Action<MenuModule> OnOpenMenu;
 
+        public Action<MainMenuUI, List<bool>> OnCanChangeModuleCheck;
+
+        public MenuModule desiredModule;
+
+        bool CanOpenModule()
+        {
+            var checks = new List<bool>();
+
+            OnCanChangeModuleCheck?.Invoke(this, checks);
+
+            foreach(var check in checks)
+            {
+                if (!check) return false;
+            }
+
+            return true;
+        }
+
         public void OpenModule(GameObject menuModule)
         {
-            if (menuItems == null) return;
             var module = menuModule.GetComponent<MenuModule>();
+            desiredModule = module;
+            if (!CanOpenModule()) return;
+            if (menuItems == null) return;
             if (module == null) return;
 
             CloseAllMenuModules();

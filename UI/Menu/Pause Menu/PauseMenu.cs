@@ -136,6 +136,76 @@ namespace Architome
             //SceneManager.LoadScene(sceneName);
         }
 
+        public async void LoadSceneSafe(string sceneName)
+        {
+            var confirmed = await Confirmed();
+
+            if (!confirmed) return;
+
+            ArchSceneManager.active.LoadScene(sceneName);
+
+
+            async Task<bool> Confirmed()
+            {
+                var promptHandler = PromptHandler.active;
+                if (promptHandler == null) return true;
+
+                var title = sceneName;
+
+                var userChoice = await promptHandler.GeneralPrompt(new()
+                {
+                    title = title,
+                    question = $"Are you sure you want to go to {title}? You may lose all your saved progress",
+                    options = new() {
+                        "Confirm",
+                        "Cancel"
+                    },
+                    escapeOption = "Cancel",
+                    blocksScreen = true
+                });
+
+
+                if (userChoice.optionString == "Cancel") return false;
+
+                return true;
+            }
+        }
+
+        public async void ExitApplication(bool safe = false)
+        {
+            if (safe)
+            {
+                var confirm = await Confirmed();
+                if (!confirm) return;
+            }
+
+            Application.Quit();
+
+            async Task<bool> Confirmed()
+            {
+                var promptHandler = PromptHandler.active;
+
+                if (promptHandler == null) return true;
+
+                var userChoice = await promptHandler.GeneralPrompt(new()
+                {
+                    title = "Quit Game",
+                    question ="Are you sure you want to quit? The current progress might not be saved.",
+                    options= new() {
+                        "Confirm",
+                        "Cancel"
+                    },
+                    escapeOption="Cancel",
+                    blocksScreen=true,
+                });
+
+                if (userChoice.optionString == "Cancel") return false;
+                return true;
+
+            }
+        }
+
+
         public void SetCanvas(CanvasGroup canvas, bool val)
         {
             canvas.alpha = val ? 1 : 0;

@@ -922,9 +922,14 @@ public class AbilityInfo : MonoBehaviour
             var augment = child.GetComponent<Augment>();
             if (augment == null) continue;
             if (augment.spawnedByItem) continue;
+            var description = "";
 
+            if(!augment.name.Trim().Equals(""))
+            {
+                description += $"{augment.name} : ";
+            }
 
-            var description = $"{augment.name} : {augment.TypeDescription()}";
+            description += $"{augment.TypeDescription()}";
 
             if (result.Length > 0 && description.Length > 0)
             {

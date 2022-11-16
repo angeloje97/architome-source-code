@@ -24,7 +24,13 @@ namespace Architome
         public float smoothening = 1f;
 
         public int index;
+        public int previousIndex;
         public bool update;
+
+        public Action<NavBar> OnChangeNavigation;
+        public Action<NavBar, List<bool>> OnCanNavigateChange;
+
+        public bool navigationBlocked;
 
         private void Start()
         {
@@ -91,10 +97,33 @@ namespace Architome
             toggles[index].isOn = true;
         }
 
+        public void UpdateFromIndex(int newIndex)
+        {
+            index = newIndex;
+            UpdateFromIndex();
+        }
+
+        public bool CanNavigate()
+        {
+            var checks = new List<bool>();
+
+            OnCanNavigateChange?.Invoke(this, checks);
+
+            foreach(var check in checks)
+            {
+                if (!check) return false;
+            }
+
+            return true;
+        }
+
         public void OnValueChange()
         {
             if (items == null) return;
             if (toggles == null) return;
+            if (navigationBlocked) return;
+
+            previousIndex = index;
 
             var lerpValue = smoothening != 0 ? 1 / smoothening : 1;
             for (int i = 0; i < items.Count; i++)
@@ -116,12 +145,39 @@ namespace Architome
                 if (targetAlpha == canvasGroup.alpha) continue;
 
 
+                if (!CanNavigate())
+                {
+                    navigationBlocked = true;
+
+
+                    
+
+                    UpdateFromIndex();
+                    ArchAction.Delay(() => {
+                        navigationBlocked = false;
+                    }, .125f);
+                    return;
+                }
+
+
                 canvasGroup.alpha = targetAlpha;
 
                 canvasGroup.blocksRaycasts = toggle.isOn;
                 canvasGroup.interactable = toggle.isOn;
 
             }
+        }
+
+        public int ActiveIndex()
+        {
+            for(int i = 0; i < toggles.Count; i++)
+            {
+                if (toggles[i].isOn)
+                {
+                    return i;
+                }
+            }
+            return 0;
         }
     }
 }

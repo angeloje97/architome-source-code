@@ -367,6 +367,7 @@ namespace Architome
             {
                 options = options,
                 title = name,
+                
             });
 
             var choice = response.index;

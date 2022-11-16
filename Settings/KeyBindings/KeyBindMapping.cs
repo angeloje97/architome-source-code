@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Architome.Settings
 {
-    public class KeyBindMapping : MonoBehaviour
+    public class KeyBindMapping : ArchSettings
     {
 
         public static KeyBindMapping active;
@@ -39,6 +39,7 @@ namespace Architome.Settings
         public Action<KeyBindMapping> OnApplyChanges;
 
 
+
         void GetDependencies()
         {
             keyBindings = KeyBindings.active;
@@ -57,6 +58,13 @@ namespace Architome.Settings
         private void Start()
         {
             GetDependencies();
+            HandleDirtyConflicts();
+        }
+
+        public override void HandleLeaveDirty()
+        {
+            base.HandleLeaveDirty();
+            RevertBindings();
         }
 
         private void Awake()
@@ -131,7 +139,7 @@ namespace Architome.Settings
             combatBindings[map.index] = new() { x = map.keyName, y = map.keyCodeString };
 
             CheckConflicts();
-
+            dirty = true;
         }
 
         public bool IsConflicted()
@@ -171,6 +179,7 @@ namespace Architome.Settings
             }
 
             ArchAction.Yield(() => ApplyBindings());
+            dirty = false;
         }
 
         public void RevertBindings()
@@ -182,9 +191,15 @@ namespace Architome.Settings
             foreach (var binding in combatBindings)
             {
                 if (!mapDict.ContainsKey(binding.x)) continue;
-
+                var map = mapDict[binding.x];
                 mapDict[binding.x].SetKeyString(binding.y);
+                //combatBindings[map.index] = new() { x = map.keyName, y = map.keyCodeString };
+
             }
+
+            CheckConflicts();
+
+            dirty = false;
         }
 
         async public void ApplyBindings()
@@ -215,6 +230,8 @@ namespace Architome.Settings
 
 
             OnApplyChanges?.Invoke(this);
+
+            dirty = false;
         }
 
 

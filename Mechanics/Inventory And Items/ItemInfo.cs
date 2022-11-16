@@ -10,7 +10,8 @@ using Architome;
 using Architome.Enums;
 using System.Runtime.InteropServices.WindowsRuntime;
 
-public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, IDropHandler, IPointerEnterHandler, IPointerExitHandler
+[RequireComponent(typeof(ItemToolTipHandler))]
+public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, IDropHandler
 {
     // Start is called before the first frame update
     public Item item;
@@ -98,17 +99,6 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
             
         //}
     }
-
-    private void OnMouseEnter()
-    {
-        HandleToolTip(true);
-    }
-
-    private void OnMouseExit()
-    {
-        HandleToolTip(false);
-    }
-
 
     void Start()
     {
@@ -631,7 +621,8 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
             options = new() {
                 "Destroy",
                 "Cancel"
-            }
+            },
+            escapeOption="Cancel",
         });
 
         if (userChoice.optionString == "Destroy")
@@ -704,36 +695,6 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
     {
         item.Use(data);
         OnUse?.Invoke(this, data);
-    }
-    public void OnPointerEnter(PointerEventData eventData)
-    {
-        HandleToolTip(true);
-        
-    }
-    void HandleToolTip(bool active)
-    {
-        if (active)
-        {
-            var toolTipManager = ToolTipManager.active;
-
-            if (toolTipManager == null) return;
-
-            toolTip = toolTipManager.GeneralHeader();
-
-            toolTip.adjustToMouse = true;
-
-            toolTip.SetToolTip(item.ToolTipData(currentStacks));
-        }
-        else
-        {
-            if (toolTip == null) return;
-            toolTip.DestroySelf();
-        }
-    }
-
-    public void OnPointerExit(PointerEventData eventData)
-    {
-        HandleToolTip(false);
     }
 
     public bool InsertIntoSlots(List<InventorySlot> slots)

@@ -30,6 +30,8 @@ namespace Architome.Settings
 
         public KeyCode currentBinding;
 
+        public Action<KeyBindMap> OnSetBinding;
+
         public void SetMap(string name, string keyCode, int index, KeyBindMapping mapper)
         {
             info.keyNameDisplay.text = $"{ArchString.CamelToTitle(name)}";
@@ -51,6 +53,7 @@ namespace Architome.Settings
         {
             keyCodeString = keyString;
             info.keyButtonDisplay.text = keyString;
+            DetermineKeyBind();
         }
 
         public void SetConflict(bool conflicted)
@@ -85,6 +88,7 @@ namespace Architome.Settings
             keyCodeString = currentBinding.ToString();
 
             mapper.UpdateMap(this);
+            OnSetBinding?.Invoke(this);
         }
 
 

@@ -90,7 +90,7 @@ namespace Architome
                 }
                 else
                 {
-                    result += $"{group.minAmount} - {group.maxAmount}";
+                    result += $"{group.minAmount} - {group.maxAmount} ";
                 }
 
                 result += $"{ArchString.StringList(entityNames)} for {liveTime} seconds.";
