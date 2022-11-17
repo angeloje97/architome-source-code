@@ -64,6 +64,7 @@ public class AbilityInfo : MonoBehaviour
 
 
     public AugmentProp.Restrictions restrictions;
+    public AbilityRestrictionHandler restrictionHandler;
     public AugmentProp.DestroyConditions destroyConditions;
     public AugmentProp.RecastProperties recastProperties;
     public AugmentProp.Threat threat;
@@ -98,177 +99,8 @@ public class AbilityInfo : MonoBehaviour
     public AbilityVisualEffects vfx;
 
 
-    [Serializable]
-    public struct Resources
-    {
-        public float requiredAmount;
-        public float requiredPercent;
-        public float producedAmount;
-        public float producedPercent;
-
-
-        public float ManaRequired(float maxMana)
-        {
-            return requiredAmount + (maxMana * requiredPercent);
-        }
-
-        public float ManaProduced(float maxMana)
-        {
-            return producedAmount + (producedPercent * maxMana);
-        }
-        public void Initiate(AbilityInfo ability)
-        {
-            ability.OnReadyCheck += OnReadyCheck;
-            ability.OnSuccessfulCast += OnSuccessfulCast;
-        }
-
-        void OnReadyCheck(AbilityInfo ability, List<(string, bool)> readyChecks)
-        {
-            var entity = ability.entityInfo;
-            if (entity == null) return;
-
-
-            readyChecks.Add(("Sufficient Resources", entity.mana >= ManaRequired(entity.maxMana)));
-        }
-
-        void OnSuccessfulCast(AbilityInfo ability)
-        {
-            var entity = ability.entityInfo;
-            if (entity == null) return;
-            entity.Use(ManaRequired(entity.maxMana));
-            entity.GainResource(ManaProduced(entity.maxMana));
-        }
-    }
-
-    public Resources resources;
-
-    [Serializable]
-    public class CoolDownProperties
-    {
-        public float timer;
-        public float timePerCharge = 1;
-        public float progress = 1;
-        public bool isActive;
-        public bool globalCoolDownActive;
-        public bool usesGlobal;
-        public bool maxChargesOnStart = true;
-        public bool interruptConsumesCharge;
-        public int charges;
-        public int maxCharges = 1;
-
-        EntityInfo entity;
-        float currentHaste;
-        public void Initiate(AbilityInfo ability)
-        {
-            if (interruptConsumesCharge)
-            {
-                ability.OnInterrupt += OnInterrupt;
-            }
-
-            entity = ability.entityInfo;
-
-            entity.OnChangeStats += OnChangeStats;
-
-            ability.OnRemoveAbility += delegate (AbilityInfo ability)
-            {
-                entity.OnChangeStats -= OnChangeStats;
-            };
-
-            currentHaste = entity.stats.haste;
-
-            ability.OnReadyCheck += OnReadyCheck;
-            ability.OnSuccessfulCast += OnSuccesfulCast;
-
-            if (maxChargesOnStart)
-            {
-                charges = maxCharges;
-            }
-
-            HandleCooldownTimer();
-        }
-
-        void OnChangeStats(EntityInfo entity)
-        {
-            var difference = entity.stats.haste - currentHaste;
-            currentHaste = entity.stats.haste;
-            if (!isActive) return;
-
-            timer -= (timePerCharge * difference);
-
-            if(timer < 0)
-            {
-                timer = 0;
-            }
-
-
-
-        }
-
-        void OnInterrupt(AbilityInfo ability)
-        {
-            if (charges > 0)
-            {
-                charges -= 1;
-            }
-
-            HandleCooldownTimer();
-        }
-        void OnReadyCheck(AbilityInfo ability, List<(string, bool)> andChecks)
-        {
-            andChecks.Add(("Sufficient charges", charges > 0));
-        }
-
-        void OnSuccesfulCast(AbilityInfo ability)
-        {
-            charges--;
-
-            HandleCooldownTimer();
-        }
-
-        float Haste()
-        {
-            return currentHaste;
-
-        }
-
-        async void HandleCooldownTimer()
-        {
-            if (isActive) return;
-            if (charges >= maxCharges) return;
-
-            isActive = true;
-
-            timer = timePerCharge - timePerCharge * Haste();
-
-            while (charges < maxCharges)
-            {
-                await Task.Yield();
-                timer -= Time.deltaTime;
-
-                if (!globalCoolDownActive)
-                {
-                    progress = 1 - (timer / timePerCharge);
-                }
-
-
-                if (timer < 0)
-                {
-                    timer = timePerCharge;
-                    charges++;
-                }
-            }
-
-            progress = 1;
-
-            isActive = false;
-        }
-
-        public void SetCharges(int newCharges)
-        {
-            this.charges = newCharges;
-        }
-    }
-    public CoolDownProperties coolDown;
+    public AbilityResources resources;
+    public AbilityCoolDown coolDown;
 
 
     [Header("Scanner Properties")]
@@ -300,30 +132,11 @@ public class AbilityInfo : MonoBehaviour
     [SerializeField] bool validate;
     public void OnValidate()
     {
-
         //restrictions.UpdateSelf(this);
-        //UnityEditor.EditorUtility.SetDirty(this);   
-        //var restrictionFields = restrictions.GetType().GetFields();
-        
-        //foreach (var field in this.GetType().GetFields())
-        //{
-        //    foreach (var restrictionField in restrictionFields)
-        //    {
-        //        if (field.Name != restrictionField.Name) continue;
-
-        //        var resValue = restrictionField.GetValue(restrictions);
-        //        var abilityValue = field.GetValue(this);
-
-        //        if (resValue.GetType() != typeof(bool)) continue;
-        //        if (abilityValue.GetType() != typeof(bool)) continue;
-
-        //        restrictionField.SetValue(restrictions, abilityValue);
-        //    }
-        //}
+        //UnityEditor.EditorUtility.SetDirty(this);
     }
     public bool playerAiming;
-    public bool canCastSelf;
-    public bool onlyCastSelf;
+    public bool onlyCastSelf { get; set; }
     public bool onlyCastOutOfCombat;
     public bool isHealing;
     public bool isAssisting;
@@ -365,9 +178,9 @@ public class AbilityInfo : MonoBehaviour
     public Action<AbilityInfo> OnUpdateRestrictions;
     public Action<AbilityInfo> WhileCasting;
     public Action<AbilityInfo, List<(string, bool)>> OnReadyCheck { get; set; }
-    public Action<AbilityInfo, List<bool>> OnBusyCheck;
-    public Action<AbilityInfo, EntityInfo, List<bool>, List<bool>> OnCorrectTargetCheck;
-    public Action<AbilityInfo> OnInterrupt;
+    public Action<AbilityInfo, List<bool>> OnBusyCheck { get; set; }
+    public Action<AbilityInfo, EntityInfo, List<bool>, List<bool>> OnCorrectTargetCheck { get; set; }
+    public Action<AbilityInfo> OnInterrupt { get; set; }
     public List<AugmentType> augmentAbilities;
 
     public Action<AbilityInfo, bool> OnActiveChange;
@@ -376,7 +189,7 @@ public class AbilityInfo : MonoBehaviour
     public Action<AbilityInfo> OnRemoveAbility;
     public Action<AbilityInfo, List<bool>> OnAlternativeCastCheck { get; set; }
     public Action<AbilityInfo, List<Task<bool>>> OnAugmentAbilityStart;
-
+    public Action<AbilityInfo, EntityInfo> OnHandlingTargetLocked { get; set; }
 
     //Augments
     public AugmentChannel currentChannel { get; set; }
@@ -390,7 +203,6 @@ public class AbilityInfo : MonoBehaviour
         {
             abilityManager = GetComponentInParent<AbilityManager>();
             abilityManager.OnTryCast += OnTryCast;
-            abilityManager.OnGlobalCoolDown += OnGlobalCoolDown;
             
         }
 
@@ -437,6 +249,7 @@ public class AbilityInfo : MonoBehaviour
         {
             coolDown.Initiate(this);
             resources.Initiate(this);
+            restrictionHandler.Initiate(this);
         }
     }
 
@@ -774,20 +587,9 @@ public class AbilityInfo : MonoBehaviour
     {
         var properties = "";
 
-        if (destroysSummons)
-        {
-            properties += $"Can destroy any unit that is summoned by this target with this ability\n";
-        }
+        
 
-        if (onlyCastOutOfCombat)
-        {
-            properties += "Can only cast out of combat. \n";
-        }
-
-        if (onlyCastSelf)
-        {
-            properties += $"Can only target self.\n";
-        }
+        properties += restrictionHandler.Description();
 
         UpdateFromCatalyst();
 
@@ -979,31 +781,31 @@ public class AbilityInfo : MonoBehaviour
         return newToolTip;
 
     }
-    async void OnGlobalCoolDown(AbilityInfo ability)
-    {
-        if (!coolDown.usesGlobal) return;
-        if (coolDown.globalCoolDownActive) return;
-        if (coolDown.charges == 0) return;
+    //async void OnGlobalCoolDown(AbilityInfo ability)
+    //{
+    //    if (!coolDown.usesGlobal) return;
+    //    if (coolDown.globalCoolDownActive) return;
+    //    if (coolDown.charges == 0) return;
 
 
-        coolDown.globalCoolDownActive = true;
+    //    coolDown.globalCoolDownActive = true;
 
-        float timer = 1 - Haste() * 1;
-
-
-        while (timer > 0)
-        {
-            await Task.Yield();
-            timer -= Time.deltaTime;
-            coolDown.progress = 1 - timer; 
-        }
+    //    float timer = 1 - Haste() * 1;
 
 
-        coolDown.progress = 1;
+    //    while (timer > 0)
+    //    {
+    //        await Task.Yield();
+    //        timer -= Time.deltaTime;
+    //        coolDown.progress = 1 - timer; 
+    //    }
 
-        coolDown.globalCoolDownActive = false;
+
+    //    coolDown.progress = 1;
+
+    //    coolDown.globalCoolDownActive = false;
         
-    }
+    //}
     async public void Cast()
     {
         if (isAttack)
@@ -1089,19 +891,9 @@ public class AbilityInfo : MonoBehaviour
             CantCastReason("Not Ready");
             return false;
         }
-        if (IsBusy())
-        {
-            CantCastReason("Is Busy");
-            return false;
-        }
         if (!AbilityManagerCanCast())
         {
             CantCastReason("Ability Manager Can't Cast");
-            return false;
-        }
-        if (!HasManaRequired())
-        {
-            CantCastReason("Not Enough Mana");
             return false;
         }
         if (!HandleRequiresTargetLocked())
@@ -1208,10 +1000,7 @@ public class AbilityInfo : MonoBehaviour
 
         if (abilityType != AbilityType.LockOn) return true;
 
-        if (onlyCastSelf || abilityType == AbilityType.Use)
-        {
-            target = entityInfo;
-        }
+        OnHandlingTargetLocked?.Invoke(this, target);
 
         if (!target)
         {
@@ -1320,18 +1109,6 @@ public class AbilityInfo : MonoBehaviour
             return true;
         }
 
-
-        return false;
-    }
-    public bool HasManaRequired()
-    {
-        if (entityInfo)
-        {
-            if (entityInfo.mana >= resources.requiredAmount + entityInfo.maxMana * resources.requiredPercent)
-            {
-                return true;
-            }
-        }
 
         return false;
     }
@@ -1505,14 +1282,6 @@ public class AbilityInfo : MonoBehaviour
         if(target == null) { return true; }
 
 
-        if(!canCastSelf)
-        {
-            if (info == entityInfo)
-            {
-                return false;    
-            }
-        }
-
         var orChecks = new List<bool>();
         var andChecks = new List<bool>();
 
@@ -1521,12 +1290,7 @@ public class AbilityInfo : MonoBehaviour
         foreach(var check in orChecks) { if (check) return true; }
         foreach(var check in andChecks) { if (!check) return false; }
 
-        if(!info.isAlive && !targetsDead)
-        {
-            abilityManager.OnDeadTarget?.Invoke(this);
-            return false; 
-        }
-        if(info.isAlive && targetsDead) { return false; }
+        
 
         if((isHealing || isAssisting) && entityInfo.CanHelp(target))
         {
@@ -1702,45 +1466,15 @@ public class AbilityInfo : MonoBehaviour
             return false;
         }
 
-
-
-        //if (isCasting)
-        //{
-        //    NotReadyReason("Already casting");
-        //    return false;
-        //}
-        //if (channel.active)
-        //{
-        //    NotReadyReason("Already channeling");
-        //    return false;
-        //}
-
         if (IsBusy())
         {
             NotReadyReason("Already casting or already channeling");
-            return false;
-        }
-        if (coolDown.globalCoolDownActive)
-        {
-            NotReadyReason("Global Cooldown is still active");
             return false;
         }
         if (!HasCorrectWeapon())
         {
             return false;
         }
-
-        if(entityInfo.mana < (resources.requiredAmount + resources.requiredPercent*entityInfo.maxMana))
-        {
-            NotReadyReason("Not enough resources");
-            return false;
-        }
-
-        //if (coolDown.charges <= 0)
-        //{
-        //    NotReadyReason("still on cooldown");
-        //    return false;
-        //}
 
         var readyList = new List<(string, bool)>();
 
@@ -1841,7 +1575,6 @@ public class AbilityInfo : MonoBehaviour
         {
             OnSuccessfulCast?.Invoke(this);
 
-            ActivateGlobalCoolDown();
             await AugmentAbilities();
             SetRecast();
         }
@@ -2037,13 +1770,6 @@ public class AbilityInfo : MonoBehaviour
             return false;
         }
 
-        //if (channel.active && channel.cancel)
-        //{
-        //    LogCancel("Canceled Channel");
-        //    channel.cancel = false;
-        //    return false;
-        //}
-
         if (abilityManager.currentlyCasting != this && isAttack)
         {
             LogCancel("Not equal to ability manager currently casting");
@@ -2076,12 +1802,12 @@ public class AbilityInfo : MonoBehaviour
     {
         Debugger.Combat(9536, $"{entityInfo} stopped casting {this} because {reason}");
     }
-    public void ActivateGlobalCoolDown()
-    {
-        if (!coolDown.usesGlobal) return;
+    //public void ActivateGlobalCoolDown()
+    //{
+    //    if (!coolDown.usesGlobal) return;
 
-        abilityManager.OnGlobalCoolDown?.Invoke(this);
-    }
+    //    abilityManager.OnGlobalCoolDown?.Invoke(this);
+    //}
     public void ClearTargets()
     {
         if (wantsToCast) return;

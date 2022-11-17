@@ -188,7 +188,11 @@ namespace Architome
         public Action<CatalystInfo, CatalystInfo> OnCatalingRelease { get; set; }
         public Action<CatalystDeathCondition> OnCatalystDestroy { get; set; }
 
-        public Action<CatalystHit, EntityInfo> OnCanHitCheck;
+        public Action<CatalystHit, EntityInfo, List<bool>> OnCanHitCheck { get; set; }
+        public Action<CatalystHit, EntityInfo, List<bool>> OnCanHarmCheck { get; set; }
+        public Action<CatalystHit, EntityInfo, List<bool>> OnCanHealCheck { get; set; }
+        public Action<CatalystHit, EntityInfo, List<bool>> OnCanAssistCheck{ get; set; }
+        
 
         private GameObject targetCheck;
 

@@ -4,42 +4,55 @@ using UnityEngine;
 using Architome.Enums;
 using Architome;
 using System.Threading;
+using UnityEditor.PackageManager;
+
 public class CatalystHit : MonoBehaviour
 {
     // Start is called before the first frame update
 
-    public AbilityInfo abilityInfo;
+    public AbilityInfo abilityInfo
+    {
+        get
+        {
+            return catalystInfo.abilityInfo;
+        }
+    }
     public CatalystInfo catalystInfo;
 
 
-    public bool isHealing;
-    public bool isHarming;
-    public bool isAssisting;
+    public bool isHealing { get; set; }
+    public bool isHarming { get; set; }
+    public bool isAssisting { get; set; }
 
     public bool canSelfCast;
     public bool appliesBuff = true;
     public bool splashing { get; set; }
+
+    public bool forceHit { get; set; }
+    public bool forceHeal { get; set; }
+    public bool forceAssist { get; set; }
+    public bool forceHarm { get; set; }
 
     public float value { get { return catalystInfo.value; } }
 
     public float tankThreatMultiplier = 4;
     public void GetDependencies()
     {
-        if(GetComponent<CatalystInfo>())
+        catalystInfo = GetComponent<CatalystInfo>();
+
+        if (catalystInfo)
         {
-            catalystInfo = GetComponent<CatalystInfo>();
             catalystInfo.OnCloseToTarget += OnCloseToTarget;
         }
 
-        if (catalystInfo && catalystInfo.abilityInfo)
+        if (abilityInfo)
         {
-            abilityInfo = catalystInfo.abilityInfo;
 
 
             isHealing = abilityInfo.isHealing;
             isHarming = abilityInfo.isHarming;
             isAssisting = abilityInfo.isAssisting;
-            canSelfCast = abilityInfo.canCastSelf;
+            canSelfCast = abilityInfo.restrictionHandler.restrictions.canCastSelf;
             //value = catalystInfo.value;
         }
 
@@ -242,25 +255,26 @@ public class CatalystHit : MonoBehaviour
 
     public void HandleMainTarget(GameObject target)
     {
-        if(catalystInfo.target != target) { return; }
+        if (catalystInfo.target != target) { return; }
         if (abilityInfo.abilityType != AbilityType.LockOn) return;
-        if(abilityInfo.isHarming && abilityInfo.isHealing && abilityInfo.isAssisting) { return; }
+        if (abilityInfo.isHarming && abilityInfo.isHealing && abilityInfo.isAssisting) { return; }
 
-        if(abilityInfo.isHarming && !abilityInfo.isAssisting && !abilityInfo.isHealing)
+        if (abilityInfo.isHarming && !abilityInfo.isAssisting && !abilityInfo.isHealing)
         {
-            if(!catalystInfo.entityInfo.CanAttack(target))
+            if (!catalystInfo.entityInfo.CanAttack(target))
             {
                 catalystInfo.OnWrongTargetHit?.Invoke(catalystInfo, target);
             }
         }
 
-        if((abilityInfo.isAssisting || abilityInfo.isHealing) && !abilityInfo.isHarming)
+        if ((abilityInfo.isAssisting || abilityInfo.isHealing) && !abilityInfo.isHarming)
         {
-            if(!catalystInfo.entityInfo.CanHelp(target))
+            if (!catalystInfo.entityInfo.CanHelp(target))
             {
                 catalystInfo.OnWrongTargetHit?.Invoke(catalystInfo, target);
             }
         }
+        
     }
     public bool CorrectLockOn(Collider targetCol)
     {
@@ -289,72 +303,82 @@ public class CatalystHit : MonoBehaviour
     }
     public bool CanHarm(EntityInfo targetInfo)
     {
-        if (!isHarming){ return false;}
-        if (!catalystInfo.entityInfo.CanAttack(targetInfo.gameObject)) { return false; }
-        if (!EnemiesHitContains(targetInfo))
+
+        var checks = new List<bool>();
+
+        catalystInfo.OnCanHarmCheck?.Invoke(this, targetInfo, checks);
+
+
+        if (!forceHarm)
         {
-            return true;
+            foreach (var check in checks)
+            {
+                if (!check) return false;
+            }
+
         }
 
-        if (EnemiesHitContains(targetInfo) && abilityInfo && abilityInfo.canHitSameTarget)
-        {
-            return true;
-        }
 
-        return false;
+        return true;
     }
     public bool CanHeal(EntityInfo targetInfo)
     {
-        if(!isHealing) { return false; }
-        if (!catalystInfo.entityInfo.CanHelp(targetInfo.gameObject)) { return false; }
-        if (!HealedContains(targetInfo))
+
+        var checks = new List<bool>();
+
+        catalystInfo.OnCanHealCheck?.Invoke(this, targetInfo, checks);
+
+        if (!forceHeal)
         {
-            return true;
+            foreach(var check in checks)
+            {
+                if (!check) return false;
+            }
+
         }
 
-        if(HealedContains(targetInfo) && abilityInfo && abilityInfo.canHitSameTarget)
-        {
-            return true;
-        }
-
-        return false;
+        return true;
     }
     public bool CanAssist(EntityInfo targetInfo)
     {
-        if(!isAssisting) { return false; }
-        if (!catalystInfo.entityInfo.CanHelp(targetInfo.gameObject)) { return false; }
-        if (!AssistContains(targetInfo))
+
+        var checks = new List<bool>();
+
+        catalystInfo.OnCanAssistCheck?.Invoke(this, targetInfo, checks);
+
+        if (!forceAssist)
         {
-            return true;
+            foreach (var check in checks)
+            {
+                if (!check) return false;
+            }
+
         }
 
-        if (AssistContains(targetInfo) && abilityInfo && abilityInfo.canAssistSameTarget)
-        {
-            Debugger.InConsole(9418, $"Can assist same target");
-            return true;
-        }
-
-        return false;
+        return true;
     }
     public bool CanHit(EntityInfo targetInfo)
     {
         if (targetInfo == null) return false;
         //if (catalystInfo.Ticks() == 0) return false; //Let's take this piece of code out of the way and see what happens :)
 
-        if(targetInfo == catalystInfo.entityInfo && !canSelfCast)
+        var checks = new List<bool>();
+
+        catalystInfo.OnCanHitCheck?.Invoke(this, targetInfo, checks);
+
+
+        if (!forceHit)
         {
-            return false;
+            foreach(var check in checks)
+            {
+                if (!check) return false;
+            }
+
         }
 
-        if (!targetInfo.isAlive && abilityInfo && !abilityInfo.targetsDead)
-        {
-            return false;
-        }
-
-        if(CanHeal(targetInfo) || CanHarm(targetInfo) || CanAssist(targetInfo))
-        {
-            return true;
-        }
+        if (CanHeal(targetInfo)) return true;
+        if (CanHarm(targetInfo)) return true;
+        if (CanAssist(targetInfo)) return true;
 
         return false;
     }

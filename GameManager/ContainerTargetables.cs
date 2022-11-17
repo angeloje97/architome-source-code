@@ -38,15 +38,19 @@ namespace Architome
         public Action<GameObject, GameObject> OnNewHoverTarget { get; set; }
         public Action<GameObject> OnSelectTarget;
         public Action OnClearSelected;
+        public Action OnClearFromEscape;
 
         GameObject hoverTargetCheck;
 
         void GetDependencies()
         {
-            ArchInput.active.OnSelectMultiple += OnSelectMultiple;
-            ArchInput.active.OnSelect += OnSelect;
+            
 
             input = ArchInput.active;
+
+            input.OnEscape += OnEscape;
+            input.OnSelectMultiple += OnSelectMultiple;
+            input.OnSelect += OnSelect;
 
             var cursorBehavior = CursorBehavior.active;
 
@@ -66,18 +70,53 @@ namespace Architome
             }
 
             GetDependencies();
+
+            HandlePauseMenu();
         }
         public void Awake()
         {
             active = this;
         }
 
+        void HandlePauseMenu()
+        {
+            var pauseMenu = PauseMenu.active;
+            if (pauseMenu == null) return;
+            pauseMenu.OnTryOpenPause += HandleTryOpen;
+            pauseMenu.OnActiveChange += HandleActiveChange;
+
+
+            void HandleActiveChange(PauseMenu pauseMenu, bool isActive)
+            {
+                if (isActive)
+                {
+                    ClearHovers();
+                    ClearSelected();
+                }
+            }
+            void HandleTryOpen(PauseMenu menu)
+            {
+                if(selectedTargets.Count != 0)
+                {
+                    menu.pauseBlocked = true;
+                    return;
+                }
+
+                if (currentHover)
+                {
+                    ClearHovers();
+                }
+            }
+
+
+        }
+
         void WhileCursorMove(Vector3 mousePosition)
         {
+            HandleEvents();
             if (input.Mode == ArchInputMode.Inactive) return;
             HandleUserMouseOvers();
             HandleNullMouseOver();
-            HandleEvents();
         }
         void FixedUpdate()
         {
@@ -170,6 +209,13 @@ namespace Architome
 
                 return true;
             }
+        }
+
+        void OnEscape()
+        {
+            if (selectedTargets.Count <= 0) return;
+            ClearSelected();
+            OnClearFromEscape?.Invoke();
         }
         void OnSelect()
         {

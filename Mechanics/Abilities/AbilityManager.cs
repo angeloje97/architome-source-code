@@ -62,7 +62,7 @@ namespace Architome
         public Action<AbilityInfo> OnCastRelease { get; set; }
         public Action<AbilityInfo> OnCastEnd;
         public Action<AbilityInfo> OnCastReleasePercent;
-        public Action<AbilityInfo> OnGlobalCoolDown;
+        public Action<AbilityInfo> OnGlobalCoolDown { get; set; }
         //public Action<AbilityInfo> OnCastChannelStart;
         //public Action<AbilityInfo> OnCastChannelInterval;
         //public Action<AbilityInfo> OnCastChannelEnd;
@@ -278,26 +278,6 @@ namespace Architome
             {
                 currentWeapon = null;
             }
-
-            //if (Item.IsWeapon(after) && slot.equipmentSlotType == EquipmentSlotType.MainHand)
-            //{
-            //    HandleUseWeaponAbility(after);  
-            //    currentWeapon = (Weapon)after;
-            //}
-
-            //if (attackAbility == null) return;
-            //if (!attackAbility.usesWeaponCatalyst) return;
-
-            //attackAbility.catalyst = null;
-
-            //if (after == null) return;
-            //if (!Item.IsWeapon(after)) return;
-            //if (slot.equipmentSlotType != EquipmentSlotType.MainHand) return;
-
-            //var weapon = (Weapon)slot.equipment;
-
-            //attackAbility.catalyst = weapon.weaponCatalyst;
-
 
         }
 

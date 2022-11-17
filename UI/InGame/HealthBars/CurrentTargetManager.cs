@@ -21,6 +21,7 @@ public class CurrentTargetManager : MonoBehaviour
 
         targetManager.OnSelectTarget += OnSelectTarget;
         targetManager.OnClearSelected += OnClearSelected;
+        targetManager.OnClearFromEscape += OnClearFromEscape;
 
     }
     void Start()
@@ -41,6 +42,11 @@ public class CurrentTargetManager : MonoBehaviour
         {
             targetPortrait.OnNewHoverTarget(null, target);
         }
+    }
+
+    public void OnClearFromEscape()
+    {
+        SetCanvasGroup(targetPortrait.GetComponent<CanvasGroup>(), false);
     }
 
     async public void OnClearSelected()

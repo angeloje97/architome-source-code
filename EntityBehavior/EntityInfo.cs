@@ -914,7 +914,7 @@ namespace Architome
         }
         public void SetPortrait(Sprite sprite)
         {
-
+            entityPortrait = sprite;
         }
         public Sprite PortraitIcon()
         {
@@ -1148,7 +1148,6 @@ namespace Architome
 
             return true;
         }
-
         public bool CanBeAttacked()
         {
             var checks = new List<bool>();
@@ -1164,7 +1163,6 @@ namespace Architome
             }
             return true;
         }
-
         public bool IsPlayer()
         {
 
@@ -1179,7 +1177,6 @@ namespace Architome
 
             return false;
         }
-
         public bool CanBeHelped()
         {
             var checks = new List<bool>();

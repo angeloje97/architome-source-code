@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
 using System;
+using static Architome.EntityInfo;
 
 namespace Architome
 {
@@ -83,6 +84,7 @@ namespace Architome
             public bool isHarming;
             public bool destroysSummons;
             public bool targetsDead;
+            public bool onlyTargetsDead;
             public bool requiresLockOnTarget;
             public bool requiresLineOfSight;
             public bool canHitSameTarget;
@@ -179,6 +181,29 @@ namespace Architome
                 }
 
                 return restrictions;
+            }
+
+            public string Description()
+            {
+
+                var nextLineList = new List<string>();
+
+                if (destroysSummons)
+                {
+                    nextLineList.Add($"Destroys any unit that is summoned by this target with this ability.");
+                }
+
+                if (onlyCastOutOfCombat)
+                {
+                    nextLineList.Add("Only cast out of combat.");
+                }
+
+                if (onlyCastSelf)
+                {
+                    nextLineList.Add($"Only target self.");
+                }
+
+                return ArchString.NextLineList(nextLineList);
             }
         }
         

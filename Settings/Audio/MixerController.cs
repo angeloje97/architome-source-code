@@ -8,7 +8,7 @@ using System.Linq;
 using UnityEditor.Build;
 using System.Threading.Tasks;
 
-namespace Architome
+namespace Architome.Settings
 {
     public class MixerController : ArchSettings
     {

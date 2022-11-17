@@ -4,7 +4,7 @@ using UnityEngine;
 using System.Threading.Tasks;
 using System;
 
-namespace Architome
+namespace Architome.Settings
 {
     public class ArchSettings : MonoBehaviour
     {
