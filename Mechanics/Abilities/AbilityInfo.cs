@@ -190,6 +190,7 @@ public class AbilityInfo : MonoBehaviour
     public Action<AbilityInfo, List<bool>> OnAlternativeCastCheck { get; set; }
     public Action<AbilityInfo, List<Task<bool>>> OnAugmentAbilityStart;
     public Action<AbilityInfo, EntityInfo> OnHandlingTargetLocked { get; set; }
+    public Action<AbilityInfo, List<bool>> OnCanShowCheck { get; set; }
 
     //Augments
     public AugmentChannel currentChannel { get; set; }
@@ -388,8 +389,6 @@ public class AbilityInfo : MonoBehaviour
         //    }
         //}
     }
-
-
     // Augments
     public async void AddAugment(AugmentItem augmentItem)
     {
@@ -1739,6 +1738,19 @@ public class AbilityInfo : MonoBehaviour
         }
     }
 
+    public bool CanShow()
+    {
+        var checks = new List<bool>();
+
+        OnCanShowCheck?.Invoke(this, checks);
+
+        foreach(var check in checks)
+        {
+            if (!check) return false;
+        }
+
+        return true;
+    }
     public async Task<AbilityInfo> EndActivation()
     {
         while (activated)

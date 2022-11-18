@@ -65,7 +65,7 @@ public class BuffInfo : MonoBehaviour
     [Header("Host")]
     public GameObject hostObject;
     public EntityInfo hostInfo;
-
+    
     [Header("Target")]
     public GameObject targetObject;
     public EntityInfo targetInfo;

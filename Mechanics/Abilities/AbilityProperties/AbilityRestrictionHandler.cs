@@ -20,11 +20,22 @@ namespace Architome
             HandleSelfCast();
             HandleDeadTarget();
             HandleCatalystHit();
+            HandleUIVisibility();
         }
 
         public string Description()
         {
             return restrictions.Description();
+        }
+
+        void HandleUIVisibility()
+        {
+            ability.OnCanShowCheck += HandleCanShow;
+
+            void HandleCanShow(AbilityInfo ability, List<bool> checks)
+            {
+                if (restrictions.hideUI) checks.Add(false);
+            }
         }
 
         void HandleCatalystHit()
@@ -56,20 +67,14 @@ namespace Architome
 
             void HandleAssist(CatalystHit catalyst, EntityInfo target, List<bool> checks)
             {
-                if (!restrictions.isAssisting)
-                {
-                    checks.Add(false); return;
-                }
+                if (!restrictions.isAssisting) return;
+                if (!entity.CanHelp(target)) return;
+                if (catalyst.AssistContains(target) && !restrictions.canHitSameTarget) return;
 
-                if (!entity.CanHelp(target))
-                {
-                    checks.Add(false); return;
-                }
 
-                if (catalyst.AssistContains(target) && !restrictions.canAssistSameTarget)
-                {
-                    checks.Add(false); return;
-                }
+                checks.Add(true);
+
+
             }
 
             void HandleHarm(CatalystHit catalyst, EntityInfo target, List<bool> checks)
@@ -92,20 +97,11 @@ namespace Architome
 
             void HandleHeal(CatalystHit catalyst, EntityInfo target, List<bool> checks)
             {
-                if (!restrictions.isHealing)
-                {
-                    checks.Add(false); return;
-                }
+                if (!restrictions.isHealing) return;
+                if (!entity.CanHelp(target)) return;
+                if (catalyst.HealedContains(target) && !restrictions.canAssistSameTarget) return;
 
-                if (!entity.CanHelp(target))
-                {
-                    checks.Add(false); return;
-                }
-
-                if (catalyst.HealedContains(target) && !restrictions.canAssistSameTarget)
-                {
-                    checks.Add(false); return;
-                }
+                checks.Add(true);
 
             }
         }

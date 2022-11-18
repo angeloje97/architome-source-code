@@ -144,6 +144,7 @@ public class EntitySpellBook : MonoBehaviour
         {
             abilities.OnNewAbility += delegate (AbilityInfo ability)
             {
+                
                 var slot = Slot(ability.abilityType2);
                 if (slot == null) return;
                 var newUI = Instantiate(abilityTemplate);

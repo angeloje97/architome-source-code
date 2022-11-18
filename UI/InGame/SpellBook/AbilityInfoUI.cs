@@ -70,7 +70,7 @@ namespace Architome
             if (currentActionBarSlot &&
                 currentActionBarHover == null)
             {
-                Destroy(gameObject);
+                DestroySelf();
             }
 
             transform.position = currentSlot.transform.position;
@@ -83,6 +83,12 @@ namespace Architome
         public void SetAbility(AbilityInfo ability)
         {
             abilityInfo = ability;
+
+            if (!ability.CanShow())
+            {
+                DestroySelf();
+                return;
+            }
 
 
             if (abilityInfo.catalystInfo.catalystIcon &&
@@ -109,6 +115,11 @@ namespace Architome
 
             slot.actionBarBehavior.SetActionBar(abilityInfo);
 
+        }
+
+        void DestroySelf()
+        {
+            Destroy(gameObject);
         }
 
         public void OnPointerEnter(PointerEventData eventData)

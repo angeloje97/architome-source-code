@@ -98,6 +98,8 @@ namespace Architome
             public bool usesWeaponAttackDamage;
             public bool active;
 
+            public bool hideUI;
+
             public static Restrictions operator +(Restrictions restriction1, Restrictions restrictions2)
             {
                 Restrictions newRestriction = new();

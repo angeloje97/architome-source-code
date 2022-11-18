@@ -174,7 +174,7 @@ namespace Architome
         public Action<GameObject> OnWrongTarget;
         public Action<GameObject> OnDeadTarget { get; set; }
         public Action<GameObject, GameObject> OnNewTarget;
-        public Action<CatalystInfo> OnReturn;
+        public Action<CatalystInfo> OnReturn { get; set; }
         public Action<CatalystInfo> OnCantFindEntity;
         public Action<CatalystInfo, int> OnTickChange;
         public Action<CatalystInfo, GameObject> OnCloseToTarget;
@@ -282,11 +282,11 @@ namespace Architome
                 }
 
 
-                if (abilityInfo.returns)
-                {
-                    gameObject.AddComponent<CatalystReturn>();
+                //if (abilityInfo.returns)
+                //{
+                //    gameObject.AddComponent<CatalystReturn>();
 
-                }
+                //}
 
 
                 //if (abilityInfo.summoning.enabled) gameObject.AddComponent<CatalystSummon>();

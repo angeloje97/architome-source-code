@@ -127,6 +127,7 @@ public class CatalystHit : MonoBehaviour
 
     public void HandleTargetHit(EntityInfo targetHit, bool forceHit = false)
     {
+        var hit = false;
         if (!forceHit)
         {
             if (!IsDeadTargetable(targetHit)) { return; }
@@ -134,38 +135,30 @@ public class CatalystHit : MonoBehaviour
             if (catalystInfo.isDestroyed) return;
         }
 
+        if (!CanHit(targetHit, true)) return;
+
         HandleMainTarget(targetHit.gameObject);
         HandleEvent();
         HandleHeal();
         HandleDamage();
         HandleAssist();
 
-
+        if (hit)
+        {
+            catalystInfo.ReduceTicks();
+        }
         
 
         void HandleHeal()
         {
             if (!CanHeal(targetHit)) { return; }
-            if (targetHit.gameObject == catalystInfo.entityObject)
-            {
-                if (!canSelfCast)
-                {
-                    return;
-                }
-            }
 
-            if (catalystInfo.entityInfo.CanHelp(targetHit.gameObject))
-            {
-                var combatData = new CombatEventData(catalystInfo, catalystInfo.entityInfo, value);
-                targetHit.Heal(combatData);
-                catalystInfo.OnHeal?.Invoke(catalystInfo ,targetHit);
-                AddAlliesHealed(targetHit);
-                if(isHealing && !isAssisting)
-                {
-                    catalystInfo.ReduceTicks();
-                }
-                
-            }
+            var combatData = new CombatEventData(catalystInfo, catalystInfo.entityInfo, value);
+            targetHit.Heal(combatData);
+            catalystInfo.OnHeal?.Invoke(catalystInfo ,targetHit);
+            AddAlliesHealed(targetHit);
+
+            hit = true;
 
         }
 
@@ -175,15 +168,12 @@ public class CatalystHit : MonoBehaviour
         {
             if(!CanHarm(targetHit)) { return; }
 
-            if (catalystInfo.entityInfo.CanAttack(targetHit))
-            {
-                var combatData = new CombatEventData(catalystInfo, catalystInfo.entityInfo, value);
-                targetHit.Damage(combatData);
-                catalystInfo.OnDamage?.Invoke(catalystInfo, targetHit);
-                ApplyBuff(targetHit, BuffTargetType.Harm);
-                AddEnemyHit(targetHit);
-                catalystInfo.ReduceTicks();
-            }
+            var combatData = new CombatEventData(catalystInfo, catalystInfo.entityInfo, value);
+            targetHit.Damage(combatData);
+            catalystInfo.OnDamage?.Invoke(catalystInfo, targetHit);
+            ApplyBuff(targetHit, BuffTargetType.Harm);
+            AddEnemyHit(targetHit);
+            hit = true;
         }
         void HandleAssist()
         {
@@ -192,27 +182,14 @@ public class CatalystHit : MonoBehaviour
                 return;
             }
 
-            if (targetHit.gameObject == catalystInfo.entityObject)
-            {
-                if (!canSelfCast)
-                {
-                    return;
-                }
-            }
-
-            if (catalystInfo.entityInfo.CanHelp(targetHit.gameObject))
-            { 
                 
                 //Change these instructions to that of assisting instead of healing
-                ApplyBuff(targetHit, BuffTargetType.Assist);
-                catalystInfo.OnAssist?.Invoke(catalystInfo, targetHit);
-                AddAlliesAssisted(targetHit);
-                AddAlliesHealed(targetHit);
+            ApplyBuff(targetHit, BuffTargetType.Assist);
+            catalystInfo.OnAssist?.Invoke(catalystInfo, targetHit);
+            AddAlliesAssisted(targetHit);
 
-                catalystInfo.ReduceTicks();
-                
 
-            }
+            hit = true;
         }
         void HandleEvent()
         {
@@ -328,16 +305,15 @@ public class CatalystHit : MonoBehaviour
 
         catalystInfo.OnCanHealCheck?.Invoke(this, targetInfo, checks);
 
-        if (!forceHeal)
-        {
-            foreach(var check in checks)
-            {
-                if (!check) return false;
-            }
+        if (forceHeal) return true;
 
+        
+        foreach(var check in checks)
+        {
+            if (check) return true;
         }
 
-        return true;
+        return false;
     }
     public bool CanAssist(EntityInfo targetInfo)
     {
@@ -346,21 +322,20 @@ public class CatalystHit : MonoBehaviour
 
         catalystInfo.OnCanAssistCheck?.Invoke(this, targetInfo, checks);
 
-        if (!forceAssist)
+        if (forceAssist) return true;
+        
+        foreach (var check in checks)
         {
-            foreach (var check in checks)
-            {
-                if (!check) return false;
-            }
-
+            if (check) return true;
         }
 
-        return true;
+        return false;
     }
-    public bool CanHit(EntityInfo targetInfo)
+
+    
+    public bool CanHit(EntityInfo targetInfo, bool hitOnly = false)
     {
         if (targetInfo == null) return false;
-        //if (catalystInfo.Ticks() == 0) return false; //Let's take this piece of code out of the way and see what happens :)
 
         var checks = new List<bool>();
 
@@ -375,6 +350,8 @@ public class CatalystHit : MonoBehaviour
             }
 
         }
+
+        if (hitOnly) return true;
 
         if (CanHeal(targetInfo)) return true;
         if (CanHarm(targetInfo)) return true;

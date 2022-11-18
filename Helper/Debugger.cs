@@ -5,7 +5,7 @@ using UnityEngine;
 public class Debugger : MonoBehaviour
 {
     // Start is called before the first frame update
-    static bool debugging = false;
+    static bool debugging = true;
     static bool debugCombat = false;
     static bool debugEnvironment = false;
     static bool debugUI = true;

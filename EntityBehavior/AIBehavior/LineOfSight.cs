@@ -341,16 +341,6 @@ namespace Architome
                 entityList.Add(info);
             }
 
-
-            //foreach(GameObject entity in entitiesDetected)
-            //{
-            //    if(entity.GetComponent<EntityInfo>() &&
-            //        Vector3.Distance(entity.transform.position, entityObject.transform.position) <= val)
-            //    {
-            //        entityList.Add(entity.GetComponent<EntityInfo>());
-            //    }
-            //}
-
             return entityList;
         }
 

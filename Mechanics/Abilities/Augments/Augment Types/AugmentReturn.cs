@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Threading.Tasks;
 
 namespace Architome
 {
@@ -72,7 +73,7 @@ namespace Architome
 
         void OnCatalystTickChange(CatalystInfo catalyst, int ticks)
         {
-            if (ticks != 0) return;
+            if (ticks > 0) return;
             if (catalystsReturning[catalyst] == true) return;
             ReturnCatalyst(catalyst);
         }
@@ -82,42 +83,74 @@ namespace Architome
             Debugger.Combat(5914, $"{catalyst} is returning");
             if (catalystsReturning[catalyst]) return;
             catalystsReturning[catalyst] = true;
-            catalyst.target = catalyst.entityObject;
-            catalyst.transform.LookAt(catalyst.entityObject.transform);
+            catalyst.metrics.target = augment.entity.gameObject;
+
+            HandleTargetting();
+
+            //catalyst.OnCanAssistCheck += (CatalystHit hit, EntityInfo target, List<bool> checks) => {
+            //    if(target == augment.entity && appliesBuffs)
+            //    {
+            //        hit.forceAssist = true;
+            //    }
+            //};
+
+            //catalyst.OnCanHealCheck += (CatalystHit hit, EntityInfo target, List<bool> checks) => {
+            //    if (target == augment.entity && appliesHealing)
+            //    {
+            //        hit.forceHeal = true;
+            //    }
+            //};
+
+            catalyst.transform.LookAt(augment.entity.transform);
+
+            async void HandleTargetting()
+            {
+                while (catalystsReturning[catalyst])
+                {
+                    await Task.Yield();
+                    if(catalyst.target != augment.entity.target)
+                    {
+                        catalyst.target = augment.entity.gameObject;
+                    }
+                }
+            }
         }
 
         void OnCatalystTrigger(CatalystInfo catalyst, Collider other, bool enter)
         {
-            if(other.gameObject != catalyst.entityObject) return;
             if (!catalystsReturning[catalyst]) return;
 
-            ApplyReturnAction(catalyst);
+            ApplyReturnAction(catalyst, other.gameObject);
         }
 
         void OnCatalystCloseToTarget(CatalystInfo catalyst, GameObject target)
         {
             if (!catalystsReturning[catalyst]) return;
-            if (target != catalyst.target) return;
 
-            ApplyReturnAction(catalyst);
+            ApplyReturnAction(catalyst, target);
         }
 
 
 
-        void ApplyReturnAction(CatalystInfo catalyst)
+        void ApplyReturnAction(CatalystInfo catalyst, GameObject target)
         {
             var hit = catalyst.GetComponent<CatalystHit>();
+            if (target != augment.entity.gameObject) return;
 
             if (appliesBuffs)
             {
                 hit.isAssisting = true;
                 hit.canSelfCast = true;
+                hit.forceAssist = true;
+                hit.forceHit = true;
             }
 
             if (appliesHealing)
             {
                 hit.canSelfCast = true;
                 hit.isHealing = true;
+                hit.forceHeal = true;
+                hit.forceHit = true;
             }
 
             if (hit.isHealing || hit.isAssisting)
