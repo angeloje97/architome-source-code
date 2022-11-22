@@ -65,7 +65,7 @@ namespace Architome
         //public Rooms rooms;
         public List<Rooms> levels;
         public bool highlighted;
-        public Action<Dungeon> OnSelectDungeon;
+        public Action<Dungeon> OnSelectDungeon { get; set; }
 
         public bool preset;
         public List<EntityInfo> uniqueEntities

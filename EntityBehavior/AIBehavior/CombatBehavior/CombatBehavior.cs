@@ -76,6 +76,14 @@ namespace Architome
 
         public float tryMoveTimer;
 
+        AbilityManager.Events abilityEvents
+        {
+            get
+            {
+                return entityInfo.abilityEvents;
+            }
+        } 
+
         bool proactiveTank { get; set; }
 
         public void GetDependencies()
@@ -105,10 +113,12 @@ namespace Architome
 
                 abilityManager = entityInfo.AbilityManager();
 
-                if (abilityManager)
-                {
-                    abilityManager.OnCastRelease += OnCastRelease;
-                }
+                abilityEvents.OnCastRelease += OnCastRelease;
+
+                //if (abilityManager)
+                //{
+                //    abilityManager.OnCastRelease += OnCastRelease;
+                //}
 
                 var playerController = entityInfo.PlayerController();
                 if (playerController)
@@ -333,14 +343,15 @@ namespace Architome
                 //Destroy(combatType.gameObject);
             }
         }
-        public void SetFocus(EntityInfo target, string reason = "")
+        public void SetFocus(EntityInfo target, string reason = "", bool forceFocus = false)
         {
 
             var canFocus = CanFocus(target);
 
             Debugger.Combat(5439, $"Can focus: {canFocus}");
+
+            if (!forceFocus && !canFocus) return;
             
-            if (!canFocus) return;
          
 
             if (target == null)
@@ -348,15 +359,40 @@ namespace Architome
                 Debugger.InConsole(8493, $"Focus = null because {reason}");
             }
             focusTarget = target;
+            HandleFocus();
             if (target != null)
             {
                 OnSetFocus?.Invoke(target);
             }
 
+
+            async void HandleFocus()
+            {
+                if (target == null) return;
+                var attackAbility = abilityManager.attackAbility;
+                while(focusTarget == target)
+                {
+                    if(!CanUseAbilityOn(attackAbility, target))
+                    {
+                        SetFocus(null, "Can no longer use auto ability on target");
+                        break;
+                    }
+
+                    if (!this) break;
+                    await Task.Delay(500); 
+                }
+            }
         }
         public EntityInfo GetFocus()
         {
             return focusTarget;
+        }
+
+        public bool CanUseAbilityOn(AbilityInfo ability, EntityInfo target)
+        {
+            if (ability.CanHeal(target)) return true;
+            if (ability.CanHarm(target)) return true;
+            return false;
         }
         public bool CanFocus(EntityInfo target)
         {

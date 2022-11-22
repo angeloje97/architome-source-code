@@ -186,6 +186,8 @@ namespace Architome
             if (manager == null) manager = GameManager.active;
 
             if (manager == null) return;
+
+            Debugger.Environment(1594, $"Adding {entity} to playable character in game manager");
             manager.AddPlayableCharacter(entity);
         }
 

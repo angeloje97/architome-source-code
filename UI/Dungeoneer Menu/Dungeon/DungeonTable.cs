@@ -9,6 +9,7 @@ namespace Architome
 {
     public class DungeonTable : MonoBehaviour
     {
+        public static DungeonTable active;
         [Serializable]
         public class DungeonInfo
         {
@@ -27,6 +28,21 @@ namespace Architome
             }
 
             public List<PresetDungeons> presets;
+
+            public DungeonSet set
+            {
+                get
+                {
+                    if(sets != null && sets.Count > 0)
+                    {
+                        return sets[0];
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+            }
         }
 
         [Serializable]
@@ -70,6 +86,11 @@ namespace Architome
             {
                 sceneManager.BeforeLoadScene += BeforeLoadScene;
             }
+        }
+
+        private void Awake()
+        {
+            active = this;
         }
 
         private void Start()

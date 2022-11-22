@@ -18,7 +18,9 @@ namespace Architome
         public Action<bool> OnActiveChange;
         public Action<ItemInfo> OnItemAction;
         public Action<ItemInfo> OnNullHover;
-        public Action<InventorySlot, ItemInfo, string> OnCantInsertToSlot;
+        public Action<InventorySlot, ItemInfo, string> OnCantInsertToSlot { get; set; }
+        public Action<InventorySlot, ItemInfo, List<bool>> OnCanInsertToSlotCheck { get; set; }
+        public Action<InventorySlot, ItemInfo, List<bool>> OnCanRemoveFromSlotCheck { get; set; }
         public Action UpdateActions;
 
         public bool active;

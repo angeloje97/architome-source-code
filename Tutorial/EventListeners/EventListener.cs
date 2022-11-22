@@ -25,6 +25,7 @@ namespace Architome.Tutorial
 
         public float extraSuccessfulTime = 0f;
 
+
         [Serializable]
         public struct UnityEvents
         {
@@ -39,7 +40,7 @@ namespace Architome.Tutorial
             public List<EntityInfo> preventEntitiesDamage;
             public List<EntityInfo> preventEntitiesTargetedBeforeStart;
             public List<AbilityInfo> preventAbilitiesUntilStart;
-
+            public List<EntityInfo> waitEntityCombat;
             public float entityDeathPreventionDelay;
         }
 
@@ -135,6 +136,7 @@ namespace Architome.Tutorial
                     PreventEntityTargetedBeforeStart(entity);
                 }
             }
+
         }
 
         public void PreventAbilityBeforeStart(AbilityInfo ability)
@@ -227,12 +229,35 @@ namespace Architome.Tutorial
             }
         }
 
+        async Task EntityCombat()
+        {
+            if (settings.waitEntityCombat == null) return;
 
+            while (true)
+            {
+                var isInCombat = false;
 
-        protected void CompleteEventListener()
+                foreach(var entity in settings.waitEntityCombat)
+                {
+                    if (entity.isInCombat)
+                    {
+                        isInCombat = true;
+                    }
+                }
+
+                if (!isInCombat) break;
+                await Task.Delay(500);
+            }
+
+        }
+
+        protected async void CompleteEventListener()
         {
             if (completed) return;
             completed = true;
+
+            await EntityCombat();
+
             OnSuccessfulEvent?.Invoke(this);
             events.OnSuccessfulEvent?.Invoke();
             OnEndEvent?.Invoke(this);

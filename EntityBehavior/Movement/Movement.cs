@@ -416,6 +416,14 @@ namespace Architome
         public EntityInfo entity;
         public AbilityManager abilities;
         public Movement movement;
+
+        public AbilityManager.Events abilityEvents
+        {
+            get
+            {
+                return entity.abilityEvents;
+            }
+        }
         public void Initiate(Movement movement)
         {
             if (movement.entityInfo == null) return;
@@ -429,8 +437,12 @@ namespace Architome
 
             if (abilities == null) return;
 
-            abilities.OnCastStart += OnCastStart;
-            abilities.OnCastEnd += OnCastEnd;
+
+            abilityEvents.OnCastStart += OnCastStart;
+            abilityEvents.OnCastEnd += OnCastEnd;
+
+            //abilities.OnCastStart += OnCastStart;
+            //abilities.OnCastEnd += OnCastEnd;
             abilities.OnChannelStart += OnChannelStart;
             abilities.OnChannelEnd += OnChannelEnd;
             abilities.OnTryAttackTarget += OnTryAttackTarget;

@@ -185,8 +185,7 @@ namespace Architome
         }
         public void SetBoss(EntityInfo entity)
         {
-            ArchAction.Yield(() => SetBossCanvas(true));
-            //SetBossCanvas(true);
+            ArchAction.Delay(() => SetBossCanvas(true), .125f);
 
             var abilities = entity.GetComponentsInChildren<AbilityInfo>();
 
@@ -221,7 +220,6 @@ namespace Architome
                     sprite = catalyst.catalystIcon,
                     data = abilities[i]
                 });
-                //components.bossAbilityIcons[i].SetIconImage(abilities[i].catalystInfo.catalystIcon);
 
             }
         }
@@ -249,14 +247,6 @@ namespace Architome
 
                 abilityToolTip.SetToolTip(ability.ToolTipData(false));
 
-                //abilityToolTip.SetToolTip(new()
-                //{
-                //    icon = ability.catalyst.GetComponent<CatalystInfo>().catalystIcon,
-                //    name = ability.abilityName,
-                //    description = ability.Description(),
-                //    attributes = ability.PropertiesDescription() + ability.BuffList(),
-                //    //requirements = ability.ResourceDescription(),
-                //});
             }
 
             void HandleHoverExit()

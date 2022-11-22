@@ -18,7 +18,13 @@ namespace Architome
         [SerializeField] float runSpeed = 1f;
 
 
-
+        AbilityManager.Events abilityEvents
+        {
+            get
+            {
+                return entityInfo.abilityEvents;
+            }
+        }
         
 
         void Start()
@@ -38,12 +44,15 @@ namespace Architome
                 movement = entityInfo.Movement();
                 abilityManager = entityInfo.AbilityManager();
 
+                abilityEvents.OnCastStart += OnCastStart;
+                abilityEvents.OnCastReleasePercent += OnCastReleasePercent;
+
                 if (abilityManager)
                 {
                     abilityManager.OnAbilityStart += OnAbilityStart;
                     abilityManager.OnAbilityEnd += OnAbilityEnd;
-                    abilityManager.OnCastStart += OnCastStart;
-                    abilityManager.OnCastReleasePercent += OnCastReleasePercent;
+                    //abilityManager.OnCastStart += OnCastStart;
+                    //abilityManager.OnCastReleasePercent += OnCastReleasePercent;
                     abilityManager.OnChannelInterval += OnChannelInterval;
                 }
 

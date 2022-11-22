@@ -47,21 +47,39 @@ namespace Architome
 
         public AbilityInfo attackAbility;
         public AbilityInfo currentlyCasting;
+        public AbilityInfo currentWantsToCast;
         public Weapon currentWeapon;
         public bool wantsToCastAbility;
 
         public EntityInfo target;
         public Vector3 location;
 
+        public class Events
+        {
+            public Action<AbilityInfo> OnCastStart;
+            public Action<AbilityInfo> OnCastEnd;
+            public Action<AbilityInfo> OnCastReleasePercent;
+            public Action<AbilityInfo> OnCastRelease;
+            public Action<AbilityInfo> OnAttack;
+        }
+
+        public Events events
+        {
+            get
+            {
+                return entityInfo.abilityEvents;
+            }
+        }
+
         //Events
         public Action<AbilityInfo> OnAbilityStart;
         public Action<AbilityInfo> WhileAbilityActive;
         public Action<AbilityInfo> OnAbilityEnd;
         public Action<AbilityInfo> OnTryCast;
-        public Action<AbilityInfo> OnCastStart;
-        public Action<AbilityInfo> OnCastRelease { get; set; }
-        public Action<AbilityInfo> OnCastEnd;
-        public Action<AbilityInfo> OnCastReleasePercent;
+        //public Action<AbilityInfo> OnCastStart;
+        //public Action<AbilityInfo> OnCastRelease { get; set; }
+        //public Action<AbilityInfo> OnCastEnd;
+        //public Action<AbilityInfo> OnCastReleasePercent;
         public Action<AbilityInfo> OnGlobalCoolDown { get; set; }
         //public Action<AbilityInfo> OnCastChannelStart;
         //public Action<AbilityInfo> OnCastChannelInterval;
@@ -308,6 +326,21 @@ namespace Architome
         {
             if (currentlyCasting == null) return false;
             if (currentlyCasting.isAttack) return false;
+
+            return true;
+        }
+
+        public bool IsOpen()
+        {
+            if (currentlyCasting)
+            {
+                if (!currentlyCasting.isAttack) return false;
+            }
+
+            if (currentWantsToCast)
+            {
+                if (!currentWantsToCast.isAttack) return false;
+            }
 
             return true;
         }

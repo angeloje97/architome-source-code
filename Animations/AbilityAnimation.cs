@@ -18,6 +18,14 @@ public class AbilityAnimation
 
     public Weapon weapon;
 
+    AbilityManager.Events abilityEvents
+    {
+        get
+        {
+            return entityInfo.abilityEvents;
+        }
+    }
+
     public void ProcessData(EntityInfo entity, Animator animator)
     {
         var abilityManager = entity.AbilityManager();
@@ -25,9 +33,18 @@ public class AbilityAnimation
         this.animator = animator;
         character = entity.CharacterInfo();
         abilityManager = entityInfo.AbilityManager();
-        abilityManager.OnCastStart += OnCastStart;
-        abilityManager.OnCastRelease += OnCastRelease;
-        abilityManager.OnCastReleasePercent += OnCastReleasePercent;
+
+
+
+        if (entity)
+        {
+            abilityEvents.OnCastStart += OnCastStart;
+            abilityEvents.OnCastRelease += OnCastRelease;
+            abilityEvents.OnCastReleasePercent += OnCastReleasePercent;
+        }
+        //abilityManager.OnCastStart += OnCastStart;
+        //abilityManager.OnCastRelease += OnCastRelease;
+        //abilityManager.OnCastReleasePercent += OnCastReleasePercent;
         abilityManager.OnChannelStart += OnChannelStart;
         abilityManager.OnChannelInterval += OnChannelInterval;
         abilityManager.OnChannelEnd += OnCastChannelEnd;

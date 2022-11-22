@@ -39,7 +39,15 @@ namespace Architome
 
         public override bool CanInsert(ItemInfo info)
         {
+            if (!base.CanInsert(info)) return false;
             var item = info.item;
+
+            if (entityInfo.isInCombat)
+            {
+                itemSlotHandler.HandleCantInsert(this, info, "Cannot equip anything during combat");
+                return false;
+            }
+
             if (!Item.Equipable(item))
             {
                 //manager.IncorrectEquipmentType(this, "Not an equipable item.");
@@ -76,6 +84,20 @@ namespace Architome
 
             return true;
         }
+
+        public override bool CanRemoveFromSlot(ItemInfo item)
+        {
+            if (!base.CanRemoveFromSlot(item)) return false;
+
+            if (entityInfo.isInCombat)
+            {
+                itemSlotHandler.HandleCantInsert(this, item, "Cannot remove gear during combat.");
+                return false;
+            }
+
+            return true;
+        }
+
 
         public override void OnPointerEnter(PointerEventData eventData)
         {

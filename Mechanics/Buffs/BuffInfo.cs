@@ -20,6 +20,7 @@ public class BuffProperties
     [Header("Stacks")]
     public bool canStack;
     public bool loseStackAndResetTimer;
+    public bool infiniteTime;
     public int stacksPerApplication;
     public int maxStacks;
     public float valueStackMultiplier;
@@ -172,6 +173,7 @@ public class BuffInfo : MonoBehaviour
     private void Update()
     {
         if (properties.time <= 0) return;
+        if (properties.infiniteTime) return;
         HandleTimer();
     }
 

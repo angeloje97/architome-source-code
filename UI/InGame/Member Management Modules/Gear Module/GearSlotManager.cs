@@ -20,6 +20,7 @@ namespace Architome
         [Header("Gear Slot Manager Properties")]
         public Transform equipmentBin;
         public List<GearSlot> gearSlots;
+        ItemSlotHandler itemSlotHandler;
 
 
 
@@ -50,8 +51,13 @@ namespace Architome
                 guildManager.OnSelectEntity += OnSelectEntity;
             }
 
+            itemSlotHandler = GetComponent<ItemSlotHandler>();
 
-            GetComponent<ItemSlotHandler>().OnChangeItem += OnChangeItem;
+            if (itemSlotHandler)
+            {
+                itemSlotHandler.OnChangeItem += OnChangeItem;
+
+            }
         }
         void Start()
         {
@@ -62,7 +68,6 @@ namespace Architome
         {
             SetEntity(entity);
         }
-
 
         public void SetEntity(EntityInfo entity)
         {
@@ -268,7 +273,7 @@ namespace Architome
                 //itemInfo.item = equipment;
                 //itemInfo.UpdateItemInfo();
                 //itemInfo.isInInventory = true;
-                itemInfo.HandleNewSlot(slot);
+                itemInfo.HandleNewSlot(slot, true);
 
                 return itemInfo.gameObject;
             }

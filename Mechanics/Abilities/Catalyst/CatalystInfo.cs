@@ -192,6 +192,8 @@ namespace Architome
         public Action<CatalystHit, EntityInfo, List<bool>> OnCanHarmCheck { get; set; }
         public Action<CatalystHit, EntityInfo, List<bool>> OnCanHealCheck { get; set; }
         public Action<CatalystHit, EntityInfo, List<bool>> OnCanAssistCheck{ get; set; }
+
+        public Action<CatalystHit, EntityInfo, List<bool>> OnCorrectLockOnCheck { get; set; }
         
 
         private GameObject targetCheck;
@@ -280,18 +282,6 @@ namespace Architome
                     catalystUse.abilityInfo = abilityInfo;
                     catalystUse.catalystInfo = this;
                 }
-
-
-                //if (abilityInfo.returns)
-                //{
-                //    gameObject.AddComponent<CatalystReturn>();
-
-                //}
-
-
-                //if (abilityInfo.summoning.enabled) gameObject.AddComponent<CatalystSummon>();
-
-                //if (abilityInfo.cataling.enable && abilityInfo.cataling.catalyst) gameObject.AddComponent<CatalingHandler>();
 
                 requiresLockOnTarget = abilityInfo.requiresLockOnTarget;
                 ticks = abilityInfo.ticksOfDamage;
@@ -553,6 +543,23 @@ namespace Architome
             }
         }
 
+
+        public CatalystInfo ReleaseCataling(CatalystInfo cataling, Quaternion rotation)
+        {
+            cataling.isCataling = true;
+            cataling.abilityInfo = abilityInfo;
+
+
+
+            var newCataling = Instantiate(cataling.gameObject, transform.position, rotation);
+
+            var newInfo = newCataling.GetComponent<CatalystInfo>();
+
+            OnCatalingRelease?.Invoke(this, newInfo);
+            abilityInfo.OnCatalystRelease?.Invoke(newInfo);
+
+            return newInfo;
+        }
         
     }
 

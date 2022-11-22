@@ -10,6 +10,7 @@ namespace Architome
     public class AugmentCataling : AugmentType
     {
         public GameObject cataling;
+        public CatalystInfo catalingInfo;
         public AbilityType catalingType;
         public CatalystEvent releaseCondition;
 
@@ -17,6 +18,7 @@ namespace Architome
 
         public int releasePerInterval;
         public float interval, radius, rotationPerInterval, startDelay;
+        public bool combatInclusive;
 
         
 
@@ -30,6 +32,8 @@ namespace Architome
         new async void GetDependencies()
         {
             await base.GetDependencies();
+
+            catalingInfo = cataling.GetComponent<CatalystInfo>();
 
             EnableCatalyst();
         }
@@ -45,13 +49,6 @@ namespace Architome
             if (releaseCondition == CatalystEvent.OnCatalingRelease) return;
 
             catalyst.AddEventAction(releaseCondition, () => ActivateCataling(catalyst));
-
-            //if (releaseCondition == CatalystEvent.OnStop) catalyst.OnCatalystStop += (CatalystKinematics kinematics) => { ActivateCataling(catalyst); };
-            //if (releaseCondition == CatalystEvent.OnAssist) catalyst.OnAssist += (CatalystInfo catalyst, EntityInfo target) => { ActivateCataling(catalyst); };
-            //if (releaseCondition == CatalystEvent.OnHarm) catalyst.OnDamage += (CatalystInfo catalyst, EntityInfo target) => { ActivateCataling(catalyst); };
-            //if (releaseCondition == CatalystEvent.OnHeal) catalyst.OnHeal += (CatalystInfo catalyst, EntityInfo target) => { ActivateCataling(catalyst); };
-            //if (releaseCondition == CatalystEvent.OnHit) catalyst.OnHit += (CatalystInfo catalyst, EntityInfo target) => { ActivateCataling(catalyst); };
-            //if (releaseCondition == CatalystEvent.OnDestroy) catalyst.OnCatalystDestroy += (CatalystDeathCondition condition) => { ActivateCataling(catalyst); };
 
 
         }
@@ -84,6 +81,8 @@ namespace Architome
 
             var eventData = new Augment.AugmentEventData(this) { active = true };
             augment.ActivateAugment(eventData);
+            
+
 
 
             do
@@ -144,23 +143,16 @@ namespace Architome
 
                     void ReleaseLockOn(GameObject target)
                     {
-                        var info = this.cataling.GetComponent<CatalystInfo>();
-                        info.abilityInfo = ability;
-                        info.isCataling = true;
-                        info.target = target;
-                        info.requiresLockOnTarget = true;
+                        catalingInfo.target = target;
+                        catalingInfo.requiresLockOnTarget = true;
 
-                        var cataling = Instantiate(this.cataling, catalyst.transform.position, catalyst.transform.localRotation);
-
-                        var newInfo = cataling.GetComponent<CatalystInfo>();
+                        var newInfo = catalyst.ReleaseCataling(catalingInfo, catalyst.transform.rotation);
 
                         OnCatalystRelease?.Invoke(catalyst, newInfo);
-                        catalyst.OnCatalingRelease?.Invoke(catalyst, newInfo);
-
 
                         ArchAction.Yield(() => {
                             newInfo.value = this.value;
-                            cataling.AddComponent<CatalystLockOn>();
+                            newInfo.gameObject.AddComponent<CatalystLockOn>();
                             newInfo.GetComponent<CatalystDeathCondition>().conditions = catalingDestroyConditions;
                         });
                     }
@@ -179,6 +171,8 @@ namespace Architome
 
                     OnCatalystRelease?.Invoke(catalyst, newInfo);
                     catalyst.OnCatalingRelease?.Invoke(catalyst, newInfo);
+                    ability.OnCatalystRelease?.Invoke(catalyst);
+
 
                     ArchAction.Yield(() => {
                         newInfo.value = value;

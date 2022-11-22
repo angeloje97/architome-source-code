@@ -12,6 +12,7 @@ namespace Architome
         public bool requiresLos;
         public bool canBounceOnSelf;
         public bool seekTargets;
+        public bool structureBounce;
         public float radius;
 
 
@@ -45,6 +46,10 @@ namespace Architome
             if (ability.abilityType == AbilityType.LockOn)
             {
                 seekTargets = true;
+            }
+            else
+            {
+                structureBounce = true;
             }
         }
 
@@ -95,6 +100,7 @@ namespace Architome
 
         void OnCatalystStructureHit(CatalystInfo catalyst, Collider collider)
         {
+            if (!structureBounce) return;
             SetCatalyst(catalyst, true);
 
 

@@ -4,6 +4,7 @@ using UnityEngine;
 using Architome.Enums;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace Architome
 {
@@ -76,7 +77,7 @@ namespace Architome
 
         bool UsingAbility()
         {
-            if (!IsOpen()) return false;
+            if (!abilityManager.IsOpen()) return false;
 
             foreach (var special in combat.specialAbilities)
             {
@@ -165,13 +166,28 @@ namespace Architome
             }
         }
 
-        bool IsOpen()
-        {
-            var currentAbility = abilityManager.currentlyCasting;
-            if (currentAbility != null && !currentAbility.isAttack) return false;
+        //bool IsOpen()
+        //{
+        //    var currentAbility = abilityManager.currentlyCasting;
 
-            return true;
-        }
+        //    if (currentAbility)
+        //    {
+        //        if (!currentAbility.isAttack) return false;
+        //    }
+
+        //    var wantsToCastAbility = abilityManager.currentWantsToCast;
+
+        //    if (wantsToCastAbility)
+        //    {
+        //        if (!wantsToCastAbility.isAttack) return false;
+        //    }
+
+
+        //    //if (currentAbility == null) return true;
+        //    //if (currentAbility.isAttack) return true;
+
+        //    return true;
+        //}
         void HandleHarm(EntityInfo target)
         {
             if (abilityManager.attackAbility == null) return;

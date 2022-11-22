@@ -85,7 +85,7 @@ public class CatalystHit : MonoBehaviour
         var info = other.GetComponent<EntityInfo>();
         if (info == null) return;
 
-        if (!CorrectLockOn(other)) { return; }
+        if (!CorrectLockOn(info)) { return; }
 
 
         try
@@ -253,25 +253,36 @@ public class CatalystHit : MonoBehaviour
         }
         
     }
-    public bool CorrectLockOn(Collider targetCol)
+    public bool CorrectLockOn(EntityInfo entity)
     {
+        var checks = new List<bool>();
+
+        catalystInfo.OnCorrectLockOnCheck?.Invoke(this, entity, checks);
+
+        foreach(var check in checks)
+        {
+            if (check) return true;
+        }
+
+
         if (catalystInfo && !catalystInfo.requiresLockOnTarget)
         {
             return true;
         }
 
-        if (catalystInfo && catalystInfo.target == targetCol.gameObject)
+        if (catalystInfo && catalystInfo.target == entity.gameObject)
         {
             return true;
         }
 
         
 
-        if (abilityInfo && abilityInfo.canBeIntercepted && targetCol.GetComponent<EntityInfo>())
+        if (abilityInfo && abilityInfo.canBeIntercepted)
         {
-            if (abilityInfo.entityInfo != targetCol.GetComponent<EntityInfo>())
+
+            if (abilityInfo.entityInfo != entity)
             {
-                catalystInfo.OnIntercept?.Invoke(targetCol.gameObject);
+                catalystInfo.OnIntercept?.Invoke(entity.gameObject);
             }
             return true;
         }

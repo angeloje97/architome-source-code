@@ -46,6 +46,7 @@ namespace Architome
             currentCurrency = currency;
             this.amount.text = ArchString.FloatToSimple(amount);
             currencyName = currency.itemName;
+            currentAmount = amount;
         }
 
         public void UpdateCurrencyDisplay(float amount)

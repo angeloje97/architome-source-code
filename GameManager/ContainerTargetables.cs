@@ -72,10 +72,27 @@ namespace Architome
             GetDependencies();
 
             HandlePauseMenu();
+            HandleIGGUI();
         }
         public void Awake()
         {
             active = this;
+        }
+
+        void HandleIGGUI()
+        {
+            var gui = IGGUIInfo.active;
+            if (gui == null) return;
+
+            gui.OnClosingModulesCheck += HandleCloseModulesCheck;
+
+            void HandleCloseModulesCheck(IGGUIInfo iggui, List<bool> checks)
+            {
+                if(selectedTargets.Count > 0)
+                {
+                    checks.Add(false);
+                }
+            }
         }
 
         void HandlePauseMenu()

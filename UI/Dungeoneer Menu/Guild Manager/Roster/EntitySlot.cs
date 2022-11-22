@@ -35,7 +35,8 @@ namespace Architome
         EntityInfo entityCheck;
 
         public Action<EntityInfo, EntityInfo> OnEntityChange;
-        public Action<EntitySlot> OnSlotAction, OnSlotSelect;
+        public Action<EntitySlot> OnSlotAction { get; set; }
+        public Action<EntitySlot> OnSlotSelect { get; set; }
 
         public Action<bool> OnActiveChange;
 

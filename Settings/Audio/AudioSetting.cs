@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-namespace Architome
+namespace Architome.Settings
 {
     [Serializable]
     public class AudioSetting
@@ -26,13 +26,18 @@ namespace Architome
             {
                 if (currentSettings == null)
                 {
-                    currentSettings = (AudioSetting) SerializationManager.LoadConfig("Audio");
+                    var audioObj = SerializationManager.LoadConfig("Audio");
 
-                    if (currentSettings == null)
+
+                    if (audioObj == null)
                     {
                         currentSettings = new();
                         SaveCurrentSettings();
                         
+                    }
+                    else
+                    {
+                        currentSettings = (AudioSetting)audioObj;
                     }
                 }
 

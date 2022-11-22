@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,10 +6,10 @@ using UnityEngine;
 public class Debugger : MonoBehaviour
 {
     // Start is called before the first frame update
-    static bool debugging = true;
+    static bool debugging = false;
     static bool debugCombat = false;
-    static bool debugEnvironment = false;
-    static bool debugUI = true;
+    static bool debugEnvironment = true;
+    static bool debugUI = false;
     static bool debugSocial = false;
     static bool debugOutSource = false;
     void Start()

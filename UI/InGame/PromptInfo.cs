@@ -16,7 +16,7 @@ namespace Architome
         [Header("PromptInfo Properties")]
         public int choicePicked;
         public string userInput;
-        public bool optionEnded;
+        public bool optionEnded { get; set; }
         public int amount;
         public List<ArchButton> buttonOptions;
         public List<string> choices;
@@ -70,7 +70,7 @@ namespace Architome
 
         public void EndOptions()
         {
-
+            if (optionEnded) return;
             optionEnded = true;
             PlaySound(false);
             SetActive(false);

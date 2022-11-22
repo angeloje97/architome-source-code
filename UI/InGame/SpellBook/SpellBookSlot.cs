@@ -51,12 +51,6 @@ namespace Architome
             abilityUI.transform.SetParent(transform);
             border.SetAsLastSibling();
 
-
-            //abilityUI.GetComponent<AbilityInfoUI>().currentSlot = this;
-            //abilityUI.transform.position = transform.position;
-            //abilityUI.GetComponent<RectTransform>().sizeDelta = GetComponent<RectTransform>().sizeDelta * 1.25f;
-            //abilityUI.transform.SetParent(transform);
-            //border.SetAsLastSibling();
         }
     }
 }

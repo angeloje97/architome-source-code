@@ -182,13 +182,18 @@ namespace Architome
 
         public static async Task LetGoKeys(List<KeyCode> keyCodes)
         {
+            await Task.Delay(100);
+
             while (true)
             {
                 var pressing = false;
                 foreach (var key in keyCodes)
                 {
-                    if (Input.GetKey(key)) pressing = true;
-                    break;
+                    if (Input.GetKey(key))
+                    {
+                        pressing = true;
+                        break;
+                    }
                 }
 
                 if (!pressing)

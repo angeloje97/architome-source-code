@@ -81,28 +81,6 @@ namespace Architome
             Debugger.UI(8719, $"Successfully stored {item} in vault: {stored}");
 
             return stored;
-            //Debugger.UI(9024, $"Stackable item : {stackableItem}");
-
-            //while (stackableItem)
-            //{
-            //    item.HandleItem(stackableItem);
-
-            //    if (item.currentStacks <= 0) return true;
-
-            //    stackableItem = StackableItem(item);
-            //}
-
-            //if (item.currentStacks == 0) return true;
-
-            //var newSlot = AvailableSlot();
-
-            //if (newSlot)
-            //{
-            //    item.HandleNewSlot(newSlot);
-            //    return true;
-            //}
-
-            //return false;
         }
 
         public ItemInfo StackableItem(ItemInfo item)

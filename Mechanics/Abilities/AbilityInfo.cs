@@ -30,11 +30,11 @@ public class AbilityInfo : MonoBehaviour
     public string abilityName;
     [Multiline]
     public string abilityDescription;
-    
+
     public GameObject entityObject;
     public GameObject catalyst;
     public Sprite abilityIcon;
-    
+
     public List<GameObject> buffs;
     public List<ItemData> augmentsData;
     public Dictionary<AugmentItem, Augment> augments;
@@ -74,7 +74,7 @@ public class AbilityInfo : MonoBehaviour
     {
         public float strength, wisdom, dexterity = 1f;
     }
-    
+
 
 
     public StatsContribution coreContribution;
@@ -138,16 +138,15 @@ public class AbilityInfo : MonoBehaviour
     public bool playerAiming;
     public bool onlyCastSelf { get; set; }
     public bool onlyCastOutOfCombat;
-    public bool isHealing;
-    public bool isAssisting;
-    public bool isHarming;
+    public bool isHealing { get { return restrictionHandler.restrictions.isHealing; } }
+    public bool isAssisting { get { return restrictionHandler.restrictions.isAssisting; } }
+    public bool isHarming { get { return restrictionHandler.restrictions.isHarming; } }
     public bool destroysSummons;
     public bool targetsDead;
     public bool requiresLockOnTarget;
     public bool requiresLineOfSight;
     public bool canHitSameTarget;
     public bool canAssistSameTarget;
-    public bool explosive;
     public bool canBeIntercepted;
     public bool nullifyDamage;
     public bool interruptable;
@@ -191,9 +190,19 @@ public class AbilityInfo : MonoBehaviour
     public Action<AbilityInfo, List<Task<bool>>> OnAugmentAbilityStart;
     public Action<AbilityInfo, EntityInfo> OnHandlingTargetLocked { get; set; }
     public Action<AbilityInfo, List<bool>> OnCanShowCheck { get; set; }
+    public Action<AbilityInfo, EntityInfo, List<bool>> OnCanHarmCheck { get; set; }
+    public Action<AbilityInfo, EntityInfo, List<bool>> OnCanHealCheck { get; set; }
 
     //Augments
     public AugmentChannel currentChannel { get; set; }
+
+    AbilityManager.Events abilityEvents
+    {
+        get
+        {
+            return abilityManager.events;
+        }
+    }
     public void GetDependencies()
     {
         entityInfo = GetComponentInParent<EntityInfo>();
@@ -1122,8 +1131,8 @@ public class AbilityInfo : MonoBehaviour
             }
         }
 
-        abilityManager.OnCastRelease?.Invoke(this);
-
+        //abilityManager.OnCastRelease?.Invoke(this);
+        abilityEvents.OnCastRelease?.Invoke(this);
         HandleResources();
         HandleAbilityType();
         HandleFullHealth();
@@ -1185,7 +1194,18 @@ public class AbilityInfo : MonoBehaviour
     }
     public void HandleAbilityType()                                 //This is where the magic happens.. IE where the catalyst gets released.
     {
-        if(catalyst) { catalyst.GetComponent<CatalystInfo>().isCataling = false; }
+
+        if (catalystInfo)
+        {
+            catalystInfo.abilityInfo = this;
+            catalystInfo.isCataling = false;
+        }
+        else
+        {
+            return;
+        }
+
+
         switch (abilityType)
         {
             case AbilityType.SkillShot: FreeCast(); break;
@@ -1208,15 +1228,13 @@ public class AbilityInfo : MonoBehaviour
             locationLocked.y = groundPos.y + heightFromGround;
 
 
-            catalystInfo.abilityInfo = this;
-            var catalystClone = Instantiate(catalyst, locationLocked, transform.localRotation);
+            var catalystClone = Instantiate(catalystInfo.gameObject, locationLocked, transform.localRotation);
 
 
 
             catalystClone.transform.rotation = V3Helper.LerpLookAt(catalystClone.transform, locationLocked, 1f);
 
             var newCatalyst = catalystClone.GetComponent<CatalystInfo>();
-            //newCatalyst.abilityInfo = this;
 
             abilityManager.OnCatalystRelease?.Invoke(this, newCatalyst);
             OnCatalystRelease?.Invoke(newCatalyst);
@@ -1229,8 +1247,7 @@ public class AbilityInfo : MonoBehaviour
                 return;
             }
             directionLocked = V3Helper.Direction(location, entityObject.transform.position);
-            catalystInfo.abilityInfo = this;
-            var catalystClone = Instantiate(catalyst, entityObject.transform.position, transform.localRotation);
+            var catalystClone = Instantiate(catalystInfo.gameObject, entityObject.transform.position, transform.localRotation);
 
 
             var heightFromGround = V3Helper.HeightFromGround(entityObject.transform.position, GMHelper.LayerMasks().walkableLayer);
@@ -1238,7 +1255,7 @@ public class AbilityInfo : MonoBehaviour
             locationLocked.y = groundPos.y + heightFromGround;
 
             var newCatalyst = catalystClone.GetComponent<CatalystInfo>();
-            //newCatalyst.abilityInfo = this;
+          
 
             abilityManager.OnCatalystRelease?.Invoke(this, newCatalyst);
             OnCatalystRelease?.Invoke(newCatalyst);
@@ -1251,23 +1268,17 @@ public class AbilityInfo : MonoBehaviour
             {
                 return;
             }
-
-            catalystInfo.abilityInfo = this;
-            var catalystClone = Instantiate(catalyst, entityObject.transform.position, transform.localRotation);
+            var catalystClone = Instantiate(catalystInfo.gameObject, entityObject.transform.position, transform.localRotation);
 
 
             var newCatalyst = catalystClone.GetComponent<CatalystInfo>();
-            //newCatalyst.abilityInfo = this;
             abilityManager.OnCatalystRelease?.Invoke(this, newCatalyst);
             OnCatalystRelease?.Invoke(newCatalyst);
         }
         void Use()
         {
             if (!catalyst) { return; }
-
-            //catalyst.GetComponent<CatalystInfo>().abilityInfo = this;
-            catalystInfo.abilityInfo = this;
-            var catalystClone = Instantiate(catalyst, entityObject.transform.position, transform.localRotation);
+            var catalystClone = Instantiate(catalystInfo.gameObject, entityObject.transform.position, transform.localRotation);
 
             var newCatalyst = catalystClone.GetComponent<CatalystInfo>();
 
@@ -1322,6 +1333,7 @@ public class AbilityInfo : MonoBehaviour
         Debugger.InConsole(896537, $"{reason}");
         wantsToCast = true;
         abilityManager.wantsToCastAbility = wantsToCast;
+        abilityManager.currentWantsToCast = this;
         abilityManager.OnWantsToCastChange?.Invoke(this, wantsToCast);
     }
     public bool WantsToCast()
@@ -1335,6 +1347,10 @@ public class AbilityInfo : MonoBehaviour
 
             Debugger.InConsole(4389645, $"{reason}");
             wantsToCast = false;
+            if (abilityManager.currentWantsToCast == this)
+            {
+                abilityManager.currentWantsToCast = null;
+            }
             abilityManager.wantsToCastAbility = wantsToCast;
             abilityManager.OnWantsToCastChange?.Invoke(this, wantsToCast);
 
@@ -1573,7 +1589,10 @@ public class AbilityInfo : MonoBehaviour
         if (success)
         {
             OnSuccessfulCast?.Invoke(this);
-
+            if(abilityType2 == AbilityType2.AutoAttack)
+            {
+                abilityEvents.OnAttack?.Invoke(this);
+            }
             await AugmentAbilities();
             SetRecast();
         }
@@ -1645,7 +1664,7 @@ public class AbilityInfo : MonoBehaviour
             {
                 isCasting = true;
                 timerPercentActivated = false;
-                abilityManager.OnCastStart?.Invoke(this);
+                abilityEvents.OnCastStart?.Invoke(this);
             }
 
             void EndCasting()
@@ -1655,7 +1674,7 @@ public class AbilityInfo : MonoBehaviour
                     success = EndCast();
                 }
 
-                abilityManager.OnCastEnd?.Invoke(this);
+                abilityEvents.OnCastEnd?.Invoke(this);
                 isCasting = false;
                 timerPercentActivated = false;
                 
@@ -1684,7 +1703,7 @@ public class AbilityInfo : MonoBehaviour
                     timerPercentActivated = true;
 
 
-                    abilityManager.OnCastReleasePercent?.Invoke(this);
+                    abilityEvents.OnCastReleasePercent?.Invoke(this);
                 }
             }
 
@@ -1738,6 +1757,7 @@ public class AbilityInfo : MonoBehaviour
         }
     }
 
+    
     public bool CanShow()
     {
         var checks = new List<bool>();
@@ -1831,6 +1851,33 @@ public class AbilityInfo : MonoBehaviour
         /*
          * This function has been implemented as AugmentTracking.
          */
+    }
+
+    public bool CanHarm(EntityInfo target)
+    {
+        var checks = new List<bool>();
+
+        OnCanHarmCheck?.Invoke(this, target, checks);
+
+        foreach(var check in checks)
+        {
+            if (!check) return false;
+        }
+
+        return true;
+    }
+
+    public bool CanHeal(EntityInfo target)
+    {
+        var checks = new List<bool>();
+        OnCanHealCheck?.Invoke(this, target, checks);
+
+        foreach (var check in checks)
+        {
+            if (check) return true;
+        }
+
+        return false;
     }
 
     public void RemoveSelf()

@@ -410,60 +410,32 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         //}
     }
 
-    public void HandleNewSlot(InventorySlot slot)
+    public void HandleNewSlot(InventorySlot slot, bool forceInsert = false)
     {
         var previousSlot = currentSlot;
         var changedSlot = false;
+        var canChange = true;
 
         if (slot == currentSlot) return;
 
+        CheckPrevious();
         HandleInventorySlot();
-        //HandleGearSlot();
         HandlePreviousSlot(changedSlot);
         ReturnToSlot();
 
-        void HandleGearSlot()
+        void CheckPrevious()
         {
-            if(slot.GetType() != typeof(GearSlot)) { return; }
-            
-
-
-            var gearSlot = (GearSlot)slot;
-
-            if (!gearSlot.CanInsert(this))
+            if (!previousSlot) return;
+            if (forceInsert) return;
+            if (!previousSlot.CanRemoveFromSlot(this))
             {
-                return;
+                canChange = false;
             }
-
-            var equipment = (Equipment)item;
-
-            if(equipment.equipmentSlotType != gearSlot.slotType  && equipment.secondarySlotType != gearSlot.slotType) { return; }
-
-
-            //gearSlot.item = item;
-            //gearSlot.equipmentSlot.equipment = equipment;
-            gearSlot.currentItemInfo = this;
-            currentSlot = gearSlot;
-            changedSlot = true;
         }
-
         void HandleInventorySlot()
         {
-            if (!slot.CanInsert(this)) return;
-
-            //if (slot.GetType() == typeof(GearSlot))
-            //{
-            //    var gearSlot = (GearSlot)slot;
-
-            //    if (gearSlot.CanEquip(this))
-            //    {
-            //        slot.currentItemInfo = this;
-            //        currentSlot = slot;
-            //        changedSlot = true;
-            //    }
-
-            //    return;
-            //}
+            if (!canChange) return;
+            if (!slot.CanInsert(this) && !forceInsert) return;
 
             if (slot.GetType() == typeof(GearSlot))
             {

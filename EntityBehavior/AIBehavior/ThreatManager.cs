@@ -113,7 +113,7 @@ public class ThreatManager : MonoBehaviour
 
     public event Action<ThreatInfo> OnNewThreat;
     public event Action<ThreatInfo, float> OnIncreaseThreat;
-    public event Action<ThreatInfo> OnFirstThreat;
+    public  Action<ThreatInfo> OnFirstThreat { get; set; }
     public Action<ThreatInfo> OnRemoveThreat;
     public event Action<ThreatManager> OnEmptyThreats;
     public event Action<ThreatManager> OnClearThreats;
@@ -164,7 +164,8 @@ public class ThreatManager : MonoBehaviour
     }
     public void OnChangeNpcType(NPCType before, NPCType after)
     {
-        HandleMaxThreat();
+        //HandleMaxThreat();
+        ResetThreats();
     }
     public void OnDamageDone(CombatEventData eventData)
     {
@@ -420,6 +421,11 @@ public class ThreatManager : MonoBehaviour
         if (firstThreat && !fromAlert)
         {
             OnFirstThreat?.Invoke(threatInfo);
+
+            if (source.IsPlayer())
+            {
+                entityInfo.combatEvents.OnFirstThreatWithPlayer?.Invoke(threatInfo);
+            }
         }
         
 
@@ -638,6 +644,24 @@ public class ThreatManager : MonoBehaviour
     {
         OnClearThreats?.Invoke(this);
         highestThreat = null;
+    }
+
+    public void ResetThreats()
+    {
+        ClearThreats();
+        bool foundEntity = false;
+        lineOfSight.EmitOmniSensor(HandleEntity);
+        
+
+        void HandleEntity(EntityInfo entity)
+        {
+            if (foundEntity) return;
+            if (entityInfo.CanAttack(entity))
+            {
+                foundEntity = true;
+                IncreaseThreat(entity, 15f, true);
+            }
+        }
     }
     public ThreatInfo Threat(EntityInfo source)
     {

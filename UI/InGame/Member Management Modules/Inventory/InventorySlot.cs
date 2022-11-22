@@ -5,6 +5,7 @@ using UnityEngine.EventSystems;
 using Architome;
 using System;
 using UnityEngine.UI;
+using Pathfinding.Util;
 
 public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler
 {
@@ -28,6 +29,7 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
     {
         public Action<InventorySlot, Item, Item> OnItemChange { get; set; }
         public Action<InventorySlot> OnSetSlot { get; set; }
+        public Action<InventorySlot, ItemInfo, List<bool>> OnCanInsertCheck;
     }
 
     public bool interactable = true;
@@ -136,6 +138,31 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
 
     public virtual bool CanInsert(ItemInfo item)
     {
+        if (itemSlotHandler)
+        {
+            var checks = new List<bool>();
+            itemSlotHandler.OnCanInsertToSlotCheck?.Invoke(this, item, checks);
+            foreach (var check in checks)
+            {
+                if (!check) return false;
+            }
+        }
+
+        return true;
+    }
+
+    public virtual bool CanRemoveFromSlot(ItemInfo item)
+    {
+        if (itemSlotHandler)
+        {
+            var checks = new List<bool>();
+            itemSlotHandler.OnCanRemoveFromSlotCheck?.Invoke(this, item, checks);
+            foreach (var check in checks)
+            {
+                if (!check) return false;
+            }
+        }
+
         return true;
     }
 }

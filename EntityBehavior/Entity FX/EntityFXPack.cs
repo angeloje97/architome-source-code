@@ -7,19 +7,6 @@ using Architome.Enums;
 [CreateAssetMenu(fileName = "New EntityFX Pack", menuName = "Architome/Entity/EntityFX")]
 public class EntityFXPack : ScriptableObject
 {
-    // Start is called before the first frame update
-    //[Header("Audio")]
-    //public List<AudioClip> detectedPlayerSounds;
-    //public List<AudioClip> hurtSounds;
-    //public List<AudioClip> levelUpSounds;
-    //public AudioClip footStepSound;
-    //public AudioClip levelUpSound;
-    //public AudioClip reviveSound;
-
-
-    //[Header("Phrases")]
-    //public List<string> deathPhrases;
-    //public List<string> detectedPlayerPhrases;
 
     [Serializable]
     public struct EntityEffect
@@ -40,6 +27,14 @@ public class EntityFXPack : ScriptableObject
         //AudioClip
         public AudioClip audioClip;
         public List<AudioClip> randomClips;
+
+
+        public bool useChance;
+        [Range(0, 100)]
+        public float chance;
+        public float coolDown;
+
+        
     }
 
     public List<EntityEffect> effects;

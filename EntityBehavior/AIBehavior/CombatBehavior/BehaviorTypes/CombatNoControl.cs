@@ -133,15 +133,15 @@ namespace Architome
                 return true;
             }
 
-            bool Use(SpecialAbility special, AbilityInfo ability)
-            {
-                if (ability.abilityType != AbilityType.Use) return false;
-                if (special.targeting != SpecialTargeting.Use) return false;
+            //bool Use(SpecialAbility special, AbilityInfo ability)
+            //{
+            //    if (ability.abilityType != AbilityType.Use) return false;
+            //    if (special.targeting != SpecialTargeting.Use) return false;
 
-                abilityManager.Cast(ability);
+            //    abilityManager.Cast(ability);
 
-                return true;
-            }
+            //    return true;
+            //}
 
             bool RandomLocation(SpecialAbility special, AbilityInfo ability)
             {
@@ -175,10 +175,24 @@ namespace Architome
                 if (ability.WantsToCast() || ability.isCasting) return true;
                 if (!ability.isHealing || ability.isAssisting) continue;
                 if (!ability.IsReady()) continue;
+
+                if (Use(specialAbility, specialAbility.ability)) return true;
+
+
             }
 
 
             return false;
+        }
+
+        bool Use(SpecialAbility special, AbilityInfo ability)
+        {
+            if (ability.abilityType != AbilityType.Use) return false;
+            if (special.targeting != SpecialTargeting.Use) return false;
+
+            abilityManager.Cast(ability);
+
+            return true;
         }
     }
 

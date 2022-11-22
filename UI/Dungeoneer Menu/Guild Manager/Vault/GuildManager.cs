@@ -138,13 +138,6 @@ namespace Architome
                 manager.BeforeCheckCondition += BeforeCheckCondition;
                 manager.OnLoadSave += OnLoadSave;
 
-                if (manager.info.entityIcons != null)
-                {
-                    foreach (var icon in manager.info.entityIcons)
-                    {
-                        icon.OnIconAction += OnIconAction;
-                    }
-                }
             }
             if (pauseMenu)
             {
@@ -354,7 +347,7 @@ namespace Architome
         }
 
 
-        async void HandleEntityAction(object entityData)
+        public async void HandleEntityAction(object entityData)
         {
             if (entityData == null) return;
             if (entityData.GetType() != typeof(EntityInfo)) return;
@@ -427,11 +420,6 @@ namespace Architome
         public void OnPartySlotSelect(EntitySlot slot)
         {
 
-        }
-
-        public void OnIconAction(Icon icon)
-        {
-            HandleEntityAction(icon.data);
         }
 
         public void OnPartySlotAction(EntitySlot slot)

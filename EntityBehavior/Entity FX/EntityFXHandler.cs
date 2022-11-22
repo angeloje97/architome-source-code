@@ -20,14 +20,18 @@ namespace Architome
         CharacterBodyParts characterBodyPart;
         AbilityManager abilityManager;
 
+        AbilityManager.Events abilityEvents
+        {
+            get
+            {
+                return entityInfo.abilityEvents;
+            }
+        }
+
+        public HashSet<EntityEvent> recentTriggers;
+
         public List<string> activeScenes;
         bool active;
-
-        bool damageTimerActive;
-        bool killEntityTimerActive;
-        bool attackActive;
-        bool startCastActive;
-        bool endCastActive;
 
         public Dictionary<EntityEvent, List<EntityFXPack.EntityEffect>> effectMap;
         new void GetDependencies()
@@ -64,34 +68,18 @@ namespace Architome
                 entityFX = entityInfo.entityFX;
                 abilityManager = entityInfo.AbilityManager();
                 characterBodyPart = entityInfo.GetComponentInChildren<CharacterBodyParts>();
+                bodyParts = entityInfo.BodyParts();
+                speech = entityInfo.Speech();
 
                 if (entityFX == null) return;
 
-                bodyParts = entityInfo.GetComponentInChildren<CharacterBodyParts>();
-                speech = entityInfo.Speech();
-
-                entityInfo.OnLevelUp += OnLevelUp;
-                entityInfo.OnReviveThis += OnRevive;
-                entityInfo.OnDeath += OnDeath;
-                entityInfo.OnKill += OnEntityKill;
-
-
-                entityInfo.OnDamageTaken += OnDamageTaken;
-
-                var threatManager = entityInfo.ThreatManager();
-
-                if (threatManager)
+                foreach(var fx in entityFX.effects)
                 {
-                    threatManager.OnFirstThreat += OnFirstThreat;
+                    entityInfo.AddEventTrigger(() => {
+                        HandleEffect(fx);
+                    }, fx.trigger);
                 }
 
-            }
-
-            if (abilityManager)
-            {
-                abilityManager.OnCastStart += OnCastStart;
-                abilityManager.OnCastEnd += OnCastEnd;
-                abilityManager.OnCatalystRelease += OnCatalystRelease;
             }
         }
 
@@ -130,176 +118,172 @@ namespace Architome
             GetDependencies();
             FillMap();
             DetermineActive();
-            HandleSpawn();
         }
 
-        void HandleSpawn()
-        {
-            if (entityInfo == null) return;
-            if (!entityInfo.summon.isSummoned) return;
-            HandleEffect(EntityEvent.OnSpawned);
-        }
+        //void HandleSpawn()
+        //{
+        //    if (entityInfo == null) return;
+        //    if (!entityInfo.summon.isSummoned) return;
+        //    HandleEffect(EntityEvent.OnSpawned);
+        //}
 
-        void OnCastStart(AbilityInfo ability)
-        {
-            if (startCastActive) return;
-            startCastActive = true;
-            ArchAction.Delay(() => { startCastActive = false; }, .75f);
+        //void OnCastStart(AbilityInfo ability)
+        //{
+        //    if (startCastActive) return;
+        //    startCastActive = true;
+        //    ArchAction.Delay(() => { startCastActive = false; }, .75f);
 
-            HandleEffect(EntityEvent.OnCastStart);
+        //    HandleEffect(EntityEvent.OnCastStart);
 
-        }
+        //}
 
-        void OnCastEnd(AbilityInfo ability)
-        {
-            if (endCastActive) return;
-            endCastActive = true;
-            ArchAction.Delay(() => { endCastActive = false; }, .75f);
+        //void OnCastEnd(AbilityInfo ability)
+        //{
+        //    if (endCastActive) return;
+        //    endCastActive = true;
+        //    ArchAction.Delay(() => { endCastActive = false; }, .75f);
 
-            HandleEffect(EntityEvent.OnCastEnd);
-        }
+        //    HandleEffect(EntityEvent.OnCastEnd);
+        //}
 
-        void OnCatalystRelease(AbilityInfo ability, CatalystInfo catalyst)
-        {
-            if (attackActive) return;
-            attackActive = true;
-            ArchAction.Delay(() => { attackActive = false; }, .75f);
+        //void OnCatalystRelease(AbilityInfo ability, CatalystInfo catalyst)
+        //{
+        //    if (attackActive) return;
+        //    attackActive = true;
+        //    ArchAction.Delay(() => { attackActive = false; }, .75f);
 
-            if (ability.abilityType2 != AbilityType2.AutoAttack) return;
-            HandleEffect(EntityEvent.OnAttack);
-        }
+        //    if (ability.abilityType2 != AbilityType2.AutoAttack) return;
+        //    HandleEffect(EntityEvent.OnAttack);
+        //}
         void OnLoadScene(ArchSceneManager sceneManager)
         {
             DetermineActive(sceneManager.sceneToLoad);
         }
-        void OnFirstThreat(ThreatManager.ThreatInfo info)
-        {
-            if (entityInfo.rarity != EntityRarity.Player)
-            {
-                HandleEffect(EntityEvent.OnDetectPlayer);
-            }
+        //void OnFirstThreat(ThreatManager.ThreatInfo info)
+        //{
+        //    if (entityInfo.rarity != EntityRarity.Player)
+        //    {
+        //        HandleEffect(EntityEvent.OnDetectPlayer);
+        //    }
+        //}
+        //void OnDeath(CombatEventData eventData)
+        //{
+        //    HandleEffect(EntityEvent.OnDeath);
+        //    //try
+        //    //{
+        //    //    if (!Entity.IsPlayer(eventData.source.gameObject)) return;
+        //    //    var role = Random.Range(0, 100);
+        //    //    //if (role > 25) return;
 
-            //if (entityInfo.entityFX == null) return;
-            //try
-            //{
-            //    var role = Random.Range(0, 100);
-
-            //    //if (role > 25) return;
-
-            //    var phrases = entityInfo.entityFX.detectedPlayerPhrases;
-
-            //    if (phrases.Count == 0) return;
-            //    var randomPhrase = phrases[Random.Range(0, phrases.Count)];
-
-            //    speech.Yell(randomPhrase);
-            //}
-            //catch
-            //{
-            //    throw;
-            //}
-        }
-        void OnDeath(CombatEventData eventData)
-        {
-            HandleEffect(EntityEvent.OnDeath);
-            //try
-            //{
-            //    if (!Entity.IsPlayer(eventData.source.gameObject)) return;
-            //    var role = Random.Range(0, 100);
-            //    //if (role > 25) return;
-
-            //    var phrases = entityInfo.entityFX.deathPhrases;
+        //    //    var phrases = entityInfo.entityFX.deathPhrases;
 
 
-            //    if (phrases.Count == 0) return;
-            //    var randomPhrase = phrases[Random.Range(0, phrases.Count)];
+        //    //    if (phrases.Count == 0) return;
+        //    //    var randomPhrase = phrases[Random.Range(0, phrases.Count)];
 
-            //    speech.Yell(randomPhrase);
-            //}
-            //catch
-            //{
+        //    //    speech.Yell(randomPhrase);
+        //    //}
+        //    //catch
+        //    //{
 
-            //}
-        }
-        void OnLevelUp(int level)
-        {
-            HandleEffect(EntityEvent.OnLevelUp);
-            //try
-            //{
-            //    var particle = entityInfo.entityFX.leveUpParticles;
-            //    var sound = entityInfo.entityFX.levelUpSound;
-            //    soundFX.PlaySound(sound);
-            //    particleManager.PlayOnceAt(particle, bodyParts.BodyPartTransform(BodyPart.Root), 3);
-            //}
-            //catch
-            //{
-            //    throw;
-            //}
-        }
-        void OnRevive(CombatEventData eventData)
-        {
-            HandleEffect(EntityEvent.OnRevive);
+        //    //}
+        //}
+        //void OnLevelUp(int level)
+        //{
+        //    HandleEffect(EntityEvent.OnLevelUp);
+        //    //try
+        //    //{
+        //    //    var particle = entityInfo.entityFX.leveUpParticles;
+        //    //    var sound = entityInfo.entityFX.levelUpSound;
+        //    //    soundFX.PlaySound(sound);
+        //    //    particleManager.PlayOnceAt(particle, bodyParts.BodyPartTransform(BodyPart.Root), 3);
+        //    //}
+        //    //catch
+        //    //{
+        //    //    throw;
+        //    //}
+        //}
+        //void OnRevive(CombatEventData eventData)
+        //{
+        //    HandleEffect(EntityEvent.OnRevive);
 
-            //try
-            //{
-            //    var particle = entityInfo.entityFX.reviveParticles;
-            //    var sound = entityInfo.entityFX.reviveSound;
-            //    soundFX.PlaySound(sound);
-            //    particleManager.PlayOnceAt(particle, bodyParts.BodyPartTransform(BodyPart.Root), 3);
-            //}
-            //catch
-            //{
-            //    throw;
-            //}
-        }
-        public void OnDamageTaken(CombatEventData eventData)
-        {
-            if (damageTimerActive) return;
-            damageTimerActive = true;
-            ArchAction.Delay(() => damageTimerActive = false, 1f);
+        //    //try
+        //    //{
+        //    //    var particle = entityInfo.entityFX.reviveParticles;
+        //    //    var sound = entityInfo.entityFX.reviveSound;
+        //    //    soundFX.PlaySound(sound);
+        //    //    particleManager.PlayOnceAt(particle, bodyParts.BodyPartTransform(BodyPart.Root), 3);
+        //    //}
+        //    //catch
+        //    //{
+        //    //    throw;
+        //    //}
+        //}
+        //void OnDamageTaken(CombatEventData eventData)
+        //{
+        //    if (damageTimerActive) return;
+        //    damageTimerActive = true;
+        //    ArchAction.Delay(() => damageTimerActive = false, 1f);
 
-            HandleEffect(EntityEvent.OnDamageTaken);
+        //    HandleEffect(EntityEvent.OnDamageTaken);
 
-            //if (entityInfo.entityFX == null) return;
-            //if (entityInfo.entityFX.hurtSounds == null) return;
-            //try
-            //{
+        //    //if (entityInfo.entityFX == null) return;
+        //    //if (entityInfo.entityFX.hurtSounds == null) return;
+        //    //try
+        //    //{
                 
-            //    var hurtSounds = entityInfo.entityFX.hurtSounds;
-            //    voiceFX.PlayRandomSound(hurtSounds);
+        //    //    var hurtSounds = entityInfo.entityFX.hurtSounds;
+        //    //    voiceFX.PlayRandomSound(hurtSounds);
 
-            //}
-            //catch
-            //{
-            //    throw;
-            //}
-        }
+        //    //}
+        //    //catch
+        //    //{
+        //    //    throw;
+        //    //}
+        //}
 
-        public void OnEntityKill(CombatEventData eventData)
-        {
-            if (!Entity.IsPlayer(eventData.target.gameObject)) return;
-
-            if (killEntityTimerActive) return;
-            killEntityTimerActive = true;
-
-            HandleEffect(EntityEvent.OnKillPlayer);
-
-            ArchAction.Delay(() => killEntityTimerActive = false, 8f);
-        }
-
-
-        public void HandleEffect(EntityEvent eventTrigger)
+        public void HandleEffect(EntityFXPack.EntityEffect effect)
         {
             if (!active) return;
-            if (effectMap == null) return;
-            if (!effectMap.ContainsKey(eventTrigger)) return;
-            var effects = effectMap[eventTrigger];
+            if (!CanPlay(effect, true)) return; 
+            HandleParticle(effect);
+            HandleAudio(effect);
+            HandlePhrases(effect);
+        }
+        //public void HandleEffect(EntityEvent eventTrigger)
+        //{
+        //    if (!active) return;
+        //    if (effectMap == null) return;
+        //    if (!effectMap.ContainsKey(eventTrigger)) return;
+        //    var effects = effectMap[eventTrigger];
 
-            foreach (var effect in effects)
+        //    foreach (var effect in effects)
+        //    {
+        //        HandleParticle(effect);
+        //        HandleAudio(effect);
+        //        HandlePhrases(effect);
+        //    }
+        //}
+
+        public bool CanPlay(EntityFXPack.EntityEffect effect, bool invoker)
+        {
+            if (effect.coolDown <= 0f) return true;
+
+            if (!recentTriggers.Contains(effect.trigger))
             {
-                HandleParticle(effect);
-                HandleAudio(effect);
-                HandlePhrases(effect);
+                if (invoker)
+                {
+                    recentTriggers.Add(effect.trigger);
+
+                    ArchAction.Delay(() => {
+                        recentTriggers.Remove(effect.trigger);
+                    }, effect.coolDown);
+                }
+                return true;
             }
+
+            return false;
+
         }
 
         public void HandleParticle(EntityFXPack.EntityEffect effect)

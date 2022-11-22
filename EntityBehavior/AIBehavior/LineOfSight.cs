@@ -236,7 +236,28 @@ namespace Architome
             return entityInfo.currentRoom.isRevealed;
         }
 
+        public void EmitOmniSensor(Action<EntityInfo> action, bool requiresLOS = true)
+        {
+            var colliders = Physics.OverlapSphere(entityInfo.transform.position, radius, targetLayer);
 
+
+            foreach(var collision in colliders)
+            {
+                var entity = collision.GetComponent<EntityInfo>();
+                if (entity == null) continue;
+
+                if (requiresLOS)
+                {
+                    var (direction, distance) = V3Helper.DirectionDistance(entity.transform.position, transform.position);
+
+                    var ray = new Ray(transform.position, direction);
+
+                    if (Physics.Raycast(ray, distance, obstructionLayer)) continue;
+                }
+
+                action(entity);
+            }
+        }
 
         void RemoveEntityFromLOS(EntityInfo target)
         {

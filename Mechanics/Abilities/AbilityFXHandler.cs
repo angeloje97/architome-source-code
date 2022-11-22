@@ -17,8 +17,14 @@ namespace Architome
         AudioManager audioManager;
         ParticleManager particleManager;
         LayerMasksData layers;
-        
 
+        AbilityManager.Events abilityEvents
+        {
+            get
+            {
+                return entityInfo.abilityEvents;
+            }
+        }
 
         [Serializable]
         public struct Info
@@ -59,10 +65,13 @@ namespace Architome
             particleManager = entityInfo.GetComponentInChildren<ParticleManager>();
             audioManager = entityInfo.SoundEffect();
 
+            abilityEvents.OnCastStart += OnCastStart;
+            abilityEvents.OnCastEnd += OnCastEnd;
+
             if (ability)
             {
-                ability.OnCastStart += OnCastStart;
-                ability.OnCastEnd += OnCastEnd;
+                //ability.OnCastStart += OnCastStart;
+                //ability.OnCastEnd += OnCastEnd;
                 ability.OnChannelStart += OnChannelStart;
                 ability.OnChannelEnd += OnChannelEnd;
 

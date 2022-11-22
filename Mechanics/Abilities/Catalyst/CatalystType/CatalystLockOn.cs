@@ -4,6 +4,7 @@ using UnityEngine;
 using Architome;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using UnityEditor.SceneManagement;
 
 public class CatalystLockOn : MonoBehaviour
 {
@@ -21,6 +22,7 @@ public class CatalystLockOn : MonoBehaviour
     public bool closeToTarget;
 
     public bool isAlive = true;
+
 
     [Header("Settings")]
     public bool disableLockOn;

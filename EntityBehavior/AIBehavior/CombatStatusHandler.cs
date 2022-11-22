@@ -10,11 +10,19 @@ public class CombatStatusHandler : MonoBehaviour
     public float combatTime = 10f;
     public float combatTimer;
     public bool combatTimerComplete;
+
+    AbilityManager.Events abilityEvents
+    {
+        get
+        {
+            return entityInfo.abilityEvents;
+        }
+    }
     void GetDependencies()
     {
-        if(GetComponentInParent<EntityInfo>())
+        entityInfo = GetComponentInParent<EntityInfo>();
+        if(entityInfo)
         {
-            entityInfo = GetComponentInParent<EntityInfo>();
             entityInfo.ThreatManager().OnIncreaseThreat += OnIncreaseThreat;
             entityInfo.OnDamageDone += OnDamageDone;
             entityInfo.OnHealingDone += OnHealingDone;
@@ -22,9 +30,12 @@ public class CombatStatusHandler : MonoBehaviour
 
             var abilityManager = entityInfo.AbilityManager();
 
+
+            abilityEvents.OnCastRelease += OnCastRelease;
+
             if (abilityManager)
             {
-                abilityManager.OnCastRelease += OnCastRelease;
+                //abilityManager.OnCastRelease += OnCastRelease;
                 abilityManager.OnAbilityStart += OnAbilityStart;
                 abilityManager.OnWantsToCastChange += OnWantsToCastChange;
             }

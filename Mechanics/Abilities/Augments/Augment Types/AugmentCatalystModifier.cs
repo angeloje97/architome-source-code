@@ -26,6 +26,7 @@ namespace Architome
         public override async void HandleNewCatlyst(CatalystInfo catalyst)
         {
             await Task.Yield();
+            if (catalyst.isCataling) return;
 
             catalyst.IncreaseTicks(false, additiveTicks);
 

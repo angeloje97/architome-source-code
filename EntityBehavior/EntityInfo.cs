@@ -158,6 +158,10 @@ namespace Architome
             public Action<EntityInfo, List<bool>> OnCanHelpCheck { get; set; }
             public Action<List<bool>> OnCanBeAttackedCheck { get; set; }
             public Action<List<bool>> OnCanBeHelpedCheck { get; set; }
+
+            public Action<CombatEventData> OnKillPlayer { get; set; }
+
+            public Action<ThreatManager.ThreatInfo> OnFirstThreatWithPlayer { get; set; }
         }
 
         public struct PartyEvents
@@ -206,6 +210,7 @@ namespace Architome
         public Action<EntityInfo, Collision, bool> OnCollisionEvent;
         public Action<EntityInfo, GameObject, bool> OnPhysicsEvent;
         public Action<EntityInfo> OnChangeStats { get; set; }
+        public AbilityManager.Events abilityEvents { get; set; }
         public PartyEvents partyEvents;
         public InfoEvents infoEvents;
         public TaskEvents taskEvents = new();
@@ -365,11 +370,20 @@ namespace Architome
                 mana = maxMana;
             }
         }
+
+        private void Awake()
+        {
+            abilityEvents ??= new();
+        }
         void Start()
         {
             EntityStart();
             HandleFalling();
             HandleRarityEvents();
+        }
+        void Update()
+        {
+            HandleEventTriggers();
         }
 
         void HandleRarityEvents()
@@ -388,10 +402,6 @@ namespace Architome
             }
 
             StartCoroutine(HandleRegeneration());
-        }
-        void Update()
-        {
-            HandleEventTriggers();
         }
 
         public void GainExperience(object sender, float amount)
@@ -653,7 +663,10 @@ namespace Architome
                         Die();
                         EntityDeathHandler.active.HandleDeadEntity(combatData);
 
-                        
+                        if (IsPlayer())
+                        {
+                            combatEvents.OnKillPlayer?.Invoke(combatData);
+                        }
                         OnDeath?.Invoke(combatData);
                         source.OnKill?.Invoke(combatData);
                     }
@@ -869,7 +882,7 @@ namespace Architome
             else
             {
                 var world = World.active;
-                if (world.noDisappearOnDeath)
+                if (world.noDisappearOnDeath && !summon.isSummoned)
                 {
                     return;
                 }
@@ -1311,6 +1324,43 @@ namespace Architome
             }
             return null;
         }
+
+        public void AddEventTrigger(Action action, EntityEvent trigger)
+        {
+            switch (trigger)
+            {
+                case EntityEvent.OnDeath:
+                    OnDeath += (eventData) => { action(); };
+                    break;
+                case EntityEvent.OnRevive:
+                    OnReviveThis += (eventData) => { action(); };
+                    break;
+                case EntityEvent.OnLevelUp:
+                    OnLevelUp += (newLevel) => { action(); };
+                    break;
+                case EntityEvent.OnDamageTaken:
+                    OnDamageTaken += (eventData) => { action(); };
+                    break;
+                case EntityEvent.OnDetectPlayer:
+                    combatEvents.OnFirstThreatWithPlayer += (threatInfo) => { action(); };
+                    break;
+                case EntityEvent.OnKillPlayer:
+                    combatEvents.OnKillPlayer += (eventData) => { action(); };
+                    break;
+                case EntityEvent.OnCastStart:
+                    abilityEvents.OnCastStart += (ability) => { if(!ability.isAttack) action(); };
+                    break;
+                case EntityEvent.OnCastEnd:
+                    abilityEvents.OnCastEnd += (ability) => { if(!ability.isAttack) action(); };
+                    break;
+                case EntityEvent.OnAttack:
+                    abilityEvents.OnAttack += (ability) => { action(); };
+                    break;
+                default:
+                    action();
+                    break;
+            }
+        }
         public AIPath Path()
         {
             if (gameObject.GetComponent<AIPath>() != null)
@@ -1478,6 +1528,7 @@ namespace Architome
         {
             return EntityComponent<ETaskHandler>();
         }
+
 
         [SerializeField] bool showEntity;
         private void OnValidate()
