@@ -11,7 +11,8 @@ namespace Architome.Tutorial
         {
             Location,
             Target,
-            StartMove
+            StartMove,
+            QuickMoveOnly,
         };
 
         [Header("Move To Listener Properties")]
@@ -76,10 +77,41 @@ namespace Architome.Tutorial
 
         public override string Directions()
         {
-
+            var result = new List<string>() {
+                base.Directions()
+            };
             var selectKeyIndex = keyBindData.SpriteIndex("Select");
             var actionKeyIndex = keyBindData.SpriteIndex("Action");
-            return $"To move {sourceInfo.entityName}, select them with (Select <sprite={selectKeyIndex}> ) and then use (Action <sprite={actionKeyIndex}>) on a location you want to move them.";
+
+            
+
+
+            if (!simple)
+            {
+                if(moveToType == MoveToType.StartMove)
+                {
+                    result.Add($"To move {sourceInfo.entityName}, select them with (Select <sprite={selectKeyIndex}> ) and then use (Action <sprite={actionKeyIndex}>) on a location you want to move them.");
+                }
+
+                if(moveToType == MoveToType.QuickMoveOnly)
+                {
+                    var memberIndex = 0;
+
+                    var members = sourceInfo.transform.parent.GetComponentsInChildren<EntityInfo>();
+
+                    for (int i = 0; i < members.Length; i++)
+                    {
+                        if (members[i] != sourceInfo) continue;
+                        memberIndex = i;
+                    }
+
+                    var alternateActionIndex = keyBindData.SpriteIndex($"AlternateAction{memberIndex}");
+
+                    result.Add($"To use quick move on {sourceInfo}, use <sprite={alternateActionIndex}> since they are member {memberIndex + 1}");
+                }
+
+            }
+            return ArchString.NextLineList(result);
         }
 
         public override string Tips()
@@ -99,9 +131,18 @@ namespace Architome.Tutorial
             }
 
             var alternateActionIndex = keyBindData.SpriteIndex($"AlternateAction{memberIndex}");
-            stringList.Add(
-                $"Tip: Alternatively, you can use (Member Action {memberIndex + 1} <sprite={alternateActionIndex}> ) on a desired location to move party member ({memberIndex + 1}) without having to select the them."
-            );
+
+            if (!simple)
+            {
+                if(moveToType == MoveToType.StartMove)
+                {
+                    stringList.Add(
+                        $"Tip: Alternatively, you can use (Member Action {memberIndex + 1} <sprite={alternateActionIndex}> ) on a desired location to move party member ({memberIndex + 1}) without having to select the them."
+                    );
+
+                }
+
+            }
 
             return ArchString.NextLineList(stringList);
 
@@ -121,7 +162,20 @@ namespace Architome.Tutorial
                 return;
             }
 
+            if (moveToType == MoveToType.QuickMoveOnly)
+            {
+                movement.OnQuickMove += OnQuickMove;
+            }
+
+
+
             HandleLocation();
+        }
+
+        void OnQuickMove(Movement movement)
+        {
+            movement.OnQuickMove -= OnQuickMove;
+            CompleteEventListener();
         }
 
         void OnStartMove(Movement movement)

@@ -35,7 +35,7 @@ namespace Architome.Tutorial
             Action<AbilityInfo> OnSuccessfulCast = (AbilityInfo ability) => {
                 ArchAction.Delay(() => {
                 if (completed) return;
-                if (ability.coolDown.timer < 1f)
+                if (ability.coolDown.timer > 1f)
                 {
                         ability.coolDown.timer = 1f;
                     }
@@ -92,7 +92,18 @@ namespace Architome.Tutorial
                 newDirection += $"on {particularTarget} ";
             }
 
-            newDirection += $"by hovering over an enemy and using the <sprite={keyBindData.SpriteIndex(actionBarName)}> button.";
+
+            if (ability.abilityType == AbilityType.LockOn)
+            {
+                newDirection += $"by hovering over an ";
+                newDirection += ability.isHealing ? "ally" : "enemy";
+                newDirection += $" and using the <sprite={keyBindData.SpriteIndex(actionBarName)}> button.";
+
+            }
+            else
+            {
+                newDirection += $"by pressing <sprite={keyBindData.SpriteIndex(actionBarName)}>";
+            }
 
             result.Add(newDirection);
 

@@ -48,6 +48,8 @@ namespace Architome
             if (entity.workerState != WorkerState.Idle) return;
             target = combat.GetFocus() ? combat.GetFocus() : combat.target;
 
+            if (!abilityManager.IsOpen()) return;
+
             if (target == null) return;
 
             if (UsingAbility())

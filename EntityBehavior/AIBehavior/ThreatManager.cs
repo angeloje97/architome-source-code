@@ -152,11 +152,21 @@ public class ThreatManager : MonoBehaviour
             
             combatInfo = behavior.GetComponentInChildren<CombatInfo>();
         }
-       
     }
     void Start()
     {
         GetDependencies();
+        HandleSummons();
+    }
+
+    void HandleSummons()
+    {
+        ArchAction.Delay(() => {
+            if (entityInfo.summon.isSummoned)
+            {
+                ResetThreats();
+            }
+        }, .25f);
     }
     // Update is called once per frame
     void Update()

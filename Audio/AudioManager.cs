@@ -21,6 +21,8 @@ namespace Architome
 
         public bool audioRoutineIsActive;
 
+        public bool singleAudioSource;
+
         [Header("Audio Source Settings")]
         public float spatialBlend = .5f;
         
@@ -51,16 +53,6 @@ namespace Architome
 
         void CopyPresetFor(AudioSource source)
         {
-            //if (presetAudio == null) return;
-            //foreach (var field in typeof(AudioSource).GetFields())
-            //{
-            //    field.SetValue(source, field.GetValue(presetAudio));
-            //}
-
-            //foreach (var property in typeof(AudioSource).GetProperties())
-            //{
-            //    property.SetValue(source, property.GetValue(presetAudio));
-            //}
         }
 
         public async void CheckAudioRoutine(float length = 1f)
@@ -155,20 +147,32 @@ namespace Architome
         }
         public AudioSource PlaySound(AudioClip clip, float volume = 1f)
         {
-            if (audioSources == null) audioSources = new List<AudioSource>();
-            if (audioSources.Count > 0)
+            audioSources ??= new();
+
+            foreach (AudioSource source in audioSources)
             {
-                foreach (AudioSource source in audioSources)
+                if (singleAudioSource)
                 {
-                    if (!source.isPlaying)
+                    if (source.isPlaying)
                     {
-                        source.clip = clip;
-                        source.loop = false;
-                        source.volume = volume;
-                        source.Play();
-                        //source.PlayOneShot(clip);
-                        return source;
+                        source.Stop();
                     }
+
+                    source.clip = clip;
+                    source.loop = false;
+                    source.volume = volume;
+                    source.Play();
+                    return source;
+                }
+
+                if (!source.isPlaying)
+                {
+                    source.clip = clip;
+                    source.loop = false;
+                    source.volume = volume;
+                    source.Play();
+                    //source.PlayOneShot(clip);
+                    return source;
                 }
             }
 
@@ -189,16 +193,9 @@ namespace Architome
 
             newAudioSource.clip = clip;
             newAudioSource.Play();
-            //newAudioSource.PlayOneShot(clip);
 
             CheckAudioRoutine(clip.length + .25f);
 
-            //if (!audioRoutineIsActive)
-            //{
-            //    audioRoutineIsActive = true;
-            //    var clipLength = clip.length;
-            //    StartCoroutine(CheckAudioRoutine(clipLength + .25f));
-            //}
 
             return newAudioSource;
         }

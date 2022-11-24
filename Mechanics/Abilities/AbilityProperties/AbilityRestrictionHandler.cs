@@ -94,18 +94,23 @@ namespace Architome
 
             void HandleHarm(CatalystHit catalyst, EntityInfo target, List<bool> checks)
             {
+                Debugger.Combat(8821, $"Checking for catalyst harm.");
                 if (!restrictions.isHarming)
                 {
+                    Debugger.Combat(8822, $"failed because is harming is false.");
+
                     checks.Add(false); return;
                 }
 
                 if (!entity.CanAttack(target))
                 {
+                    Debugger.Combat(8823, "Failed because entity cannot attack target");
                     checks.Add(false); return;
                 }
 
                 if (catalyst.EnemiesHitContains(target) && !restrictions.canHitSameTarget)
                 {
+                    Debugger.Combat(8824, $"Failed because cannot hit the same target");
                     checks.Add(false); return;
                 }
             }

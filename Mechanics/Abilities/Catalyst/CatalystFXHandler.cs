@@ -85,7 +85,12 @@ namespace Architome
         }
         void AdjustDestroyDelay()
         {
-            deathCondition.destroyDelay = catalyst.effects.MaxCatalystDuration();
+            var maxDuration = catalyst.effects.MaxCatalystDuration();
+
+            if(deathCondition.destroyDelay < maxDuration)
+            {
+                deathCondition.destroyDelay = maxDuration;
+            }
         }
         async void HandleStartFromGround()
         {
@@ -170,19 +175,26 @@ namespace Architome
         {
             if (effect.audioClip == null) return;
             if (activeAudioManager == null) return;
-            if (effect.playTrigger == CatalystEvent.OnDestroy && effect.loops) return;
 
             if (effect.loops)
             {
                 var source = audioManager.PlaySoundLoop(effect.audioClip);
 
-                Action<CatalystDeathCondition> OnDestroy = new((CatalystDeathCondition condition) => { source.Stop(); });
-
-                catalyst.OnCatalystDestroy += OnDestroy;
+                HandleLoop(source);
             }
             else
             {
                 audioManager.PlaySound(effect.audioClip);
+            }
+
+            async void HandleLoop(AudioSource source)
+            {
+                while (!catalyst.isDestroyed)
+                {
+                    await Task.Yield();
+                }
+
+                source.Stop();
             }
         }
         void HandleParticle(CatalystInfo.CatalystEffects.Catalyst effect)

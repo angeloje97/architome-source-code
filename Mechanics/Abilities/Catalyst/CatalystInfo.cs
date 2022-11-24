@@ -7,7 +7,6 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-
 namespace Architome
 {
     [RequireComponent(typeof(CatalystDeathCondition))]
@@ -21,11 +20,10 @@ namespace Architome
         public GameObject entityObject;
         public Sprite catalystIcon;
 
-        
+
 
         [Header("Catalyst Animations")]
-        public List<int> animationSequence;
-        public Vector2 catalystStyle;
+        public Vector3 catalystStyle;
         public bool useAlternateCasting;
         [Range(0, 1)]
         public float releasePercent;
@@ -66,6 +64,16 @@ namespace Architome
         public bool requiresWeapon;
         public WeaponType weaponType;
         public CatalystType catalystType;
+
+        //private void OnValidate()
+        //{
+        //    if (animationSequence == null) return;
+        //    if (animationSequence.Count == 0) return;
+
+        //    catalystStyle.z = animationSequence[0];
+
+        //    UnityEditor.EditorUtility.SetDirty(this);
+        //}
 
         [Serializable]
         public class CatalystEffects
@@ -198,6 +206,9 @@ namespace Architome
 
         private GameObject targetCheck;
 
+
+        bool acquiredDependencies;
+
         public void GetDependencies()
         {
             if (abilityInfo)
@@ -300,6 +311,7 @@ namespace Architome
             GetDependencies();
             HandleComponents();
             transform.SetParent(CatalystManager.active.transform);
+            acquiredDependencies = true;
         }
         private void Start()
         {
@@ -415,6 +427,38 @@ namespace Architome
             }
 
             return entities;
+        }
+
+        public List<EntityInfo> EntitiesWithinRadius(float radius, Predicate<EntityInfo> predicate, bool requiresLOS = true)
+        {
+            var collisions = Physics.OverlapSphere(transform.position, radius, entityLayer).OrderBy(entity => V3Helper.Distance(entity.transform.position, transform.position));
+            var targets = new List<EntityInfo>();
+
+            foreach(var collider in collisions)
+            {
+                var entity = collider.GetComponent<EntityInfo>();
+                if (!entity) continue;
+
+
+                var passable = predicate(entity);
+
+                Debugger.Combat(7849, $"{entity} found in finding entities function. Passable: {passable}");
+
+                if (!passable) continue;
+
+                if (requiresLOS)
+                {
+                    var (direction, distance) = V3Helper.DirectionDistance(entity.transform.position, transform.position);
+
+                    var ray = new Ray(transform.position, direction);
+
+                    if (Physics.Raycast(ray, distance, structureLayer)) continue;
+                }
+
+                targets.Add(entity);
+            }
+
+            return targets;
         }
         public List<EntityInfo> AlliesWithinRange(float radius = 0f, bool requiresLineOfSight = true)
         {

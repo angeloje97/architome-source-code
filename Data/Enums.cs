@@ -206,6 +206,16 @@ namespace Architome.Enums
         OnBump,
     }
 
+    public enum AudioMixerType
+    {
+        SoundFX,
+        Ambience,
+        Music,
+        Voice,
+        UI,
+    }
+
+
     public enum AbilityType2
     {
         Passive,

@@ -53,6 +53,7 @@ namespace Architome
         public Action<Movement, Transform> OnArrival;
         public Action<Movement, Transform> OnAway;
         public Action<Movement, Transform, Transform> OnNewPathTarget;
+        public Action<Movement> OnQuickMove;
 
         //Event Triggers
         private bool isMovingChange;

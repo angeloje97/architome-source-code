@@ -1357,7 +1357,7 @@ namespace Architome
                     abilityEvents.OnAttack += (ability) => { action(); };
                     break;
                 default:
-                    action();
+                    if (summon.isSummoned) action();
                     break;
             }
         }
@@ -1393,14 +1393,15 @@ namespace Architome
         }
         public PlayerController PlayerController()
         {
-            foreach (Transform child in transform)
-            {
-                if (child.GetComponent<PlayerController>())
-                {
-                    return child.GetComponent<PlayerController>();
-                }
-            }
-            return null;
+            return EntityComponent<PlayerController>();
+            //foreach (Transform child in transform)
+            //{
+            //    if (child.GetComponent<PlayerController>())
+            //    {
+            //        return child.GetComponent<PlayerController>();
+            //    }
+            //}
+            //return null;
         }
         public AIBehavior AIBehavior()
         {

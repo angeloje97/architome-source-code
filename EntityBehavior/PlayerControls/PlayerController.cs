@@ -213,6 +213,10 @@ public class PlayerController : MonoBehaviour
             var location = Mouse.CurrentPositionLayer(entityInfo.walkableLayer);
             if (location == new Vector3(0, 0, 0)) { return; }
             MoveTo(location);
+            if (isFromPartyControl)
+            {
+                movement.OnQuickMove?.Invoke(movement);
+            }
         }
     }
 }

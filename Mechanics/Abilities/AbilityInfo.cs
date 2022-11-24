@@ -87,6 +87,7 @@ public class AbilityInfo : MonoBehaviour
     public float originalCastTime = 1f;
     public float liveTime = 3;
     public int ticksOfDamage = 1;
+    public float endDelay;
 
     [Serializable]
     public struct AbilityVisualEffects
@@ -1131,7 +1132,6 @@ public class AbilityInfo : MonoBehaviour
             }
         }
 
-        //abilityManager.OnCastRelease?.Invoke(this);
         abilityEvents.OnCastRelease?.Invoke(this);
         HandleResources();
         HandleAbilityType();
@@ -1594,9 +1594,9 @@ public class AbilityInfo : MonoBehaviour
                 abilityEvents.OnAttack?.Invoke(this);
             }
             await AugmentAbilities();
+            await Task.Delay((int)(1000 * endDelay));
             SetRecast();
         }
-
 
 
         if (abilityManager.currentlyCasting == this)

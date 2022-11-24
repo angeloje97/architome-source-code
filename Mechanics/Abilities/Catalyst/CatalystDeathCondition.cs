@@ -18,7 +18,7 @@ namespace Architome
         public LayerMask structureLayer;
 
         public string destroyReason;
-        public float destroyDelay = 0f;
+        public float destroyDelay;
 
         public void GetDependencies()
         {
@@ -248,6 +248,11 @@ namespace Architome
             foreach (var light in GetComponentsInChildren<Light>())
             {
                 light.enabled = false;
+            }
+
+            foreach (var particle in GetComponentsInChildren<ParticleSystem>())
+            {
+                particle.Stop(true);
             }
         }
 

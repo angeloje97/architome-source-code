@@ -9,22 +9,24 @@ public class EntityFXPack : ScriptableObject
 {
 
     [Serializable]
-    public struct EntityEffect
+    public class EntityEffect
     {
+        [HideInInspector] public string name;
         public EntityEvent trigger;
-        //Particle Effect
+        [Header("Particles")]
         public GameObject particleEffect;
         public BodyPart bodyPart;
         public BodyPart bodyPart2;
         public CatalystParticleTarget target;
         public Vector3 positionOffset, scaleOffset, rotationOffset;
 
-        //Phrases
+        [Header("Phrases")]
         [Multiline]
         public List<string> phrases;
         public SpeechType phraseType;
 
-        //AudioClip
+        [Header("Audio")]
+        public AudioMixerType audioType;
         public AudioClip audioClip;
         public List<AudioClip> randomClips;
 
@@ -34,7 +36,23 @@ public class EntityFXPack : ScriptableObject
         public float chance;
         public float coolDown;
 
-        
+        public void Update()
+        {
+            name = trigger.ToString();
+        }
+    }
+
+
+    [SerializeField] bool update;
+    private void OnValidate()
+    {
+        if (!update) return;
+        update = false;
+
+        foreach(var effect in effects)
+        {
+            effect.Update();
+        }
     }
 
     public List<EntityEffect> effects;

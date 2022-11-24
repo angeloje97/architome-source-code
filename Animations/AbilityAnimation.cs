@@ -107,7 +107,7 @@ public class AbilityAnimation
         }
         else
         {
-            SetAbilityAnimation(catalystInfo, 0, true);
+            SetAbilityAnimation(catalystInfo);
         }
 
         //SetCast(true);
@@ -173,24 +173,18 @@ public class AbilityAnimation
         animator.SetTrigger("CancelAbility");
     }
 
-    public void SetAnimTrigger(CatalystInfo catalyst, int index, bool val)
-    {
-        if(catalyst == null || catalyst.animationSequence == null) { return; }
-        if(index >= catalyst.animationSequence.Count) { return; }
-    }
 
-
-    public void SetAbilityAnimation(CatalystInfo catalyst, int abilityIndex, bool val)
+    public void SetAbilityAnimation(CatalystInfo catalyst)
     {
-        if(abilityIndex >=  catalyst.animationSequence.Count) { return; }
+        //if(abilityIndex >=  catalyst.animationSequence.Count) { return; }
 
         var xStyle = (int)catalyst.catalystStyle.x;
         var yStyle = (int)catalyst.catalystStyle.y;
-
-        //animator.SetTrigger("ActivateAbility");
+        var zStyle = (int)catalyst.catalystStyle.z;
         animator.SetInteger("AbilityX", xStyle);
         animator.SetInteger("AbilityY", yStyle);
-        animator.SetInteger("AbilityIndex", catalyst.animationSequence[abilityIndex]);
+        animator.SetInteger("AbilityZ", zStyle);
+        animator.SetInteger("AbilityIndex", zStyle);
     }
 
     public void Attack()
@@ -223,8 +217,6 @@ public class AbilityAnimation
             animator.SetInteger("AttackX", (int)fixedAttack.x);
             animator.SetInteger("AttackY", (int)fixedAttack.y);
             animator.SetInteger("AttackZ", (int)fixedAttack.z);
-            
-
 
             return true;
         }

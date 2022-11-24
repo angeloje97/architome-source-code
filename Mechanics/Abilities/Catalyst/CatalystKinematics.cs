@@ -37,8 +37,12 @@ namespace Architome
         {
             try
             {
-                if (catalyst.abilityInfo.abilityType == AbilityType.Use) return;
-                if (catalyst.abilityInfo.abilityType == AbilityType.Spawn && !catalyst.isCataling) return;
+                if (!catalyst.isCataling)
+                {
+                    if (catalyst.abilityInfo.abilityType == AbilityType.Use) return;
+                    if (catalyst.abilityInfo.abilityType == AbilityType.Spawn) return;
+
+                }
                 if (catalyst.metrics.stops)
                 {
                     speed = catalyst.speed;

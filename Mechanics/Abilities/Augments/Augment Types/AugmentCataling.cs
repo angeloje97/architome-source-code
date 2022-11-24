@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
+using Pathfinding;
 
 namespace Architome
 {
@@ -17,7 +18,8 @@ namespace Architome
         public AugmentProp.DestroyConditions catalingDestroyConditions;
 
         public int releasePerInterval;
-        public float interval, radius, rotationPerInterval, startDelay;
+        public float interval = 1f;
+        public float radius, rotationPerInterval, startDelay;
         public bool combatInclusive;
 
         
@@ -47,6 +49,9 @@ namespace Architome
         {
             if (releaseCondition == CatalystEvent.OnInterval) return;
             if (releaseCondition == CatalystEvent.OnCatalingRelease) return;
+            if (catalyst.isCataling) return;
+
+            Debugger.Combat(7451, $"Cataling's Parent: {catalyst}");
 
             catalyst.AddEventAction(releaseCondition, () => ActivateCataling(catalyst));
 
@@ -71,13 +76,22 @@ namespace Architome
         }
         async void ActivateCataling(CatalystInfo catalyst)
         {
+
             await Task.Delay((int)(startDelay * 1000));
 
+            var catalystHit = catalyst.GetComponent<CatalystHit>();
             int catalingsReleased = 0;
             float currentAngle = 0f;
-            var targets = new List<GameObject>();
+            var targets = new List<EntityInfo>();
 
             FindTargets();
+
+            Debugger.Combat(1532, $"Target Count: {targets.Count}");
+
+            foreach(var target in targets)
+            {
+                Debugger.Combat(1533, $"Cataling found target {target}");
+            }
 
             var eventData = new Augment.AugmentEventData(this) { active = true };
             augment.ActivateAugment(eventData);
@@ -93,6 +107,7 @@ namespace Architome
                 {
                     if (OnCatalingInterval(i))
                     {
+                        Debugger.Combat(4152, $"Current cataling release {i} for {targets.Count} targets");
                         released = true;
                         SetCatalyst(catalyst, true);
                         SetCatalyst(catalyst, false);
@@ -127,12 +142,21 @@ namespace Architome
                     if (targets.Count == 0) return false;
 
                     var percent = position + 1 / releasePerInterval;
+                    var delay = position / (float) releasePerInterval;
 
-                    var index = (catalingsReleased + (percent * releasePerInterval)) % targets.Count;
+                    var index = (catalingsReleased + position) % targets.Count;
+
+                    //Debugger.Combat(24153, $"Releasing lock on catalyst {catalyst}");
+                    //Debugger.Combat(24154, $"Delay is {delay}");
+                    
+                    //Debugger.Combat(24155, $"Percent is {percent}");
+                    //Debugger.Combat(24156, $"Index: {index}");
+
+
 
                     if (position >= targets.Count)
                     {
-                        ArchAction.Delay(() => ReleaseLockOn(targets[index]), position * 0.625f);
+                        ArchAction.Delay(() => ReleaseLockOn(targets[index]), delay * .5f);
                     }
                     else
                     {
@@ -141,9 +165,9 @@ namespace Architome
 
                     return true;
 
-                    void ReleaseLockOn(GameObject target)
+                    void ReleaseLockOn(EntityInfo target)
                     {
-                        catalingInfo.target = target;
+                        catalingInfo.target = target.gameObject;
                         catalingInfo.requiresLockOnTarget = true;
 
                         var newInfo = catalyst.ReleaseCataling(catalingInfo, catalyst.transform.rotation);
@@ -229,11 +253,20 @@ namespace Architome
 
                 do
                 {
-                    targets = catalyst.TargetableEntities(radius, true);
-                    Debugger.Combat(9531, $"{targets.Count}");
+                    targets = catalyst.EntitiesWithinRadius(radius, HandleEntity, true);
                     await Task.Delay(500);
                 }while (!catalyst.isDestroyed) ;
+
+                bool HandleEntity(EntityInfo entity)
+                {
+                    var canHit = catalystHit.CanHit(entity);
+
+                    Debugger.Combat(1243, $"Augment Can Hit {entity} : {canHit}");
+
+                    return canHit;
+                }
             }
+
         }
 
         // Update is called once per frame

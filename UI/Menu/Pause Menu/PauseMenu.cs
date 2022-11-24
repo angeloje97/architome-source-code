@@ -152,10 +152,13 @@ namespace Architome
 
                 var title = sceneName;
 
+                var question = Core.currentSave != null ? $"Are you sure you want to go to {title}? You may lose all your saved progress" : $"Are you sure you want to go to {title}?";
+
+
                 var userChoice = await promptHandler.GeneralPrompt(new()
                 {
                     title = title,
-                    question = $"Are you sure you want to go to {title}? You may lose all your saved progress",
+                    question = question,
                     options = new() {
                         "Confirm",
                         "Cancel"

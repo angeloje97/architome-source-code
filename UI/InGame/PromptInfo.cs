@@ -420,10 +420,111 @@ namespace Architome
         public Sprite icon;
 
         [Serializable]
-        public struct OptionsData
+        public class OptionData
         {
-            public string reference;
+            PromptInfo promptInfo;
+            public string text;
             public bool affectedByInvalidInput;
+            public bool preventClosePrompt;
+            public bool isEscape;
+            public int timer;
+            
+            ArchButton button;
+
+            public Action<OptionData> OnChoose;
+            public Action<OptionData> OnClose;
+
+
+            bool active
+            {
+                get
+                {
+                    return button.interactable;
+                }
+            }
+
+            public void HandlePrompt(PromptInfo prompt)
+            {
+                var parent = prompt.info.choicesParents;
+                var button = prompt.promptPrefabs.button;
+
+                if (parent == null || button == null) return;
+
+                this.button = UnityEngine.Object.Instantiate(button.gameObject, parent).GetComponent<ArchButton>();
+
+                this.button.SetButton(text, () => HandleButtonClick(this.button));
+
+                HandleButtonTimer();
+                HandleEscape();
+
+            }
+
+            async void HandleEscape()
+            {
+                if (!isEscape) return;
+                while (!promptInfo.optionEnded)
+                {
+                    if (active)
+                    {
+                        if (Input.GetKeyUp(KeyCode.Escape)) break;
+
+                    }
+                    await Task.Yield();
+                }
+
+                ChooseOption();
+
+            }
+
+            async void HandleButtonTimer()
+            {
+                if (this.timer == 0) return;
+                var timer = this.timer;
+
+
+                button.SetButton(false);
+
+                for(int i = timer; i >= 0; i--)
+                {
+                    button.SetName($"{text}({i})");
+
+                    await Task.Delay(1000);
+                }
+
+
+                button.SetButton(true);
+            }
+
+            public void ChooseOption()
+            {
+                OnChoose?.Invoke(this);
+
+                if (!preventClosePrompt)
+                {
+                    ClosePrompt();
+                }
+            }
+
+            void HandleButtonClick(ArchButton button)
+            {
+                OnChoose?.Invoke(this);
+
+                if (!preventClosePrompt)
+                {
+                    ClosePrompt();
+                }
+            }
+
+            public void ClosePrompt()
+            {
+                OnClose?.Invoke(this);
+            }
+
+            public void HandleInput(bool val)
+            {
+                if (!affectedByInvalidInput) return;
+                this.button.SetButton(val);
+            }
         }
 
     }
