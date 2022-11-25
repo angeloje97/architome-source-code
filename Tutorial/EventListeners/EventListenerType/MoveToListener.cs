@@ -55,6 +55,7 @@ namespace Architome.Tutorial
         async void HandleLocation()
         {
             if (active) return;
+            if (moveToType != MoveToType.Location) return;
             active = true;
             while (!completed)
             {

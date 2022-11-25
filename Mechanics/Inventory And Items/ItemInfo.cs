@@ -584,6 +584,8 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
     async public Task<bool> SafeDestroy()
     {
+
+        bool destroy = false;
         var userChoice = await PromptHandler.active.GeneralPrompt(new()
         {
             icon = item.itemIcon,
@@ -591,24 +593,25 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
             question = $"Are you sure you want to destroy {item.itemName}?",
             
             options = new() {
-                "Destroy",
-                "Cancel"
+                new("Destroy", (option) => HandleDestroy()),
+                new("Cancel") {isEscape = true },
             },
-            escapeOption="Cancel",
         });
 
-        if (userChoice.optionString == "Destroy")
-        {
-            DestroySelf(true);
-            return true;
-        }
+        return destroy;
 
-        return false;
+        void HandleDestroy()
+        {
+            destroy = true;
+            DestroySelf(true);
+        }
     }
     async public Task<ItemInfo> HandleSplit()
     {
         var promptHandler = PromptHandler.active;
         if (promptHandler == null) return null;
+
+        bool split = false;
 
         var userChoice = await promptHandler.SliderPrompt(new()
         {
@@ -618,14 +621,19 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
             amountMax = currentStacks - 1,
             icon = item.itemIcon,
             options = new () {
-                "Split",
-                "Cancel"
+                new("Split", (option) => { split = true; }),
+                new("Cancel") { isEscape = true}
             },
         });
 
-        if (userChoice.optionString != "Split") return null;
+        if (split)
+        {
+            return SeperateItemStack(userChoice.amount);
+        }
 
-        return SeperateItemStack(userChoice.amount);
+        return null;
+
+
     }
     public bool SameItem(ItemInfo otherItem)
     {

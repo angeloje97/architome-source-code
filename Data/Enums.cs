@@ -73,6 +73,15 @@ namespace Architome.Enums
         ProjectileScanner
     }
 
+    public enum ArchScene
+    {
+        Menu,
+        DungeoneerMenu,
+        Dungeon,
+        PostDungeon,
+        Tutorial
+    }
+
     public enum EntitySlotType
     {
         Roster,

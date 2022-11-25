@@ -80,10 +80,12 @@ public class GearModuleManager : MonoBehaviour
 
             newStats.SetEntity(entity);
             newSlotManager.SetEntity(entity);
+            newSlotManager.SetEntitySeperate(entity);
 
             var statCanvas = newStats.GetComponent<CanvasGroup>();
             var slotCanvas = newSlotManager.GetComponent<CanvasGroup>();
 
+            
 
             entityDict.Add(entity, new() {
             statCanvas,
@@ -124,12 +126,19 @@ public class GearModuleManager : MonoBehaviour
     {
         var characterInfo = newEntity.GetComponentInChildren<CharacterInfo>();
 
+        newEntity.infoEvents.OnTryEquip += HandleTryEquip;
+
         if (characterInfo)
         {
             characterInfo.modules.gearModule = this;
         }
         
+    }
 
+    void HandleTryEquip(ItemInfo item, EntityInfo entity)
+    {
+        if (seperateEntities) return;
+        OnEquipItem?.Invoke(item, entity);
     }
     public void EquipItem(ItemInfo info, EntityInfo entity)
     {

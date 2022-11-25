@@ -27,6 +27,7 @@ namespace Architome
         //Update Triggers
         private EntityInfo currentEntity;
 
+        Action<GearSlotManager> OnDestroyEvent;
 
 
         public void GetDependencies()
@@ -59,10 +60,25 @@ namespace Architome
 
             }
         }
+
+        private void OnDestroy()
+        {
+            OnDestroyEvent?.Invoke(this);
+            moduleManager.OnEquipItem -= OnTryEquip;
+            module.OnSelectEntity -= OnSelectEntity;
+
+            if (guildManager)
+            {
+                guildManager.OnSelectEntity -= OnSelectEntity;
+            }
+            itemSlotHandler.OnChangeItem -= OnChangeItem;
+        }
+
         void Start()
         {
             GetDependencies();
         }
+
 
         void OnSelectEntity(EntityInfo entity)
         {
@@ -80,9 +96,20 @@ namespace Architome
             CreateItems();
         }
 
+        public void SetEntitySeperate(EntityInfo entity)
+        {
+            entity.infoEvents.OnTryEquip += OnTryEquip;
+
+            OnDestroyEvent += (obj) =>
+            {
+                entity.infoEvents.OnTryEquip -= OnTryEquip;
+            };
+
+        }
+
         
 
-        void OnTryEquip(ItemInfo info, EntityInfo entity)
+        public void OnTryEquip(ItemInfo info, EntityInfo entity)
         {
             if (entityInfo != entity)
             {

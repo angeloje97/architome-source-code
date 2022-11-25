@@ -141,6 +141,7 @@ namespace Architome
         void OnSceneStart()
         {
             ArchAction.Delay(() => {
+                if (this == null) return;
                 TransferUnitsToEntrancePortal();
                 StopMovingEntities();
                 HandlePortals();

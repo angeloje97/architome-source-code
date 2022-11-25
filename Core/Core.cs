@@ -24,6 +24,13 @@ namespace Architome
             OnSetState = null;
         }
 
+        public static void ResetAll()
+        {
+            OnSetState = null;
+            currentSave = null;
+            currentDungeon = null;
+        }
+
         public static void SetSave(SaveGame save)
         {
             currentSave = save;

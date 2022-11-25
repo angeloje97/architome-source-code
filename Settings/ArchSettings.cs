@@ -62,7 +62,7 @@ namespace Architome.Settings
 
             var userChoice = await promptHandler.GeneralPrompt(PromptData());
 
-            if(userChoice.optionString == "Cancel")
+            if(userChoice.optionPicked.text == "Cancel")
             {
                 return false;
             }
@@ -111,11 +111,10 @@ namespace Architome.Settings
             {
                 title = "Settings",
                 question = "Are you sure you want to continue without applying?",
-                options = new List<string>() { 
-                    "Leave Settings",
-                    "Cancel"
+                options = new() { 
+                    new("Leave Settings"),
+                    new("Cancel") {isEscape = true}
                 },
-                escapeOption = "Cancel",
                 blocksScreen = true,
             };
         }

@@ -4,6 +4,7 @@ using UnityEngine;
 using System;
 using UnityEngine.SceneManagement;
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 
 namespace Architome
 {
@@ -154,23 +155,22 @@ namespace Architome
 
                 var question = Core.currentSave != null ? $"Are you sure you want to go to {title}? You may lose all your saved progress" : $"Are you sure you want to go to {title}?";
 
+                bool confirm = false;
 
                 var userChoice = await promptHandler.GeneralPrompt(new()
                 {
                     title = title,
                     question = question,
                     options = new() {
-                        "Confirm",
-                        "Cancel"
+                        new("Confirm", (option) => { confirm = true; }),
+                        new("Cancel") { isEscape = true }
+                        //"Confirm",
+                        //"Cancel"
                     },
-                    escapeOption = "Cancel",
                     blocksScreen = true
                 });
 
-
-                if (userChoice.optionString == "Cancel") return false;
-
-                return true;
+                return confirm;
             }
         }
 
@@ -190,20 +190,20 @@ namespace Architome
 
                 if (promptHandler == null) return true;
 
+                var confirmed = false;
+
                 var userChoice = await promptHandler.GeneralPrompt(new()
                 {
                     title = "Quit Game",
                     question ="Are you sure you want to quit? The current progress might not be saved.",
                     options= new() {
-                        "Confirm",
-                        "Cancel"
+                        new("Confirm", (option) => { confirmed = true; }),
+                        new("Cancel"){ isEscape = true },
                     },
-                    escapeOption="Cancel",
                     blocksScreen=true,
-                });
+                });;
 
-                if (userChoice.optionString == "Cancel") return false;
-                return true;
+                return confirmed;
 
             }
         }

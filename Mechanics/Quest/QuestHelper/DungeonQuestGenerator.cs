@@ -77,26 +77,25 @@ namespace Architome
                 var promptHandler = PromptHandler.active;
                 if (promptHandler == null) return true;
 
+                var proceeding = false;
+
                 var choice = await promptHandler.GeneralPrompt(new()
                 {
                     title = questGenerated.questName,
                     question = "This quest is incomplete and will be abandoned when entering the next level.",
-                    
                     options = new()
                     {
-                        "Proceed",
-                        "Cancel"
-                    }
+                        new("Proceed", (option) => {
+                            proceeding = true;
+                            questGenerated.ForceFail();
+                        }),
+                        new("Cancel") {isEscape = true}
+                    },
+                    blocksScreen = true,
                     
                 });
 
-                if (choice.optionString == "Cancel")
-                {
-                    return false;
-                }
-
-                questGenerated.ForceFail();
-                return true;
+                return proceeding;
             }
         }
 

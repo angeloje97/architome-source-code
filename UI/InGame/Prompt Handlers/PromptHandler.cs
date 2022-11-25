@@ -5,6 +5,7 @@ using System;
 using System.Threading.Tasks;
 using UnityEngine.UI;
 using System.Runtime.Serialization;
+using System.Runtime.CompilerServices;
 
 namespace Architome
 {
@@ -93,43 +94,41 @@ namespace Architome
                 blocksScreen = true,
                 options = new()
                 {
-                    "Revive",
-                    "Quit"
+                    new("Revive", (option) => HandleRevive()) { timer = 3 },
+                    
                 },
                 question = "All party members are dead." + playerSpawnBeacon != null ? "Do you wish to revive at the most recent spawn beacon?" : "",
-                optionsAffectedByTimer = new() { 0 },
+                
             });
 
-            if (userChoice.optionString != "Revive") return;
 
-            
-
-            if (playerSpawnBeacon == null)
+            void HandleRevive()
             {
-                var worldActions = WorldActions.active;
-                if (worldActions)
+                if (playerSpawnBeacon == null)
                 {
-                    foreach(var member in members)
+                    var worldActions = WorldActions.active;
+                    if (worldActions)
                     {
-                        worldActions.Revive(member, member.transform.position, .50f, .50f);
+                        foreach (var member in members)
+                        {
+                            worldActions.Revive(member, member.transform.position, .50f, .50f);
+                        }
                     }
+                    return;
                 }
-                return;
+
+                var spawnBeaconHandler = playerSpawnBeacon.GetComponentInChildren<PlayerSpawnBeaconHandler>();
+
+                spawnBeaconHandler.ReviveDeadPartyMembers();
             }
 
-            var spawnBeaconHandler = playerSpawnBeacon.GetComponentInChildren<PlayerSpawnBeaconHandler>();
-
-            spawnBeaconHandler.ReviveDeadPartyMembers();
+            
         }
 
         async Task<PromptChoiceData> UserChoice(PromptInfo prompt)
         {
-            prompt.choicePicked = -1;
-            var waiting = true;
 
-            prompt.OnPickChoice += (PromptInfo info) => { waiting = false; };
-
-            while (waiting)
+            while (!prompt.optionEnded)
             {
                 await Task.Yield();
 
@@ -147,7 +146,7 @@ namespace Architome
             Debugger.InConsole(3498, $"Opening general prompt");
             if (prefabs.generalPrompt == null)
             {
-                return PromptChoiceData.defaultPrompt;
+                return null;
             }
 
             var prompt = ActivatePrompt(prefabs.generalPrompt, new(0, 270, 0));
@@ -162,7 +161,7 @@ namespace Architome
         {
             if (!prefabs.sliderPrompt)
             {
-                return PromptChoiceData.defaultPrompt;
+                return null;
             }
 
             var prompt = ActivatePrompt(prefabs.sliderPrompt, new Vector3(0, 270, 0));
@@ -176,7 +175,7 @@ namespace Architome
 
         async public Task<PromptChoiceData> InputPrompt(PromptInfoData promptData)
         {
-            if (prefabs.inputPrompt == null) return PromptChoiceData.defaultPrompt;
+            if (prefabs.inputPrompt == null) return null;
 
             var prompt = ActivatePrompt(prefabs.inputPrompt, new Vector3(0, 270, 0));
 
@@ -188,19 +187,14 @@ namespace Architome
             return await UserChoice(prompt);
         }
 
-        async public Task MessagePrompt(PromptInfoData promptData)
+        public void MessagePrompt(PromptInfoData promptData)
         {
             if (prefabs.messagePrompt == null) return;
             var prompt = ActivatePrompt(prefabs.messagePrompt);
 
             prompt.SetPrompt(promptData);
 
-            prompt.choicePicked = -1;
 
-            while (prompt.choicePicked == -1)
-            {
-                await Task.Yield();
-            }
         }
     }
 

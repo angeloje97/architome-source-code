@@ -419,9 +419,9 @@ namespace Architome
                 if (options[choice] != "Equip") return;
                 if (entityCharacter == null) return;
 
-                
+                entityInfo.infoEvents.OnTryEquip?.Invoke(info, entityInfo);
 
-                entityCharacter.modules.gearModule.EquipItem(info, entityInfo);
+                //entityCharacter.modules.gearModule.EquipItem(info, entityInfo);
             }
 
             async void  HandleSplit()

@@ -42,6 +42,11 @@ namespace Architome
             if (!base.CanInsert(info)) return false;
             var item = info.item;
 
+            if (!entityInfo)
+            {
+                Debugger.Environment(7651, $"Entity is null for gear slot {this}");
+            }
+
             if (entityInfo.isInCombat)
             {
                 itemSlotHandler.HandleCantInsert(this, info, "Cannot equip anything during combat");

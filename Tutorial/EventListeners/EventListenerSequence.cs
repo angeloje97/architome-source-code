@@ -17,6 +17,12 @@ namespace Architome.Tutorial
         public float delay;
         public float delayBetweenDirections;
 
+        public bool useLast;
+        public string lastTitle;
+        [Multiline]
+        public string lastDescription;
+
+
         private void OnValidate()
         {
             if (listenerTarget == null) return;
@@ -57,8 +63,22 @@ namespace Architome.Tutorial
                     
                 };
 
-
+                if(i + 1 == eventListeners.Count - 1)
+                {
+                    nextListener.OnSuccessfulEvent += (eventListener) => HandleLastDirection(notificationManager);
+                }
             }
+        }
+
+        public async void HandleLastDirection(NotificationManager manager)
+        {
+            if (!useLast) return;
+
+            await manager.CreateNotification(new(NotificationType.Success)
+            {
+                name = lastTitle,
+                description = lastDescription
+            });
         }
 
         public async void HandleNotification(EventListener listener, NotificationManager manager)

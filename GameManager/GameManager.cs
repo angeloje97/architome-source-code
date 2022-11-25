@@ -77,6 +77,10 @@ namespace Architome
 
             Core.Reset();
 
+            if(gameState == GameState.Menu)
+            {
+                Core.ResetAll();
+            }
         }
 
         private void Start()

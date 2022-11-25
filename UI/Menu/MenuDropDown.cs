@@ -16,7 +16,6 @@ namespace Architome
 
         async public void QuitApplication()
         {
-            bool quit = true;
 
             if (PromptHandler.active)
             {
@@ -24,14 +23,19 @@ namespace Architome
                 {
                     title = "Quit Game",
                     question = "Are you sure you want to quit?",
-                    options = new() { "Quit", "Cancel" },
+                    options = new()
+                    {
+                        new("Quit", (option) => HandleQuit()),
+                        new("Cancel") {isEscape = true}
+                    },
                     blocksScreen = true,
                 });
 
-                if (choice.optionPicked == 0)
-                {
-                    Application.Quit();
-                }
+            }
+
+            void HandleQuit()
+            {
+                Application.Quit();
             }
 
         }

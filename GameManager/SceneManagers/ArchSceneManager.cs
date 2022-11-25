@@ -1,4 +1,5 @@
 using System.Collections;
+using Architome.Enums;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -10,6 +11,10 @@ namespace Architome
     public class ArchSceneManager : MonoBehaviour
     {
         public static ArchSceneManager active { get; private set; }
+
+        [SerializeField] bool updateSceneInfos;
+        public List<SceneInfo> sceneInfos;
+        public Dictionary<ArchScene, SceneInfo> sceneInfoDict;
 
         public List<Task> tasksBeforeLoad;
         public List<Task<bool>> tasksBeforeConfirmLoad;
@@ -92,5 +97,43 @@ namespace Architome
             return SceneManager.GetActiveScene().name;
         }
 
+        public void OnValidate()
+        {
+            if (!updateSceneInfos) return;
+            updateSceneInfos = false;
+            sceneInfos ??= new();
+
+            foreach(var sceneInfo in sceneInfos)
+            {
+                sceneInfo.Update();
+            }
+        }
+
+
+        [Serializable]
+        public class SceneInfo
+        {
+            [HideInInspector] public string name;
+            public ArchScene scene;
+
+            public string main;
+
+            public List<string> subScenes;
+            public void Update()
+            {
+                name = scene.ToString();
+            }
+
+            public bool Equals(SceneInfo other)
+            {
+
+                if (other.main == main)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+        }
     }
 }

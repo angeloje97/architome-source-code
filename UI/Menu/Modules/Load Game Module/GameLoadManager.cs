@@ -102,23 +102,28 @@ namespace Architome
                 question = $"Are you sure you want to delete {selectedSave.saveName}?",
                 
                 options = new() {
-                    "Confirm",
-                    "Cancel"
+                    new("Confirm", (option) => HandleRemove()),
+                    new("Cancel") { isEscape = true }
                 },
                 blocksScreen = true
             });
 
-            if (userChoice.optionString != "Confirm") return;
 
-            slots.Remove(selectedSlot);
-            selectedSlot.DestroySelf();
 
-            SerializationManager.DeleteSave(selectedSave.SaveFileName());
-            selectedSlot = null;
-            selectedSave = null;
-            UpdateSlots();
-            UpdateButtons();
 
+            void HandleRemove()
+            {
+                slots.Remove(selectedSlot);
+                selectedSlot.DestroySelf();
+
+                SerializationManager.DeleteSave(selectedSave.SaveFileName());
+                selectedSlot = null;
+                selectedSave = null;
+                UpdateSlots();
+                UpdateButtons();
+
+            }
+            
         }
 
         public void OnClickSave(SaveGameSlot slot)
@@ -155,30 +160,41 @@ namespace Architome
         {
             if (selectedSave == null) return;
 
+            var apply = false;
+
             var userInput = await PromptHandler.active.InputPrompt(new() {
                 title = selectedSave.saveName,
                 question = $"New name for {selectedSave.saveName}",
                 
-                options = new List<string>()
+                options = new()
                 {
-                    "Apply",
-                    "Cancel",
+                    new("Apply", (option) => {apply = true; }) { affectedByInvalidInput = true },
+                    new("Cancel") {isEscape = true},
                 },
-                optionsAffectedByInvalidInput = new() { 0 },
                 IsValidInput = CheckValidInput,
                 blocksScreen = true,
                 maxInputLength = 30
             });
 
-            if (userInput.optionString == "Cancel") return;
 
-            var newName = userInput.userInput;
-
-            selectedSave.saveName = newName;
-            selectedSlot.info.saveName.text = newName;
-
-            selectedSave.Save();
+            if (apply)
+            {
+                HandleApply();
+            }
             
+
+            void HandleApply()
+            {
+                var newName = userInput.userInput;
+
+                selectedSave.saveName = newName;
+                selectedSlot.info.saveName.text = newName;
+
+                selectedSave.Save();
+
+                
+            }
+
             bool CheckValidInput(string input)
             {
                 var length = input.Length;

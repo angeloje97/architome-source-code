@@ -159,27 +159,34 @@ namespace Architome.Settings
             {
                 title = "Key Bindings",
                 question = "Are you sure you want to reset to default?",
-                options = new() { "Confirm", "Cancel" },
+                options = new() 
+                { 
+                    new("Confirm", (option) => HandleConfirm()),
+                    new("Cancel") {isEscape = true}
+                },
                 blocksScreen = true
             });
 
 
-            if (choice.optionPicked != 0) return;
 
-
-            foreach (var binding in KeyBindings.keyBindsDefault)
+            void HandleConfirm()
             {
-                if (!mapDict.ContainsKey(binding.Key)) continue;
-                var map = mapDict[binding.Key];
+                foreach (var binding in KeyBindings.keyBindsDefault)
+                {
+                    if (!mapDict.ContainsKey(binding.Key)) continue;
+                    var map = mapDict[binding.Key];
 
-                ArchAction.Yield(() => { map.SetConflict(false); });
+                    ArchAction.Yield(() => { map.SetConflict(false); });
 
-                map.SetKeyString(binding.Value.ToString());
-                UpdateMap(map);
+                    map.SetKeyString(binding.Value.ToString());
+                    UpdateMap(map);
+                }
+
+                ArchAction.Yield(() => ApplyBindings());
+                dirty = false;
+
             }
 
-            ArchAction.Yield(() => ApplyBindings());
-            dirty = false;
         }
 
         public void RevertBindings()
@@ -209,29 +216,33 @@ namespace Architome.Settings
                 var choice = await PromptHandler.active.GeneralPrompt(new() {
                     title = "Key Bindings",
                     question = "There are conflicting keybindings. Are you sure you want to current settings?",
-                    options = new List<string>() { 
-                        "Apply",
-                        "Cancel"
+                    options = new() { 
+                        new("Apply", (option) => Apply()),
+                        new("Cancel"),
                     },
                     blocksScreen = true
                 });
 
-                if (choice.optionString == "Cancel")
-                {
-                    return;
-                }
+                return;
             }
 
-            keyBindings.combatBindings = combatBindings.ToList();
+            Apply();
 
-            keyBindings.MapBindings();
-            keyBindings.SaveKeyBindings();
-            keyBindings.LoadKeyBindings();
+            void Apply()
+            {
+                keyBindings.combatBindings = combatBindings.ToList();
+
+                keyBindings.MapBindings();
+                keyBindings.SaveKeyBindings();
+                keyBindings.LoadKeyBindings();
 
 
-            OnApplyChanges?.Invoke(this);
+                OnApplyChanges?.Invoke(this);
 
-            dirty = false;
+                dirty = false;
+            }
+
+            
         }
 
 

@@ -14,12 +14,11 @@ namespace Architome
     {
         // Start is called before the first frame update
         [Header("PromptInfo Properties")]
-        public int choicePicked;
         public string userInput;
         public bool optionEnded { get; set; }
         public int amount;
-        public List<ArchButton> buttonOptions;
-        public List<string> choices;
+        //public List<ArchButton> buttonOptions;
+        //public List<string> choices;
         public Action<PromptInfo> OnPickChoice { get; set; }
         public Action<PromptInfo> OnEndOptions { get; set; }
 
@@ -75,7 +74,10 @@ namespace Architome
             PlaySound(false);
             SetActive(false);
             OnEndOptions?.Invoke(this);
-            ArchAction.Delay(() => { Destroy(gameObject); }, 1f);
+            ArchAction.Delay(() => {
+                if (this == null) return;
+                Destroy(gameObject); 
+            }, 1f);
         }
         void Start()
         {
@@ -118,29 +120,6 @@ namespace Architome
             }
         }
 
-
-
-
-        private void Update()
-        {
-            HandleEscape();
-
-            void HandleEscape()
-            {
-                if (!Input.GetKeyUp(KeyCode.Escape)) return;
-                if (promptData.forcePick) return;
-                if(promptData.escapeOption != "")
-                {
-                    for (int i = 0; i < buttonOptions.Count; i++)
-                    {
-                        if (choices[i] != promptData.escapeOption) continue;
-                        PickOption(i);
-                    }
-                }
-
-
-            }
-        }
         public void PlaySound(bool open)
         {
             try
@@ -158,35 +137,27 @@ namespace Architome
             catch { }
         }
 
-        public void PickOption(int option)
+        public void PickOption(OptionData option)
         {
-            choicePicked = option;
             choiceData.optionPicked = option;
-            if (promptData.options != null)
-            {
-                choiceData.optionString = promptData.options[option];
-            }
 
             OnPickChoice?.Invoke(this);
 
-            ArchAction.Yield(() => EndOptions());
         }
 
         public void SetPrompt(PromptInfoData promptData)
         {
             this.promptData = promptData;
+            choiceData = new();
 
             info.title.text = promptData.title;
             info.question.text = promptData.question;
-            //info.options[0].text = promptData.option1;
-            //info.options[1].text = promptData.option2;
 
             info.screenBlocker.SetActive(promptData.blocksScreen);
             forceActive = promptData.forcePick;
 
             HandleSlider();
-            HandleButtons();
-            HandleButtonTimers();
+            HandleOptions();
             HandleInputField();
 
             UpdateSize();
@@ -195,36 +166,6 @@ namespace Architome
             {
                 info.promptIcon.sprite = promptData.icon;
             }
-        }
-
-        void HandleButtonTimers()
-        {
-            if (promptData.options == null) return;
-            if (promptData.optionsAffectedByTimer == null) return;
-
-            foreach(var optionIndex in promptData.optionsAffectedByTimer)
-            {
-                HandleTimer(buttonOptions[optionIndex]);
-            }
-
-            async static void HandleTimer(ArchButton button)
-            {
-                button.SetButton(false);
-
-                var originalText = button.buttonName.text;
-
-                var seconds = 3;
-                button.SetName($"{originalText} in {seconds}s");
-                while(seconds > 0)
-                {
-                    await Task.Delay(1000);
-                    seconds -= 1;
-                    button.SetName($"{originalText} in {seconds}s");
-                }
-                button.SetName(originalText);
-                button.SetButton(true);
-            }
-
         }
 
         async void UpdateSize()
@@ -271,7 +212,7 @@ namespace Architome
             }
         }
 
-        void HandleButtons()
+        void HandleOptions()
         {
             var valid = true;
             if (promptData.options == null) valid = false;
@@ -294,23 +235,18 @@ namespace Architome
                 return;
             }
 
-            buttonOptions = new List<ArchButton>();
-            choices = new();
+            var hasEscape = false;
 
-            for (int i = 0; i < promptData.options.Count; i++)
+            foreach(var option in promptData.options)
             {
-                var option = promptData.options[i];
-                var newButton = Instantiate(button, info.choicesParents).GetComponent<ArchButton>();
+                if (hasEscape) option.isEscape = false;
 
-                buttonOptions.Add(newButton);
-                choices.Add(option);
-
-                newButton.SetName(option);
-
-                newButton.OnClick += delegate (ArchButton button)
-                {
-                    PickOption(buttonOptions.IndexOf(button));
+                if (option.isEscape) hasEscape = true;
+                option.HandlePrompt(this);
+                option.OnClose += (optionData) => {
+                    ArchAction.Yield(EndOptions);
                 };
+
             }
         }
 
@@ -348,13 +284,9 @@ namespace Architome
 
             void UpdateButtons()
             {
-                if (buttonOptions == null) return;
-                var affectedByInvalid = promptData.optionsAffectedByInvalidInput;
-                if (affectedByInvalid == null) return;
-
-                foreach(var index in affectedByInvalid)
+                foreach(var option in promptData.options)
                 {
-                    buttonOptions[index].SetButton(validInput);
+                    option.HandleInput(validInput);
                 }
             }
 
@@ -398,15 +330,12 @@ namespace Architome
 
 
     }
-    public struct PromptInfoData
+    public class PromptInfoData
     {
         public string title;
         public string question;
-        public string escapeOption;
-        public List<int> optionsAffectedByInvalidInput;
-        public List<int> optionsAffectedByTimer;
         public Predicate<string> IsValidInput;
-        public List<string> options { get; set; }
+        public List<OptionData> options { get; set; }
         public bool blocksScreen;
         public bool forcePick;
 
@@ -419,139 +348,144 @@ namespace Architome
 
         public Sprite icon;
 
-        [Serializable]
-        public class OptionData
-        {
-            PromptInfo promptInfo;
-            public string text;
-            public bool affectedByInvalidInput;
-            public bool preventClosePrompt;
-            public bool isEscape;
-            public int timer;
-            
-            ArchButton button;
-
-            public Action<OptionData> OnChoose;
-            public Action<OptionData> OnClose;
-
-
-            bool active
-            {
-                get
-                {
-                    return button.interactable;
-                }
-            }
-
-            public void HandlePrompt(PromptInfo prompt)
-            {
-                var parent = prompt.info.choicesParents;
-                var button = prompt.promptPrefabs.button;
-
-                if (parent == null || button == null) return;
-
-                this.button = UnityEngine.Object.Instantiate(button.gameObject, parent).GetComponent<ArchButton>();
-
-                this.button.SetButton(text, () => HandleButtonClick(this.button));
-
-                HandleButtonTimer();
-                HandleEscape();
-
-            }
-
-            async void HandleEscape()
-            {
-                if (!isEscape) return;
-                while (!promptInfo.optionEnded)
-                {
-                    if (active)
-                    {
-                        if (Input.GetKeyUp(KeyCode.Escape)) break;
-
-                    }
-                    await Task.Yield();
-                }
-
-                ChooseOption();
-
-            }
-
-            async void HandleButtonTimer()
-            {
-                if (this.timer == 0) return;
-                var timer = this.timer;
-
-
-                button.SetButton(false);
-
-                for(int i = timer; i >= 0; i--)
-                {
-                    button.SetName($"{text}({i})");
-
-                    await Task.Delay(1000);
-                }
-
-
-                button.SetButton(true);
-            }
-
-            public void ChooseOption()
-            {
-                OnChoose?.Invoke(this);
-
-                if (!preventClosePrompt)
-                {
-                    ClosePrompt();
-                }
-            }
-
-            void HandleButtonClick(ArchButton button)
-            {
-                OnChoose?.Invoke(this);
-
-                if (!preventClosePrompt)
-                {
-                    ClosePrompt();
-                }
-            }
-
-            public void ClosePrompt()
-            {
-                OnClose?.Invoke(this);
-            }
-
-            public void HandleInput(bool val)
-            {
-                if (!affectedByInvalidInput) return;
-                this.button.SetButton(val);
-            }
-        }
-
+        
     }
     [Serializable]
-    public struct PromptChoiceData
+    public class PromptChoiceData
     {
-        public int optionPicked;
-        public string optionString;
+        public OptionData optionPicked;
 
         //Slider
-        public int amount;
-        public float amountF;
+        public int amount { get; set; }
+        public float amountF { get; set; }
 
 
         //Input field
-        public string userInput;
+        public string userInput { get; set; }
 
-        public static PromptChoiceData defaultPrompt
+    }
+
+    [Serializable]
+    public class OptionData
+    {
+        PromptInfo promptInfo;
+        public string text;
+        public bool affectedByInvalidInput;
+        public bool preventClosePrompt;
+        public bool isEscape;
+        public int timer;
+
+        ArchButton button;
+
+        public Action<OptionData> OnChoose;
+        public Action<OptionData> OnClose;
+
+
+        public OptionData(string text, Action<OptionData> action)
+        {
+            this.text = text;
+            OnChoose += action;
+        }
+
+        public OptionData(string text)
+        {
+            this.text = text;
+        }
+
+        bool active
         {
             get
             {
-                return new()
-                {
-                    optionPicked = -1,
-                    optionString = "",
-                };
+                return button.interactable;
             }
         }
+
+        public void HandlePrompt(PromptInfo prompt)
+        {
+            promptInfo = prompt;
+            var parent = prompt.info.choicesParents;
+            var button = prompt.promptPrefabs.button;
+
+            if (parent == null || button == null) return;
+
+            this.button = UnityEngine.Object.Instantiate(button.gameObject, parent).GetComponent<ArchButton>();
+
+            this.button.SetButton(text, () => HandleButtonClick(this.button));
+
+            HandleButtonTimer();
+            HandleEscape();
+
+        }
+
+        async void HandleEscape()
+        {
+            if (!isEscape) return;
+            while (!promptInfo.optionEnded)
+            {
+                if (active)
+                {
+                    if (Input.GetKeyUp(KeyCode.Escape)) break;
+
+                }
+                await Task.Yield();
+            }
+
+            ChooseOption();
+
+        }
+
+        async void HandleButtonTimer()
+        {
+            if (this.timer == 0) return;
+            var timer = this.timer;
+
+
+            button.SetButton(false);
+
+            for (int i = timer; i >= 0; i--)
+            {
+                button.SetName($"{text}({i})");
+
+                await Task.Delay(1000);
+            }
+
+            button.SetName(text);
+
+
+            button.SetButton(true);
+        }
+
+        public void ChooseOption()
+        {
+            OnChoose?.Invoke(this);
+            promptInfo.PickOption(this);
+            if (!preventClosePrompt)
+            {
+                ClosePrompt();
+            }
+        }
+
+        void HandleButtonClick(ArchButton button)
+        {
+            OnChoose?.Invoke(this);
+
+            if (!preventClosePrompt)
+            {
+                ClosePrompt();
+            }
+        }
+
+        public void ClosePrompt()
+        {
+            OnClose?.Invoke(this);
+        }
+
+        public void HandleInput(bool val)
+        {
+            if (!affectedByInvalidInput) return;
+            this.button.SetButton(val);
+        }
     }
+
+
 }

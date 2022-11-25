@@ -45,7 +45,7 @@ namespace Architome.Tutorial
                     Directions(),
                     Tips()
                 }),
-                options = new() { "Okay" }
+                options = new() { new("Okay") }
             });
 
             CompleteEventListener();
