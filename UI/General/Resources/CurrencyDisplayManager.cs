@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Architome
 {
@@ -137,6 +138,9 @@ namespace Architome
                 SaveSystem.active.BeforeSave += delegate (SaveGame save)  {
                     save.guildData.currencies = new(currencyDatas);
                 };
+                
+
+
             }
             
 

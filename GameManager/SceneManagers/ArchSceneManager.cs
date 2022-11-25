@@ -13,6 +13,7 @@ namespace Architome
         public static ArchSceneManager active { get; private set; }
 
         [SerializeField] bool updateSceneInfos;
+        public bool isLoading;
         public List<SceneInfo> sceneInfos;
         public Dictionary<ArchScene, SceneInfo> sceneInfoDict;
 
@@ -20,14 +21,14 @@ namespace Architome
         public List<Task<bool>> tasksBeforeConfirmLoad;
         public List<Task> tasksBeforeActivateScene;
 
-        public Action<ArchSceneManager> BeforeLoadScene;
-        public Action<ArchSceneManager> BeforeActivateScene;
-        public Action<ArchSceneManager> OnLoadScene;
-        public Action<ArchSceneManager> BeforeConfirmLoad;
+        public Action<ArchSceneManager> BeforeLoadScene { get; set; }
+        public Action<ArchSceneManager> BeforeActivateScene { get; set; }
+        public Action<ArchSceneManager> OnLoadScene { get; set; }
+        public Action<ArchSceneManager> BeforeConfirmLoad { get; set; }
 
-        public Action<AsyncOperation> OnLoadStart;
-        public Action<AsyncOperation> WhileLoading;
-        public Action<AsyncOperation> OnLoadEnd;
+        public Action<AsyncOperation> OnLoadStart { get; set; }
+        public Action<AsyncOperation> WhileLoading { get; set; }
+        public Action<AsyncOperation> OnLoadEnd { get; set; }
 
 
         public string sceneToLoad;
@@ -35,7 +36,23 @@ namespace Architome
 
         private void Awake()
         {
+            if (active)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
             active = this;
+        }
+
+        private void Start()
+        {
+            if (active == this)
+            {
+                transform.SetParent(null);
+                DontDestroyOnLoad(gameObject);
+
+            }
         }
 
         async public void LoadScene(string sceneName, bool async = true)
@@ -45,7 +62,6 @@ namespace Architome
             tasksBeforeConfirmLoad = new();
 
             BeforeConfirmLoad?.Invoke(this);
-
             foreach (var choice in tasksBeforeConfirmLoad)
             {
                 if (!await choice) return;
@@ -65,7 +81,7 @@ namespace Architome
                 SceneManager.LoadScene(sceneName);
                 return;
             }
-
+            isLoading = true;
             var scene = SceneManager.LoadSceneAsync(sceneName);
             scene.allowSceneActivation = false;
             OnLoadStart?.Invoke(scene);
@@ -89,7 +105,8 @@ namespace Architome
             scene.allowSceneActivation = true;
 
             OnLoadScene?.Invoke(this);
-
+            await Task.Delay(2500);
+            isLoading = false;
         }
 
         public string CurrentScene()
@@ -115,6 +132,8 @@ namespace Architome
         {
             [HideInInspector] public string name;
             public ArchScene scene;
+
+            public bool enableSaveScene;
 
             public string main;
 

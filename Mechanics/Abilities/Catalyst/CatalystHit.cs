@@ -4,7 +4,6 @@ using UnityEngine;
 using Architome.Enums;
 using Architome;
 using System.Threading;
-using UnityEditor.PackageManager;
 
 public class CatalystHit : MonoBehaviour
 {

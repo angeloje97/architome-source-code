@@ -218,7 +218,7 @@ namespace Architome
         {
             Core.SetSave(selectedSave);
 
-            ArchSceneManager.active.LoadScene(selectedSave.currentSceneName);
+            ArchSceneManager.active.LoadScene("Dungeoneer Menu");
             //SceneManager.LoadScene(selectedSave.currentSceneName);
         }
         

@@ -438,7 +438,7 @@ namespace Architome.Enums
 
     public enum Rarity
     {
-        Poor = 0,
+        Poor = 1,
         Common = 1,
         Uncommon = 2,
         Rare = 3,

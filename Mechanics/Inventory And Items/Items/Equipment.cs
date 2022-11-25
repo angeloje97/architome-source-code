@@ -71,6 +71,14 @@ namespace Architome
             }
         }
 
+        public override void AdjustValue()
+        {
+            base.AdjustValue();
+
+            value = itemLevel * LevelRequired * (int) rarity;
+            
+        }
+
         public List<int> EquipmentEffectsData()
         {
             var data = new List<int>();

@@ -81,6 +81,11 @@ public class ThreatManager : MonoBehaviour
                 {
                     RemoveThreat();
                 }
+                
+                if (!sourceInfo.CanAttack(threatInfo))
+                {
+                    RemoveThreat();
+                }
 
                 await Task.Delay(1000);
                 timeInCombat += 1;

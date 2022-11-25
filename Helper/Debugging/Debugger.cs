@@ -7,7 +7,7 @@ public class Debugger : MonoBehaviour
 {
     // Start is called before the first frame update
     static bool debugging = false;
-    static bool debugCombat = true;
+    static bool debugCombat = false;
     static bool debugEnvironment = true;
     static bool debugUI = false;
     static bool debugSocial = false;

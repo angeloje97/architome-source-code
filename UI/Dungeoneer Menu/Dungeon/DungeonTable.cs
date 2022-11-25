@@ -109,6 +109,7 @@ namespace Architome
         void BeforeLoadScene(ArchSceneManager sceneManager)
         {
             SaveDungeons();
+            sceneManager.BeforeLoadScene -= BeforeLoadScene;
         }
 
         void SaveDungeons()

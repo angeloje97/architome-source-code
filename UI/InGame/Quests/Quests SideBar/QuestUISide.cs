@@ -91,6 +91,7 @@ namespace Architome
         async void FadeAway()
         {
             await Task.Delay(5000);
+            if (this == null) return;
 
             transitioning = true;
 

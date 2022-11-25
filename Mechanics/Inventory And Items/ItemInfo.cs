@@ -280,6 +280,8 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         }
 
         item = cloned ? Instantiate(data.item) : data.item;
+
+        item.AdjustValue();
         currentStacks = data.amount;
 
         if (currentStacks <= 0) currentStacks = 1;

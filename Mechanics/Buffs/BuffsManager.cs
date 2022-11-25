@@ -70,6 +70,11 @@ namespace Architome
 
                 HandleExitCombat(buff);
                 HandleEnterCombat(buff);
+
+                if (buff.buffTargetType == BuffTargetType.Harm && !isInCombat && !entityInfo.IsPlayer())
+                {
+                    buff.Cleanse("Non Player harmful buff cleanse out of combat.");
+                }
             }
 
 
@@ -79,7 +84,7 @@ namespace Architome
                 if (!buff.cleanseConditions.exitCombat) return;
 
                 buff.Cleanse();
-
+                
             }
 
             void HandleEnterCombat(BuffInfo buff)

@@ -5,8 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
 using System;
-
-
+using System.Threading.Tasks;
 
 namespace Architome
 {
@@ -24,6 +23,8 @@ namespace Architome
         public bool isHovering;
         public bool blocksInput;
         public bool forceActive;
+        public bool selfEscape;
+        public bool haltInput;
         public TextMeshProUGUI title;
 
         public Transform itemBin;
@@ -35,6 +36,8 @@ namespace Architome
         public Action<bool> OnActiveChange;
 
         public event Action<EntityInfo> OnSelectEntity;
+
+        ArchInput archInput;
 
         [Serializable]
         public struct Prefabs
@@ -66,10 +69,66 @@ namespace Architome
                 audioSource.outputAudioMixerGroup = GMHelper.Mixer().UI;
                 audioSource.playOnAwake = false;
             }
+
+            HandleSelfEscape();
+            HandleHaltInput();
         }
         void Start()
         {
             GetDependencies();
+            
+        }
+
+        void HandleHaltInput()
+        {
+            if (!haltInput) return;
+
+            var archInput = ArchInput.active;
+            if (archInput == null) return;
+
+            OnActiveChange += HandleActiveChange;
+
+            void HandleActiveChange(bool isActive)
+            {
+                if (!isActive) return;
+
+                archInput.HaltInput((obj) => { return this.isActive; });
+            }
+        }
+
+        void HandleSelfEscape()
+        {
+            if (!selfEscape) return;
+
+            HandleInput();
+
+            var pauseMenu = PauseMenu.active;
+
+            if (pauseMenu)
+            {
+                pauseMenu.OnTryOpenPause += (PauseMenu menu) => {
+                    if (isActive)
+                    {
+                        menu.pauseBlocked = true;
+
+                    }
+                };
+            }
+
+            async void HandleInput()
+            {
+                while (this)
+                {
+                    await Task.Yield();
+                    if (Input.GetKeyDown(KeyCode.Escape)) OnEscape();
+                }
+            }
+
+            void OnEscape()
+            {
+                if (!isActive) return;
+                SetActive(false, true);
+            }
         }
         public void OnPointerEnter(PointerEventData eventData)
         {
@@ -142,6 +201,12 @@ namespace Architome
                 audioSource = GetComponent<AudioSource>();
             }
             SetActive(isActive, false, true);
+        }
+
+
+        public void Toggle()
+        {
+            SetActive(!isActive);
         }
         public void SetActive(bool val, bool playSound = true, bool OnValidate = false)
         {
@@ -218,10 +283,8 @@ namespace Architome
         }
 
 
-        // Update is called once per frame
         void Update()
         {
-
         }
     }
 

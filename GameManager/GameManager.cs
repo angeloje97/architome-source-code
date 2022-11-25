@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using System;
 using Architome.Enums;
-using DungeonArchitect.Editors.LaunchPad;
 
 namespace Architome
 {
@@ -99,18 +98,21 @@ namespace Architome
 
                 var archSceneManager = ArchSceneManager.active;
 
-                archSceneManager.BeforeLoadScene += (ArchSceneManager manager) => {
-                    var validScenes = new HashSet<string>() {
+                archSceneManager.BeforeLoadScene += BeforeLoadScene;
+            }
+
+            void BeforeLoadScene(ArchSceneManager manager)
+            {
+                var validScenes = new HashSet<string>() {
                         "Map Template Continue",
                         "PostDungeonResults",
                     };
 
 
-                    if (!validScenes.Contains(manager.sceneToLoad))
-                    {
-                        ArchGeneric.DestroyOnLoad(gameObject);
-                    }
-                };
+                if (!validScenes.Contains(manager.sceneToLoad))
+                {
+                    ArchGeneric.DestroyOnLoad(gameObject);
+                    manager.BeforeLoadScene -= BeforeLoadScene;                    }
             }
         }
 

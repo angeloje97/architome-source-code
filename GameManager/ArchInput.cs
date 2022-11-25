@@ -19,6 +19,11 @@ namespace Architome
         IGGUIInfo gui;
 
         bool checkingBlockedInput;
+        bool haltingInput;
+        bool contextActive;
+        bool pauseMenuActive;
+        bool moduleActive;
+        bool blockingInput;
 
 
         public ArchInputMode Mode { get { return inputMode; } }
@@ -80,19 +85,52 @@ namespace Architome
 
         }
 
+        public async void HaltInput(Predicate<object> condition)
+        {
+            while (haltingInput)
+            {
+                await Task.Yield();
+            }
+            haltingInput = true;
+
+            HandleBlocking();
+            while (condition(null))
+            {
+                await Task.Yield();
+            }
+
+            haltingInput = false;
+        }
+
+        async void HandleBlocking()
+        {
+            if (blockingInput) return;
+            blockingInput = true;
+            var originalInputMode = inputMode;
+            inputMode = ArchInputMode.Inactive;
+
+            while (contextActive || haltingInput || moduleActive || pauseMenuActive)
+            {
+                await Task.Yield();
+            }
+
+            inputMode = originalInputMode;
+            blockingInput = false;
+        }
+
         public async void OnContextActiveChange(ContextMenu context, bool isActive)
         {
             Debugger.Environment(6459, $"ArchInput listening to context menu isActive: {isActive}");
 
-            var original = inputMode;
-            inputMode = ArchInputMode.Inactive;
+            contextActive = true;
+            HandleBlocking();
 
             while (context.isChoosing)
             {
                 await Task.Yield();
             }
 
-            inputMode = original;
+            contextActive = false;
         }
 
         void HandlePauseMenu()
@@ -105,14 +143,13 @@ namespace Architome
             async void HandleActiveChange(PauseMenu menu, bool state)
             {
                 if (!state) return;
-                var originalInputMode = inputMode;
-                inputMode = ArchInputMode.Inactive;
+                pauseMenuActive = true;
+                HandleBlocking();
                 while (menu.isActive)
                 {
                     await Task.Yield();
                 }
-
-                inputMode = originalInputMode;
+                pauseMenuActive = false;
             }
         }
 
@@ -122,17 +159,16 @@ namespace Architome
 
             checkingBlockedInput = true;
 
-            var original = inputMode;
 
             var modules = gui.modules;
-
+            
             for (int i = 0; i < modules.Count; i++)
             {
                 var module = modules[i].GetComponent<ModuleInfo>();
                 if (module.isActive && module.blocksInput)
                 {
-                    inputMode = ArchInputMode.Inactive;
-
+                    moduleActive = true;
+                    HandleBlocking();
                     while (module.isActive)
                     {
                         await Task.Yield();
@@ -141,8 +177,7 @@ namespace Architome
                     i = 0;
                 }
             }
-
-            inputMode = original;
+            moduleActive = false;
 
             checkingBlockedInput = false;
         }

@@ -185,30 +185,6 @@ namespace Architome
             loadingStatus.HandleLoad(true);
         }
 
-
-        //void OnLoadStart(AsyncOperation operation)
-        //{
-        //    //loading = true;
-        //    //SetCanvasGroup(true);
-        //    //loadingStatus.HandleLoad(true);
-        //}
-
-        //void WhileLoading(AsyncOperation operation)
-        //{
-        //    //if (comps.loadingBar == null) return;
-        //    //if (sceneManager == null) return;
-        //    //Debugger.InConsole(91275, $"Loading progress {operation.progress}");
-
-        //    //comps.loadingBar.fillAmount = sceneManager.progressValue;
-        //}
-
-        //void OnLoadEnd(AsyncOperation operation)
-        //{
-        //    //loading = false;
-        //    //SetCanvasGroup(false);
-        //    //loadingStatus.HandleLoad(false);
-        //}
-
         void OnLoadScene(ArchSceneManager sceneManager)
         {
             loading = false;

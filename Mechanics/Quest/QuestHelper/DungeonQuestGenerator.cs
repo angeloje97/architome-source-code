@@ -192,7 +192,7 @@ namespace Architome
                 var timerObjective = objectives.AddComponent<ObjectiveTimer>();
 
                 timerObjective.transform.SetAsFirstSibling();
-                timerObjective.timer = 600f;
+                timerObjective.timer = 1800f;
                 timerObjective.enableMemberDeaths = true;
                 timerObjective.deathTimerPenalty = 15f;
             }

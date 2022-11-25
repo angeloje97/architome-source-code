@@ -17,6 +17,8 @@ namespace Architome
         List<InventorySlot> slots;
         List<ItemData> items;
 
+        public Currency defaultSellCurrency;
+
         private void Start()
         {
             var itemSlotHandler = GetComponent<ItemSlotHandler>();
@@ -214,6 +216,8 @@ namespace Architome
             void HandleSell()
             {
                 if (userChoice.stringValue != "Sell") return;
+                manager.GainCurrency(defaultSellCurrency, (int) (info.item.value * info.currentStacks));
+                info.DestroySelf(true);
             }
 
         }

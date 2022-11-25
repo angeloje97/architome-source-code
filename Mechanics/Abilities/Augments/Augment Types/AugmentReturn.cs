@@ -108,6 +108,7 @@ namespace Architome
                 while (catalystsReturning[catalyst])
                 {
                     await Task.Yield();
+                    if (this == null) return;
                     if(catalyst.target != augment.entity.target)
                     {
                         catalyst.target = augment.entity.gameObject;

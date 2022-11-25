@@ -14,9 +14,11 @@ namespace Architome
     public class ArchButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
     {
         public bool interactable = true;
+        public bool ignoreDoubleClick;
         public TextMeshProUGUI buttonName;
         public AudioClip rollOverSound;
         public AudioClip clickSound;
+
 
         public Action<ArchButton> OnClick;
         
@@ -68,6 +70,7 @@ namespace Architome
             if (buttonName == null) return;
             buttonName.text = name;
         }
+
 
         public void SetButton(string name, Action action)
         {
@@ -138,6 +141,14 @@ namespace Architome
             async void HandleLeftClick()
             {
                 if (!Input.GetKeyUp(KeyCode.Mouse0)) return;
+
+                if (ignoreDoubleClick)
+                {
+                    OnUnityClick?.Invoke();
+                    OnClick?.Invoke(this);
+                    return;
+                }
+
                 if (leftClicked)
                 {
                     leftClicked = false;

@@ -59,6 +59,7 @@ namespace Architome
 
             while (hovering)
             {
+                if (this == null) break;
                 await Task.Yield();
             }
 

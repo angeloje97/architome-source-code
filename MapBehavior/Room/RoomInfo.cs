@@ -6,8 +6,6 @@ using System.Linq;
 using System;
 using System.Threading.Tasks;
 using Architome.Enums;
-using DungeonArchitect.RoomDesigner.Editors;
-using static UnityEngine.EventSystems.EventTrigger;
 
 namespace Architome
 {

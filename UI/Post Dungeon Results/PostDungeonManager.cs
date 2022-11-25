@@ -182,7 +182,14 @@ namespace Architome
         {
             var archSceneManager = ArchSceneManager.active;
             if (archSceneManager == null) return;
-            SaveEntities();
+
+            if (Core.currentSave != null)
+            {
+
+                SaveEntities();
+                SaveSystem.active.Save();
+            }
+
             archSceneManager.LoadScene(sceneName, true);
         }
         void SaveEntities()

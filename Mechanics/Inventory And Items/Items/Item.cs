@@ -32,6 +32,7 @@ namespace Architome
         public string itemDescription;
         public ItemType itemType;
         public float value = 1f;
+        public Currency currencyExchange;
         public GameObject itemObject;
         public int spriteIndex = -1;
 
@@ -45,6 +46,14 @@ namespace Architome
         {
             if (!infiniteStacks) return;
             infiniteStacks = false;
+        }
+
+        public virtual void AdjustValue()
+        {
+            if(rarity == 0)
+            {
+                rarity = Rarity.Poor;
+            }
         }
 
         public virtual void Use(UseData data)

@@ -2,7 +2,6 @@ using Microsoft.Win32.SafeHandles;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Animations.Rigging;
 using UnityEngine;
 
 namespace Architome

@@ -226,7 +226,15 @@ namespace Architome
             return result;
         }
 
+        public static string GetLast(string source, int amount)
+        {
+            if(source.Length <= amount)
+            {
+                return source;
+            }
 
+            return source[^amount..];
+        }
 
     }
 

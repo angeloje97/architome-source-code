@@ -5,7 +5,6 @@ using System;
 using UnityEngine.Audio;
 using UnityEngine.UI;
 using System.Linq;
-using UnityEditor.Build;
 using System.Threading.Tasks;
 
 namespace Architome.Settings
