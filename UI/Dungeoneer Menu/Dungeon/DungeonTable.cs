@@ -84,7 +84,7 @@ namespace Architome
 
             if (sceneManager)
             {
-                sceneManager.BeforeLoadScene += BeforeLoadScene;
+                sceneManager.AddListener(SceneEvent.BeforeLoadScene, BeforeLoadScene, this);
             }
         }
 
@@ -109,7 +109,6 @@ namespace Architome
         void BeforeLoadScene(ArchSceneManager sceneManager)
         {
             SaveDungeons();
-            sceneManager.BeforeLoadScene -= BeforeLoadScene;
         }
 
         void SaveDungeons()

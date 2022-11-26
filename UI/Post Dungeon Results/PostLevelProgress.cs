@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.Threading.Tasks;
-using System.Collections.Generic;
+using Architome.Enums;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -64,13 +64,6 @@ namespace Architome
             difficulty = DifficultyModifications.active;
         }
 
-        private void OnDestroy()
-        {
-            if (archSceneManager && entity)
-            {
-                archSceneManager.BeforeLoadScene -= BeforeLoadScene;
-            }
-        }
         async public void SetEntity(EntityInfo entity)
         {
             this.entity = entity;
@@ -79,7 +72,7 @@ namespace Architome
 
             if (archSceneManager)
             {
-                archSceneManager.BeforeLoadScene += BeforeLoadScene;
+                archSceneManager.AddListener(SceneEvent.BeforeLoadScene, BeforeLoadScene, this);
             }
 
             entity.OnExperienceGain += OnEntityGainExperience;

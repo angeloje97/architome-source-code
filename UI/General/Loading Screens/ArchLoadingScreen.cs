@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Architome.Enums;
 
 namespace Architome
 {
@@ -86,20 +87,14 @@ namespace Architome
             sceneManager = ArchSceneManager.active;
             if (sceneManager)
             {
-                sceneManager.OnLoadScene += OnLoadScene;
-                sceneManager.BeforeLoadScene += BeforeLoadScene;
+
+                sceneManager.AddListeners(new() {
+                    (SceneEvent.OnLoadScene, OnLoadScene),
+                    (SceneEvent.BeforeLoadScene, BeforeLoadScene),
+                }, this);
             }
 
 
-        }
-
-        private void OnDestroy()
-        {
-            if (sceneManager)
-            {
-                sceneManager.OnLoadScene -= OnLoadScene;
-                sceneManager.BeforeLoadScene -= BeforeLoadScene;
-            }
         }
 
 

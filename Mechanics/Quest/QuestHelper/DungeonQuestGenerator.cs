@@ -40,18 +40,16 @@ namespace Architome
 
             if (sceneManager)
             {
-                sceneManager.BeforeLoadScene += BeforeLoadScene;
-                sceneManager.BeforeConfirmLoad += BeforeConfirmLoad;
+
+                sceneManager.AddListeners(new() {
+                    (SceneEvent.BeforeLoadScene, BeforeLoadScene),
+                    (SceneEvent.BeforeConfirmLoad, BeforeConfirmLoad)
+                }, this);
             }
         }
 
         private void OnDestroy()
         {
-            if (sceneManager)
-            {
-                sceneManager.BeforeLoadScene -= BeforeLoadScene;
-                sceneManager.BeforeConfirmLoad -= BeforeConfirmLoad;
-            }
         }
 
         // Update is called once per frame

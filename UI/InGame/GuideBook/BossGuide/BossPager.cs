@@ -44,19 +44,12 @@ namespace Architome
 
             if (sceneManager)
             {
-                sceneManager.BeforeLoadScene += BeforeLoadScene;
-                sceneManager.OnLoadScene += OnLoadScene;
 
+                sceneManager.AddListeners(new() {
+                    (SceneEvent.BeforeLoadScene, BeforeLoadScene),
+                    (SceneEvent.OnLoadScene, OnLoadScene)
+                }, this);
 
-            }
-        }
-
-        private void OnDestroy()
-        {
-            if (sceneManager)
-            {
-                sceneManager.BeforeLoadScene -= BeforeLoadScene;
-                sceneManager.OnLoadScene -= OnLoadScene;
             }
         }
 

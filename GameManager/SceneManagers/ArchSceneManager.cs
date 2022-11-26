@@ -16,25 +16,19 @@ namespace Architome
         public bool isLoading;
         public List<SceneInfo> sceneInfos;
         public Dictionary<ArchScene, SceneInfo> sceneInfoDict;
-        public Dictionary<Event, Action<ArchSceneManager>> eventDict;
+        public Dictionary<SceneEvent, Action<ArchSceneManager>> eventDict;
 
         public List<Task> tasksBeforeLoad;
         public List<Task<bool>> tasksBeforeConfirmLoad;
         public List<Task> tasksBeforeActivateScene;
 
-        public enum Event
-        {
-            BeforeLoadScene,
-            BeforeActivateScene,
-            BeforeConfirmLoad,
-            OnLoadScene,
-        }
+        
 
 
-        public Action<ArchSceneManager> BeforeLoadScene { get; set; }
-        public Action<ArchSceneManager> BeforeActivateScene { get; set; }
-        public Action<ArchSceneManager> BeforeConfirmLoad { get; set; }
-        public Action<ArchSceneManager> OnLoadScene { get; set; }
+        Action<ArchSceneManager> BeforeLoadScene { get; set; }
+        Action<ArchSceneManager> BeforeActivateScene { get; set; }
+        Action<ArchSceneManager> BeforeConfirmLoad { get; set; }
+        Action<ArchSceneManager> OnLoadScene { get; set; }
 
         public Action<AsyncOperation> OnLoadStart { get; set; }
         public Action<AsyncOperation> WhileLoading { get; set; }
@@ -71,17 +65,18 @@ namespace Architome
         {
             eventDict = new()
             {
-                { Event.BeforeLoadScene, BeforeLoadScene },
-                { Event.BeforeActivateScene, BeforeActivateScene },
-                { Event.BeforeConfirmLoad, BeforeConfirmLoad },
-                { Event.OnLoadScene, OnLoadScene }
+                { SceneEvent.BeforeLoadScene, BeforeLoadScene },
+                { SceneEvent.BeforeActivateScene, BeforeActivateScene },
+                { SceneEvent.BeforeConfirmLoad, BeforeConfirmLoad },
+                { SceneEvent.OnLoadScene, OnLoadScene }
 
             };
         }
 
+        
 
 
-        public void AddListener(Action<ArchSceneManager> action, Event trigger, object caller)
+        public void AddListener(SceneEvent trigger, Action<ArchSceneManager> action, object caller)
         {
             var invoker = EventInvoker(trigger);
 
@@ -99,7 +94,34 @@ namespace Architome
             }
         }
 
-        public Action<ArchSceneManager> EventInvoker(Event trigger)
+        public void AddListeners(List<(SceneEvent, Action<ArchSceneManager>)> triggerActions, object caller)
+        {
+            foreach(var (trigger, action) in triggerActions)
+            {
+                var invoker = EventInvoker(trigger);
+                HandleInvokerListener(invoker, action);
+
+            }
+
+
+            void HandleInvokerListener(Action<ArchSceneManager> invoker, Action<ArchSceneManager> listener)
+            {
+
+                invoker += HandleTrigger;
+                void HandleTrigger(ArchSceneManager sceneManager)
+                {
+                    if(caller == null)
+                    {
+                        invoker -= HandleTrigger;
+                        return;
+                    }
+
+                    listener(this);
+                }
+            }
+        }
+
+        public Action<ArchSceneManager> EventInvoker(SceneEvent trigger)
         {
             return eventDict[trigger];
         }

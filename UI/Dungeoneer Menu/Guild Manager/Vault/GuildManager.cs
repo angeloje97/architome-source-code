@@ -132,7 +132,8 @@ namespace Architome
             var pauseMenu = PauseMenu.active;
 
             manager = GetComponentInParent<DungeoneerManager>();
-            ArchSceneManager.active.BeforeLoadScene += BeforeLoadScene;
+
+            ArchSceneManager.active.AddListener(SceneEvent.BeforeLoadScene, BeforeLoadScene, this);
             SaveSystem.active.BeforeSave += BeforeSave;
 
             if (manager)
