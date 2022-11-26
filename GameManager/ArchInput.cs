@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-using System.Linq;
 using Architome.Enums;
 using System.Threading.Tasks;
 
@@ -53,7 +52,7 @@ namespace Architome
 
             if (archSceneManager)
             {
-                archSceneManager.BeforeLoadScene += BeforeLoadScene;
+                archSceneManager.AddListener(SceneEvent.BeforeLoadScene, BeforeLoadScene, this);
             }
             
 
@@ -66,11 +65,6 @@ namespace Architome
             {
                 contextMenu.OnContextActiveChange += OnContextActiveChange;
             }
-        }
-
-        private void OnDestroy()
-        {
-            archSceneManager.BeforeLoadScene -= BeforeLoadScene;
         }
 
 

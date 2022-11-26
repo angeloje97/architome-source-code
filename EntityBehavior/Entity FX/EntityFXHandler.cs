@@ -45,7 +45,7 @@ namespace Architome
 
             if (sceneManager)
             {
-                sceneManager.OnLoadScene += OnLoadScene;
+                sceneManager.AddListener(SceneEvent.OnLoadScene, OnLoadScene, this);
             }
 
             foreach (var soundManager in GetComponentsInChildren<AudioManager>())

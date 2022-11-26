@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using Architome.Enums;
 
 
 
@@ -93,15 +94,7 @@ namespace Architome
             sceneManager = ArchSceneManager.active;
             if (sceneManager)
             {
-                sceneManager.BeforeLoadScene += BeforeLoadScene;
-            }
-        }
-
-        private void OnDestroy()
-        {
-            if (sceneManager)
-            {
-                sceneManager.BeforeLoadScene -= BeforeLoadScene;
+                sceneManager.AddListener(SceneEvent.BeforeLoadScene, BeforeLoadScene, this);
             }
         }
 

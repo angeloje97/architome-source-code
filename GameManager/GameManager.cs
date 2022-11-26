@@ -85,17 +85,19 @@ namespace Architome
         {
             if (destroyOnLoad) return;
 
+            bool setDestroy = false;
             if (gameState == GameState.Play)
             {
                 ArchGeneric.DontDestroyOnLoad(gameObject);
 
                 var archSceneManager = ArchSceneManager.active;
 
-                archSceneManager.BeforeLoadScene += BeforeLoadScene;
+                archSceneManager.AddListener(SceneEvent.BeforeLoadScene, BeforeLoadScene, this);
             }
 
             void BeforeLoadScene(ArchSceneManager manager)
             {
+                if (setDestroy) return;
                 var validScenes = new HashSet<string>() {
                         "Map Template Continue",
                         "PostDungeonResults",
@@ -105,7 +107,7 @@ namespace Architome
                 if (!validScenes.Contains(manager.sceneToLoad))
                 {
                     ArchGeneric.DestroyOnLoad(gameObject);
-                    manager.BeforeLoadScene -= BeforeLoadScene;                    }
+                    setDestroy = true;                    }
             }
         }
 

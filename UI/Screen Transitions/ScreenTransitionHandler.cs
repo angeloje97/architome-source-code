@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-using System.Threading.Tasks;
+using Architome.Enums;
 using System.Linq;
 
 namespace Architome
@@ -59,25 +59,17 @@ namespace Architome
             var gameManager = GameManager.active;
             if (sceneManager)
             {
-                sceneManager.BeforeLoadScene += TasksBeforeLoadScene;
-                
+                sceneManager.AddListener(SceneEvent.BeforeLoadScene, TasksBeforeLoadScene, this);
 
-                if (gameManager.GameState == Enums.GameState.Play)
+                if (gameManager.GameState == GameState.Play)
                 {
-                    sceneManager.OnLoadScene += OnLoadScene;
+                    sceneManager.AddListener(SceneEvent.OnLoadScene, OnLoadScene, this);
                 }
             }
 
             HandleMapRoomGenerator();
         }
 
-        private void OnDestroy()
-        {
-            if (sceneManager)
-            {
-                sceneManager.BeforeLoadScene -= TasksBeforeLoadScene;
-            }
-        }
         void Update()
         {
 

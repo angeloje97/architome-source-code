@@ -109,18 +109,13 @@ namespace Architome
 
             if (sceneManager)
             {
-                sceneManager.BeforeLoadScene += BeforeLoadScene;
+                sceneManager.AddListener(SceneEvent.BeforeLoadScene, BeforeLoadScene, this);
             }
 
         }
 
         private void OnDestroy()
         {
-            if (sceneManager)
-            {
-                sceneManager.BeforeLoadScene -= BeforeLoadScene;
-
-            }
         }
 
 
