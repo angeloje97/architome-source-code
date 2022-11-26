@@ -76,17 +76,21 @@ namespace Architome
         
 
 
-        public void AddListener(SceneEvent trigger, Action<ArchSceneManager> action, object caller)
+        public void AddListener<T>(SceneEvent trigger, Action<ArchSceneManager> action, T caller) where T: Component
         {
-            var invoker = EventInvoker(trigger);
+            //var invoker = EventInvoker(trigger);
 
-            invoker += HandleAction;
+            //invoker += HandleAction;
+
+            eventDict[trigger] += HandleAction;
 
             void HandleAction(ArchSceneManager sceneManager)
             {
-                if(caller == null)
+                Debugger.UI(5300, $"Caller is {caller}");
+                if(!caller)
                 {
-                    invoker -= HandleAction;
+                    Debugger.UI(5301, $"Caller is null true, Removing Event");
+                    eventDict[trigger] -= HandleAction;
                     return;
                 }
 
@@ -94,32 +98,32 @@ namespace Architome
             }
         }
 
-        public void AddListeners(List<(SceneEvent, Action<ArchSceneManager>)> triggerActions, object caller)
-        {
-            foreach(var (trigger, action) in triggerActions)
-            {
-                var invoker = EventInvoker(trigger);
-                HandleInvokerListener(invoker, action);
+        //public void AddListeners(List<(SceneEvent, Action<ArchSceneManager>)> triggerActions, object caller)
+        //{
+        //    foreach(var (trigger, action) in triggerActions)
+        //    {
+        //        var invoker = EventInvoker(trigger);
+        //        HandleInvokerListener(invoker, action);
 
-            }
+        //    }
 
 
-            void HandleInvokerListener(Action<ArchSceneManager> invoker, Action<ArchSceneManager> listener)
-            {
+        //    void HandleInvokerListener(Action<ArchSceneManager> invoker, Action<ArchSceneManager> listener)
+        //    {
 
-                invoker += HandleTrigger;
-                void HandleTrigger(ArchSceneManager sceneManager)
-                {
-                    if(caller == null)
-                    {
-                        invoker -= HandleTrigger;
-                        return;
-                    }
+        //        invoker += HandleTrigger;
+        //        void HandleTrigger(ArchSceneManager sceneManager)
+        //        {
+        //            if(caller == null)
+        //            {
+        //                invoker -= HandleTrigger;
+        //                return;
+        //            }
 
-                    listener(this);
-                }
-            }
-        }
+        //            listener(this);
+        //        }
+        //    }
+        //}
 
         public Action<ArchSceneManager> EventInvoker(SceneEvent trigger)
         {
@@ -133,7 +137,8 @@ namespace Architome
             tasksBeforeConfirmLoad = new();
 
 
-            BeforeConfirmLoad?.Invoke(this);
+            //BeforeConfirmLoad?.Invoke(this);
+            eventDict[SceneEvent.BeforeConfirmLoad]?.Invoke(this);
             foreach (var choice in tasksBeforeConfirmLoad)
             {
                 if (!await choice) return;
@@ -145,7 +150,8 @@ namespace Architome
 
 
             tasksBeforeLoad = new();
-            BeforeLoadScene?.Invoke(this);
+            //BeforeLoadScene?.Invoke(this);
+            eventDict[SceneEvent.BeforeLoadScene]?.Invoke(this);
             await Task.WhenAll(tasksBeforeLoad);
 
             if (!async)
@@ -170,13 +176,15 @@ namespace Architome
 
             tasksBeforeActivateScene = new();
 
-            BeforeActivateScene?.Invoke(this);
+            //BeforeActivateScene?.Invoke(this);
+            eventDict[SceneEvent.BeforeActivateScene]?.Invoke(this);
 
             await Task.WhenAll(tasksBeforeActivateScene);
 
             scene.allowSceneActivation = true;
 
-            OnLoadScene?.Invoke(this);
+            //OnLoadScene?.Invoke(this);
+            eventDict[SceneEvent.OnLoadScene]?.Invoke(this);
             await Task.Delay(2500);
             isLoading = false;
         }

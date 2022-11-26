@@ -9,7 +9,7 @@ public class Debugger : MonoBehaviour
     static bool debugging = false;
     static bool debugCombat = false;
     static bool debugEnvironment = false;
-    static bool debugUI = false;
+    static bool debugUI = true;
     static bool debugSocial = false;
     static bool debugOutSource = false;
     void Start()

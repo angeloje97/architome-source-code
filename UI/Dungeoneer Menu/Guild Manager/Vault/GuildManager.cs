@@ -291,7 +291,6 @@ namespace Architome
         void BeforeLoadScene(ArchSceneManager sceneManager)
         {
             SaveEntities();
-            sceneManager.BeforeLoadScene -= BeforeLoadScene;
         }
 
         void BeforeSave(SaveGame save)
