@@ -36,6 +36,7 @@ namespace Architome.Debugging
         public string searchFilter;
 
         public Action<LoggedItem> OnNewLog;
+        public Action<LoggedItem> OnDuplicatedLog;
 
         [Serializable]
         public struct Components
@@ -51,19 +52,27 @@ namespace Architome.Debugging
 
         public Components components;
 
-        public List<LogData> logs;
         public List<LogSetting> logSettings;
         public Dictionary<LogType, LogSetting> logSettingDict;
         
         ArchSceneManager sceneManager;
 
+        public Action<LogData> OnSelectLogData;
+        public Action<LogData> OnNewData { get; set; }
+
+        public Action<LoggedItem> OnStackedLog;
+
+
+        public Dictionary<string, LogData> logHistory;
+
         void Start()
         {
             if (module == null) return;
+
             CreateDictionary();
             GetDependencies();
+            logHistory = new();
             HandleTestErrorOnStart();
-            logs = new();
             HandleUncaughtLogs();
             
         }
@@ -71,6 +80,7 @@ namespace Architome.Debugging
 
         void Update()
         {
+            Debug.developerConsoleVisible = false;
             if (!gameObject.activeInHierarchy) return;
             if (enableDebug != enableDebugCheck)
             {
@@ -115,7 +125,6 @@ namespace Architome.Debugging
 
             foreach(var log in unCaughtLogs)
             {
-                logs.Add(log);
                 CreateLog(log);
             }
 
@@ -126,9 +135,6 @@ namespace Architome.Debugging
             if (!testErrorOnStart) return;
             ArchAction.Delay(() => { TestError(); }, 10);
         }
-
-        // Update is called once per frame
-        
 
         void CreateDictionary()
         {
@@ -186,7 +192,10 @@ namespace Architome.Debugging
             }
         }
 
-        
+        public void SelectLogData(LogData data)
+        {
+            OnSelectLogData?.Invoke(data);
+        }
 
         void OnModuleActiveChange(bool isActive)
         {
@@ -204,15 +213,11 @@ namespace Architome.Debugging
 
         async void Log(string logString, string stackTrace, LogType type)
         {
-            
-           
-
 
 
             var logData = new LogData(logString, stackTrace, type);
 
             unCaughtLogs.Add(logData);
-            logs.Add(logData);
 
             while (this && sceneManager.isLoading)
             {
@@ -224,14 +229,34 @@ namespace Architome.Debugging
             unCaughtLogs = new();
 
             CreateLog(logData);
-
         }
 
         void CreateLog(LogData logData)
         {
-            var logItem = Instantiate(logItemPrefab.gameObject, logParent).GetComponent<LoggedItem>();
+            if (logHistory.ContainsKey(logData.log))
+            {
+                var originalLog = logHistory[logData.log];
 
+                bool exists = false;
+
+                if (originalLog.itemHost != null)
+                {
+                    OnStackedLog?.Invoke(originalLog.itemHost);
+                    exists = true;
+                }
+
+                originalLog.Increment();
+                if (exists) return;
+            }
+            else
+            {
+                logHistory.Add(logData.log, logData);
+            }
+
+            var logItem = Instantiate(logItemPrefab.gameObject, logParent).GetComponent<LoggedItem>();
+            OnNewLog?.Invoke(logItem);
             logItem.SetLogData(logData, logSettingDict[logData.type].color);
+            logItem.SetDebugger(this);
 
             if (popUpError)
             {
@@ -252,11 +277,12 @@ namespace Architome.Debugging
 
         public void Clear()
         {
-            logs = new();
             foreach(var loggedItem in GetComponentsInChildren<LoggedItem>())
             {
                 loggedItem.RemoveSelf();
             }
+
+            logHistory = new();
         }
 
         public void HandleChangeFilter(TMP_InputField inputField)
@@ -281,16 +307,33 @@ namespace Architome.Debugging
         [Serializable]
         public class LogData
         {
+            public LoggedItem itemHost;
             public string log, stack;
             public LogType type;
             public bool taken;
+            public bool duplicate;
+            public int amount;
+
+            public Action<LogData> OnIncrement;
+
+            public void Increment()
+            {
+                amount++;
+                OnIncrement?.Invoke(this);
+            }
+
+            public void SetLogItem(LoggedItem loggedItem)
+            {
+                itemHost = loggedItem;
+            }
 
             public LogData(string log, string stack, LogType type)
             {
+                amount = 1;
                 this.log = log;
                 this.stack = stack;
                 this.type = type;
-            }   
+            }
         }
 
         [Serializable]

@@ -86,14 +86,20 @@ namespace Architome
             sceneManager = ArchSceneManager.active;
             if (sceneManager)
             {
-                //sceneManager.OnLoadStart += OnLoadStart;
-                //sceneManager.WhileLoading += WhileLoading;
-                //sceneManager.OnLoadEnd += OnLoadEnd;
                 sceneManager.OnLoadScene += OnLoadScene;
                 sceneManager.BeforeLoadScene += BeforeLoadScene;
             }
 
 
+        }
+
+        private void OnDestroy()
+        {
+            if (sceneManager)
+            {
+                sceneManager.OnLoadScene -= OnLoadScene;
+                sceneManager.BeforeLoadScene -= BeforeLoadScene;
+            }
         }
 
 

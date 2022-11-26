@@ -37,6 +37,8 @@ namespace Architome
         float currentSpeed, accel, deccel;
         bool active;
 
+        ArchSceneManager archSceneManager;
+
 
         public Action<PostLevelProgress> OnLevelUp;
         public Action<PostLevelProgress> OnFillStart;
@@ -61,11 +63,19 @@ namespace Architome
         {
             difficulty = DifficultyModifications.active;
         }
+
+        private void OnDestroy()
+        {
+            if (archSceneManager && entity)
+            {
+                archSceneManager.BeforeLoadScene -= BeforeLoadScene;
+            }
+        }
         async public void SetEntity(EntityInfo entity)
         {
             this.entity = entity;
 
-            var archSceneManager = ArchSceneManager.active;
+            archSceneManager = ArchSceneManager.active;
 
             if (archSceneManager)
             {

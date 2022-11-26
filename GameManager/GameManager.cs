@@ -5,11 +5,13 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using System;
 using Architome.Enums;
+using UnityEngine.Rendering;
 
 namespace Architome
 {
     public class GameManager : MonoBehaviour
     {
+        static bool applicationStart = false;
         public static GameManager active;
 
         public DataMap data;
@@ -25,14 +27,6 @@ namespace Architome
         public GameObject pauseMenu;
         public IGGUIInfo InGameUI;
 
-        //[Header("Managers")]
-        //public ContainerTargetables targetManager;
-
-        //[Header("Meta Data")]
-        //public KeyBindings keyBinds;
-        //public DifficultyModifications difficultyModifications;
-        //public World worldSettings;
-
         public bool isPaused;
         public bool reloadCurrentScene;
 
@@ -44,6 +38,7 @@ namespace Architome
 
         void Awake()
         {
+            HandleApplicationStart();
             HandlePlayableEntities();
             
             if (gameState == GameState.Play)
@@ -54,17 +49,6 @@ namespace Architome
                     return;
                 }
             }
-            //if (gameState == GameState.Play)
-            //{
-            //    if (active != null&& active.gameState == GameState.Play)
-            //    {
-            //        Destroy(gameObject);
-            //        return;
-            //    }
-
-            //    DontDestroyOnLoad(gameObject);
-
-            //}
 
 
 
@@ -81,6 +65,15 @@ namespace Architome
                 Core.ResetAll();
             }
         }
+
+        void HandleApplicationStart()
+        {
+            if (applicationStart) return;
+
+            Debug.developerConsoleVisible = false;
+            DebugManager.instance.enableRuntimeUI = false;
+        }
+
 
         private void Start()
         {

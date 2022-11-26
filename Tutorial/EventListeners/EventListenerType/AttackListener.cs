@@ -67,7 +67,10 @@ namespace Architome.Tutorial
             var actionIndex = keyBindData.SpriteIndex("Action");
 
 
-            var stringList = new List<string>();
+            var stringList = new List<string>()
+            {
+                base.Directions(),
+            };
 
 
 
@@ -141,7 +144,7 @@ namespace Architome.Tutorial
                     break;
                 }
 
-                result.Add($"You can also use the (Member Action {memberIndex + 1} <sprite={memberActionIndex}> ) to attack a target without needing to select the member");
+                result.Add($"You can also use quick attack (for member {memberIndex + 1} <sprite={memberActionIndex}> ) to attack a target without needing to select the member");
 
             }
 

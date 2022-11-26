@@ -53,8 +53,6 @@ namespace Architome
         {
             if (canvas == null) return;
 
-            if (canvas == null) return;
-
             var targetAlpha = val ? 1 : 0;
 
             await UpdateCanvas();

@@ -24,6 +24,8 @@ namespace Architome
         public float baseWalkSpeed;
         public bool noDisappearOnDeath;
 
+        ArchSceneManager sceneManager;
+
 
         [Serializable]
         public class UIPrefabs
@@ -98,18 +100,30 @@ namespace Architome
         void GetDependencies()
         {
             var saveSystem = SaveSystem.active;
-            var archSceneManager = ArchSceneManager.active;
+            sceneManager= ArchSceneManager.active;
 
             if (saveSystem)
             {
                 saveSystem.BeforeSave += (SaveGame save) => { save.worldTime = time; };
             }
 
-            if (archSceneManager)
+            if (sceneManager)
             {
-                archSceneManager.BeforeLoadScene += (ArchSceneManager sceneManager) => { SaveTime(); };
+                sceneManager.BeforeLoadScene += BeforeLoadScene;
+            }
+
+        }
+
+        private void OnDestroy()
+        {
+            if (sceneManager)
+            {
+                sceneManager.BeforeLoadScene -= BeforeLoadScene;
+
             }
         }
+
+
         private void Awake()
         {
             //if (active)
@@ -132,6 +146,10 @@ namespace Architome
         {
             deltaTime = time.timeScale * UnityEngine.Time.deltaTime;
         }
+        private void OnValidate()
+        {
+            CreateProperties();
+        }
 
         public void SetSpawnBeacon(SpawnerInfo spawner)
         {
@@ -139,10 +157,9 @@ namespace Architome
             OnNewSpawnBeacon?.Invoke(spawner);
         }
 
-
-        private void OnValidate()
+        void BeforeLoadScene(ArchSceneManager sceneManager)
         {
-            CreateProperties();
+            SaveTime();
         }
 
         void SaveTime()

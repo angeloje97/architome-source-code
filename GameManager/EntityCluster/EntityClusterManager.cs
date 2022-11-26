@@ -80,6 +80,8 @@ namespace Architome
         public GameObject entityClusterContainer;
 
 
+        ArchSceneManager sceneManager;
+
 
         void Awake()
         {
@@ -88,10 +90,18 @@ namespace Architome
 
         public void GetDependencies()
         {
-            var sceneManager = ArchSceneManager.active;
+            sceneManager = ArchSceneManager.active;
             if (sceneManager)
             {
                 sceneManager.BeforeLoadScene += BeforeLoadScene;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (sceneManager)
+            {
+                sceneManager.BeforeLoadScene -= BeforeLoadScene;
             }
         }
 

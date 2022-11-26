@@ -187,12 +187,14 @@ namespace Architome
             return await UserChoice(prompt);
         }
 
-        public void MessagePrompt(PromptInfoData promptData)
+        public async Task<PromptChoiceData> MessagePrompt(PromptInfoData promptData)
         {
-            if (prefabs.messagePrompt == null) return;
-            var prompt = ActivatePrompt(prefabs.messagePrompt);
+            if (prefabs.messagePrompt == null) return null;
+            var prompt = ActivatePrompt(prefabs.messagePrompt, new Vector3(0, 270, 0));
 
             prompt.SetPrompt(promptData);
+
+            return await UserChoice(prompt);
 
 
         }

@@ -64,14 +64,25 @@ namespace Architome
         private void OnDestroy()
         {
             OnDestroyEvent?.Invoke(this);
-            moduleManager.OnEquipItem -= OnTryEquip;
-            module.OnSelectEntity -= OnSelectEntity;
+            if (moduleManager)
+            {
+                moduleManager.OnEquipItem -= OnTryEquip;
+            }
+            if (module)
+            {
+                module.OnSelectEntity -= OnSelectEntity;
+            }
 
             if (guildManager)
             {
                 guildManager.OnSelectEntity -= OnSelectEntity;
             }
-            itemSlotHandler.OnChangeItem -= OnChangeItem;
+
+            if (itemSlotHandler)
+            {
+                itemSlotHandler.OnChangeItem -= OnChangeItem;
+
+            }
         }
 
         void Start()

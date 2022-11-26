@@ -24,6 +24,7 @@ namespace Architome
         public bool blocksInput;
         public bool forceActive;
         public bool selfEscape;
+        public bool haltIGGUI;
         public bool haltInput;
         public TextMeshProUGUI title;
 
@@ -72,11 +73,27 @@ namespace Architome
 
             HandleSelfEscape();
             HandleHaltInput();
+            HandleHaltIGGUI();
         }
         void Start()
         {
             GetDependencies();
             
+        }
+
+        void HandleHaltIGGUI()
+        {
+            var iggui = IGGUIInfo.active;
+            if (!iggui) return;
+            
+
+            iggui.OnClosingModulesCheck += HandleClosingModuleCheck;
+
+            void HandleClosingModuleCheck(IGGUIInfo igInfo, List<bool> checks)
+            {
+                if (!isActive) return;
+                checks.Add(false);
+            }
         }
 
         void HandleHaltInput()
@@ -120,7 +137,7 @@ namespace Architome
                 while (this)
                 {
                     await Task.Yield();
-                    if (Input.GetKeyDown(KeyCode.Escape)) OnEscape();
+                    if (Input.GetKeyUp(KeyCode.Escape)) OnEscape();
                 }
             }
 

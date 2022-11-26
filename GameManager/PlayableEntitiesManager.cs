@@ -51,8 +51,15 @@ namespace Architome
                 sceneManager.BeforeLoadScene += BeforeLoadScene;
                 sceneManager.OnLoadScene += OnLoadScene;
             }
+        }
 
-
+        private void OnDestroy()
+        {
+            if (sceneManager)
+            {
+                sceneManager.BeforeLoadScene -= BeforeLoadScene;
+                sceneManager.OnLoadScene -= OnLoadScene;
+            }
         }
         void Start()
         {
@@ -200,6 +207,7 @@ namespace Architome
         }
         async void TransferUnitsToEntrancePortal()
         {
+            if (this == null) return;
             var entryPortal = PortalInfo.EntryPortal;
             
             while (entryPortal == null)
@@ -224,9 +232,6 @@ namespace Architome
             foreach (var entity in party.members)
             {
                 entity.Move(entryPortal.portalSpot.position + new Vector3(0, .25f, 0));
-                //entity.transform.position = entryPortal.portalSpot.position + new Vector3(0, .25f, 0);
-                //entity.infoEvents.OnSignificantMovementChange?.Invoke(entity.transform.position);
-                //entity.
             }
 
             HandleMoveOutOfPortal(entryPortal);

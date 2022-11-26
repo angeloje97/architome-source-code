@@ -46,6 +46,7 @@ namespace Architome.Tutorial
             if (eventListeners.Count == 0) return;
 
             var notificationManager = NotificationManager.active;
+            var promptHandler = PromptHandler.active;
 
             HandleNotification(eventListeners[0], notificationManager);
 
@@ -57,7 +58,24 @@ namespace Architome.Tutorial
                 
                 eventListeners[i].OnSuccessfulEvent += (EventListener listener) =>
                 {
-                    ArchAction.Delay(() => {
+                    ArchAction.Delay(async () => {
+
+                        if (!Application.isPlaying) return;
+                        var tip = listener.Tips();
+
+                        if(tip.Trim() != "")
+                        {
+                            await promptHandler.MessagePrompt(new() {
+                                title = "Tip",
+                                question = tip,
+                                options = new()
+                                {
+                                    new("Okay") {isEscape = true}
+                                },
+                                blocksScreen = true,
+                            });
+                        }
+                        if (!Application.isPlaying) return;
                         HandleNotification(nextListener, notificationManager);
                     }, delayBetweenDirections + current.extraSuccessfulTime);
                     
@@ -86,7 +104,7 @@ namespace Architome.Tutorial
             listener.StartEventListener();
             var direction = await manager.CreateDirectionNotification(new(NotificationType.Primary) {
                 name = listener.title,
-                description = listener.NotificationDescription(),
+                description = listener.Directions(),
                 dismissable = false,
             });
 

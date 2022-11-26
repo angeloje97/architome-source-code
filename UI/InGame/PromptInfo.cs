@@ -336,7 +336,7 @@ namespace Architome
         public string question;
         public Predicate<string> IsValidInput;
         public List<OptionData> options { get; set; }
-        public bool blocksScreen;
+        public bool blocksScreen { get; set; }
         public bool forcePick;
 
         //Slider

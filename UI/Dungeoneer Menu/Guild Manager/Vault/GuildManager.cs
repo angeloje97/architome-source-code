@@ -86,15 +86,17 @@ namespace Architome
         {
             active = this;
             
-            GetDependencies();
-            LoadGuildData();
-            AcquireSlots();
+            
         }
 
 
         private void Start()
         {
+            GetDependencies();
+            LoadGuildData();
+            AcquireSlots();
             InitiateModules();
+
         }
 
         private void OnValidate()

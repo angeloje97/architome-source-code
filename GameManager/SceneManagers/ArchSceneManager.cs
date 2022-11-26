@@ -16,15 +16,25 @@ namespace Architome
         public bool isLoading;
         public List<SceneInfo> sceneInfos;
         public Dictionary<ArchScene, SceneInfo> sceneInfoDict;
+        public Dictionary<Event, Action<ArchSceneManager>> eventDict;
 
         public List<Task> tasksBeforeLoad;
         public List<Task<bool>> tasksBeforeConfirmLoad;
         public List<Task> tasksBeforeActivateScene;
 
+        public enum Event
+        {
+            BeforeLoadScene,
+            BeforeActivateScene,
+            BeforeConfirmLoad,
+            OnLoadScene,
+        }
+
+
         public Action<ArchSceneManager> BeforeLoadScene { get; set; }
         public Action<ArchSceneManager> BeforeActivateScene { get; set; }
-        public Action<ArchSceneManager> OnLoadScene { get; set; }
         public Action<ArchSceneManager> BeforeConfirmLoad { get; set; }
+        public Action<ArchSceneManager> OnLoadScene { get; set; }
 
         public Action<AsyncOperation> OnLoadStart { get; set; }
         public Action<AsyncOperation> WhileLoading { get; set; }
@@ -34,6 +44,7 @@ namespace Architome
         public string sceneToLoad;
         public float progressValue;
 
+
         private void Awake()
         {
             if (active)
@@ -42,6 +53,7 @@ namespace Architome
                 return;
             }
 
+            CreateDictionary();
             active = this;
         }
 
@@ -55,11 +67,49 @@ namespace Architome
             }
         }
 
+        void CreateDictionary()
+        {
+            eventDict = new()
+            {
+                { Event.BeforeLoadScene, BeforeLoadScene },
+                { Event.BeforeActivateScene, BeforeActivateScene },
+                { Event.BeforeConfirmLoad, BeforeConfirmLoad },
+                { Event.OnLoadScene, OnLoadScene }
+
+            };
+        }
+
+
+
+        public void AddListener(Action<ArchSceneManager> action, Event trigger, object caller)
+        {
+            var invoker = EventInvoker(trigger);
+
+            invoker += HandleAction;
+
+            void HandleAction(ArchSceneManager sceneManager)
+            {
+                if(caller == null)
+                {
+                    invoker -= HandleAction;
+                    return;
+                }
+
+                action(this);
+            }
+        }
+
+        public Action<ArchSceneManager> EventInvoker(Event trigger)
+        {
+            return eventDict[trigger];
+        }
+
         async public void LoadScene(string sceneName, bool async = true)
         {
             this.sceneToLoad = sceneName;
 
             tasksBeforeConfirmLoad = new();
+
 
             BeforeConfirmLoad?.Invoke(this);
             foreach (var choice in tasksBeforeConfirmLoad)

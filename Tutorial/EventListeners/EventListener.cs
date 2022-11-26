@@ -229,6 +229,23 @@ namespace Architome.Tutorial
             }
         }
 
+        public int MemberIndex(EntityInfo entity)
+        {
+            int memberIndex = 0;
+            var party = entity.GetComponentInParent<PartyInfo>();
+            if (party == null) return memberIndex;
+            var members = party.GetComponentsInChildren<EntityInfo>();
+
+            for (int i = 0; i < members.Length; i++)
+            {
+                if (members[i] != entity) continue;
+                memberIndex = i;
+
+                break;
+            }
+
+            return memberIndex;
+        }
         async Task EntityCombat()
         {
             if (settings.waitEntityCombat == null) return;
@@ -290,7 +307,6 @@ namespace Architome.Tutorial
         {
             var stringList = new List<string>() {
                 Directions(),
-                Tips()
             };
 
             return ArchString.NextLineList(stringList, 1);

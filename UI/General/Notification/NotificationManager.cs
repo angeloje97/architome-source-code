@@ -35,6 +35,7 @@ namespace Architome
 
         [Header("Components")]
         public Transform notificationBin;
+        public CanvasGroup notificationBinCanvasGroup;
         public List<Notification> notifications;
         public Dictionary<NotificationType, NotificationTypeInfo> typeMap;
         
@@ -47,10 +48,30 @@ namespace Architome
         int activeIndex;
         Notification activeNotification;
         bool transitioning;
+        
+
+        static bool isVisible = true;
+        static bool started = false;
 
         void Start()
         {
             CreateTypeMap();
+            DeleteExistingNotifications();
+
+            if (!started)
+            {
+                started = true;
+                isVisible = true;
+            }
+            UpdateVisibility();
+        }
+
+        async void DeleteExistingNotifications()
+        {
+            foreach(var notification in notificationBin.GetComponentsInChildren<Notification>())
+            {
+                await notification.Dismiss();
+            }
         }
 
         // Update is called once per frame
@@ -69,6 +90,7 @@ namespace Architome
             active = this;
         }
 
+
         void CreateTypeMap()
         {
             typeMap = new();
@@ -77,6 +99,17 @@ namespace Architome
                 if (typeMap.ContainsKey(typeInfo.type)) continue;
                 typeMap.Add(typeInfo.type, typeInfo);
             }
+        }
+
+        public void ToggleVisibility()
+        {
+            isVisible = !isVisible;
+            UpdateVisibility();
+        }
+
+        void UpdateVisibility()
+        {
+            ArchUI.SetCanvas(notificationBinCanvasGroup, isVisible);
         }
 
         void HandleCreateTypes()

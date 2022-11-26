@@ -15,6 +15,7 @@ namespace Architome
         public bool generateBossKilled;
 
         public Quest questGenerated;
+        ArchSceneManager sceneManager;
 
         void Start()
         {
@@ -35,12 +36,21 @@ namespace Architome
                 }
             }
 
-            var sceneManager = ArchSceneManager.active;
+            sceneManager = ArchSceneManager.active;
 
             if (sceneManager)
             {
                 sceneManager.BeforeLoadScene += BeforeLoadScene;
                 sceneManager.BeforeConfirmLoad += BeforeConfirmLoad;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (sceneManager)
+            {
+                sceneManager.BeforeLoadScene -= BeforeLoadScene;
+                sceneManager.BeforeConfirmLoad -= BeforeConfirmLoad;
             }
         }
 
@@ -52,15 +62,6 @@ namespace Architome
 
         void BeforeLoadScene(ArchSceneManager manager)
         {
-            //if (questGenerated == null) return;
-            //if (questGenerated.info.state != QuestState.Active) return;
-            
-
-            //async Task CheckCancelQuest()
-            //{
-            //    var promptManager = PromptHandler.active;
-            //    if (promptManager == null) return;
-            //}
         }
 
         void BeforeConfirmLoad(ArchSceneManager sceneManager)

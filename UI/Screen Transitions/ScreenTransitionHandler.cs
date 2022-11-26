@@ -70,6 +70,14 @@ namespace Architome
 
             HandleMapRoomGenerator();
         }
+
+        private void OnDestroy()
+        {
+            if (sceneManager)
+            {
+                sceneManager.BeforeLoadScene -= TasksBeforeLoadScene;
+            }
+        }
         void Update()
         {
 

@@ -229,6 +229,8 @@ public class CombatInfo : MonoBehaviour
     {
         entityInfo = GetComponentInParent<EntityInfo>();
         combatBehavior = GetComponent<CombatBehavior>();
+        castedBy = new();
+        targetedBy = new();
         if(entityInfo)
         {
             combatLogs = new CombatLogs();

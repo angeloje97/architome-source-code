@@ -91,7 +91,7 @@ namespace Architome.Tutorial
             {
                 if(moveToType == MoveToType.StartMove)
                 {
-                    result.Add($"To move {sourceInfo.entityName}, select them with (Select <sprite={selectKeyIndex}> ) and then use (Action <sprite={actionKeyIndex}>) on a location you want to move them.");
+                    result.Add($"To move {sourceInfo.entityName}, select them with (Select <sprite={selectKeyIndex}>) and then use (Action <sprite={actionKeyIndex}>) on a location you want to move them.");
                 }
 
                 if(moveToType == MoveToType.QuickMoveOnly)
@@ -120,16 +120,8 @@ namespace Architome.Tutorial
             var stringList = new List<string>() {
                 base.Tips()
             };
-        
-            var members = sourceInfo.transform.parent.GetComponentsInChildren<EntityInfo>();
 
-            var memberIndex = 0;
-
-            for (int i = 0; i < members.Length; i++)
-            {
-                if (members[i] != sourceInfo) continue;
-                memberIndex = i;
-            }
+            var memberIndex = MemberIndex(sourceInfo);
 
             var alternateActionIndex = keyBindData.SpriteIndex($"AlternateAction{memberIndex}");
 
@@ -138,7 +130,7 @@ namespace Architome.Tutorial
                 if(moveToType == MoveToType.StartMove)
                 {
                     stringList.Add(
-                        $"Tip: Alternatively, you can use (Member Action {memberIndex + 1} <sprite={alternateActionIndex}> ) on a desired location to move party member ({memberIndex + 1}) without having to select the them."
+                        $"Tip: Alternatively, you can use the quick move action (<sprite={alternateActionIndex}>) on a desired location to move party member ({memberIndex + 1}) without having to select the them."
                     );
 
                 }

@@ -20,6 +20,7 @@ namespace Architome.Tutorial
 
         void Start()
         {
+            GetDependencies();
             HandleStart();
         }
 
@@ -84,9 +85,11 @@ namespace Architome.Tutorial
                 base.Directions()
             };
 
+            var spriteIndex = keyBindData.SpriteIndex("Action");
+
             if (!simple)
             {
-                var newDirection = $"To heal your allies, use the action move from your healer onto any ally (or themself) that needs healing same way you send out a party member to attack an enemy.";
+                var newDirection = $"To heal your allies, select your healer, hover over your allies, and use the action move (<sprite={spriteIndex}>)on them.";
                 result.Add(newDirection);
 
             }
@@ -96,7 +99,21 @@ namespace Architome.Tutorial
 
         public override string Tips()
         {
-            return base.Tips();
+            var result = new List<string>()
+            {
+                base.Tips()
+            };
+
+
+            if (!simple)
+            {
+                var memberIndex = MemberIndex(sourceHealer);
+                var memberActionIndex = keyBindData.SpriteIndex($"AlternateAction{memberIndex}");
+                result.Add($"You can also use quick action (for member {memberIndex + 1} <sprite={memberActionIndex}> ) on an ally to heal them without needing to select the healer.");
+
+            }
+
+            return ArchString.NextLineList(result);
         }
     }
 }

@@ -25,6 +25,8 @@ namespace Architome
         bool moduleActive;
         bool blockingInput;
 
+        ArchSceneManager archSceneManager;
+
 
         public ArchInputMode Mode { get { return inputMode; } }
 
@@ -46,7 +48,7 @@ namespace Architome
             bindings = KeyBindings.active;
             gui = IGGUIInfo.active;
             var contextMenu = ContextMenu.current;
-            var archSceneManager = ArchSceneManager.active;
+            archSceneManager = ArchSceneManager.active;
 
 
             if (archSceneManager)
@@ -64,6 +66,11 @@ namespace Architome
             {
                 contextMenu.OnContextActiveChange += OnContextActiveChange;
             }
+        }
+
+        private void OnDestroy()
+        {
+            archSceneManager.BeforeLoadScene -= BeforeLoadScene;
         }
 
 

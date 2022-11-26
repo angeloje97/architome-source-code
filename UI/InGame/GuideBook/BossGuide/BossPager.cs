@@ -28,6 +28,7 @@ namespace Architome
 
 
         public MapEntityGenerator activeEntityGenerator;
+        ArchSceneManager sceneManager;
 
 
 
@@ -39,26 +40,45 @@ namespace Architome
 
         void GetDependencies()
         {
-            var archSceneManager = ArchSceneManager.active;
+            sceneManager = ArchSceneManager.active;
 
-            archSceneManager.OnLoadScene += (ArchSceneManager sceneManager) => {
-                activeEntityGenerator = MapEntityGenerator.active;
+            if (sceneManager)
+            {
+                sceneManager.BeforeLoadScene += BeforeLoadScene;
+                sceneManager.OnLoadScene += OnLoadScene;
 
-                if (activeEntityGenerator)
-                {
-                    activeEntityGenerator.OnGenerateEntity += OnGenerateEntity;
-                }
-            };
 
-            archSceneManager.BeforeLoadScene += (ArchSceneManager sceneManager) => {
-                if (activeEntityGenerator == null) return;
+            }
+        }
 
-                ClearPages();
+        private void OnDestroy()
+        {
+            if (sceneManager)
+            {
+                sceneManager.BeforeLoadScene -= BeforeLoadScene;
+                sceneManager.OnLoadScene -= OnLoadScene;
+            }
+        }
 
-                activeEntityGenerator.OnGenerateEntity -= OnGenerateEntity;
+        void BeforeLoadScene(ArchSceneManager sceneManager)
+        {
+            if (activeEntityGenerator == null) return;
 
-                activeEntityGenerator = null;
-            };
+            ClearPages();
+
+            activeEntityGenerator.OnGenerateEntity -= OnGenerateEntity;
+
+            activeEntityGenerator = null;
+        }
+
+        void OnLoadScene(ArchSceneManager sceneManager)
+        {
+            activeEntityGenerator = MapEntityGenerator.active;
+
+            if (activeEntityGenerator)
+            {
+                activeEntityGenerator.OnGenerateEntity += OnGenerateEntity;
+            }
         }
 
         public void ClearPages()
