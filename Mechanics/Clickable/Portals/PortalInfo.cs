@@ -234,7 +234,7 @@ namespace Architome
         public Action<PortalInfo, GameObject> OnPortalExit;
         public Action<PortalInfo, EntityInfo> OnPlayerEnter;
         public Action<PortalInfo, EntityInfo> OnPlayerExit;
-        public Action<PortalInfo, List<EntityInfo>> OnAllPartyMembersInPortal;
+        public Action<PortalInfo, List<EntityInfo>> OnAllPartyMembersInPortal { get; set; }
         public Action<PortalInfo, GameObject> OnHostilesStillInRoom;
         public UnityEvent OnAllMembersInPortal;
     }

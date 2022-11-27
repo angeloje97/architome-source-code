@@ -85,7 +85,7 @@ namespace Architome
         {
             if (guildManager != null) return;
             var currentSave = Core.currentSave;
-            //if (currentSave == null) return;
+            var saveSystem = SaveSystem.active;
 
             var dataMap = DataMap.active;
 
@@ -133,13 +133,15 @@ namespace Architome
                 };
             };
 
-            if (currentSave != null)
-            {
-                SaveSystem.active.BeforeSave += delegate (SaveGame save)  {
-                    save.guildData.currencies = new(currencyDatas);
-                };
-                
 
+
+            if (saveSystem)
+            {
+                saveSystem.AddListener(SaveEvent.BeforeSave, delegate (SaveSystem system, SaveGame saveGame) 
+                {
+                    saveGame.guildData.currencies = new(currencyDatas);
+                }
+                , this);
 
             }
             

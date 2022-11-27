@@ -132,9 +132,9 @@ namespace Architome
             var pauseMenu = PauseMenu.active;
 
             manager = GetComponentInParent<DungeoneerManager>();
-
+            var saveSystem = SaveSystem.active;
             ArchSceneManager.active.AddListener(SceneEvent.BeforeLoadScene, BeforeLoadScene, this);
-            SaveSystem.active.BeforeSave += BeforeSave;
+            
 
             if (manager)
             {
@@ -147,7 +147,11 @@ namespace Architome
             {
                 pauseMenu.OnTryOpenPause += OnEscape;
             }
-            
+
+            if (saveSystem)
+            {
+                saveSystem.AddListener(SaveEvent.BeforeSave, BeforeSave, this);
+            }
 
         }
 
@@ -293,7 +297,7 @@ namespace Architome
             SaveEntities();
         }
 
-        void BeforeSave(SaveGame save)
+        void BeforeSave(SaveSystem system, SaveGame save)
         {
             save.guildData = new(this);
             SaveEntities();
@@ -311,7 +315,7 @@ namespace Architome
 
         void SaveEntities()
         {
-            var currentSave = Core.currentSave;
+            var currentSave = SaveSystem.current;
             if (currentSave == null) return;
 
             foreach (var entity in manager.entities.pool)

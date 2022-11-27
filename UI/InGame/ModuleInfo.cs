@@ -50,9 +50,7 @@ namespace Architome
             public GameObject inventorySlot;
         }
         public Prefabs prefabs;
-
         public EntityInfo currentEntitySelected;
-
         public void GetDependencies()
         {
             if (GetComponent<CanvasGroup>() == null)
@@ -80,9 +78,9 @@ namespace Architome
             GetDependencies();
             
         }
-
         void HandleHaltIGGUI()
         {
+            if (!haltIGGUI) return;
             var iggui = IGGUIInfo.active;
             if (!iggui) return;
             
@@ -95,12 +93,11 @@ namespace Architome
                 checks.Add(false);
             }
         }
-
         void HandleHaltInput()
         {
             if (!haltInput) return;
 
-            var archInput = ArchInput.active;
+            archInput = ArchInput.active;
             if (archInput == null) return;
 
             OnActiveChange += HandleActiveChange;
@@ -112,7 +109,6 @@ namespace Architome
                 archInput.HaltInput((obj) => { return this.isActive; });
             }
         }
-
         void HandleSelfEscape()
         {
             if (!selfEscape) return;

@@ -22,14 +22,6 @@ namespace Architome
         public List<Task<bool>> tasksBeforeConfirmLoad;
         public List<Task> tasksBeforeActivateScene;
 
-        
-
-
-        Action<ArchSceneManager> BeforeLoadScene { get; set; }
-        Action<ArchSceneManager> BeforeActivateScene { get; set; }
-        Action<ArchSceneManager> BeforeConfirmLoad { get; set; }
-        Action<ArchSceneManager> OnLoadScene { get; set; }
-
         public Action<AsyncOperation> OnLoadStart { get; set; }
         public Action<AsyncOperation> WhileLoading { get; set; }
         public Action<AsyncOperation> OnLoadEnd { get; set; }
@@ -63,24 +55,16 @@ namespace Architome
 
         void CreateDictionary()
         {
-            eventDict = new()
+            eventDict = new();
+
+            foreach (SceneEvent sceneEvent in Enum.GetValues(typeof(SceneEvent)))
             {
-                { SceneEvent.BeforeLoadScene, BeforeLoadScene },
-                { SceneEvent.BeforeActivateScene, BeforeActivateScene },
-                { SceneEvent.BeforeConfirmLoad, BeforeConfirmLoad },
-                { SceneEvent.OnLoadScene, OnLoadScene }
-
-            };
+                eventDict.Add(sceneEvent, delegate (ArchSceneManager sceneManager) { }); 
+            }
         }
-
-        
-
 
         public void AddListener<T>(SceneEvent trigger, Action<ArchSceneManager> action, T caller) where T: Component
         {
-            //var invoker = EventInvoker(trigger);
-
-            //invoker += HandleAction;
 
             eventDict[trigger] += HandleAction;
 
@@ -98,32 +82,14 @@ namespace Architome
             }
         }
 
-        //public void AddListeners(List<(SceneEvent, Action<ArchSceneManager>)> triggerActions, object caller)
-        //{
-        //    foreach(var (trigger, action) in triggerActions)
-        //    {
-        //        var invoker = EventInvoker(trigger);
-        //        HandleInvokerListener(invoker, action);
+        public void AddListeners<T>(List<(SceneEvent, Action<ArchSceneManager>)> triggerActions, T caller) where T: Component
+        {
+            foreach (var (trigger, action) in triggerActions)
+            {
+                AddListener(trigger, action, caller);
 
-        //    }
-
-
-        //    void HandleInvokerListener(Action<ArchSceneManager> invoker, Action<ArchSceneManager> listener)
-        //    {
-
-        //        invoker += HandleTrigger;
-        //        void HandleTrigger(ArchSceneManager sceneManager)
-        //        {
-        //            if(caller == null)
-        //            {
-        //                invoker -= HandleTrigger;
-        //                return;
-        //            }
-
-        //            listener(this);
-        //        }
-        //    }
-        //}
+            }
+        }
 
         public Action<ArchSceneManager> EventInvoker(SceneEvent trigger)
         {
@@ -137,20 +103,17 @@ namespace Architome
             tasksBeforeConfirmLoad = new();
 
 
-            //BeforeConfirmLoad?.Invoke(this);
             eventDict[SceneEvent.BeforeConfirmLoad]?.Invoke(this);
             foreach (var choice in tasksBeforeConfirmLoad)
             {
                 if (!await choice) return;
             }
 
-            //await Task.WhenAll(tasksBeforeConfirmLoad);
 
             await Task.Delay(125);
 
 
             tasksBeforeLoad = new();
-            //BeforeLoadScene?.Invoke(this);
             eventDict[SceneEvent.BeforeLoadScene]?.Invoke(this);
             await Task.WhenAll(tasksBeforeLoad);
 
@@ -176,14 +139,12 @@ namespace Architome
 
             tasksBeforeActivateScene = new();
 
-            //BeforeActivateScene?.Invoke(this);
             eventDict[SceneEvent.BeforeActivateScene]?.Invoke(this);
 
             await Task.WhenAll(tasksBeforeActivateScene);
 
             scene.allowSceneActivation = true;
 
-            //OnLoadScene?.Invoke(this);
             eventDict[SceneEvent.OnLoadScene]?.Invoke(this);
             await Task.Delay(2500);
             isLoading = false;

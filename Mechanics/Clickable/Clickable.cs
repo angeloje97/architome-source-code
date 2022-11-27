@@ -56,7 +56,7 @@ namespace Architome
                 while (this != null && isOver)
                 {
                     await Task.Yield();
-
+                    if (this == null) return;
                     if (!Mouse.IsMouseOverUI() && isOver)
                     {
                         if (ClickableManager.active.currentClickableHover != gameObject)

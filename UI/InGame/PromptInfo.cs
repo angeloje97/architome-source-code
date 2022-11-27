@@ -372,7 +372,7 @@ namespace Architome
         public string text;
         public bool affectedByInvalidInput;
         public bool preventClosePrompt;
-        public bool isEscape;
+        public bool isEscape { get; set; }
         public int timer;
 
         ArchButton button;
@@ -424,13 +424,16 @@ namespace Architome
             {
                 if (active)
                 {
-                    if (Input.GetKeyUp(KeyCode.Escape)) break;
+                    if (Input.GetKeyUp(KeyCode.Escape))
+                    {
+                        ChooseOption();
+                        break;
+                    }
 
                 }
                 await Task.Yield();
             }
 
-            ChooseOption();
 
         }
 

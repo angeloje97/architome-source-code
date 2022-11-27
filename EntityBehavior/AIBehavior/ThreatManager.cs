@@ -635,6 +635,7 @@ public class ThreatManager : MonoBehaviour
         {
             if (ally.npcType != entityInfo.npcType) continue;
             if (ally == entityInfo) continue;
+            if (ally == null) continue;
             var threatManager = ally.GetComponentInChildren<ThreatManager>();
             if (threatManager == null) continue;
             if (threatManager.Threat(target) != null) continue;

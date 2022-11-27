@@ -16,7 +16,7 @@ namespace Architome
         public List<ModuleInfo> modulesList;
         public Action<ModuleInfo> OnModuleEnableChange;
 
-        public Action<IGGUIInfo, List<bool>> OnClosingModulesCheck;
+        public Action<IGGUIInfo, List<bool>> OnClosingModulesCheck { get; set; }
 
         [Serializable]
         public struct Prefabs

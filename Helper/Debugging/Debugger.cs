@@ -8,8 +8,8 @@ public class Debugger : MonoBehaviour
     // Start is called before the first frame update
     static bool debugging = false;
     static bool debugCombat = false;
-    static bool debugEnvironment = false;
-    static bool debugUI = true;
+    static bool debugEnvironment = true;
+    static bool debugUI = false;
     static bool debugSocial = false;
     static bool debugOutSource = false;
     void Start()
