@@ -5,6 +5,8 @@ using System;
 using System.Linq;
 using Architome;
 using System.Threading.Tasks;
+using DungeonArchitect;
+
 public class CombatInfo : MonoBehaviour
 {
     // Start is called before the first frame update
@@ -216,19 +218,28 @@ public class CombatInfo : MonoBehaviour
     }
     public CombatLogs combatLogs;
 
-    public HashSet<EntityInfo> targetedBy;
-    public HashSet<EntityInfo> castedBy;
+    public ActionHashList<EntityInfo> targetedBy;
+    public ActionHashList<EntityInfo> castedBy;
 
     public bool isClearing;
 
-    public event Action<EntityInfo, HashSet<EntityInfo>> OnNewTargetedBy;
-    public event Action<EntityInfo, HashSet<EntityInfo>> OnTargetedByRemove;
-    public Action<CombatInfo> OnTargetedByEvent;
+    public EntityInfo currentTarget;
+    public EntityInfo currentCastingTarget;
+
+    public Action<EntityInfo, ActionHashList<EntityInfo>> OnNewTargetedBy { get; set; }
+    public Action<EntityInfo, ActionHashList<EntityInfo>> OnTargetedByRemove { get; set; }
+    public Action<CombatInfo> OnTargetedByEvent { get; set; }
+
+    public Action<CombatInfo, bool> OnIsBeingAttackedChange;
+
+    bool isBeingAttackedCheck;
+   
 
     void Start()
     {
         entityInfo = GetComponentInParent<EntityInfo>();
         combatBehavior = GetComponent<CombatBehavior>();
+        
         castedBy = new();
         targetedBy = new();
         if(entityInfo)
@@ -254,54 +265,69 @@ public class CombatInfo : MonoBehaviour
             entityInfo.OnLifeChange += OnLifeChange;
         }
     }
+
+    private void Update()
+    {
+        
+        if(isBeingAttacked != isBeingAttackedCheck)
+        {
+            isBeingAttackedCheck = isBeingAttacked;
+
+            OnIsBeingAttackedChange?.Invoke(this, isBeingAttacked);
+        }
+    }
     protected void AddTarget(EntityInfo target)
     {
-        targetedBy ??= new();
-        if(!targetedBy.Contains(target))
-        {
-            targetedBy.Add(target);
-            OnNewTargetedBy?.Invoke(target, targetedBy);
-            OnTargetedByEvent?.Invoke(this);
-        }
+        if (!targetedBy.Add(target)) return;
+        //targetedBy ??= new();
+        //if(!targetedBy.Contains(target))
+        //{
+        //    targetedBy.Add(target);
+        //    OnNewTargetedBy?.Invoke(target, targetedBy);
+        //    OnTargetedByEvent?.Invoke(this);
+        //}
+
+        OnNewTargetedBy?.Invoke(target, targetedBy);
+        isBeingAttacked = IsBeingAttacked();
+
+    }
+    protected void AddCaster(EntityInfo target)
+    {
+
+        if (!castedBy.Add(target)) return;
+        //castedBy ??= new();
+        //if (castedBy.Contains(target)) return;
+
+        //castedBy.Add(target);
+        OnTargetedByEvent?.Invoke(this);
 
         isBeingAttacked = IsBeingAttacked();
     }
     protected void RemoveTarget(EntityInfo target)
     {
-        targetedBy ??= new();
-        if (targetedBy.Contains(target))
-        {
-            targetedBy.Remove(target);
-            OnTargetedByRemove?.Invoke(target, targetedBy);
-            OnTargetedByEvent?.Invoke(this);
-        }
+        if (!targetedBy.Remove(target)) return;
 
-        isBeingAttacked = IsBeingAttacked();
-    }
-    protected void AddCaster(EntityInfo target)
-    {
-        castedBy ??= new();
-        if (castedBy.Contains(target)) return;
-
-        castedBy.Add(target);
+        OnTargetedByRemove?.Invoke(target, targetedBy);
         OnTargetedByEvent?.Invoke(this);
 
         isBeingAttacked = IsBeingAttacked();
     }
     protected void RemoveCaster(EntityInfo target)
     {
-        castedBy ??= new();
-        if (!castedBy.Contains(target)) return;
-        castedBy.Remove(target);
-        OnTargetedByEvent?.Invoke(this);
+        if (!castedBy.Remove(target)) return;
 
+        OnTargetedByEvent?.Invoke(this);
         isBeingAttacked = IsBeingAttacked();
+
+        return;
     }
     public void OnNewTarget(EntityInfo previousInfo, EntityInfo newInfo)
     {
+        currentTarget = newInfo;
+
         if(previousInfo != null)
         {
-            var combatInfo = previousInfo.GetComponentInChildren<CombatInfo>();
+            var combatInfo = previousInfo.CombatInfo();
             combatInfo.RemoveTarget(entityInfo);
 
         }
@@ -309,12 +335,13 @@ public class CombatInfo : MonoBehaviour
         if(newInfo != null)
         {
             if (ignoreIndicator) return;
-            var combatInfo = newInfo.GetComponentInChildren<CombatInfo>();
+            var combatInfo = newInfo.CombatInfo();
             combatInfo.AddTarget(entityInfo);
         }
     }
     public bool IsBeingAttacked()
     {
+
         if (EnemiesCastedBy().Count > 0)
         {
             return true;
@@ -327,47 +354,6 @@ public class CombatInfo : MonoBehaviour
 
         return false;
     }
-    //void ClearLogic()
-    //{
-    //    if (entityInfo == null) return;
-    //    for(int i = 0; i < castedBy.Count; i++) 
-    //    {
-    //        var caster = castedBy[i];
-    //        var ability = caster.GetComponentInChildren<AbilityManager>().currentlyCasting;
-
-    //        if (ability && !ability.isAttack && ability.target == entityInfo.gameObject)
-    //        {
-    //            continue;
-    //        }
-
-    //        castedBy.RemoveAt(i);
-
-    //        i--;
-    //        OnTargetedByEvent?.Invoke(this);
-    //    }
-
-    //    for (int i = 0; i < targetedBy.Count; i++)
-    //    {
-    //        var target = targetedBy[i];
-
-    //        var combat = target.GetComponentInChildren<CombatBehavior>();
-            
-
-    //        if (combat.GetFocus() && combat.GetFocus() == entityInfo.gameObject)
-    //        {
-    //            continue;
-    //        }
-
-    //        if (combat.target == entityInfo.gameObject)
-    //        {
-    //            continue;
-    //        }
-
-    //        targetedBy.RemoveAt(i);
-    //        i--;
-    //        OnTargetedByEvent?.Invoke(this);
-    //    }
-    //}
     async public void ClearEnemies()
     {
         if (isClearing) return;
@@ -394,8 +380,10 @@ public class CombatInfo : MonoBehaviour
         if(ability.isAttack) { return; }
         if (ability.target == null) return;
         if (ignoreIndicator) return;
-        
-        var combatInfo = ability.target.GetComponentInChildren<CombatInfo>();
+
+        currentCastingTarget = ability.target;
+        var abilityTarget = currentCastingTarget;
+        var combatInfo = ability.target.CombatInfo();
 
         await Task.Delay(125);
 
@@ -404,11 +392,14 @@ public class CombatInfo : MonoBehaviour
             combatInfo.AddCaster(entityInfo);
         }
 
-        while (ability.isCasting)
-        {
-            await Task.Yield();
-        }
 
+        await ability.EndActivation();
+
+        if(currentCastingTarget == abilityTarget)
+        {
+            currentCastingTarget = null;
+        }
+        
         combatInfo.RemoveCaster(entityInfo);
     }
     public List<EntityInfo> EnemiesTargetedBy()

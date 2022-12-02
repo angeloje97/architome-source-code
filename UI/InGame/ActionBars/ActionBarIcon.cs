@@ -41,7 +41,7 @@ namespace Architome
             Debugger.UI(5439, $"{this} drag and drop changed isDragging {isDragging}");
             if (isDragging)
             {
-                actionBarBehavior.DestroyToolTip();
+                //actionBarBehavior.DestroyToolTip();
             }
         }
 

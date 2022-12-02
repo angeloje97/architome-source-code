@@ -4,46 +4,42 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Architome.Enums;
-using static Architome.CatalystInfo.CatalystEffects;
 
 namespace Architome
 {
-    public class AbilityInfoUI : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, IPointerEnterHandler, IPointerExitHandler
+    [RequireComponent(typeof(ToolTipElement))]
+    public class AbilityInfoUI : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
     {
         public AbilityInfo abilityInfo;
         public SpellBookSlot currentSlot;
         public ActionBarSlot currentActionBarSlot;
         public ActionBarSlot currentActionBarHover;
 
-        ToolTip toolTip;
-        ToolTipManager manager;
+
+        ToolTipElement toolTipHandler;
         
-
-        ToolTipManager Manager 
-        {
-            get 
-            {
-                if (manager == null)
-                {
-                    manager = ToolTipManager.active;
-                }
-
-                return manager;
-            } 
-        }
-
-
-        // Start is called before the first frame update
         void Start()
         {
+            toolTipHandler = GetComponent<ToolTipElement>();
 
+            if (toolTipHandler)
+            {
+                toolTipHandler.OnCanShowCheck += HandleCanShowCheck;
+            }
         }
 
-        // Update is called once per frame
-        void Update()
+        void HandleCanShowCheck(ToolTipElement element)
         {
+            if(abilityInfo == null)
+            {
+                element.checks.Add(false);
+                return;
+            }
 
+            element.data = abilityInfo.ToolTipData();
         }
+
+
 
         public void OnPointerUp(PointerEventData eventData)
         {
@@ -120,46 +116,6 @@ namespace Architome
         void DestroySelf()
         {
             Destroy(gameObject);
-        }
-
-        public void OnPointerEnter(PointerEventData eventData)
-        {
-            if (abilityInfo == null) return;
-            var manager = Manager;
-
-            if (manager == null) return;
-
-            toolTip = manager.GeneralHeader();
-
-            if (toolTip == null) return;
-
-            toolTip.adjustToMouse = true;
-
-            //var attributes = abilityInfo.PropertiesDescription() + abilityInfo.BuffList();
-
-            //var buffDescription = abilityInfo.BuffDescriptions();
-
-            //if (buffDescription.Length > 0)
-            //{
-            //    attributes += $"\n {buffDescription}";
-            //}
-
-            //toolTip.SetToolTip(new() {
-            //    icon = abilityInfo.Icon(),
-            //    name = abilityInfo.Name(),
-            //    description = abilityInfo.Description(),
-            //    attributes = attributes,
-            //    value = abilityInfo.ResourceDescription()
-            //});
-
-            toolTip.SetToolTip(abilityInfo.ToolTipData(true));
-        }
-
-        public void OnPointerExit(PointerEventData eventData)
-        {
-            if (toolTip == null) return;
-
-            toolTip.DestroySelf();
         }
 
         

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using Architome.Enums;
 
 namespace Architome
 {
@@ -23,10 +24,24 @@ namespace Architome
         public void GetDependencies()
         {
             questInfo = GetComponentInParent<Quest>();
-            //if(GetComponentInParent<Quest>())
-            //{
-            //    questInfo = GetComponentInParent<Quest>();
-            //}
+        }
+
+        public void PairEvents(Action invoker, Action listener)
+        {
+            invoker += HandleEvent;
+
+            void HandleEvent()
+            {
+                if(questInfo.info.state != QuestState.Active)
+                {
+                    invoker -= HandleEvent;
+                    return;
+                }
+
+                listener();
+
+
+            }
         }
 
         public void CompleteObjective()

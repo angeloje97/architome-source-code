@@ -82,6 +82,22 @@ namespace Architome
             }
         }
 
+        public void AddListener<T>(SceneEvent trigger, Action action, T caller) where T : Component
+        {
+            eventDict[trigger] += HandleTrigger;
+
+            void HandleTrigger(ArchSceneManager sceneManager)
+            {
+                if(caller == null)
+                {
+                    eventDict[trigger] -= HandleTrigger;
+                    return;
+                }
+
+                action();
+            }
+        }
+
         public void AddListeners<T>(List<(SceneEvent, Action<ArchSceneManager>)> triggerActions, T caller) where T: Component
         {
             foreach (var (trigger, action) in triggerActions)

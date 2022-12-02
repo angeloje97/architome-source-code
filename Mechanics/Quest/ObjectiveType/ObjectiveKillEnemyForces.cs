@@ -52,12 +52,22 @@ namespace Architome
         public override void Activate()
         {
             base.Activate();
-            EntityDeathHandler.active.OnEntityDeath += OnEntityDeath;
+            var deathHandler = EntityDeathHandler.active;
+                
+            deathHandler.OnEntityDeath += OnEntityDeath;
 
+            questInfo.OnQuestEnd += (Quest quest) => {
+                deathHandler.OnEntityDeath -= OnEntityDeath;
+                foreach(var entity in entities)
+                {
+                    entity.infoEvents.OnUpdateObjectives -= OnEntityObjectiveCheck;
+                }
+            };
 
             foreach (var entity in entities)
             {
                 entity.infoEvents.OnUpdateObjectives += OnEntityObjectiveCheck;
+
             }
 
             questInfo.rewards.experience += totalHealthPool * .25f;

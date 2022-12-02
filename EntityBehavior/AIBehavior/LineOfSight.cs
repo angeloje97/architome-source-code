@@ -17,9 +17,8 @@ namespace Architome
         public AIBehavior behavior;
         public CharacterInfo character;
 
-        //public List<GameObject> entitiesDetected;
-        public List<EntityInfo> enemiesWithinLineOfSight;
-        public List<EntityInfo> entitiesWithinLineOfSight;
+        public ActionHashList<EntityInfo> entitiesWithinLineOfSight { get; set; }
+        
 
         public LayerMask targetLayer { get; set; }
         public LayerMask obstructionLayer { get; set; }
@@ -27,9 +26,12 @@ namespace Architome
         public bool isPlayer;
         public bool hasLineOfSightOnCurrentTarget;
 
+        
         public float radius;
         public float combatRadius;
         public float detectionInterval;
+
+        [SerializeField] bool showHashSet;
         public void GetDependencies()
         {
             behavior = GetComponentInParent<AIBehavior>();
@@ -104,6 +106,7 @@ namespace Architome
         private void Start()
         {
             GetDependencies();
+            HandleHashList();
             LineOfSightRoutine();
         }
         // Update is called once per frame
@@ -122,6 +125,16 @@ namespace Architome
                 if (!RoomIsRevealed()) continue;
                 Scan();
             }
+        }
+
+        void HandleHashList()
+        {
+            entitiesWithinLineOfSight = new();
+
+            entitiesWithinLineOfSight.OnAddItem += (EntityInfo entity) => {
+                behavior.events.OnSightedEntity?.Invoke(entity);
+
+            };
         }
 
         void OnLifeChange(bool isAlive)
@@ -153,8 +166,7 @@ namespace Architome
             if (entityObject == null) return;
 
             var entities = Physics.OverlapSphere(entityObject.transform.position, radius, targetLayer);
-            var entitiesScanned = new List<EntityInfo>();
-
+            var newHashSet = new HashSet<EntityInfo>();
             foreach (var entity in entities)
             {
                 var info = entity.GetComponent<EntityInfo>();
@@ -172,33 +184,13 @@ namespace Architome
 
                 if (Physics.Raycast(entityObject.transform.position, direction, distance, obstructionLayer)) continue;
 
-                if (!entitiesWithinLineOfSight.Contains(info))
-                {
-                    behavior.events.OnSightedEntity?.Invoke(info);
-                    entitiesWithinLineOfSight.Add(info);
-                }
-
-                //entitiesWithinLineOfSight.Add(entity.gameObject);
-                entitiesScanned.Add(info);
+                newHashSet.Add(info);
+                entitiesWithinLineOfSight.Add(info);
             }
 
-            for (int i = 0; i < entitiesWithinLineOfSight.Count; i++)
-            {
-                var entity = entitiesWithinLineOfSight[i];
+            entitiesWithinLineOfSight.Update(entity => newHashSet.Contains(entity));
 
-                if (!entity.isAlive)
-                {
-                    entitiesWithinLineOfSight.RemoveAt(i);
-                    i--; continue;
-                }
-
-                if (!entitiesScanned.Contains(entity))
-                {
-                    entitiesWithinLineOfSight.RemoveAt(i);
-                    i--;
-                }
-
-            }
+            
 
             bool CharacterIsFacing(EntityInfo target, float distance)
             {
@@ -319,7 +311,7 @@ namespace Architome
         public List<EntityInfo> DetectedAllies()
         {
             var entityList = new List<EntityInfo>();
-            var listCheck = partyInfo ? partyInfo.members : entitiesWithinLineOfSight;
+            var listCheck = partyInfo ? partyInfo.members : entitiesWithinLineOfSight.ToList();
 
             foreach (var info in listCheck)
             {

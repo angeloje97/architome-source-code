@@ -330,6 +330,7 @@ namespace Architome
 
 
     }
+    [Serializable]
     public class PromptInfoData
     {
         public string title;

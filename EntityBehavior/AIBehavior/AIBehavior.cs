@@ -20,9 +20,9 @@ public class AIBehavior : EntityProp
 
     public struct Events
     {
-        public Action<EntityInfo> OnDetecedEntity;
-        public Action<EntityInfo> OnDetectedEnemy;
-        public Action<EntityInfo> OnSightedEntity;
+        public Action<EntityInfo> OnDetecedEntity { get; set; }
+        public Action<EntityInfo> OnDetectedEnemy { get; set; }
+        public Action<EntityInfo> OnSightedEntity { get; set; }
 
     }
 

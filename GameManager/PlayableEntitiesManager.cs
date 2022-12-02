@@ -23,6 +23,8 @@ namespace Architome
 
         public List<string> scenesToSaveEntities;
 
+
+
         void Awake()
         {
             active = this;
@@ -48,20 +50,16 @@ namespace Architome
 
             if (sceneManager)
             {
-
-
                 sceneManager.AddListener(SceneEvent.BeforeLoadScene, BeforeLoadScene, this);
                 sceneManager.AddListener(SceneEvent.OnLoadScene, OnLoadScene, this);
-
             }
         }
         void Start()
         {
             GetDependencies();
             HandleLastLevel();
-
             OnSceneStart();
-            //HandleMoveOutOfPortal();
+
         }
         void Update()
         {
@@ -100,7 +98,6 @@ namespace Architome
         async void HandleLoadEntities()
         {
             if (party == null) return;
-            if (!loadFromSave) return;
 
             
 
@@ -111,7 +108,6 @@ namespace Architome
             if (partyObject != null) return;
 
             partyObject = party.gameObject;
-            //DontDestroyOnLoad(party);
             var savedEntities = currentSave.savedEntities;
             var entityIndex = currentSave.selectedEntitiesIndex;
 
@@ -137,7 +133,7 @@ namespace Architome
             }
 
             await Task.WhenAll(tasks);
-
+            loadFromSave = true;
             
         }
 
@@ -145,15 +141,24 @@ namespace Architome
         void OnSceneStart()
         {
             ArchAction.Delay(() => {
-                if (this == null) return;
                 TransferUnitsToEntrancePortal();
                 StopMovingEntities();
                 HandlePortals();
-            }, .50f);
+            
+            }, .5f);
         }
         void OnLoadScene(ArchSceneManager sceneManager)
         {
-            OnSceneStart();
+            var scenes = new HashSet<string>()
+            {
+                "Map Template",
+                "Map Template Continue",
+            };
+
+            if (scenes.Contains(sceneManager.sceneToLoad))
+            {
+                OnSceneStart();
+            }
         }
 
         void HandlePortals()
@@ -277,9 +282,14 @@ namespace Architome
                 await Task.Yield();
             }
 
-            foreach (var entity in party.members)
+            Debugger.Environment(7915, $"Entry portal detected {entryPortal}");
+
+            party.transform.position = entryPortal.portalSpot.position + new Vector3(0, .25f, 0);
+
+            foreach (var entity in party.GetComponentsInChildren<EntityInfo>())
             {
-                entity.Move(entryPortal.portalSpot.position + new Vector3(0, .25f, 0));
+
+                entity.Move(party.transform.position);
             }
 
             HandleMoveOutOfPortal(entryPortal);
@@ -289,9 +299,33 @@ namespace Architome
         {
             SaveEntities();
         }
-        void BeforeLoadScene(ArchSceneManager sceneManager)
+        async void BeforeLoadScene(ArchSceneManager sceneManager)
         {
             SaveEntities();
+            var abilityManagers = new List<AbilityManager>();
+            foreach(var member in party.members)
+            {
+                var abilityManager = member.AbilityManager();
+                if (abilityManager == null) continue;
+
+                abilityManagers.Add(abilityManager);
+
+                abilityManager.SetAbilities(false, false);
+            }
+
+            while (this && sceneManager.isLoading)
+            {
+                await Task.Yield();
+            }
+
+            if (this == null) return;
+
+
+            foreach(var manager in abilityManagers)
+            {
+                manager.SetAbilities(true, true);
+            }
+            
         }
         void SaveEntities()
         {

@@ -139,7 +139,8 @@ namespace Architome
             public Action<EntityInfo> OnNullPortraitCheck;
             public Action<Currency, int, List<bool>> OnCanSpendCheck { get; set; }
             public Action<ItemData, List<bool>> OnCanPickUpCheck { get; set; }
-            
+            public Action<EntityInfo> OnDestroy { get; set; }
+
         }
 
         public struct CombatEvents
@@ -197,7 +198,6 @@ namespace Architome
         public Action<float> OnExperienceGain;
         public Action<object, float> OnExperienceGainOutside;
         public Action<int> OnLevelUp;
-        public Action OnEntityDestroy;
         public Action<float, float, float> OnHealthChange { get; set; }
         public Action<float, float> OnManaChange;
         public Action<bool> OnCombatChange;
@@ -462,6 +462,7 @@ namespace Architome
         }
         public void OnDestroy()
         {
+            infoEvents.OnDestroy?.Invoke(this);
             if (GMHelper.TargetManager())
             {
                 if (GMHelper.TargetManager().selectedTargets.Contains(gameObject))
@@ -897,7 +898,6 @@ namespace Architome
         {
             await Task.Delay(5000);
             disappeared = true;
-            OnEntityDestroy?.Invoke();
             await Task.Yield();
 
             Destroy(gameObject);
@@ -1483,6 +1483,10 @@ namespace Architome
                 }
             }
             return null;
+        }
+        public CombatInfo CombatInfo()
+        {
+            return EntityComponent<CombatInfo>();
         }
         public AudioManager SoundEffect()
         {

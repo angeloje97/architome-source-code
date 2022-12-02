@@ -9,7 +9,6 @@ namespace Architome
     [CreateAssetMenu(fileName = "New Weapon", menuName = "Architome/Item/Equipment/Weapon")]
     public class Weapon : Equipment
     {
-
         public static List<WeaponType> TwoHanders
         {
             get
@@ -24,6 +23,7 @@ namespace Architome
                 };
             }
         }
+        [Header("Weapon Properties")]
         public WeaponType weaponType;
         public BodyPart sheathPart;
         public BodyPart drawPart;

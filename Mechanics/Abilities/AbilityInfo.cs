@@ -438,14 +438,6 @@ public class AbilityInfo : MonoBehaviour
 
     public Sprite Icon()
     {
-        //if (abilityType2 == AbilityType2.AutoAttack && abilityManager.settings.useWeaponAbility)
-        //{
-        //    if (abilityManager.currentWeapon && abilityManager.currentWeapon.itemIcon)
-        //    {
-        //        return abilityManager.currentWeapon.itemIcon;
-        //    }
-        //}
-
         if (abilityIcon != null)
         {
             return abilityIcon;
@@ -1040,7 +1032,7 @@ public class AbilityInfo : MonoBehaviour
 
         if (V3Helper.Distance(target.transform.position, entityObject.transform.position) > range + offset)
         {
-            movement.MoveTo(target.transform, range);
+            movement.MoveTo(target.transform, range - offset);
             ActivateWantsToCast("Target is out of range");
             return false;
         }

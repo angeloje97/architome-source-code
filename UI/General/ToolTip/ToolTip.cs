@@ -292,7 +292,7 @@ namespace Architome
             return;
         }
     }
-
+    [Serializable]
     public struct ToolTipData
     {
         public string name, subeHeadline, type, description, attributes, requirements, value;

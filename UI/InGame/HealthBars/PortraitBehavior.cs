@@ -204,6 +204,23 @@ public class PortraitBehavior : MonoBehaviour, IPointerEnterHandler, IPointerExi
         healthUI.OnHover(true);
     }
 
+    public void OnNewHoverTarget(EntityInfo previous, EntityInfo newTarget)
+    {
+        if (entity == null) return;
+        if (newTarget == null)
+        {
+            healthUI.OnHover(false);
+            return;
+        }
+
+
+        if (newTarget == null) return;
+        if (newTarget != entity) return;
+
+
+        healthUI.OnHover(true);
+    }
+
     void Start()
     {
         GetDependencies();
@@ -282,11 +299,11 @@ public class PortraitBehavior : MonoBehaviour, IPointerEnterHandler, IPointerExi
         entity.infoEvents.OnMouseHover?.Invoke(entity, false, gameObject);
 
     }
-    public void OnNewTargetedBy(EntityInfo newTarget, HashSet<EntityInfo> targetedBy)
+    public void OnNewTargetedBy(EntityInfo newTarget, ActionHashList<EntityInfo> targetedBy)
     {
 
     }
-    public void OnTargetedByRemove(EntityInfo newTarget, HashSet<EntityInfo> targetedBy)
+    public void OnTargetedByRemove(EntityInfo newTarget, ActionHashList<EntityInfo> targetedBy)
     {
 
     }
