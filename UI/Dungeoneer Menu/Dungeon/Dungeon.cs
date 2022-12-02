@@ -13,6 +13,7 @@ namespace Architome
     {
         int dungeonSaveIndex = -1;
 
+
         public int SaveIndex
         {
             get
@@ -65,6 +66,8 @@ namespace Architome
         //public Rooms rooms;
         public List<Rooms> levels;
         public bool highlighted;
+        public int skeletonRooms, availableRooms;
+
         public Action<Dungeon> OnSelectDungeon { get; set; }
 
         public bool preset;
@@ -109,7 +112,6 @@ namespace Architome
             }
 
             return size;
-
         }
 
         public void SetDungeon(DungeonTable.DungeonInfo info, int size = 0) // Fresh Dungeon
@@ -202,7 +204,7 @@ namespace Architome
             rooms.level = info.sets[setIndex].dungeonLevel;
 
 
-            var (skeletonCount, availableCount) = (5, 5);
+            var (skeletonCount, availableCount) = (skeletonRooms, availableRooms);
 
             var skeletonPresets = new List<RoomInfo>();
             var availablePresets = new List<RoomInfo>();

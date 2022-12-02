@@ -4,6 +4,7 @@ using UnityEngine;
 using System;
 using UnityEngine.Events;
 using Architome.Enums;
+using System.Threading.Tasks;
 
 namespace Architome
 {
@@ -41,6 +42,7 @@ namespace Architome
         public struct Restrictions
         {
             public bool requiresNoHostileEntities;
+            public bool requiresNoCombat;
         }
 
         [Serializable]
@@ -56,8 +58,6 @@ namespace Architome
         public Restrictions restrictions;
 
         public PortalEvents events;
-
-
         void GetDependencies()
         {
             if (GetComponent<Clickable>())
@@ -73,7 +73,6 @@ namespace Architome
 
             info.room = GetComponentInParent<RoomInfo>();
         }
-        
 
         void Start()
         {
@@ -110,7 +109,6 @@ namespace Architome
         {
 
         }
-
         void HandlePortalList()
         {
             portalList ??= new();
@@ -126,13 +124,10 @@ namespace Architome
 
             portalList.Add(this);
         }
-
-
         void OnNewPlayableEntity(EntityInfo info, int index)
         {
             partyCount++;
         }
-
         public void IncreaseDungeonIndex()
         {
             var setScene = "PostDungeonResults";
@@ -152,20 +147,16 @@ namespace Architome
                 setScene = "Map Template Continue";
             }
         }
-
         public void TeleportToScene(string sceneName)
         {
             if (setScene == null || setScene.Length == 0) return;
             sceneManager.LoadScene(sceneName, true);
         }
-
         public void TeleportToSetScene()
         {
             if (setScene == null || setScene.Length == 0) return;
             sceneManager.LoadScene(setScene, true);
         }
-
-
         public void HandleMoveTargets()
         {
             if (clickable == null) { return; }
@@ -173,8 +164,8 @@ namespace Architome
             {
                 foreach (var entity in Entity.EntitiesFromRoom(info.room))
                 {
-                    if (entity.npcType != Enums.NPCType.Hostile) continue;
-
+                    if (entity.npcType != NPCType.Hostile) continue;
+                    
                     return;
                 }
             }
@@ -186,15 +177,41 @@ namespace Architome
 
                 foreach(var entity in entities)
                 {
-                    entity.Movement().MoveTo(portalSpot);
+                    if (restrictions.requiresNoCombat && entity.isInCombat)
+                    {
+                        events.OnCantEnterPortal?.Invoke(this, entity, $"{entity} can't enter the portal because they are in combat.");
+                        continue;
+                    }
+                    var movement = entity.Movement();
+                    movement.MoveTo(portalSpot);
+                    HandleEntityCombat(entity, movement); 
                 }
             }
         }
+
+        async void HandleEntityCombat(EntityInfo entity, Movement movement)
+        {
+            if (!restrictions.requiresNoCombat) return;
+
+            while (movement.Target() == portalSpot)
+            {
+
+                if (entity.isInCombat)
+                {
+                    movement.StopMoving();
+                }
+
+                if (portalSpot == null) return;
+
+                await Task.Yield();
+            }
+
+        }
+
         public void SpawnEntity(GameObject entity)
         {
             if (entity.GetComponent<EntityInfo>() == null) return;
         }
-
         public void SpawnParty(GameObject party)
         {
             if (party.GetComponent<PartyInfo>() == null) return;
@@ -206,7 +223,6 @@ namespace Architome
                 entity.transform.position = portalSpot.transform.position;
             }
         }
-
         public void MoveAllEntitiesOutOfPortal(float radius)
         {
             if (entitiesInPortal == null) return;
@@ -234,7 +250,9 @@ namespace Architome
         public Action<PortalInfo, GameObject> OnPortalExit;
         public Action<PortalInfo, EntityInfo> OnPlayerEnter;
         public Action<PortalInfo, EntityInfo> OnPlayerExit;
-        public Action<PortalInfo, List<EntityInfo>> OnAllPartyMembersInPortal;
+        public Action<PortalInfo, EntityInfo, string> OnCantEnterPortal;
+
+        public Action<PortalInfo, List<EntityInfo>> OnAllPartyMembersInPortal { get; set; }
         public Action<PortalInfo, GameObject> OnHostilesStillInRoom;
         public UnityEvent OnAllMembersInPortal;
     }

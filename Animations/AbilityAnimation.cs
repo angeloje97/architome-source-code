@@ -63,7 +63,7 @@ public class AbilityAnimation
 
             if (equipment && Item.IsWeapon(equipment))
             {
-                weapon = (Weapon) equipment;
+                weapon = (Weapon)equipment;
             }
         }
     }
@@ -93,7 +93,7 @@ public class AbilityAnimation
     public void OnCastStart(AbilityInfo ability)
     {
         var catalystInfo = ability.catalystInfo;
-        if(catalystInfo == null) { return; }
+        if (catalystInfo == null) { return; }
         currentCatalyst = catalystInfo;
 
         Debugger.Combat(6418, $"{ability} animation");
@@ -155,6 +155,7 @@ public class AbilityAnimation
     {
         animator.SetInteger("AbilityX", 0);
         animator.SetInteger("AbilityY", 0);
+        animator.SetInteger("AbilityZ", 0);
         animator.SetInteger("AbilityIndex", 0);
 
         animator.SetInteger("AttackX", 0);
@@ -194,8 +195,8 @@ public class AbilityAnimation
         if (UsesFixedAttackAnimation()) return;
 
         //var weapon = character.WeaponItem(EquipmentSlotType.MainHand);
-        
-        if(weapon == null)
+
+        if (weapon == null)
         {
             animator.SetInteger("AttackX", 1);
             animator.SetInteger("AttackY", 0);

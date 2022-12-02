@@ -24,6 +24,7 @@ public class ThreatManager : MonoBehaviour
     [Serializable]
     public class ThreatInfo
     {
+        [HideInInspector] public string name;
         public ThreatManager threatManager; //Owner
         public GameObject sourceObject;     //Owner
         public EntityInfo sourceInfo;       //Owner
@@ -34,6 +35,8 @@ public class ThreatManager : MonoBehaviour
         public bool isActive;
 
         public Action<ThreatInfo> OnThreatEnd;
+
+        bool initialized;
 
         public void IncreaseThreat(float val)
         {
@@ -47,6 +50,7 @@ public class ThreatManager : MonoBehaviour
             threatObject = threat.gameObject;
             threatValue = val;
             threatInfo = threat;
+            name = threat.entityName;
 
             threatManager.OnClearThreats += OnClearThreats;
             //source.OnDeath += OnSourceDeath;
@@ -58,8 +62,12 @@ public class ThreatManager : MonoBehaviour
                 //source.OnDeath -= OnSourceDeath;
                 //threat.OnDeath -= OnThreatDeath;
             };
-            
+        }
 
+        public void Initialize()
+        {
+            if (initialized) return;
+            initialized = true;
             isActive = true;
             CombatTimeRoutine();
         }
@@ -402,6 +410,7 @@ public class ThreatManager : MonoBehaviour
     }
     public void IncreaseThreat(EntityInfo source, float value, bool fromAlert = false)
     {
+        if (!source.isAlive) return;
         if (!entityInfo.isAlive) return;
         if (!entityInfo.CanAttack(source)) return;
         if(entityInfo.gameObject == source) { return; }
@@ -417,6 +426,7 @@ public class ThreatManager : MonoBehaviour
         {
             threatInfo = new ThreatInfo(this, entityInfo, source, value);
             threats.Add(threatInfo);
+            threatInfo.Initialize();
             OnNewThreat?.Invoke(threatInfo);
             threatDict.Add(source, threatInfo);
         }
@@ -635,6 +645,7 @@ public class ThreatManager : MonoBehaviour
         {
             if (ally.npcType != entityInfo.npcType) continue;
             if (ally == entityInfo) continue;
+            if (ally == null) continue;
             var threatManager = ally.GetComponentInChildren<ThreatManager>();
             if (threatManager == null) continue;
             if (threatManager.Threat(target) != null) continue;
@@ -649,7 +660,8 @@ public class ThreatManager : MonoBehaviour
             var enemies = combatInfo.EnemiesTargetedBy();
             foreach(var enemy in enemies)
             {
-                enemy.GetComponentInChildren<ThreatManager>().IncreaseThreat(source, value);
+                //enemy.GetComponentInChildren<ThreatManager>().IncreaseThreat(source, value);
+                enemy.ThreatManager().IncreaseThreat(source, value);
             }
 
 

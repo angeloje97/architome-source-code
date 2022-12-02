@@ -101,6 +101,7 @@ namespace Architome
             {
                 await Task.Yield();
             }
+            if (this == null) return;
 
             Destroy(gameObject);
         }

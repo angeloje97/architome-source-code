@@ -22,7 +22,7 @@ namespace Architome
         public bool idSet;
 
 
-        [Header("Item Info")]
+        [Header("Item Properties")]
         public string itemName;
         public Sprite itemIcon;
         public ItemFX effects;

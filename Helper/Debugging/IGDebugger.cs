@@ -101,8 +101,6 @@ namespace Architome.Debugging
                 setting.UpdateSelf();
             }
         }
-
-
         void GetDependencies()
         {
             module.OnActiveChange += OnModuleActiveChange;
@@ -233,6 +231,17 @@ namespace Architome.Debugging
 
         void CreateLog(LogData logData)
         {
+            if (popUpError)
+            {
+                if (logData.type == LogType.Error)
+                {
+                    if (!module.isActive)
+                    {
+                        module.SetActive(true);
+                    }
+                }
+            }
+
             if (logHistory.ContainsKey(logData.log))
             {
                 var originalLog = logHistory[logData.log];
@@ -258,16 +267,7 @@ namespace Architome.Debugging
             logItem.SetLogData(logData, logSettingDict[logData.type].color);
             logItem.SetDebugger(this);
 
-            if (popUpError)
-            {
-                if (logData.type == LogType.Error)
-                {
-                    if (!module.isActive)
-                    {
-                        module.SetActive(true);
-                    }
-                }
-            }
+            
         }
 
         void UpdateText()

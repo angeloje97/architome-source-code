@@ -334,8 +334,9 @@ namespace Architome
             }
 
             var count = 0;
-            while (count < orderedRenders.Count)
+            while (this && count < orderedRenders.Count)
             {
+
                 if (isRevealed != val) { break; }
 
                 if (!orderedRenders[count])
@@ -355,6 +356,8 @@ namespace Architome
                 if (increments == 0) await Task.Yield();
                 else if (count % increments == 0) { await Task.Yield(); }
             }
+
+            if (this == null) return;
 
             if (!val)
             {

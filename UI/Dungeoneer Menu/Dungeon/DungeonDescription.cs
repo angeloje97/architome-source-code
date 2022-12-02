@@ -38,7 +38,6 @@ namespace Architome
         public Prefabs prefabs;
         public DungeonTable table;
         public EntityInfo selectedEntity;
-        public ToolTip abilityToolTip;
 
         public Action<EntityInfo> OnSelectEntity;
         void Start()
@@ -72,10 +71,25 @@ namespace Architome
 
             foreach (var icon in components.bossAbilityIcons)
             {
-                icon.OnHoverIcon += OnHoverAbilityIcon;
+                var toolTipElement = icon.GetComponent<ToolTipElement>();
+                toolTipElement.OnCanShowCheck += (ToolTipElement element) => { OnCanShowToolTip(element, icon); };
                 icon.gameObject.SetActive(false);
             }
         }
+
+        void OnCanShowToolTip(ToolTipElement element, Icon icon)
+        {
+            if (!typeof(AbilityInfo).IsAssignableFrom(icon.data.GetType()))
+            {
+                element.checks.Add(false);
+                return;
+            }
+
+            var abilityInfo = (AbilityInfo) icon.data;
+
+            element.data = abilityInfo.ToolTipData(false);
+        }
+
 
         void OnDungeonChange(Dungeon before, Dungeon after)
         {
@@ -223,41 +237,6 @@ namespace Architome
 
             }
         }
-        public void OnHoverAbilityIcon(Icon icon, bool hovering) //Display tooltip for boss ability here
-        {
-            Debugger.InConsole(1239, $"{icon.data.GetType()}");
-            if (!typeof(AbilityInfo).IsAssignableFrom(icon.data.GetType())) return;
-            var ability = (AbilityInfo)icon.data;
-
-            Debugger.InConsole(1092, $"{icon} is being hovered {hovering}");
-
-
-            HandleHover();
-            HandleHoverExit();
-
-            void HandleHover()
-            {
-                if (!hovering) return;
-                var manager = ToolTipManager.active;
-                if (manager == null) return;
-
-                abilityToolTip = manager.GeneralHeader();
-
-                abilityToolTip.adjustToMouse = true;
-
-                abilityToolTip.SetToolTip(ability.ToolTipData(false));
-
-            }
-
-            void HandleHoverExit()
-            {
-                if (hovering) return;
-                if (abilityToolTip == null) return;
-                abilityToolTip.DestroySelf();
-
-            }
-        }
-
         
     }
 }

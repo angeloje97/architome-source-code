@@ -13,7 +13,7 @@ namespace Architome
         public static PlayableEntitiesManager active;
 
 
-        public bool loadFromSave;
+        public bool loadFromSave { get; set; }
 
         public static GameObject partyObject;
 
@@ -22,6 +22,8 @@ namespace Architome
         public ArchSceneManager sceneManager;
 
         public List<string> scenesToSaveEntities;
+
+
 
         void Awake()
         {
@@ -43,25 +45,25 @@ namespace Architome
 
             if (saveSystem)
             {
-                saveSystem.BeforeSave += BeforeSave;
+                saveSystem.AddListener(SaveEvent.BeforeSave, BeforeSave, this);
             }
 
             if (sceneManager)
             {
-
-                sceneManager.AddListeners(new() {
-                    (SceneEvent.BeforeLoadScene, BeforeLoadScene),
-                    (SceneEvent.OnLoadScene, OnLoadScene)
-                }, this);
+                sceneManager.AddListener(SceneEvent.BeforeLoadScene, BeforeLoadScene, this);
+                sceneManager.AddListener(SceneEvent.OnLoadScene, OnLoadScene, this);
             }
         }
         void Start()
         {
             GetDependencies();
             HandleLastLevel();
-
             OnSceneStart();
-            //HandleMoveOutOfPortal();
+
+        }
+        void Update()
+        {
+
         }
 
         void HandleMoveOutOfPortal(PortalInfo portal)
@@ -82,33 +84,30 @@ namespace Architome
             if (party == null) return;
             if (!LastLevel()) return;
         }
-        void Update()
-        {
-
-        }
         public bool LastLevel()
         {
-            if (Core.currentDungeon == null) return false;
-            if (Core.dungeonIndex >= Core.currentDungeon.Count -1) return false;
+            Debugger.Environment(5532, $"Dungeon {Core.currentDungeon}");
+            if (Core.currentDungeon == null) return true;
+            Debugger.Environment(5532, $"Dungeon Index : {Core.dungeonIndex}, Dungeon Count {Core.currentDungeon.Count}");
+
+            if (Core.dungeonIndex >= Core.currentDungeon.Count -1) return true;
 
 
-            return true;
+            return false;
         }
         async void HandleLoadEntities()
         {
             if (party == null) return;
-            if (!loadFromSave) return;
 
             
 
-            var currentSave = Core.currentSave;
+            var currentSave = SaveSystem.current;
 
             if (currentSave == null) return;
 
             if (partyObject != null) return;
 
             partyObject = party.gameObject;
-            //DontDestroyOnLoad(party);
             var savedEntities = currentSave.savedEntities;
             var entityIndex = currentSave.selectedEntitiesIndex;
 
@@ -134,7 +133,7 @@ namespace Architome
             }
 
             await Task.WhenAll(tasks);
-
+            loadFromSave = true;
             
         }
 
@@ -142,15 +141,24 @@ namespace Architome
         void OnSceneStart()
         {
             ArchAction.Delay(() => {
-                if (this == null) return;
                 TransferUnitsToEntrancePortal();
                 StopMovingEntities();
                 HandlePortals();
-            }, .50f);
+            
+            }, .5f);
         }
         void OnLoadScene(ArchSceneManager sceneManager)
         {
-            OnSceneStart();
+            var scenes = new HashSet<string>()
+            {
+                "Map Template",
+                "Map Template Continue",
+            };
+
+            if (scenes.Contains(sceneManager.sceneToLoad))
+            {
+                OnSceneStart();
+            }
         }
 
         void HandlePortals()
@@ -159,29 +167,80 @@ namespace Architome
             if (Core.currentDungeon.Count == 0) return;
             var mapRoomGenerator = MapRoomGenerator.active;
 
+            var nextLevel = "Map Template Continue";
+            var postDungeon = "PostDungeonResults";
+            var promptHandler = PromptHandler.active;
+
             mapRoomGenerator.OnRoomsGenerated += (generator) => {
                 var portals = PortalInfo.portals;
-
                 foreach (var portal in portals)
                 {
-                    if (portal.info.portalType != PortalType.NextLevel) continue;
-                    portal.events.OnAllPartyMembersInPortal += HandleSceneTransfer;
+
+                    if(portal.info.portalType == PortalType.NextLevel)
+                    {
+                        portal.events.OnAllPartyMembersInPortal += HandleNextLevelTransfer;
+
+                    }
+
+                    if(portal.info.portalType == PortalType.Entrance)
+                    {
+                        portal.events.OnAllPartyMembersInPortal += HandleEntrancePortalTransfer;
+                    }
                 }
             };
+            
 
-            void HandleSceneTransfer(PortalInfo info, List<EntityInfo> entities)
+            async void HandleNextLevelTransfer(PortalInfo info, List<EntityInfo> entities)
             {
-                var nextLevel = "Map Template Continue";
-                var postDungeon = "PostDungeonResults";
-                Core.dungeonIndex++;
 
-                if (Core.dungeonIndex >= Core.currentDungeon.Count)
+                var options = new List<OptionData>();
+
+                if (!LastLevel())
                 {
-                    sceneManager.LoadScene(postDungeon, true);
-                    return;
+                    options.Add(new("Next Floor", (OptionData data) => {
+                        Core.dungeonIndex++;
+                        sceneManager.LoadScene(nextLevel, true);
+                    }));
                 }
-                sceneManager.LoadScene(nextLevel, true);
+
+                options.Add(new("Leave Dungeon", (OptionData data) => {
+                    sceneManager.LoadScene(postDungeon);
+                }));
+
+                options.Add(new("Cancel", (OptionData data) =>
+                {
+                    info.MoveAllEntitiesOutOfPortal(2f);
+                })
+                { isEscape = true });
+
+                Debugger.UI(5533, $"Options {options.Count}");
+
+                await promptHandler.GeneralPrompt(new()
+                {
+                    title = "Exit Portal",
+                    question = "All party members have entered the portal. Select a destination to travel to.",
+                    options = options,
+                    blocksScreen = true,
+                });
+
             }
+
+            async void HandleEntrancePortalTransfer(PortalInfo info, List<EntityInfo> entities)
+            {
+
+                await promptHandler.GeneralPrompt(new()
+                {
+                    title = "Entrance Portal",
+                    question = "Are you sure you want to leave the dungeon?",
+                    options = new()
+                    {
+                        new("Leave Dungeon", (OptionData data)=> { sceneManager.LoadScene(postDungeon); }),
+                        new("Cancel", (OptionData data) => { info.MoveAllEntitiesOutOfPortal(2f); }) { isEscape = true}
+                    },
+                    blocksScreen = true,
+                });
+            }
+            
         }
         void OnQuestEnd(Quest quest)
         {
@@ -223,34 +282,69 @@ namespace Architome
                 await Task.Yield();
             }
 
-            foreach (var entity in party.members)
+            Debugger.Environment(7915, $"Entry portal detected {entryPortal}");
+
+            party.transform.position = entryPortal.portalSpot.position + new Vector3(0, .25f, 0);
+
+            foreach (var entity in party.GetComponentsInChildren<EntityInfo>())
             {
-                entity.Move(entryPortal.portalSpot.position + new Vector3(0, .25f, 0));
+
+                entity.Move(party.transform.position);
             }
 
             HandleMoveOutOfPortal(entryPortal);
 
         }
-        void BeforeSave(SaveGame save)
+        void BeforeSave(SaveSystem system, SaveGame save)
         {
             SaveEntities();
         }
-        void BeforeLoadScene(ArchSceneManager sceneManager)
+        async void BeforeLoadScene(ArchSceneManager sceneManager)
         {
+            SaveEntities();
+            var abilityManagers = new List<AbilityManager>();
+            foreach(var member in party.members)
+            {
+                var abilityManager = member.AbilityManager();
+                if (abilityManager == null) continue;
+
+                abilityManagers.Add(abilityManager);
+
+                abilityManager.SetAbilities(false, false);
+            }
+
+            while (this && sceneManager.isLoading)
+            {
+                await Task.Yield();
+            }
+
+            if (this == null) return;
+
+
+            foreach(var manager in abilityManagers)
+            {
+                manager.SetAbilities(true, true);
+            }
+            
         }
         void SaveEntities()
         {
-            if (Core.currentSave == null) return;
+            var currentSave = SaveSystem.current;
+            if (currentSave == null) return;
             if (party == null) return;
             if (!loadFromSave) return;
 
-            if (!LastLevel()) return;
 
-
-            foreach (var entity in party.GetComponentsInChildren<EntityInfo>())
+            foreach(var member in party.members)
             {
-                Core.currentSave.SaveEntity(entity);
+                currentSave.SaveEntity(member);
             }
+
+
+            //foreach (var entity in party.GetComponentsInChildren<EntityInfo>())
+            //{
+            //    Core.currentSave.SaveEntity(entity);
+            //}
         }
 
         public List<InventorySlot> AvailableInventorySlots()

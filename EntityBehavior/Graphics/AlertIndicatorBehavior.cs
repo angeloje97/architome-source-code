@@ -15,22 +15,24 @@ namespace Architome
         // Start is called before the first frame update
         public EntityInfo entityInfo;
         CombatInfo combatInfo;
+        public Animator animator;
         public PortraitBehavior portraitBehavior;
 
-        public bool isFlashing;
 
         public Image alertImage;
-        public bool show;
 
-        public bool isPortrait;
         public CanvasGroup cGroup;
 
-        int flashingCount = 0;
+
+        bool active = false;
 
         void GetDependencies()
         {
             portraitBehavior = GetComponentInParent<PortraitBehavior>();
             entityInfo = GetComponentInParent<EntityInfo>();
+            animator = GetComponent<Animator>();
+
+            if (animator == null) return;
 
 
             if (portraitBehavior != null)
@@ -39,20 +41,20 @@ namespace Architome
 
                 if (portraitBehavior.entity)
                 {
-                    isPortrait = true;
-                    combatInfo = portraitBehavior.entity.GetComponentInChildren<CombatInfo>();
+                    entityInfo = portraitBehavior.entity;
                 }
 
-                return;
+
             }
             if (entityInfo != null)
             {
-                combatInfo = entityInfo.GetComponentInChildren<CombatInfo>();
+                combatInfo = entityInfo.CombatInfo();
             }
 
             if (combatInfo)
             {
-                combatInfo.OnTargetedByEvent += OnTargetedByEvent;
+                combatInfo.OnIsBeingAttackedChange += HandleBeingAttackedChange; 
+
             }
         }
 
@@ -65,71 +67,42 @@ namespace Architome
         {
             cGroup = GetComponent<CanvasGroup>();
             alertImage.enabled = true;
-            UpdateImage();
         }
 
-        async void FlashingRoutine()
+        async void HandleBeingAttackedChange(CombatInfo info, bool isBeingAttacked)
         {
-
-            while (isFlashing)
-            {
-                await Task.Delay(250);
-                Debugger.Combat(9045, $"{entityInfo} flashing {flashingCount}");
-
-                show = !show;
-                UpdateImage();
-                flashingCount++;
-            }
-
-            show = false;
-            UpdateImage();
-        }
-
-        void UpdateImage()
-        {
-            cGroup.alpha = show ? 1 : 0;
-        }
-
-        async void OnTargetedByEvent(CombatInfo combatInfo)
-        {
-            if(!Entity.IsPlayer(entityInfo.gameObject)) { return; }
-            if (!this.combatInfo.IsBeingAttacked()) return;
+            if (!Entity.IsPlayer(entityInfo)) return;
+            if (!isBeingAttacked) return;
             if (entityInfo.role == Role.Tank) return;
-            if (alertImage == null) { return; }
-            if (isFlashing) return;
+            if (alertImage == null) return;
+            if (active) return;
+            active = true;
 
-            isFlashing = true;
+            animator.SetBool("ShowAlert", true);
 
-            await Task.Delay(250);
-
-
-            FlashingRoutine();
-
-            while (this.combatInfo.IsBeingAttacked())
+            while (info.isBeingAttacked)
             {
-                await Task.Delay(1000);
+                await Task.Yield();
             }
 
-            isFlashing = false;
-            show = false;
-            UpdateImage();
-
+            animator.SetBool("ShowAlert", false);
+            active = false;
         }
 
         void OnEntityChange(EntityInfo previous, EntityInfo after)
         {
             if (entityInfo)
             {
-                combatInfo = entityInfo.GetComponentInChildren<CombatInfo>();
-                combatInfo.OnTargetedByEvent -= OnTargetedByEvent;
+                combatInfo = entityInfo.CombatInfo();
+                combatInfo.OnIsBeingAttackedChange -= HandleBeingAttackedChange;
             }
 
             entityInfo = after;
 
             if (entityInfo)
             {
-                combatInfo = entityInfo.GetComponentInChildren<CombatInfo>();
-                combatInfo.OnTargetedByEvent += OnTargetedByEvent;
+                combatInfo = entityInfo.CombatInfo();
+                combatInfo.OnIsBeingAttackedChange += HandleBeingAttackedChange; 
             }
         }
     }

@@ -6,6 +6,13 @@ using System;
 
 namespace Architome
 {
+    public enum ToolTipType
+    {
+        GeneralHeader,
+        General,
+        Side,
+        Label,
+    }
     public class ToolTipManager : MonoBehaviour
     {
         public static ToolTipManager active;
@@ -38,6 +45,22 @@ namespace Architome
 
             return newToolTip;
 
+        }
+
+        public ToolTip ToolTip(ToolTipType type)
+        {
+            switch (type)
+            {
+                case ToolTipType.Side:
+                    return Side();
+                case ToolTipType.Label:
+                    return Label();
+                case ToolTipType.GeneralHeader:
+                    return GeneralHeader();
+                default:
+                    return General();
+                    
+            }
         }
 
         public ToolTip GeneralHeader()

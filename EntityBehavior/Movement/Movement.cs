@@ -30,9 +30,10 @@ namespace Architome
         //public float baseMovementSpeed;
         //public float entityMovementSpeed;
 
-        [Header("Metrics")]
+        [Header("Speed")]
         public float speed;
         public float maxSpeed;
+        [Header("Metrics")]
         public float endReachDistance;
         public float distanceFromTarget;
         public Vector3 velocity;
@@ -40,6 +41,9 @@ namespace Architome
         public bool canMove = true;
         public bool hasArrived;
         public bool walking;
+
+        bool checkedPrevious;
+
 
         [Header("Entity Prop Handlers")]
         AbilityHandler abilityHandler;
@@ -59,7 +63,7 @@ namespace Architome
         private bool isMovingChange;
         private bool hasArrivedCheck;
         private Transform currentPathTarget;
-        Vector3 previousPosition;
+        Vector3 previousPosition { get; set; }
         public void GetDependencies()
         {
             if (GetComponentInParent<EntityInfo>())
@@ -130,9 +134,10 @@ namespace Architome
         void Start()
         {
             abilityHandler.Initiate(this);
+            previousPosition = transform.position;
 
         }
-        void Update()
+        void FixedUpdate()
         {
             //GetDependencies();
             UpdateMetrics();
@@ -249,7 +254,36 @@ namespace Architome
             if (path == null) { return; }
             if (destinationSetter == null) { return; }
 
-            speed = path.desiredVelocity.magnitude;
+            var desiredVelocity = path.desiredVelocity.magnitude;
+
+            var realSpeed = Vector3.Distance(previousPosition, transform.position) * (1 / Time.deltaTime);
+            
+            //speed = realSpeed;
+
+            if(Mathf.Abs(desiredVelocity - realSpeed) > 4f)
+            {
+                if(realSpeed > maxSpeed){
+                    realSpeed = maxSpeed;
+                }
+                speed = realSpeed;
+            }
+            else
+            {
+                speed = desiredVelocity;
+            }
+
+
+            if (!checkedPrevious)
+            {
+                previousPosition = transform.position;
+                checkedPrevious = true;
+            }
+            else
+            {
+                checkedPrevious = false;
+            }
+
+
             maxSpeed = path.maxSpeed;
             endReachDistance = path.endReachedDistance;
             velocity = path.desiredVelocity;
@@ -270,20 +304,7 @@ namespace Architome
             }
 
         }
-        public void MoveTo(Vector3 location)
-        {
-            if (!entityInfo.isAlive) { return; }
-            OnTryMove?.Invoke(this);
-            OnTryMoveEvent?.Invoke();
-            if (!canMove) { return; }
-            hasArrivedCheck = false;
-            this.location.transform.position = location;
-            destinationSetter.target = this.location.transform;
 
-            TriggerEvents();
-            path.endReachedDistance = 0;
-            OnChangePath?.Invoke(this);
-        }
 
         public bool HasReachedTarget(float minimumDistance = 1f)
         {
@@ -319,11 +340,25 @@ namespace Architome
 
             return destinationSetter.target;
         }
+        public void MoveTo(Vector3 location)
+        {
+            if (!entityInfo.isAlive) { return; }
+            OnTryMove?.Invoke(this);
+            OnTryMoveEvent?.Invoke();
+            if (!canMove) { return; }
+            hasArrivedCheck = false;
+            this.location.transform.position = location;
+            destinationSetter.target = this.location.transform;
+
+            TriggerEvents();
+            path.endReachedDistance = 0;
+            OnChangePath?.Invoke(this);
+
+        }
         public void MoveTo(Transform locationTransform, float endReachDistance = 0f)
         {
             if (!entityInfo.isAlive) { return; }
             path.endReachedDistance = endReachDistance;
-
             hasArrivedCheck = !hasArrived;
             isMovingChange = true;
 
@@ -331,6 +366,7 @@ namespace Architome
             {
                 destinationSetter.target = locationTransform;
             }
+
         }
         public void MoveTo(Vector3 location, float endReachDistance = 0f)
         {

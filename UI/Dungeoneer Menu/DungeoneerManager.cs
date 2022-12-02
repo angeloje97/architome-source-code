@@ -127,15 +127,8 @@ namespace Architome
 
 
 
-                //var newEntity = await EntityDataLoader.SpawnEntity(entityData, entities.parent);
-
                 tasks.Add(EntityDataLoader.SpawnEntity(entityData, entities.parent));
 
-                //entities.pool.Add(newEntity);
-
-                //OnNewEntity?.Invoke(newEntity);
-
-                //GMHelper.GameManager().AddPlayableCharacter(newEntity);
             }
 
             var entityList = await Task.WhenAll(tasks);

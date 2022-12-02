@@ -88,10 +88,14 @@ namespace Architome
             if (sceneManager)
             {
 
-                sceneManager.AddListeners(new() {
-                    (SceneEvent.OnLoadScene, OnLoadScene),
-                    (SceneEvent.BeforeLoadScene, BeforeLoadScene),
-                }, this);
+                //sceneManager.AddListeners(new() {
+                //    (SceneEvent.OnLoadScene, OnLoadScene),
+                //    (SceneEvent.BeforeLoadScene, BeforeLoadScene),
+                //}, this);
+
+                sceneManager.AddListener(SceneEvent.OnLoadScene, OnLoadScene, this);
+                sceneManager.AddListener(SceneEvent.BeforeLoadScene, BeforeLoadScene, this);
+
             }
 
 

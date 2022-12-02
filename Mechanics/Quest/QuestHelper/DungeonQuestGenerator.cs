@@ -41,10 +41,13 @@ namespace Architome
             if (sceneManager)
             {
 
-                sceneManager.AddListeners(new() {
-                    (SceneEvent.BeforeLoadScene, BeforeLoadScene),
-                    (SceneEvent.BeforeConfirmLoad, BeforeConfirmLoad)
-                }, this);
+                //sceneManager.AddListeners(new() {
+                //    (SceneEvent.BeforeLoadScene, BeforeLoadScene),
+                //    (SceneEvent.BeforeConfirmLoad, BeforeConfirmLoad)
+                //}, this);
+
+                sceneManager.AddListener(SceneEvent.BeforeLoadScene, BeforeLoadScene, this);
+                sceneManager.AddListener(SceneEvent.BeforeConfirmLoad, BeforeConfirmLoad, this);
             }
         }
 

@@ -83,7 +83,7 @@ namespace Architome
                 var playableEntities = new List<EntityInfo>();
                 foreach (var entity in portalInfo.entitiesInPortal)
                 {
-                    if (entity.rarity != Enums.EntityRarity.Player) continue;
+                    if (!entity.IsPlayer()) continue;
                     playableEntities.Add(entity);
                 }
 

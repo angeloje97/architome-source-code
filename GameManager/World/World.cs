@@ -104,7 +104,7 @@ namespace Architome
 
             if (saveSystem)
             {
-                saveSystem.BeforeSave += (SaveGame save) => { save.worldTime = time; };
+                saveSystem.AddListener(SaveEvent.BeforeSave, BeforeSave, this);
             }
 
             if (sceneManager)
@@ -157,17 +157,22 @@ namespace Architome
             SaveTime();
         }
 
+        public void BeforeSave(SaveSystem system, SaveGame save)
+        {
+            save.worldTime = time;
+        }
+
         void SaveTime()
         {
-            var currentSave = Core.currentSave;
+            var currentSave = SaveSystem.current;
             if (currentSave == null) return;
-
             currentSave.worldTime = time;
+
         }
 
         void LoadTime()
         {
-            var currentSave = Core.currentSave;
+            var currentSave = SaveSystem.current;
             if (currentSave == null) return;
             if (currentSave.worldTime == null) return;
             time = currentSave.worldTime;

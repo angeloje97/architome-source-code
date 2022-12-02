@@ -79,7 +79,7 @@ namespace Architome
 
             if (saveSystem)
             {
-                saveSystem.BeforeSave += BeforeSave;
+                saveSystem.AddListener(SaveEvent.BeforeSave, BeforeSave, this);
             }
 
             if (sceneManager)
@@ -101,7 +101,7 @@ namespace Architome
             
         }
 
-        void BeforeSave(SaveGame save)
+        void BeforeSave(SaveSystem system, SaveGame save)
         {
             SaveDungeons();
         }
