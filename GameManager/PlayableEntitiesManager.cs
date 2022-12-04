@@ -163,8 +163,6 @@ namespace Architome
 
         void HandlePortals()
         {
-            if (Core.currentDungeon == null) return;
-            if (Core.currentDungeon.Count == 0) return;
             var mapRoomGenerator = MapRoomGenerator.active;
 
             var nextLevel = "Map Template Continue";

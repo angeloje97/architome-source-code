@@ -135,14 +135,12 @@ public class AbilityInfo : MonoBehaviour
     {
         //restrictions.UpdateSelf(this);
         //UnityEditor.EditorUtility.SetDirty(this);
+
     }
-    public bool playerAiming;
-    public bool onlyCastSelf { get; set; }
-    public bool onlyCastOutOfCombat;
     public bool isHealing { get { return restrictionHandler.restrictions.isHealing; } }
     public bool isAssisting { get { return restrictionHandler.restrictions.isAssisting; } }
     public bool isHarming { get { return restrictionHandler.restrictions.isHarming; } }
-    public bool destroysSummons;
+    public bool destroysSummons { get; set; }
     public bool targetsDead;
     public bool requiresLockOnTarget;
     public bool requiresLineOfSight;
@@ -191,9 +189,12 @@ public class AbilityInfo : MonoBehaviour
     public Action<AbilityInfo, List<Task<bool>>> OnAugmentAbilityStart;
     public Action<AbilityInfo, EntityInfo> OnHandlingTargetLocked { get; set; }
     public Action<AbilityInfo, List<bool>> OnCanShowCheck { get; set; }
+    public Action<AbilityInfo> OnCanCastCheck;
     public Action<AbilityInfo, EntityInfo, List<bool>> OnCanHarmCheck { get; set; }
     public Action<AbilityInfo, EntityInfo, List<bool>> OnCanHealCheck { get; set; }
 
+    [HideInInspector] public List<bool> checks;
+    [HideInInspector] public List<string> reasons;
     //Augments
     public AugmentChannel currentChannel { get; set; }
 
@@ -902,30 +903,29 @@ public class AbilityInfo : MonoBehaviour
             CantCastReason("Incorrect Target");
             return false;
         }
-        if (!CorrectCombat())
-        {
-            CantCastReason("Not in correct combat state.");
-            return false;
-        }
+
         if (!SpawnHasLineOfSight())
         {
             CantCastReason("Don't have line of sight");
             return false;
         }
 
-        return true;
+        checks = new();
+        reasons = new();
+        OnCanCastCheck?.Invoke(this);
 
-        bool CorrectCombat()
+        foreach(var check in checks)
         {
-            if (!onlyCastOutOfCombat) return true;
-
-            if (onlyCastOutOfCombat && !entityInfo.isInCombat)
+            if (!check)
             {
-                return true;
+                CantCastReason(ArchString.NextLineList(reasons));
+                return false;
             }
-
-            return false;
         }
+
+
+
+        return true;
 
         bool AbilityManagerCanCast()
         {
@@ -1220,13 +1220,12 @@ public class AbilityInfo : MonoBehaviour
             locationLocked.y = groundPos.y + heightFromGround;
 
 
-            var catalystClone = Instantiate(catalystInfo.gameObject, locationLocked, transform.localRotation);
+            var newCatalyst = Instantiate(catalystInfo, locationLocked, transform.localRotation);
 
 
 
-            catalystClone.transform.rotation = V3Helper.LerpLookAt(catalystClone.transform, locationLocked, 1f);
+            newCatalyst.transform.rotation = V3Helper.LerpLookAt(newCatalyst.transform, locationLocked, 1f);
 
-            var newCatalyst = catalystClone.GetComponent<CatalystInfo>();
 
             abilityManager.OnCatalystRelease?.Invoke(this, newCatalyst);
             OnCatalystRelease?.Invoke(newCatalyst);
@@ -1239,14 +1238,13 @@ public class AbilityInfo : MonoBehaviour
                 return;
             }
             directionLocked = V3Helper.Direction(location, entityObject.transform.position);
-            var catalystClone = Instantiate(catalystInfo.gameObject, entityObject.transform.position, transform.localRotation);
+            var newCatalyst = Instantiate(catalystInfo, entityObject.transform.position, transform.localRotation);
 
 
             var heightFromGround = V3Helper.HeightFromGround(entityObject.transform.position, GMHelper.LayerMasks().walkableLayer);
             var groundPos = V3Helper.GroundPosition(locationLocked, GMHelper.LayerMasks().walkableLayer);
             locationLocked.y = groundPos.y + heightFromGround;
 
-            var newCatalyst = catalystClone.GetComponent<CatalystInfo>();
           
 
             abilityManager.OnCatalystRelease?.Invoke(this, newCatalyst);
@@ -1260,19 +1258,17 @@ public class AbilityInfo : MonoBehaviour
             {
                 return;
             }
-            var catalystClone = Instantiate(catalystInfo.gameObject, entityObject.transform.position, transform.localRotation);
+            var newCatalyst = Instantiate(catalystInfo, entityObject.transform.position, transform.localRotation);
 
 
-            var newCatalyst = catalystClone.GetComponent<CatalystInfo>();
             abilityManager.OnCatalystRelease?.Invoke(this, newCatalyst);
             OnCatalystRelease?.Invoke(newCatalyst);
         }
         void Use()
         {
             if (!catalyst) { return; }
-            var catalystClone = Instantiate(catalystInfo.gameObject, entityObject.transform.position, transform.localRotation);
+            var newCatalyst = Instantiate(catalystInfo, entityObject.transform.position, transform.localRotation);
 
-            var newCatalyst = catalystClone.GetComponent<CatalystInfo>();
 
             abilityManager.OnCatalystRelease?.Invoke(this, newCatalyst);
             OnCatalystRelease?.Invoke(newCatalyst);

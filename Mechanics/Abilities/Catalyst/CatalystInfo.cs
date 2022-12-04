@@ -191,7 +191,7 @@ namespace Architome
         public Action<CatalystKinematics> OnCatalystStop;
         public Action<CatalystKinematics> OnCatalystMaxSpeed;
         public Action<GameObject> OnIntercept;
-        public Action<CatalystInfo> OnInterval;
+        public Action<CatalystInfo> OnInterval { get; set; }
 
         public Action<CatalystInfo, CatalystInfo> OnCatalingRelease { get; set; }
         public Action<CatalystDeathCondition> OnCatalystDestroy { get; set; }
@@ -595,9 +595,8 @@ namespace Architome
 
 
 
-            var newCataling = Instantiate(cataling.gameObject, transform.position, rotation);
+            var newInfo = Instantiate(cataling, transform.position, rotation);
 
-            var newInfo = newCataling.GetComponent<CatalystInfo>();
 
             OnCatalingRelease?.Invoke(this, newInfo);
             abilityInfo.OnCatalystRelease?.Invoke(newInfo);

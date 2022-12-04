@@ -37,7 +37,10 @@ namespace Architome
 
         public Action<GameObject, GameObject> OnNewHoverTarget { get; set; }
         public Action<GameObject> OnSelectTarget;
-        public Action OnClearSelected;
+        public Action OnClearSelected { get; set; }
+
+        public Action OnSelectNothing;
+
         public Action OnClearFromEscape;
 
         GameObject hoverTargetCheck;
@@ -119,10 +122,17 @@ namespace Architome
                     return;
                 }
 
-                if (currentHover)
-                {
-                    ClearHovers();
-                }
+                ArchAction.Yield(() => {
+                    if (menu.isActive)
+                    {
+                        ClearHovers();
+                    }
+                });
+
+                //if (currentHover)
+                //{
+                //    ClearHovers();
+                //}
             }
 
 
@@ -130,14 +140,14 @@ namespace Architome
 
         void WhileCursorMove(Vector3 mousePosition)
         {
-            HandleEvents();
+           
             if (input.Mode == ArchInputMode.Inactive) return;
             HandleUserMouseOvers();
             HandleNullMouseOver();
         }
         void FixedUpdate()
         {
-            
+            HandleEvents();
         }
         public void HandleEvents()
         {
@@ -236,14 +246,13 @@ namespace Architome
         }
         void OnSelect()
         {
-            //if (Mouse.IsMouseOverUI() && !IsOverPortraitOrHealthBar())
-            //{
-            //    return;
-            //}
-
-
             ClearSelected();
             SelectEvent(currentHover);
+
+            if(currentHover == null)
+            {
+                OnSelectNothing?.Invoke();
+            }
         }
         void OnSelectMultiple()
         {

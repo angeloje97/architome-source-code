@@ -8,21 +8,11 @@ using TMPro;
 using System;
 using Architome;
 using Architome.Enums;
-using System.Runtime.InteropServices.WindowsRuntime;
 
 [RequireComponent(typeof(ItemToolTipHandler))]
 public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, IDropHandler
 {
-    // Start is called before the first frame update
     public Item item;
-    //public int maxStacks
-    //{
-    //    get
-    //    {
-    //        if (item == null) return -1;
-    //        return item.MaxStacks;
-    //    }
-    //}
     public int currentStacks { get; set; }
     
     [Header("UI Properties")]

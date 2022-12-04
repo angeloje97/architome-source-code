@@ -1397,14 +1397,6 @@ namespace Architome
         public PlayerController PlayerController()
         {
             return EntityComponent<PlayerController>();
-            //foreach (Transform child in transform)
-            //{
-            //    if (child.GetComponent<PlayerController>())
-            //    {
-            //        return child.GetComponent<PlayerController>();
-            //    }
-            //}
-            //return null;
         }
         public AIBehavior AIBehavior()
         {

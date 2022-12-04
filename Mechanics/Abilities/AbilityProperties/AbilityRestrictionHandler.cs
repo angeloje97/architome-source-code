@@ -19,7 +19,7 @@ namespace Architome
             entity = ability.entityInfo;
             HandleMain();
             HandleDeadTarget();
-            HandleCatalystHit();
+            HandleCatalyst();
             HandleUIVisibility();
         }
 
@@ -38,12 +38,24 @@ namespace Architome
             }
         }
 
-        void HandleCatalystHit()
+        void HandleCatalyst()
         {
             ability.OnCatalystRelease += (CatalystInfo newCatalyst) => {
                 if (newCatalyst.isCataling)
                 {
                     Debugger.Combat(1964, $"New Catalyst Created {newCatalyst}");
+                }
+                else
+                {
+                    if (restrictions.levelWithCaster)
+                    {
+                        newCatalyst.location = new Vector3(newCatalyst.location.x, entity.transform.position.y, newCatalyst.location.z);
+                    }
+
+                    if (restrictions.removeHitBox)
+                    {
+                        newCatalyst.GetComponent<Collider>().enabled = false;
+                    }
                 }
                 newCatalyst.OnCanAssistCheck += HandleAssist;
                 newCatalyst.OnCanHarmCheck += HandleHarm;
@@ -126,6 +138,7 @@ namespace Architome
             }
         }
 
+
         void HandleDeadTarget()
         {
             ability.OnCorrectTargetCheck += HandleCorrectTarget;
@@ -153,6 +166,18 @@ namespace Architome
 
             ability.OnCanHarmCheck += HandleHarmCheck;
             ability.OnCanHealCheck += HandleHealCheck;
+
+
+            ability.OnCanCastCheck += HandleCanCastCheck;
+
+            void HandleCanCastCheck(AbilityInfo ability)
+            {
+                if(restrictions.onlyCastOutOfCombat && entity.isInCombat)
+                {
+                    ability.reasons.Add("!Can't cast {ability} if the caster is in combat.");
+                    ability.checks.Add(false);
+                }
+            }
 
             void HandleHealCheck(AbilityInfo ability, EntityInfo target, List<bool> checks)
             {

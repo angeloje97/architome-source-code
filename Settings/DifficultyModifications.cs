@@ -14,17 +14,30 @@ namespace Architome
         [SerializeField]
         private bool startUpdate;
         public List<DifficultySet> difficultySets;
+        public Dictionary<Difficulty, DifficultySet> difficultyDict;
         public DifficultySet settings;
 
 
         public void DetermineSettings()
         {
             settings = difficultySets[((int)gameDifficulty) - 1];
+            UpdateDictionary();
         }
 
         void Start()
         {
             //DetermineSettings();
+        }
+
+        void UpdateDictionary()
+        {
+            difficultyDict = new();
+            foreach(var difficultySet in difficultySets)
+            {
+                if (difficultyDict.ContainsKey(difficultySet.difficulty)) continue;
+
+                difficultyDict.Add(difficultySet.difficulty, difficultySet);
+            }
         }
 
         private void Awake()
@@ -36,6 +49,13 @@ namespace Architome
                 gameDifficulty = Core.currentSave.gameSettings.difficulty;
             }
             DetermineSettings();
+        }
+
+        public DifficultySet DifficultySet(Difficulty type)
+        {
+            if (!difficultyDict.ContainsKey(type)) return null;
+
+            return difficultyDict[type];
         }
 
         public void OnValidate()
@@ -65,6 +85,8 @@ namespace Architome
     [Serializable]
     public class DifficultySet
     {
+        [HideInInspector] public string name;
+        public Difficulty difficulty;
         public float tankThreatMultiplier = 9f;
         public float healThreatMultiplier = .0625f;
         public float tankHealthMultiplier = 2.5f;
@@ -74,6 +96,18 @@ namespace Architome
         public float dungeonCoreMultiplier = .15f;
         [Range(0, 1)]
         public float minimumEnemyForces = .90f;
+
+
+        public string Description()
+        {
+            var result = new List<string>();
+            foreach(var field in GetType().GetFields())
+            {
+                result.Add($"{ArchString.CamelToTitle(field.Name)}: {field.GetValue(this)}");
+            }
+
+            return ArchString.NextLineList(result);
+        }
     }
 
 }

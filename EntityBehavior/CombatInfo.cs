@@ -278,14 +278,8 @@ public class CombatInfo : MonoBehaviour
     }
     protected void AddTarget(EntityInfo target)
     {
+        if (!entityInfo.isAlive) return;
         if (!targetedBy.Add(target)) return;
-        //targetedBy ??= new();
-        //if(!targetedBy.Contains(target))
-        //{
-        //    targetedBy.Add(target);
-        //    OnNewTargetedBy?.Invoke(target, targetedBy);
-        //    OnTargetedByEvent?.Invoke(this);
-        //}
 
         OnNewTargetedBy?.Invoke(target, targetedBy);
         isBeingAttacked = IsBeingAttacked();
@@ -293,12 +287,8 @@ public class CombatInfo : MonoBehaviour
     }
     protected void AddCaster(EntityInfo target)
     {
-
+        if (!entityInfo.isAlive) return;
         if (!castedBy.Add(target)) return;
-        //castedBy ??= new();
-        //if (castedBy.Contains(target)) return;
-
-        //castedBy.Add(target);
         OnTargetedByEvent?.Invoke(this);
 
         isBeingAttacked = IsBeingAttacked();
@@ -374,6 +364,22 @@ public class CombatInfo : MonoBehaviour
         if (isAlive) return;
         castedBy.Clear();
         targetedBy.Clear();
+
+        isBeingAttacked = false;
+
+        if (currentCastingTarget)
+        {
+            var combatInfo = currentCastingTarget.CombatInfo();
+
+            combatInfo.RemoveCaster(entityInfo);
+        }
+
+        if (currentTarget)
+        {
+            var combatInfo = currentTarget.CombatInfo();
+
+            combatInfo.RemoveTarget(entityInfo);
+        }
     }
     public async void OnAbilityStart(AbilityInfo ability)
     {

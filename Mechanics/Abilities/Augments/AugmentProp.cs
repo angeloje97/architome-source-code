@@ -96,6 +96,8 @@ namespace Architome
             public bool isAttack;
             public bool usesWeaponCatalyst;
             public bool usesWeaponAttackDamage;
+            public bool levelWithCaster;
+            public bool removeHitBox;
             public bool active;
 
             public bool hideUI;

@@ -79,7 +79,7 @@ namespace Architome
             {
                 if (intervalActive) return;
                 intervalActive = true;
-                while (catalyst.isDestroyed)
+                while (!catalyst.isDestroyed)
                 {
                     catalyst.OnInterval?.Invoke(catalyst);
                     await Task.Delay((int)(1000 * intervals));

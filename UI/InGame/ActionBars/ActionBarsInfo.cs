@@ -14,6 +14,8 @@ public class ActionBarsInfo : MonoBehaviour
     public ActionBarBehavior passiveActionBar;
 
 
+    public AbilityClickHandler currentAbilityClickHandler;
+
     //Private fields
     [SerializeField]
     private int defaultPartyMemberIndex;
@@ -33,6 +35,11 @@ public class ActionBarsInfo : MonoBehaviour
     void Update()
     {
         
+    }
+
+    public bool Busy()
+    {
+        return currentAbilityClickHandler != null;
     }
 
     public void OnNewPlayableEntity(EntityInfo newEntity, int index)

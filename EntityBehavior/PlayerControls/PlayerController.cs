@@ -16,6 +16,9 @@ public class PlayerController : MonoBehaviour
     public KeyBindings keyBindings;
     public AIBehavior behavior;
 
+
+    LayerMask walkableLayer;
+
     public Action<EntityInfo, AbilityInfo> OnPlayerTargetting;
     public void GetDependencies()
     {
@@ -33,6 +36,12 @@ public class PlayerController : MonoBehaviour
             entityInfo.partyEvents.OnSelectedAction += OnPartyAction;
         }
 
+        var layerMasksData = LayerMasksData.active;
+
+        if (layerMasksData)
+        {
+            walkableLayer = layerMasksData.walkableLayer;
+        }
         targetManager = ContainerTargetables.active;
 
         if (GMHelper.KeyBindings())
@@ -155,38 +164,36 @@ public class PlayerController : MonoBehaviour
 
         void HandleDirection()
         {
-            if(!entityInfo)
-            {
-                return;
-            }
-            if(abilityManager)
-            {
-                var layer = GMHelper.LayerMasks().walkableLayer;
-                var location = Mouse.CurrentPositionLayer(layer);
 
-                Debugger.Combat(1040, $"Original Location: {location}");
-
-                var heightFromGround = V3Helper.HeightFromGround(entityObject.transform.position, layer);
-
-                Debugger.Combat(1041, $"Height from ground: {heightFromGround}");
-
-                if (location == new Vector3(0, 0, 0))
-                {
-                    location = Mouse.RelativePosition(entityInfo.transform.position);
-                    Debugger.Combat(1041, $"Relative Location: {location}");
-                    location.y = entityInfo.transform.position.y;
-                }
-                else
-                {
-                    location.y += heightFromGround;
-
-                }
-
-
-                abilityManager.location = location;
-            }
+            abilityManager.location = RelativeMouseLocation();
         }
     }
+
+    public Vector3 RelativeMouseLocation()
+    {
+        var location = Mouse.CurrentPositionLayer(walkableLayer);
+
+        Debugger.Combat(1040, $"Original Location: {location}");
+
+        var heightFromGround = V3Helper.HeightFromGround(entityObject.transform.position, walkableLayer);
+
+        Debugger.Combat(1041, $"Height from ground: {heightFromGround}");
+
+        if (location == new Vector3(0, 0, 0))
+        {
+            location = Mouse.RelativePosition(entityInfo.transform.position);
+            Debugger.Combat(1041, $"Relative Location: {location}");
+            location.y = entityInfo.transform.position.y;
+        }
+        else
+        {
+            location.y += heightFromGround;
+
+        }
+
+        return location;
+    }
+
     public void HandleActionButton(bool isFromPartyControl = false)
     {
         var currentObject = Mouse.CurrentHoverObject();

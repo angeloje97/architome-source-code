@@ -43,6 +43,7 @@ namespace Architome
         public bool walking;
 
         bool checkedPrevious;
+        float realSpeedTimer;
 
 
         [Header("Entity Prop Handlers")]
@@ -255,33 +256,52 @@ namespace Architome
             if (destinationSetter == null) { return; }
 
             var desiredVelocity = path.desiredVelocity.magnitude;
+            speed = desiredVelocity;
 
             var realSpeed = Vector3.Distance(previousPosition, transform.position) * (1 / Time.deltaTime);
-            
-            //speed = realSpeed;
 
-            if(Mathf.Abs(desiredVelocity - realSpeed) > 4f)
+            previousPosition = transform.position;
+
+            if(realSpeedTimer >= 0f)
             {
-                if(realSpeed > maxSpeed){
-                    realSpeed = maxSpeed;
+                realSpeedTimer -= Time.deltaTime;
+            }
+            else
+            {
+
+                if(realSpeed > .50f)
+                {
+                    realSpeedTimer = .25f;
                 }
-                speed = realSpeed;
-            }
-            else
-            {
-                speed = desiredVelocity;
+                else
+                {
+                    speed = 0f;
+                }
             }
 
+            //if(Mathf.Abs(desiredVelocity - realSpeed) > 4f)
+            //{
+            //    if(realSpeed > maxSpeed){
+            //        realSpeed = maxSpeed;
+            //    }
+            //    speed = realSpeed;
+            //}
+            //else
+            //{
+            //    speed = desiredVelocity;
+            //}
 
-            if (!checkedPrevious)
-            {
-                previousPosition = transform.position;
-                checkedPrevious = true;
-            }
-            else
-            {
-                checkedPrevious = false;
-            }
+
+
+            //if (!checkedPrevious)
+            //{
+            //    previousPosition = transform.position;
+            //    checkedPrevious = true;
+            //}
+            //else
+            //{
+            //    checkedPrevious = false;
+            //}
 
 
             maxSpeed = path.maxSpeed;
@@ -349,6 +369,7 @@ namespace Architome
             hasArrivedCheck = false;
             this.location.transform.position = location;
             destinationSetter.target = this.location.transform;
+            realSpeedTimer = .25f;
 
             TriggerEvents();
             path.endReachedDistance = 0;
@@ -361,6 +382,7 @@ namespace Architome
             path.endReachedDistance = endReachDistance;
             hasArrivedCheck = !hasArrived;
             isMovingChange = true;
+            realSpeedTimer = .25f;
 
             if (destinationSetter.target != locationTransform)
             {
@@ -374,6 +396,8 @@ namespace Architome
             path.endReachedDistance = endReachDistance;
 
             hasArrived = !hasArrived;
+
+            realSpeedTimer = .25f;
 
             isMovingChange = true;
             this.location.transform.position = location;
