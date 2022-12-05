@@ -141,13 +141,18 @@ namespace Architome
         void WhileCursorMove(Vector3 mousePosition)
         {
            
-            if (input.Mode == ArchInputMode.Inactive) return;
-            HandleUserMouseOvers();
-            HandleNullMouseOver();
+            //if (input.Mode == ArchInputMode.Inactive) return;
+            
         }
         void FixedUpdate()
         {
             HandleEvents();
+
+            if (input.Mode == ArchInputMode.Inactive) return;
+
+            HandleUserMouseOvers();
+            HandleNullMouseOver();
+
         }
         public void HandleEvents()
         {

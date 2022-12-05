@@ -52,6 +52,7 @@ namespace Architome
             [Serializable]
             public class ItemData
             {
+                [HideInInspector] public string name;
                 public int id, amount, slotNumber, LevelRequired, itemLevel;
                 public Rarity rarity;
                 public Stats stats;
@@ -60,6 +61,7 @@ namespace Architome
 
                 public ItemData(Architome.ItemData itemData, int slotNumber = 0)
                 {
+                    name = itemData.item.name;
                     id = itemData.item._id;
                     amount = itemData.amount;
                     rarity = itemData.item.rarity;
@@ -76,9 +78,17 @@ namespace Architome
                     }
                 }
 
+                public ItemData()
+                {
+                    name = "Empty";
+                    id = -1;
+                    amount = 0;
+                }
+
                 public Architome.ItemData ArchItemData(DataMap.Maps maps)
                 {
-                    if (!maps.items.ContainsKey(id)) return null;
+                    if (id == -1) return new() { item = null, amount = 0 };
+                    if (!maps.items.ContainsKey(id)) return new() { item = null, amount = 0 };
                     var item = UnityEngine.Object.Instantiate(maps.items[id]);
 
                     item.rarity = rarity;
@@ -279,7 +289,7 @@ namespace Architome
             var itemData = new List<ItemData>();
             foreach (var equipmentSlot in character.GetComponentsInChildren<EquipmentSlot>())
             {
-                if (equipmentSlot.equipment != null)
+                if (equipmentSlot.equipment == null)
                 {
                     itemData.Add(new() { item = null, amount = 0 });
                     continue;

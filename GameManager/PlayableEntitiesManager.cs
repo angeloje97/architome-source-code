@@ -25,6 +25,8 @@ namespace Architome
 
         bool inPostDungeon;
 
+        PortalInfo previousEntryPortal;
+
 
         void Awake()
         {
@@ -69,15 +71,14 @@ namespace Architome
 
         void HandleMoveOutOfPortal(PortalInfo portal)
         {
-            var entityGenerator = MapEntityGenerator.active;
-
-            if (entityGenerator == null) return;
+            var mapRoomGenerator = MapRoomGenerator.active;
+            if (mapRoomGenerator == null) return;
             if (portal.exitSpot == null) return;
 
-            entityGenerator.OnEntitiesGenerated += (MapEntityGenerator generator) => {
-                //ArchAction.Delay(() => party.MovePartyTo(portal.exitSpot.position), 1.5f);
-                portal.MoveAllEntitiesOutOfPortal(2);
+            mapRoomGenerator.OnAllRoomsHidden += (MapRoomGenerator generator) => {
+                portal.MoveAllEntitiesOutOfPortal(3);
             };
+
         }
 
         void HandleLastLevel()
@@ -264,8 +265,9 @@ namespace Architome
         {
             if (this == null) return;
             var entryPortal = PortalInfo.EntryPortal;
-            
-            while (entryPortal == null)
+
+            var portalFound = false;
+            while (entryPortal == null || (previousEntryPortal == entryPortal && previousEntryPortal != null))
             {
                 if (PortalInfo.portals == null)
                 {
@@ -275,14 +277,23 @@ namespace Architome
                 foreach (var portal in PortalInfo.portals)
                 {
                     if (portal == null) continue;
+                    if (portal == previousEntryPortal) continue;
                     if (portal.info.portalType == PortalType.Entrance)
                     {
                         entryPortal = portal;
+                        portalFound = true;
                     }
+                }
+
+                if (portalFound)
+                {
+                    break;
                 }
 
                 await Task.Yield();
             }
+
+            previousEntryPortal = entryPortal;
 
             Debugger.Environment(7915, $"Entry portal detected {entryPortal}");
 
@@ -352,10 +363,13 @@ namespace Architome
             if (party == null) return;
             if (!loadFromSave) return;
 
+        
 
             foreach(var member in party.members)
             {
                 currentSave.SaveEntity(member);
+
+                Debugger.Environment(6129, $"Successfuly saved {member}");
             }
 
 
