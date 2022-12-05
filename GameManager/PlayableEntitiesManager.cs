@@ -300,6 +300,8 @@ namespace Architome
         async void BeforeLoadScene(ArchSceneManager sceneManager)
         {
             SaveEntities();
+            saveSystem.Save();
+            
             var abilityManagers = new List<AbilityManager>();
             foreach(var member in party.members)
             {

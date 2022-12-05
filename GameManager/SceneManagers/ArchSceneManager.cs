@@ -27,7 +27,7 @@ namespace Architome
         public Action<AsyncOperation> OnLoadEnd { get; set; }
 
 
-        public string sceneToLoad;
+        public string sceneToLoad { get; private set; }
         public float progressValue;
 
 
@@ -185,7 +185,7 @@ namespace Architome
 
 
         [Serializable]
-        public class SceneInfo
+        public struct SceneInfo
         {
             [HideInInspector] public string name;
             public ArchScene scene;
@@ -199,7 +199,6 @@ namespace Architome
             {
                 name = scene.ToString();
             }
-
             public bool Equals(SceneInfo other)
             {
 

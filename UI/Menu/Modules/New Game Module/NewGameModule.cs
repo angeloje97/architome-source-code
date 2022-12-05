@@ -30,6 +30,7 @@ namespace Architome
 
         public string saveName;
         public Trilogy trilogy;
+        public Difficulty currentDifficulty;
         public GameSettingsData settings;
 
         public SaveGame newSave;
@@ -60,7 +61,9 @@ namespace Architome
                     info.selection.options.Add(difficulty.ToString());
                 }
 
-                settings.difficulty = (Difficulty) Enum.GetValues(typeof(Difficulty)).GetValue(info.selection.index);
+                currentDifficulty = (Difficulty)Enum.GetValues(typeof(Difficulty)).GetValue(info.selection.index);
+
+                settings.difficulty = currentDifficulty;
             }
 
         }
@@ -75,11 +78,12 @@ namespace Architome
         public void SelectDifficulty(SelectionSliderLoopable slider)
         {
             var enums = Enum.GetValues(typeof(Difficulty));
-
-
             if (slider.index >= enums.Length) return;
 
-            settings.difficulty = (Difficulty)enums.GetValue(slider.index);
+            currentDifficulty = (Difficulty) Enum.GetValues(typeof(Difficulty)).GetValue(slider.index);
+
+            settings.difficulty = currentDifficulty;
+
         }
 
         public void SetName(TMP_InputField inputField)

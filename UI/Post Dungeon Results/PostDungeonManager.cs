@@ -183,24 +183,8 @@ namespace Architome
             var archSceneManager = ArchSceneManager.active;
             if (archSceneManager == null) return;
 
-            if (Core.currentSave != null)
-            {
-
-                SaveEntities();
-                SaveSystem.active.Save();
-            }
 
             archSceneManager.LoadScene(sceneName, true);
-        }
-        void SaveEntities()
-        {
-            var currentSave = Core.currentSave;
-            if (currentSave == null) return;
-            
-            foreach (var entity in entities)
-            {
-                currentSave.SaveEntity(entity);
-            }
         }
     }
 }

@@ -42,8 +42,6 @@ namespace Architome
         }
         private void Update()
         {
-            if (!module.isActive) return;
-            //HandleNullMouseOvers();
         }
 
         void HandleNullMouseOvers()
