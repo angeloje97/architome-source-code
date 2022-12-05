@@ -19,6 +19,7 @@ namespace Architome
         public bool devToolsActive;
         public float value;
         public string stringValue;
+        public ArchScene sceneToLoad;
         public bool affectAllPlayableEntities;
         public bool giveExperience;
         public bool damage;
@@ -51,7 +52,7 @@ namespace Architome
             var sceneManager = ArchSceneManager.active;
             if (sceneManager == null) return;
 
-            sceneManager.LoadScene(stringValue, true);
+            sceneManager.LoadScene(sceneToLoad);
         }
         void GetDependencies()
         {

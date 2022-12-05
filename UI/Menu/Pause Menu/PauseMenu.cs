@@ -5,6 +5,7 @@ using System;
 using UnityEngine.SceneManagement;
 using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
+using Architome.Enums;
 
 namespace Architome
 {
@@ -20,6 +21,8 @@ namespace Architome
 
         public List<CanvasGroup> items;
         public CanvasGroup router;
+
+        Dictionary<ArchScene, string> sceneTitles;
 
         public Action<PauseMenu, bool> OnActiveChange;
         public Action<PauseMenu> OnTryOpenPause;
@@ -45,6 +48,20 @@ namespace Architome
         private void Awake()
         {
             active = this;
+            CreateTitles();
+
+        }
+
+        void CreateTitles()
+        {
+            sceneTitles = new()
+            {
+                { ArchScene.Tutorial, "Tutorial" },
+                { ArchScene.PostDungeon, "Post Dungeon" },
+                {ArchScene.Dungeon, "Dungeon" },
+                { ArchScene.Menu, "Menu" },
+                { ArchScene.DungeoneerMenu, "Guild Menu" }
+            };
         }
 
         private void Start()
@@ -131,19 +148,43 @@ namespace Architome
 
         }
 
-        public void LoadScene(string sceneName)
+        void LoadScene(ArchScene scene)
         {
-            ArchSceneManager.active.LoadScene(sceneName);
+            ArchSceneManager.active.LoadScene(scene);
             //SceneManager.LoadScene(sceneName);
         }
 
-        public async void LoadSceneSafe(string sceneName)
+        public void LoadGuild(bool safe)
+        {
+            if (safe)
+            {
+                LoadSceneSafe(ArchScene.DungeoneerMenu);
+            }
+            else
+            {
+                LoadScene(ArchScene.DungeoneerMenu);
+            }
+        }
+
+        public void LoadMenu(bool safe)
+        {
+            if (safe)
+            {
+                LoadSceneSafe(ArchScene.Menu);
+            }
+            else
+            {
+                LoadScene(ArchScene.Menu);
+            }
+        }
+
+        async void LoadSceneSafe(ArchScene scene)
         {
             var confirmed = await Confirmed();
 
             if (!confirmed) return;
 
-            ArchSceneManager.active.LoadScene(sceneName);
+            ArchSceneManager.active.LoadScene(scene);
 
 
             async Task<bool> Confirmed()
@@ -151,7 +192,7 @@ namespace Architome
                 var promptHandler = PromptHandler.active;
                 if (promptHandler == null) return true;
 
-                var title = sceneName;
+                var title = sceneTitles[scene];
 
                 var question = Core.currentSave != null ? $"Are you sure you want to go to {title}? You may lose all your saved progress" : $"Are you sure you want to go to {title}?";
 
@@ -159,7 +200,7 @@ namespace Architome
 
                 var userChoice = await promptHandler.GeneralPrompt(new()
                 {
-                    title = title,
+                    title = title.ToString(),
                     question = question,
                     options = new() {
                         new("Confirm", (option) => { confirm = true; }),

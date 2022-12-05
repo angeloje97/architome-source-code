@@ -10,8 +10,5 @@ namespace Architome
     {
         public Difficulty difficulty;
         public bool hardcore;
-
-
-
     }
 }

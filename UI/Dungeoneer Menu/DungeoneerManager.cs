@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
+using Architome.Enums;
 
 namespace Architome
 {
@@ -49,7 +50,7 @@ namespace Architome
         [SerializeField] public List<EntityInfo> selectedEntities;
         [SerializeField] Dungeon currentDungeon;
 
-        public string sceneToLoad;
+        public ArchScene sceneToLoad;
 
         public Action<List<bool>> OnCheckCondition;
         public Action<List<bool>> BeforeCheckCondition;

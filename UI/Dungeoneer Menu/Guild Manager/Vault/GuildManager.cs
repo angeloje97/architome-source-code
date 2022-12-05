@@ -295,6 +295,11 @@ namespace Architome
         void BeforeLoadScene(ArchSceneManager sceneManager)
         {
             SaveEntities();
+            var currentSave = SaveSystem.current;
+            if (currentSave != null)
+            {
+                currentSave.guildData = new(this);
+            }
         }
 
         void BeforeSave(SaveSystem system, SaveGame save)

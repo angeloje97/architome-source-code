@@ -24,6 +24,7 @@ namespace Architome
 
         public void LoadData(GuildManager.GuildInfo info)
         {
+            info.maxSlots = inventory.maxSlots;
             info.level = level;
             info.vault = VaultInvetory();
             info.currencies = VaultCurrencies();

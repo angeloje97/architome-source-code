@@ -178,29 +178,11 @@ namespace Architome
                 entityInventories[i].SetEntity(entities[i]);
             }
         }
-        public void LoadScene(string sceneName)
+        
+
+        public void LoadMenu()
         {
-            var archSceneManager = ArchSceneManager.active;
-            if (archSceneManager == null) return;
-
-            if (Core.currentSave != null)
-            {
-
-                SaveEntities();
-                SaveSystem.active.Save();
-            }
-
-            archSceneManager.LoadScene(sceneName, true);
-        }
-        void SaveEntities()
-        {
-            var currentSave = Core.currentSave;
-            if (currentSave == null) return;
-            
-            foreach (var entity in entities)
-            {
-                currentSave.SaveEntity(entity);
-            }
+            ArchSceneManager.active.LoadScene(ArchScene.DungeoneerMenu);
         }
     }
 }

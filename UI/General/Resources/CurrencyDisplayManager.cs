@@ -25,8 +25,12 @@ namespace Architome
         void Start()
         {
             GetDependencies();
-            HandleStart();
-            HandleNullGuildManager();
+
+            ArchAction.Delay(() => {
+                HandleStart();
+                HandleNullGuildManager();
+            
+            }, .5f);
         }
         void GetDependencies()
         {

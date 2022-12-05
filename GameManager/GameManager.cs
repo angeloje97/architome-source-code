@@ -116,22 +116,22 @@ namespace Architome
             void BeforeLoadScene(ArchSceneManager manager)
             {
                 if (setDestroy) return;
-                var validScenes = new HashSet<string>() {
-                        "Map Template Continue",
-                        "PostDungeonResults",
+                var validScenes = new HashSet<ArchScene>() {
+                        ArchScene.PostDungeon,
+                        ArchScene.Dungeon,
                     };
 
 
-                if (!validScenes.Contains(manager.sceneToLoad))
+                if (!validScenes.Contains(manager.sceneToLoad.scene))
                 {
                     ArchGeneric.DestroyOnLoad(gameObject);
                     setDestroy = true;                    }
             }
         }
 
-        public void LoadScene(string sceneName)
+        public void LoadScene(ArchScene scene)
         {
-            sceneManager.LoadScene(sceneName, true);
+            sceneManager.LoadScene(scene);
         }
 
         void HandlePlayableEntities()

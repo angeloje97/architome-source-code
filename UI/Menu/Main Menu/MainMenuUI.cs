@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using Architome.Enums;
 
 namespace Architome
 {
@@ -67,6 +68,11 @@ namespace Architome
             {
                 menuModule.Show(false);
             }
+        }
+
+        public void LoadTutorial(int tutorialNum)
+        {
+            ArchSceneManager.active.LoadScene(ArchScene.Tutorial, tutorialNum);
         }
     }
 }
