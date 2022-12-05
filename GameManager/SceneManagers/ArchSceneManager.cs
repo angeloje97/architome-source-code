@@ -27,7 +27,7 @@ namespace Architome
         public Action<AsyncOperation> OnLoadEnd { get; set; }
 
 
-        public string sceneToLoad { get; private set; }
+        public SceneInfo sceneToLoad { get; private set; }
         public float progressValue;
 
 
@@ -56,10 +56,16 @@ namespace Architome
         void CreateDictionary()
         {
             eventDict = new();
-
+            sceneInfoDict = new();
             foreach (SceneEvent sceneEvent in Enum.GetValues(typeof(SceneEvent)))
             {
                 eventDict.Add(sceneEvent, delegate (ArchSceneManager sceneManager) { }); 
+            }
+
+            foreach(var sceneInfo in sceneInfos)
+            {
+                if (sceneInfoDict.ContainsKey(sceneInfo.scene)) continue;
+                sceneInfoDict.Add(sceneInfo.scene, sceneInfo);
             }
         }
 
@@ -112,9 +118,11 @@ namespace Architome
             return eventDict[trigger];
         }
 
-        async public void LoadScene(string sceneName, bool async = true)
+        async public void LoadScene(ArchScene archScene, int index = -1, bool async = true)
         {
-            this.sceneToLoad = sceneName;
+            this.sceneToLoad = sceneInfoDict[archScene];
+
+            var sceneName = index == -1 ? sceneToLoad.main : sceneToLoad.subScenes[index];
 
             tasksBeforeConfirmLoad = new();
 
@@ -166,9 +174,30 @@ namespace Architome
             isLoading = false;
         }
 
-        public string CurrentScene()
+        public SceneInfo CurrentScene()
         {
-            return SceneManager.GetActiveScene().name;
+            var sceneName = SceneManager.GetActiveScene().name;
+
+            foreach(var sceneInfo in sceneInfos)
+            {
+                if (sceneInfo.main.Equals(sceneName))
+                {
+                    return sceneInfo;
+                }
+
+                if (sceneInfo.subScenes != null)
+                {
+                    foreach(var subScene in sceneInfo.subScenes)
+                    {
+                        if (subScene.Equals(sceneName))
+                        {
+                            return sceneInfo;
+                        }
+                    }
+                }
+            }
+
+            return null;
         }
 
         public void OnValidate()
@@ -185,7 +214,7 @@ namespace Architome
 
 
         [Serializable]
-        public struct SceneInfo
+        public class SceneInfo
         {
             [HideInInspector] public string name;
             public ArchScene scene;

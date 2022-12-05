@@ -23,6 +23,7 @@ namespace Architome
 
         public List<string> scenesToSaveEntities;
 
+        bool inPostDungeon;
 
 
         void Awake()
@@ -149,13 +150,12 @@ namespace Architome
         }
         void OnLoadScene(ArchSceneManager sceneManager)
         {
-            var scenes = new HashSet<string>()
+            var scenes = new HashSet<ArchScene>()
             {
-                "Map Template",
-                "Map Template Continue",
+                ArchScene.Dungeon
             };
 
-            if (scenes.Contains(sceneManager.sceneToLoad))
+            if (scenes.Contains(sceneManager.sceneToLoad.scene))
             {
                 OnSceneStart();
             }
@@ -165,12 +165,11 @@ namespace Architome
         {
             var mapRoomGenerator = MapRoomGenerator.active;
 
-            var nextLevel = "Map Template Continue";
-            var postDungeon = "PostDungeonResults";
             var promptHandler = PromptHandler.active;
 
             mapRoomGenerator.OnRoomsGenerated += (generator) => {
                 var portals = PortalInfo.portals;
+                if (portals == null) return;
                 foreach (var portal in portals)
                 {
 
@@ -197,12 +196,14 @@ namespace Architome
                 {
                     options.Add(new("Next Floor", (OptionData data) => {
                         Core.dungeonIndex++;
-                        sceneManager.LoadScene(nextLevel, true);
+                        sceneManager.LoadScene(ArchScene.Dungeon, 0, true);
+                        HandleAutoSave();
                     }));
                 }
 
                 options.Add(new("Leave Dungeon", (OptionData data) => {
-                    sceneManager.LoadScene(postDungeon);
+                    sceneManager.LoadScene(ArchScene.PostDungeon);
+                    HandleAutoSave();
                 }));
 
                 options.Add(new("Cancel", (OptionData data) =>
@@ -232,7 +233,10 @@ namespace Architome
                     question = "Are you sure you want to leave the dungeon?",
                     options = new()
                     {
-                        new("Leave Dungeon", (OptionData data)=> { sceneManager.LoadScene(postDungeon); }),
+                        new("Leave Dungeon", (OptionData data)=> { 
+                            sceneManager.LoadScene(ArchScene.PostDungeon);
+                            HandleAutoSave();
+                        }),
                         new("Cancel", (OptionData data) => { info.MoveAllEntitiesOutOfPortal(2f); }) { isEscape = true}
                     },
                     blocksScreen = true,
@@ -299,9 +303,17 @@ namespace Architome
         }
         async void BeforeLoadScene(ArchSceneManager sceneManager)
         {
-            SaveEntities();
-            saveSystem.Save();
-            
+            if (!inPostDungeon)
+            {
+                inPostDungeon = sceneManager.sceneToLoad.scene == ArchScene.PostDungeon;
+            }
+
+
+            if (inPostDungeon)
+            {
+                HandleAutoSave();
+            }
+
             var abilityManagers = new List<AbilityManager>();
             foreach(var member in party.members)
             {
@@ -326,6 +338,12 @@ namespace Architome
                 manager.SetAbilities(true, true);
             }
             
+            
+        }
+
+        public void HandleAutoSave()
+        {
+            saveSystem.Save();
         }
         void SaveEntities()
         {

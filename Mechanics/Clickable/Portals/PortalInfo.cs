@@ -22,7 +22,7 @@ namespace Architome
         public Clickable clickable;
         public int partyCount;
         public int portalNum;
-        public string setScene;
+        public ArchScene setScene;
 
 
         public static PortalInfo EntryPortal { get; set; }
@@ -130,7 +130,7 @@ namespace Architome
         }
         public void IncreaseDungeonIndex()
         {
-            var setScene = "PostDungeonResults";
+            var setScene = ArchScene.PostDungeon;
 
             HandleDungeonLevels();
 
@@ -144,18 +144,16 @@ namespace Architome
 
                 Core.dungeonIndex++;
                 if (Core.dungeonIndex >= Core.currentDungeon.Count) return;
-                setScene = "Map Template Continue";
+                setScene = ArchScene.Dungeon;
             }
         }
-        public void TeleportToScene(string sceneName)
+        public void TeleportToScene(ArchScene scene)
         {
-            if (setScene == null || setScene.Length == 0) return;
-            sceneManager.LoadScene(sceneName, true);
+            sceneManager.LoadScene(scene);
         }
         public void TeleportToSetScene()
         {
-            if (setScene == null || setScene.Length == 0) return;
-            sceneManager.LoadScene(setScene, true);
+            sceneManager.LoadScene(setScene);
         }
         public void HandleMoveTargets()
         {

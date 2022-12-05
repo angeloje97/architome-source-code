@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using Architome.Enums;
 
 namespace Architome
 {
@@ -216,7 +217,7 @@ namespace Architome
         {
             Core.SetSave(selectedSave);
 
-            ArchSceneManager.active.LoadScene("Dungeoneer Menu");
+            ArchSceneManager.active.LoadScene(ArchScene.DungeoneerMenu);
             //SceneManager.LoadScene(selectedSave.currentSceneName);
         }
         

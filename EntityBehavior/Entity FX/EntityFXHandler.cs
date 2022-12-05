@@ -22,7 +22,7 @@ namespace Architome
 
         public HashSet<EntityEvent> recentTriggers;
 
-        public List<string> activeScenes;
+        public List<ArchScene> activeScenes;
         bool active;
 
         private void Awake()
@@ -85,22 +85,17 @@ namespace Architome
         }
 
 
-        void DetermineActive(string sceneName = "")
+        void DetermineActive(ArchSceneManager.SceneInfo sceneInfo)
         {
-            if (sceneName == "")
-            {
-                var sceneManager = ArchSceneManager.active;
-                if (sceneManager != null)
-                {
-                    sceneName = ArchSceneManager.active.CurrentScene();
-                }
-            }
-            active = activeScenes.Contains(sceneName);
+            var scene = sceneInfo == null ? ArchSceneManager.active.CurrentScene().scene : sceneInfo.scene;
+
+            active = activeScenes.Contains(scene);
+
         }
 
         void Start()
         {
-            DetermineActive();
+            DetermineActive(null);
             GetDependencies();
             HandleAdditiveEffects();
         }

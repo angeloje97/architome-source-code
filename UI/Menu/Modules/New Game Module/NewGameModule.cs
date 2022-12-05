@@ -22,7 +22,7 @@ namespace Architome
             public TMP_InputField inputField;
             public SelectionSliderLoopable selection;
             public Toggle toggle;
-            public string sceneToLoad;
+            public ArchScene sceneToLoad;
             public ArchButton createNewGameButton;
         }
 
@@ -132,7 +132,7 @@ namespace Architome
             Core.SetSave(newSave);
 
 
-            ArchSceneManager.active.LoadScene(info.sceneToLoad, true);
+            ArchSceneManager.active.LoadScene(info.sceneToLoad);
             //SceneManager.LoadScene(info.sceneToLoad);
             
         }
