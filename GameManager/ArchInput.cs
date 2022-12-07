@@ -14,6 +14,7 @@ namespace Architome
         KeyBindings bindings;
         [SerializeField]
         ArchInputMode inputMode;
+        ArchInputMode desiredMode;
 
         IGGUIInfo gui;
 
@@ -107,7 +108,7 @@ namespace Architome
         {
             if (blockingInput) return;
             blockingInput = true;
-            var originalInputMode = inputMode;
+            desiredMode = inputMode;
             inputMode = ArchInputMode.Inactive;
 
             while (contextActive || haltingInput || moduleActive || pauseMenuActive)
@@ -115,7 +116,7 @@ namespace Architome
                 await Task.Yield();
             }
 
-            inputMode = originalInputMode;
+            inputMode = desiredMode;
             blockingInput = false;
         }
 

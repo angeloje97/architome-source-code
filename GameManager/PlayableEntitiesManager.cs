@@ -28,6 +28,8 @@ namespace Architome
         PortalInfo previousEntryPortal;
 
 
+
+
         void Awake()
         {
             active = this;
@@ -138,8 +140,6 @@ namespace Architome
             loadFromSave = true;
             
         }
-
-
         void OnSceneStart()
         {
             ArchAction.Delay(() => {
@@ -267,6 +267,7 @@ namespace Architome
             var entryPortal = PortalInfo.EntryPortal;
 
             var portalFound = false;
+            //HandleEntitiesSuspension();
             while (entryPortal == null || (previousEntryPortal == entryPortal && previousEntryPortal != null))
             {
                 if (PortalInfo.portals == null)
@@ -293,6 +294,7 @@ namespace Architome
                 await Task.Yield();
             }
 
+
             previousEntryPortal = entryPortal;
 
             Debugger.Environment(7915, $"Entry portal detected {entryPortal}");
@@ -306,6 +308,20 @@ namespace Architome
             }
 
             HandleMoveOutOfPortal(entryPortal);
+
+            //async void HandleEntitiesSuspension()
+            //{
+            //    while (!portalFound)
+            //    {
+            //        if (!this) return;
+            //        foreach(var entity in party.members)
+            //        {
+            //            entity.transform.localPosition = new Vector3();
+            //            party.transform.position = new Vector3();
+            //        }
+            //        await Task.Yield();
+            //    }
+            //}
 
         }
         void BeforeSave(SaveSystem system, SaveGame save)

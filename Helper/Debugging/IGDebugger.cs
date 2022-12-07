@@ -195,6 +195,8 @@ namespace Architome.Debugging
             OnSelectLogData?.Invoke(data);
         }
 
+        
+
         void OnModuleActiveChange(bool isActive)
         {
 
@@ -233,7 +235,7 @@ namespace Architome.Debugging
         {
             if (popUpError)
             {
-                if (logData.type == LogType.Error)
+                if (logData.type == LogType.Error || logData.type == LogType.Exception)
                 {
                     if (!module.isActive)
                     {

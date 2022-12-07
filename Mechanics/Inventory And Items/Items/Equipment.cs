@@ -75,6 +75,7 @@ namespace Architome
         {
             base.AdjustValue();
 
+
             value = itemLevel * LevelRequired * (int) rarity;
             
         }

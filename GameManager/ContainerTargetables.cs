@@ -19,6 +19,7 @@ namespace Architome
         public List<GameObject> selectedTargets;
 
         public GameObject currentHover;
+        public GameObject hoverObject;
         public GameObject currentHold;
 
         private KeyBindings keyBindings;
@@ -27,6 +28,9 @@ namespace Architome
 
         public string selectKey = "Select";
         public string selectMultiple = "SelectMultiple";
+
+        [SerializeField] bool isOverUI;
+        [SerializeField] bool isOverClickable;
 
         bool isSelecting;
         public bool IsSelecting
@@ -150,6 +154,8 @@ namespace Architome
 
             if (input.Mode == ArchInputMode.Inactive) return;
 
+            hoverObject = Mouse.CurrentHover(targetLayer);
+
             HandleUserMouseOvers();
             HandleNullMouseOver();
 
@@ -177,10 +183,27 @@ namespace Architome
 
             bool IsOverTarget()
             {
-                if (Mouse.IsMouseOverUI()) { return false; }
-                if (ClickableManager.active.currentClickableHover) return false;
+                if (Mouse.IsMouseOverUI())
+                {
+                    isOverUI = true;
+                    return false;
+                }
+                else
+                {
+                    isOverUI = false;
+                }
+                if (ClickableManager.active.currentClickableHover)
+                {
+                    isOverClickable = true;
+                    return false;
+                }
+                else
+                {
+                    isOverClickable = false;
+                }
 
-                var entity = Mouse.CurrentHover(targetLayer);
+                //var entity = Mouse.CurrentHover(targetLayer);
+                var entity = hoverObject;
 
                 if (entity)
                 {
@@ -308,6 +331,7 @@ namespace Architome
         }
         public void AddSelected(GameObject target)
         {
+            if(selectedTargets.Contains(target)) return;   
             target.GetComponent<EntityInfo>().targetableEvents.OnSelect?.Invoke(true);
             OnSelectTarget?.Invoke(target);
             selectedTargets.Add(target);

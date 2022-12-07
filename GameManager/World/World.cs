@@ -143,7 +143,7 @@ namespace Architome
         }
         private void OnValidate()
         {
-            CreateProperties();
+            //CreateProperties();
         }
 
         public void SetSpawnBeacon(SpawnerInfo spawner)

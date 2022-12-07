@@ -5,7 +5,6 @@ using UnityEngine;
 using Architome.Enums;
 using System;
 using Architome;
-using UnityEngine.UI;
 
 [Serializable]
 public class BuffProperties
@@ -166,7 +165,7 @@ public class BuffInfo : MonoBehaviour
     {
         ArchAction.Yield(() => { 
             if(!failed) OnBuffStart?.Invoke(this);
-            if (properties.time <= 0) Expire();
+            if (properties.time <= 0 && !properties.infiniteTime) Expire();
                 
         });
     }

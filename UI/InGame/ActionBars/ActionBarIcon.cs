@@ -15,6 +15,7 @@ namespace Architome
         DragAndDrop dragAndDrop;
 
         public int childIndex;
+        public Transform targetTransform;
         public bool dragging;
 
         public void GetDependencies()
@@ -94,7 +95,7 @@ namespace Architome
         void ReturnToActionBar()
         {
             transform.position = actionBarBehavior.transform.position;
-            transform.SetParent(actionBarBehavior.transform);
+            transform.SetParent(targetTransform);
             transform.SetSiblingIndex(childIndex);
 
         }

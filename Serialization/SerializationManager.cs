@@ -35,8 +35,12 @@ namespace Architome
 
         public static object LoadGame(string saveName)
         {
+            var pathName = $"{Application.persistentDataPath}/saves";
+            
             if (!Directory.Exists($"{Application.persistentDataPath}/saves"))
             {
+                Directory.CreateDirectory(pathName);
+                
                 return null;
             }
 
@@ -67,7 +71,11 @@ namespace Architome
 
         public static void DeleteSave(string saveFileName)
         {
-            if (!Directory.Exists($"{Application.persistentDataPath}/saves")) return;
+            if (!Directory.Exists($"{Application.persistentDataPath}/saves"))
+            {
+                Directory.CreateDirectory($"{Application.persistentDataPath}/saves");
+                return;
+            }
 
             var fileEntries = Directory.GetFiles($"{Application.persistentDataPath}/saves");
 
@@ -82,9 +90,12 @@ namespace Architome
 
         public static List<object> LoadSaves()
         {
+            var path = $"{Application.persistentDataPath}/saves";
+            Debugger.UI(5489, $"{path}");
             if (!Directory.Exists($"{Application.persistentDataPath}/saves"))
             {
-                return null;
+                Directory.CreateDirectory($"{Application.persistentDataPath}/saves");
+                return new List<object>();
             }
 
 

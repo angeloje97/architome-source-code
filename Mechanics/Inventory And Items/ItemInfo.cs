@@ -583,11 +583,12 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
             icon = item.itemIcon,
             title = $"{item.itemName}",
             question = $"Are you sure you want to destroy {item.itemName}?",
-            
             options = new() {
                 new("Destroy", (option) => HandleDestroy()),
                 new("Cancel") {isEscape = true },
             },
+            
+            blocksScreen = true,
         });
 
         return destroy;

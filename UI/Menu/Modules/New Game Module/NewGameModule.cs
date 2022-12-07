@@ -24,16 +24,20 @@ namespace Architome
             public Toggle toggle;
             public ArchScene sceneToLoad;
             public ArchButton createNewGameButton;
+            public TextMeshProUGUI difficultyInfo;
         }
 
         public Info info;
 
-        public string saveName;
-        public Trilogy trilogy;
-        public Difficulty currentDifficulty;
         public GameSettingsData settings;
 
         public SaveGame newSave;
+
+        DifficultyModifications difficultyManager;
+
+        public string saveName;
+        public Trilogy trilogy;
+        public Difficulty currentDifficulty;
 
 
         private void OnValidate()
@@ -44,6 +48,15 @@ namespace Architome
         public void Start()
         {
             OnSaveNameChange(info.inputField);
+            GetDependencies();
+        }
+
+        void GetDependencies()
+        {
+            difficultyManager = DifficultyModifications.active;
+
+
+            UpdateDifficultyInfo();
         }
 
         public void CreateOptions()
@@ -84,6 +97,16 @@ namespace Architome
 
             settings.difficulty = currentDifficulty;
 
+            UpdateDifficultyInfo();
+
+        }
+
+        void UpdateDifficultyInfo()
+        {
+            if (!difficultyManager) return;
+            if (!info.difficultyInfo) return;
+
+            info.difficultyInfo.text = difficultyManager.DifficultySet(settings.difficulty).Description();
         }
 
         public void SetName(TMP_InputField inputField)

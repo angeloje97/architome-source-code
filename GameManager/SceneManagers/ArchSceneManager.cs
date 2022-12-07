@@ -27,7 +27,19 @@ namespace Architome
         public Action<AsyncOperation> OnLoadEnd { get; set; }
 
 
-        public SceneInfo sceneToLoad { get; private set; }
+        [SerializeField] SceneInfo currentScene;
+        public SceneInfo sceneToLoad 
+        {
+            get
+            {
+                return currentScene;
+            }
+            private set
+            {
+                currentScene = value;
+            }
+        }
+
         public float progressValue;
 
 
@@ -38,9 +50,15 @@ namespace Architome
                 Destroy(gameObject);
                 return;
             }
+            active = this;
 
             CreateDictionary();
-            active = this;
+            DetermineScene();
+        }
+
+        void DetermineScene()
+        {
+            sceneToLoad = CurrentScene();
         }
 
         private void Start()
@@ -172,6 +190,11 @@ namespace Architome
             eventDict[SceneEvent.OnLoadScene]?.Invoke(this);
             await Task.Delay(2500);
             isLoading = false;
+        }
+
+        public bool IsScene(ArchScene scene)
+        {
+            return sceneToLoad.scene == scene;
         }
 
         public SceneInfo CurrentScene()

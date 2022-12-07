@@ -332,6 +332,7 @@ namespace Architome
         }
         async public Task<bool> MoveToAsync(Transform locationTransform, float endReachDistance = 0f)
         {
+            if (!entityInfo.isAlive) return false;
             MoveTo(locationTransform, endReachDistance);
             isMoving = true;
             var target = locationTransform;

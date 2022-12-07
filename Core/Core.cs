@@ -58,6 +58,11 @@ namespace Architome
             var objects = SerializationManager.LoadSaves();
             var savedGames = new List<SaveGame>();
 
+            if(objects == null)
+            {
+                return savedGames;
+            }
+
             foreach (var obj in objects)
             {
                 if (obj.GetType() != typeof(SaveGame)) continue;

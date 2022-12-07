@@ -66,6 +66,11 @@ namespace Architome
                 DetermineSettings();
             }
 
+
+            foreach(var set in difficultySets)
+            {
+                set.name = set.difficulty.ToString();
+            }
         }
 
         // Update is called once per frame
@@ -97,12 +102,18 @@ namespace Architome
         [Range(0, 1)]
         public float minimumEnemyForces = .90f;
 
+        public static readonly HashSet<string> ignoreField = new HashSet<string>()
+        {
+            "name",
+            "ignoreField"
+        };
 
         public string Description()
         {
             var result = new List<string>();
             foreach(var field in GetType().GetFields())
             {
+                if (ignoreField.Contains(field.Name)) continue;
                 result.Add($"{ArchString.CamelToTitle(field.Name)}: {field.GetValue(this)}");
             }
 

@@ -11,6 +11,8 @@ namespace Architome
         public float spaceRange;
         Movement movement;
 
+        [SerializeField] bool enableLocationSpread;
+
         [Serializable]
         public struct ParticleFX
         {
@@ -68,6 +70,7 @@ namespace Architome
 
         private void OnTriggerEnter(Collider other)
         {
+            if (!enableLocationSpread) return;
             if (other.GetComponent<MovementLocation>())
             {
                 Debugger.InConsole(1562, $"Movement locations collided");

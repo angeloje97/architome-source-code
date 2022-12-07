@@ -182,7 +182,7 @@ namespace Architome
 
         public static async Task LetGoKeys(List<KeyCode> keyCodes)
         {
-            await Task.Delay(100);
+            await Task.Yield();
 
             while (true)
             {
@@ -203,6 +203,35 @@ namespace Architome
 
                 await Task.Yield();
             }
+
+            await Task.Yield();
+
+            Debugger.UI(5439, $"User has let go of key");
+        }
+
+        public static async Task PressAnyKey(List<KeyCode> keyCodes)
+        {
+            await Task.Yield();
+
+            while (true)
+            {
+                var pressing = false;
+
+                foreach(var key in keyCodes)
+                {
+                    if(Input.GetKeyDown(key) || Input.GetKeyUp(key))
+                    {
+                        pressing = true;
+                    }
+                }
+
+                if (pressing)
+                {
+                    break;
+                }
+            }
+
+            await Task.Yield();
         }
 
         private void OnValidate()

@@ -137,7 +137,6 @@ namespace Architome
 
             var exitKeyDowns = new List<KeyCode>() { KeyCode.Mouse1 };
 
-            var keyDownTimers = .25f;
 
             foreach (var action in alternateActionsName)
             {
@@ -148,28 +147,31 @@ namespace Architome
             await KeyBindings.LetGoKeys(exitKeyUps);
 
 
+            await Task.Yield();
+
             while (exitKeysActive)
             {
                 if (!isChoosing) break;
+
+
                 foreach (var key in exitKeyUps)
                 {
                     if (Input.GetKeyUp(key))
                     {
                         exitKeysActive = false;
                     }
+
+                    
                 }
 
-                foreach (var key in exitKeyDowns)
+                foreach(var key in exitKeyDowns)
                 {
-                    if (keyDownTimers > 0)
-                    {
-                        keyDownTimers -= Time.deltaTime;
-                    }
-                    else if (Input.GetKeyDown(key))
+                    if (Input.GetKeyDown(key))
                     {
                         exitKeysActive = false;
                     }
                 }
+
                 await Task.Yield();
             }
 
@@ -204,6 +206,10 @@ namespace Architome
             if (isChoosing)
             {
                 CancelOptions();
+            }
+
+            while (isChoosing)
+            {
                 await Task.Yield();
             }
 
