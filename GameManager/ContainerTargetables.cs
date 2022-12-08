@@ -31,6 +31,7 @@ namespace Architome
 
         [SerializeField] bool isOverUI;
         [SerializeField] bool isOverClickable;
+        [SerializeField] bool nullCheck;
 
         bool isSelecting;
         public bool IsSelecting
@@ -165,9 +166,27 @@ namespace Architome
             if (hoverTargetCheck != currentHover)
             {
                 OnNewHoverTarget?.Invoke(hoverTargetCheck, currentHover);
-                hoverTargetCheck = currentHover;
+
+                if(currentHover)
+                {
+                    nullCheck = true;
+                }
+                else
+                {
+                    nullCheck = false;
+                }
                 
+                hoverTargetCheck = currentHover;
             }
+
+            if(nullCheck && !currentHover && !hoverTargetCheck)
+            {
+                OnNewHoverTarget?.Invoke(null, null);
+                nullCheck = false;
+            }
+
+
+
         }
         public void HandleUserMouseOvers()
         {

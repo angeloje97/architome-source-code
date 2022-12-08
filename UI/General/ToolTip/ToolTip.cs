@@ -259,7 +259,7 @@ namespace Architome
             ArchUI.SetCanvas(components.canvasGroup, visible);
         }
 
-        public async void FollowMouse()
+        async void FollowMouse()
         {
             if (!followMouse) return;
 

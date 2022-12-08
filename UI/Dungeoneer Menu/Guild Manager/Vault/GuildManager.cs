@@ -139,7 +139,6 @@ namespace Architome
             if (manager)
             {
                 manager.OnNewEntity += OnNewEntity;
-                manager.BeforeCheckCondition += BeforeCheckCondition;
                 manager.OnLoadSave += OnLoadSave;
 
             }
@@ -337,16 +336,6 @@ namespace Architome
             }
         }
 
-        public void BeforeCheckCondition(List<bool> conditions)
-        {
-            if (slotMap == null)
-            {
-                conditions.Add(false);
-                return;
-            }
-
-            conditions.Add(slotMap.Count == 5);
-        }
 
         public bool InParty(EntityInfo entity)
         {

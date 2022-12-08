@@ -24,11 +24,7 @@ namespace Architome
         }
         public Entities entities;
 
-        [Serializable]
-        public struct Info
-        {
-            public ArchButton startDungeonButton;
-        }
+        
 
         [Serializable]
         public struct Prefabs
@@ -39,7 +35,6 @@ namespace Architome
 
 
 
-        public Info info;
         public Prefabs prefabs;
 
         public SaveSystem saveSystem;
@@ -52,8 +47,6 @@ namespace Architome
 
         public ArchScene sceneToLoad;
 
-        public Action<List<bool>> OnCheckCondition;
-        public Action<List<bool>> BeforeCheckCondition;
         public Action<DungeoneerManager> BeforeUpdateParty;
         public Action<DungeoneerManager, List<EntityInfo>> OnSetSelectedMembers { get; set; }
         public Action<EntityInfo> OnNewEntity;
@@ -67,7 +60,6 @@ namespace Architome
             GetDependencies();
             LoadEntities();
             OnNewBorn();
-            CheckCondition();
         }
 
         private void Awake()
@@ -160,38 +152,6 @@ namespace Architome
 
             SpawnPresetEntities();
         }
-        void CheckCondition()
-        {
-            var newCondition = new List<bool>();
-
-
-
-            newCondition.Add(partyLevel + 5 >= dungeonLevel);
-
-            BeforeCheckCondition?.Invoke(newCondition);
-            OnCheckCondition?.Invoke(newCondition);
-
-            UpdateStartDungeonButton();
-
-            void UpdateStartDungeonButton()
-            {
-                if (info.startDungeonButton == null) return;
-
-                bool ready = true;
-
-                foreach (var condition in newCondition)
-                {
-                    if (!condition)
-                    {
-                        ready = false;
-                    }
-
-                    Debugger.InConsole(5489, $"{condition}");
-                }
-
-                info.startDungeonButton.SetButton(ready);
-            }
-        }
         public void SetSelectedEntities(List<EntityInfo> entities, float partyLevel = 0f)
         {
             selectedEntities = entities;
@@ -210,10 +170,6 @@ namespace Architome
 
             OnSetSelectedMembers?.Invoke(this, selectedEntities);
 
-            
-
-
-            CheckCondition();
         }
 
         public void SetDungeon(Dungeon dungeon)
@@ -222,7 +178,6 @@ namespace Architome
 
             dungeonLevel = dungeon.RecommendedLevel();
 
-            CheckCondition();
         }
 
         public void StartDungeon()

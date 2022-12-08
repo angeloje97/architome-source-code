@@ -194,6 +194,7 @@ namespace Architome
         async public void StartWork(TaskInfo task)
         {
             Debugger.InConsole(18964, $"{task}");
+            
             if(task == null) { return; }
             if(!task.AddWorkerOnTheWay(entityInfo)) { return; }
 

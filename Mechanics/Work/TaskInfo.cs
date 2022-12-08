@@ -97,7 +97,8 @@ namespace Architome
         [SerializeField]
         TaskCompletionEvent completionEvents;
 
-
+        [HideInInspector] public List<(bool, string)> checks;
+        
 
         public void OnValidate()
         {
@@ -317,31 +318,37 @@ namespace Architome
             return false;
         }
 
-        public bool CanWork(EntityInfo entity)
+        public bool CanWork(EntityInfo entity, bool invokeEvents = true)
         {
             TaskEventData eventData = new(this);
             var station = properties.station;
 
-
+            if (!entity.isAlive)
+            {
+                if(invokeEvents)
+                { 
+                
+                    InvokeCantWorkEvent("Cannot work on task when dead.");
+                }
+                return false;
+            }
 
             if (states.currentState != TaskState.Available)
             {
-                if (workers.Total() >= properties.maxWorkers)
+                if (MaxWorkersReached())
                 {
-                    entity.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Max workers reached");
-                    station.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Max workers reached");
+
+                    InvokeCantWorkEvent("Max workers reached");
                     return false;
                 }
 
-                entity.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Task not available");
-                station.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Task not available");
+                InvokeCantWorkEvent("Task not available");
                 return false;
             }
 
             if (properties.noCombat && entity.isInCombat)
             {
-                entity.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Must be out of combat");
-                station.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Must be out of combat");
+                InvokeCantWorkEvent("Must be out of combat");
                 return false;
             }
 
@@ -349,12 +356,19 @@ namespace Architome
 
             if (properties.noHostileMobsInRoom && HostileEntitiesInRoom())
             {
-                entity.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Hostile mobs are still in this room");
-                station.taskEvents.OnCantWorkOnTask?.Invoke(eventData, "Hostile mobs are still in this room");
+                InvokeCantWorkEvent("Hostile mobs are still in this room");
                 return false;
             }
 
             return true;
+
+            void InvokeCantWorkEvent(string reason)
+            {
+                if (!invokeEvents) return;
+                entity.taskEvents.OnCantWorkOnTask?.Invoke(eventData, reason);
+                station.taskEvents.OnCantWorkOnTask?.Invoke(eventData, reason);
+
+            }
         }
 
         bool HostileEntitiesInRoom()
@@ -471,6 +485,11 @@ namespace Architome
             {
                 states.currentState = TaskState.Available;
             }
+        }
+
+        public bool MaxWorkersReached()
+        {
+            return workers.Total() >= properties.maxWorkers;
         }
 
     }

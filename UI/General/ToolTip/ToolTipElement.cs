@@ -16,10 +16,12 @@ namespace Architome
 
         public bool isShowing;
         public bool hideToolTip;
+        public bool followCursor;
 
         public Action<ToolTipElement> BeforeShowToolTip;
         public Action<ToolTipElement> OnCanShowCheck;
-        public List<bool> checks;
+        
+        [HideInInspector]public List<bool> checks;
 
         void Start()
         {
@@ -69,7 +71,13 @@ namespace Architome
 
             BeforeShowToolTip?.Invoke(this);
 
+            if (followCursor)
+            {
+                toolTip.followMouse = true;
+            }
+
             toolTip.SetToolTip(data);
+            
 
             while (isShowing)
             {

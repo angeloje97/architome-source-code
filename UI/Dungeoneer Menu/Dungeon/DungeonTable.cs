@@ -67,13 +67,7 @@ namespace Architome
 
         void GetDependencies()
         {
-            manager = GetComponentInParent<DungeoneerManager>();
-
-            if (manager)
-            {
-                manager.BeforeCheckCondition += BeforeCheckCondition;
-            }
-
+            manager = DungeoneerManager.active;
             var saveSystem = SaveSystem.active;
             var sceneManager = ArchSceneManager.active;
 
@@ -160,10 +154,6 @@ namespace Architome
                     dungeon.SetHighlight(selected);
                 }
             }
-        }
-        public void BeforeCheckCondition(List<bool> conditions)
-        {
-            conditions.Add(selectedDungeon != null);
         }
         public void CreateDungeonSets()
         {

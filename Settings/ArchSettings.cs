@@ -28,13 +28,23 @@ namespace Architome.Settings
             }
 
             var mainMenuUI = MainMenuUI.active;
+            var pauseMenu = PauseMenu.active;
+
 
             if (mainMenuUI)
             {
                 mainMenuUI.OnCanChangeModuleCheck += HandleCanChangeModuleCheck;
             }
 
+            if (pauseMenu)
+            {
+                pauseMenu.OnTryOpenPause += HandleTryOpenPause;
+            }
 
+        } 
+
+        void HandleTryOpenPause(PauseMenu pauseMenu)
+        {
 
         }
 

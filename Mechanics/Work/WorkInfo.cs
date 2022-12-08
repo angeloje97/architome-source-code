@@ -184,10 +184,26 @@ namespace Architome
 
             if (entities.Count == 0) return;
 
+            int workersSet = 0;
 
             foreach (var entity in entities)
             {
-                entity.TaskHandler().StartWork(task);
+                if(entities.Count == 1)
+                {
+                    entity.TaskHandler().StartWork(task);
+                }
+                else if(workersSet > 0 && task.MaxWorkersReached())
+                {
+                    return;
+                }
+                else if(entity.isAlive)
+                {
+                    entity.TaskHandler().StartWork(task);
+                    workersSet++;
+                }
+
+
+
             }
         }
         

@@ -81,7 +81,7 @@ namespace Architome
 
         public float ExperienceRequiredToLevel(int currentLevel)
         {
-            return settings.experienceMultiplier * currentLevel;
+            return settings.experienceRequiredMultiplier * currentLevel;
         }
 
 
@@ -97,15 +97,31 @@ namespace Architome
         public float tankHealthMultiplier = 2.5f;
         public float npcDetectionRange = 10f;
         public float playerDetectionRange = 45f;
-        public float experienceMultiplier = 300f;
+        public float experienceRequiredMultiplier = 300f;
         public float dungeonCoreMultiplier = .15f;
         [Range(0, 1)]
         public float minimumEnemyForces = .90f;
 
-        public static readonly HashSet<string> ignoreField = new HashSet<string>()
+        static readonly HashSet<string> ignoreField = new HashSet<string>()
         {
             "name",
-            "ignoreField"
+            "ignoreField",
+            "aliases"
+        };
+
+
+        static readonly Dictionary<string, string> aliases = new Dictionary<string, string>() 
+        {
+            { "dungeonCoreMultiplier", "Extra Enemy Power" },
+            { "experienceRequiredMultiplier", "Experience Required Per Level" }
+        };
+
+        static readonly Dictionary<string, string> unit = new Dictionary<string, string>()
+        {
+            { "npcDetectionRange", "m" },
+            { "playerDetectionRange", "m" },
+            { "minimumEnemyForces", "%" },
+            { "experienceRequiredMultiplier", "exp/level" }
         };
 
         public string Description()
@@ -114,7 +130,10 @@ namespace Architome
             foreach(var field in GetType().GetFields())
             {
                 if (ignoreField.Contains(field.Name)) continue;
-                result.Add($"{ArchString.CamelToTitle(field.Name)}: {field.GetValue(this)}");
+
+                var title = aliases.ContainsKey(field.Name) ? aliases[field.Name] : ArchString.CamelToTitle(field.Name);
+                var unitOfMeasurement = unit.ContainsKey(field.Name) ? unit[field.Name] : "";
+                result.Add($"{title}: {field.GetValue(this)}{unitOfMeasurement}");
             }
 
             return ArchString.NextLineList(result);
