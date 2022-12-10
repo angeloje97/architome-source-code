@@ -24,19 +24,21 @@ namespace Architome
         public float smoothening = 1f;
 
         public int index;
-        public int previousIndex;
+        public int previousIndex { get; set; }
         public bool update;
 
         public Action<NavBar> OnChangeNavigation;
-        public Action<NavBar, List<bool>> OnCanNavigateChange;
+        public Action<NavBar, List<bool>> OnCanNavigateChange { get; set; }
 
         public bool navigationBlocked;
+
+        public bool stallNavigation;
 
         private void Start()
         {
             toggles = GetComponentsInChildren<Toggle>().ToList();
-
             OnValueChange();
+            previousIndex = -1;
         }
 
         private void OnValidate()
@@ -103,11 +105,16 @@ namespace Architome
             UpdateFromIndex();
         }
 
-        public bool CanNavigate()
+        async Task<bool> CanNavigate()
         {
-            var checks = new List<bool>();
+            while (stallNavigation) await Task.Yield();
+            stallNavigation = false;
 
+
+            var checks = new List<bool>();
             OnCanNavigateChange?.Invoke(this, checks);
+
+            while (stallNavigation) await Task.Yield();
 
             foreach(var check in checks)
             {
@@ -117,13 +124,16 @@ namespace Architome
             return true;
         }
 
-        public void OnValueChange()
+        public async void OnValueChange()
         {
             if (items == null) return;
             if (toggles == null) return;
             if (navigationBlocked) return;
+            if (previousIndex == index) return;
 
-            previousIndex = index;
+            var activeCanvases = new HashSet<CanvasGroup>();
+            var targetCanvases = new HashSet<CanvasGroup>();
+
 
             var lerpValue = smoothening != 0 ? 1 / smoothening : 1;
             for (int i = 0; i < items.Count; i++)
@@ -133,39 +143,70 @@ namespace Architome
                 var toggle = toggles[i];
                 var canvasGroup = items[i].GetComponent<CanvasGroup>();
 
-                if (toggle.isOn) index = i;
+                if (canvasGroup.alpha == 1) 
+                {
+                    activeCanvases.Add(canvasGroup);
+                }
+
+                if (toggle.isOn)
+                {
+                    if (activeCanvases.Contains(canvasGroup)) return;
+                    targetCanvases.Add(canvasGroup);
+                    if (i == index) return;
+                    previousIndex = index;
+                    index = i;
+                }
 
                 if (canvasGroup == null)
                 {
                     canvasGroup = items[i].AddComponent<CanvasGroup>();
                 }
 
-                float targetAlpha = toggle.isOn ? 1 : 0;
+                //float targetAlpha = toggle.isOn ? 1 : 0;
 
-                if (targetAlpha == canvasGroup.alpha) continue;
+                //if (targetAlpha == canvasGroup.alpha) continue;
 
 
-                if (!CanNavigate())
-                {
-                    navigationBlocked = true;
+                //if (!CanNavigate())
+                //{
+                //    navigationBlocked = true;
 
 
                     
 
-                    UpdateFromIndex();
-                    ArchAction.Delay(() => {
-                        navigationBlocked = false;
-                    }, .125f);
-                    return;
-                }
+                //    UpdateFromIndex();
+                //    ArchAction.Delay(() => {
+                //        navigationBlocked = false;
+                //    }, .125f);
+                //    return;
+                //}
 
 
-                canvasGroup.alpha = targetAlpha;
+                //canvasGroup.alpha = targetAlpha;
 
-                canvasGroup.blocksRaycasts = toggle.isOn;
-                canvasGroup.interactable = toggle.isOn;
+                //canvasGroup.blocksRaycasts = toggle.isOn;
+                //canvasGroup.interactable = toggle.isOn;
 
             }
+            var canNavigate = await CanNavigate();
+            if (!canNavigate)
+            {
+                index = previousIndex;
+                previousIndex = -1;
+                toggles[index].isOn = true;
+                return;
+            }
+
+            foreach(var group in activeCanvases)
+            {
+                ArchUI.SetCanvas(group, false);
+            }
+
+            foreach(var group in targetCanvases)
+            {
+                ArchUI.SetCanvas(group, true);
+            }
+
         }
 
         public int ActiveIndex()

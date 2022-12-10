@@ -141,6 +141,7 @@ namespace Architome
         {
             choiceData.optionPicked = option;
 
+
             OnPickChoice?.Invoke(this);
 
         }
@@ -236,12 +237,15 @@ namespace Architome
             }
 
             var hasEscape = false;
-
-            foreach(var option in promptData.options)
+            
+            for(int i = 0; i < promptData.options.Count; i++)
             {
+                var option = promptData.options[i];
                 if (hasEscape) option.isEscape = false;
 
                 if (option.isEscape) hasEscape = true;
+                Debugger.UI(2337, $"Option {i +1} is {option.text}");
+
                 option.HandlePrompt(this);
                 option.OnClose += (optionData) => {
                     ArchAction.Yield(EndOptions);
@@ -378,8 +382,8 @@ namespace Architome
 
         ArchButton button;
 
-        public Action<OptionData> OnChoose;
-        public Action<OptionData> OnClose;
+        public Action<OptionData> OnChoose { get; set; }
+        public Action<OptionData> OnClose { get; set; }
 
 
         public OptionData(string text, Action<OptionData> action)
@@ -401,6 +405,7 @@ namespace Architome
             }
         }
 
+
         public void HandlePrompt(PromptInfo prompt)
         {
             promptInfo = prompt;
@@ -411,7 +416,7 @@ namespace Architome
 
             this.button = UnityEngine.Object.Instantiate(button.gameObject, parent).GetComponent<ArchButton>();
 
-            this.button.SetButton(text, () => HandleButtonClick(this.button));
+            this.button.SetButton(text, ChooseOption);
 
             HandleButtonTimer();
             HandleEscape();
@@ -469,15 +474,6 @@ namespace Architome
             }
         }
 
-        void HandleButtonClick(ArchButton button)
-        {
-            OnChoose?.Invoke(this);
-
-            if (!preventClosePrompt)
-            {
-                ClosePrompt();
-            }
-        }
 
         public void ClosePrompt()
         {

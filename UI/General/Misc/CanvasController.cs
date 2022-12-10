@@ -11,6 +11,7 @@ namespace Architome
     {
         CanvasGroup canvasGroup;
         public bool isActive;
+        
 
         public bool interactable = true;
         public bool blocksRaycast = true;
@@ -19,9 +20,12 @@ namespace Architome
         [Header("Self Escape Properties")]
         [SerializeField] bool selfEscape;
 
+        public List<CanvasGroup> otherCanvasGroups;
+
         public Action<CanvasController> OnCanCloseCheck;
         public Action<CanvasController> OnCanOpenCheck;
         public List<bool> checks { get; private set; }
+        public bool haltChange { get; set; }
 
         private void OnValidate()
         {
@@ -30,6 +34,7 @@ namespace Architome
         void Start()
         {
             GetDepdendencies();
+            HandleSelfEscape();
 
             if (hideOnStart)
             {
@@ -47,8 +52,8 @@ namespace Architome
         {
             if (!selfEscape) return;
             if (!isActive) return;
-            if (!Input.GetKeyDown(KeyCode.Escape)) return;
-
+            if (!Input.GetKeyUp(KeyCode.Escape)) return;
+            SetCanvas(false);
 
 
         }
@@ -95,6 +100,7 @@ namespace Architome
 
         bool CanOpen()
         {
+            if (haltChange) return false;
             checks = new();
 
             OnCanOpenCheck?.Invoke(this);
@@ -109,6 +115,7 @@ namespace Architome
 
         bool CanClose()
         {
+            if (haltChange) return false;
             checks = new();
 
             OnCanCloseCheck?.Invoke(this);
@@ -145,10 +152,24 @@ namespace Architome
             if (canvasGroup == null) GetDepdendencies();
             ArchUI.SetCanvas(canvasGroup, isActive);
 
+
             if (isActive)
             {
                 canvasGroup.interactable = interactable;
                 canvasGroup.blocksRaycasts = blocksRaycast;
+            }
+
+            if (otherCanvasGroups != null)
+            {
+                foreach(var group in otherCanvasGroups)
+                {
+                    ArchUI.SetCanvas(group, isActive);
+                    if (isActive)
+                    {
+                        group.interactable = interactable;
+                        group.blocksRaycasts = blocksRaycast;
+                    }
+                }
             }
         }
 

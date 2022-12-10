@@ -36,7 +36,7 @@ namespace Architome.Settings
         public Dictionary<string, KeyBindMap> mapDict;
 
         public Action<KeyBindMapping> OnRevertChanges;
-        public Action<KeyBindMapping> OnApplyChanges;
+        public Action<KeyBindMapping> OnApplyChanges { get; set; }
 
 
 
@@ -63,7 +63,6 @@ namespace Architome.Settings
 
         public override void HandleLeaveDirty()
         {
-            base.HandleLeaveDirty();
             RevertBindings();
         }
 
@@ -209,21 +208,29 @@ namespace Architome.Settings
             dirty = false;
         }
 
-        async public void ApplyBindings()
+        public override void HandleChooseApply()
         {
-            if (IsConflicted())
-            {
-                var choice = await PromptHandler.active.GeneralPrompt(new() {
-                    title = "Key Bindings",
-                    question = "There are conflicting keybindings. Are you sure you want to current settings?",
-                    options = new() { 
-                        new("Apply", (option) => Apply()),
-                        new("Cancel"),
-                    },
-                    blocksScreen = true
-                });
+            ApplyBindings(true);
+        }
 
-                return;
+        async public void ApplyBindings(bool ignoreConflictions = false)
+        {
+            if (!ignoreConflictions)
+            {
+                if (IsConflicted())
+                {
+                    var choice = await PromptHandler.active.GeneralPrompt(new() {
+                        title = "Key Bindings",
+                        question = "There are conflicting keybindings. Are you sure you want to current settings?",
+                        options = new() { 
+                            new("Apply", (option) => Apply()),
+                            new("Cancel"),
+                        },
+                        blocksScreen = true
+                    });
+
+                    return;
+                }
             }
 
             Apply();

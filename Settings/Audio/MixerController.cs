@@ -22,7 +22,6 @@ namespace Architome.Settings
 
 
 
-        public List<NavBar> navBarHandler;
 
         
         public static void SetMixerVolume(AudioMixer mixer, string sliderName, float percent)
@@ -99,6 +98,11 @@ namespace Architome.Settings
 
         }
 
+        public override void HandleChooseApply()
+        {
+            ApplyMixerValues();
+        }
+
         public void ApplyMixerValues()
         {
             currentSetting.mixer = new(tempMixer.ShardsCopy());
@@ -131,7 +135,6 @@ namespace Architome.Settings
         }
 
 
-
         void GetDependencies()
         {
             currentSetting = AudioSetting.CurrentSettings;
@@ -152,5 +155,7 @@ namespace Architome.Settings
             SetMixerVolume(audioMixer, name, value);
             tempMixer.SetMixer(name, value);
         }
+
+
     }
 }
