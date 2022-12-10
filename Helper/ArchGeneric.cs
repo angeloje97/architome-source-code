@@ -49,10 +49,22 @@ namespace Architome
             UnityEngine.Object.Destroy(tempObject);
         }
 
-        public static void DontDestroyOnLoad(GameObject gameObject)
+        public static void DontDestroyOnLoad(GameObject gameObject, bool canvasItem = false)
         {
-            UnityEngine.Object.DontDestroyOnLoad(gameObject);
+            gameObject.transform.SetParent(null);
+
+            if (!canvasItem)
+            {
+                UnityEngine.Object.DontDestroyOnLoad(gameObject);
+                return;
+            }
+
+            var persistantCanvas = PersistantCanvas.active;
+            if (!persistantCanvas) return;
+
+            gameObject.transform.SetParent(persistantCanvas.transform);
         }
+
 
         public static string StateDescription(EntityState state)
         {

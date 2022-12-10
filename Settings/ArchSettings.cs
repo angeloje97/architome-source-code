@@ -29,6 +29,7 @@ namespace Architome.Settings
 
             var mainMenuUI = MainMenuUI.active;
             var pauseMenu = PauseMenu.active;
+            var canvasController = GetComponentInParent<CanvasController>();
 
 
             if (mainMenuUI)
@@ -41,7 +42,28 @@ namespace Architome.Settings
                 pauseMenu.OnTryOpenPause += HandleTryOpenPause;
             }
 
-        } 
+            if (canvasController)
+            {
+                canvasController.OnCanCloseCheck += HandleCloseCanvasController;
+            }
+
+        }
+
+        async void HandleCloseCanvasController(CanvasController controller)
+        {
+            if (!dirty) return;
+            controller.checks.Add(false);
+
+            var confirmLeave = await ConfirmLeave();
+
+            if (!confirmLeave) return;
+
+            HandleLeaveDirty();
+            dirty = false;
+            controller.SetCanvas(false);
+
+
+        }
 
         void HandleTryOpenPause(PauseMenu pauseMenu)
         {

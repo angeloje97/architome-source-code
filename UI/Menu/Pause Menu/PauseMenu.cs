@@ -24,10 +24,10 @@ namespace Architome
 
         Dictionary<ArchScene, string> sceneTitles;
 
-        public Action<PauseMenu, bool> OnActiveChange;
-        public Action<PauseMenu> OnTryOpenPause;
-        public Action<PauseMenu, List<bool>> OnCanOpenCheck;
-        public Action<PauseMenu, List<bool>> OnCanCloseCheck;
+        public Action<PauseMenu> OnTryOpenPause { get; set; }
+        public Action<PauseMenu, bool> OnActiveChange {get; set;}
+        public Action<PauseMenu, List<bool>> OnCanOpenCheck {get; set;}
+        public Action<PauseMenu, List<bool>> OnCanCloseCheck {get; set;}
 
         public bool pauseBlocked;
 
@@ -58,7 +58,7 @@ namespace Architome
             {
                 { ArchScene.Tutorial, "Tutorial" },
                 { ArchScene.PostDungeon, "Post Dungeon" },
-                {ArchScene.Dungeon, "Dungeon" },
+                { ArchScene.Dungeon, "Dungeon" },
                 { ArchScene.Menu, "Menu" },
                 { ArchScene.DungeoneerMenu, "Guild Menu" }
             };

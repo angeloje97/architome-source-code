@@ -6,6 +6,8 @@ using UnityEngine.UI;
 using TMPro;
 using System;
 using System.Threading.Tasks;
+using Architome.Enums;
+using JetBrains.Annotations;
 
 namespace Architome
 {
@@ -26,6 +28,7 @@ namespace Architome
         public bool selfEscape;
         public bool haltIGGUI;
         public bool haltInput;
+        public bool persistantModule;
         public TextMeshProUGUI title;
 
         public Transform itemBin;
@@ -69,80 +72,111 @@ namespace Architome
                 audioSource.playOnAwake = false;
             }
 
-            HandleSelfEscape();
-            HandleHaltInput();
-            HandleHaltIGGUI();
+            HandleConflicts();
+
         }
         void Start()
         {
             GetDependencies();
-            
         }
-        void HandleHaltIGGUI()
+
+        void HandleConflicts()
         {
-            if (!haltIGGUI) return;
-            var iggui = IGGUIInfo.active;
-            if (!iggui) return;
-            
+            bool safeEscapeActive = false;
 
-            iggui.OnClosingModulesCheck += HandleClosingModuleCheck;
+            HandleSelfEscape();
+            HandleHaltInput();
+            HandleHaltIGGUI();
 
-            void HandleClosingModuleCheck(IGGUIInfo igInfo, List<bool> checks)
+            if (persistantModule)
             {
-                if (!isActive) return;
-                checks.Add(false);
-            }
-        }
-        void HandleHaltInput()
-        {
-            if (!haltInput) return;
+                var sceneManager = ArchSceneManager.active;
 
-            archInput = ArchInput.active;
-            if (archInput == null) return;
-
-            OnActiveChange += HandleActiveChange;
-
-            void HandleActiveChange(bool isActive)
-            {
-                if (!isActive) return;
-
-                archInput.HaltInput((obj) => { return this.isActive; });
-            }
-        }
-        void HandleSelfEscape()
-        {
-            if (!selfEscape) return;
-
-            HandleInput();
-
-            var pauseMenu = PauseMenu.active;
-
-            if (pauseMenu)
-            {
-                pauseMenu.OnTryOpenPause += (PauseMenu menu) => {
-                    if (isActive)
-                    {
-                        menu.pauseBlocked = true;
-
-                    }
-                };
-            }
-
-            async void HandleInput()
-            {
-                while (this)
+                sceneManager.AddListener(SceneEvent.OnLoadSceneLate, () =>
                 {
-                    await Task.Yield();
-                    if (Input.GetKeyUp(KeyCode.Escape)) OnEscape();
+                    HandleSelfEscape();
+                    HandleHaltInput();
+                    HandleHaltIGGUI();
+                }, this);
+            }
+
+            void HandleHaltIGGUI()
+            {
+                if (!haltIGGUI) return;
+                var iggui = IGGUIInfo.active;
+
+                if (!iggui) return;
+
+
+                iggui.OnClosingModulesCheck += HandleClosingModuleCheck;
+
+                void HandleClosingModuleCheck(IGGUIInfo igInfo, List<bool> checks)
+                {
+                    if (!isActive) return;
+                    checks.Add(false);
+                }
+            }
+            void HandleHaltInput()
+            {
+                if (!haltInput) return;
+                var archInput = ArchInput.active;
+
+
+                archInput = ArchInput.active;
+                if (archInput == null) return;
+
+                OnActiveChange += HandleActiveChange;
+
+                void HandleActiveChange(bool isActive)
+                {
+                    if (!isActive) return;
+
+                    archInput.HaltInput((obj) => { return this.isActive; });
+                }
+            }
+            void HandleSelfEscape()
+            {
+                if (!selfEscape) return;
+                HandleInput();
+
+                var pauseMenu = PauseMenu.active;
+
+
+                if (pauseMenu)
+                {
+
+                    pauseMenu.OnTryOpenPause += (PauseMenu menu) => {
+
+                        if (isActive)
+                        {
+                            Debugger.UI(7549, $"{this} is Active. Will block menu.");
+                            menu.pauseBlocked = true;
+
+                        }
+                    };
+                }
+
+                async void HandleInput()
+                {
+                    if (safeEscapeActive) return;
+                    safeEscapeActive = true;
+                    while (this)
+                    {
+                        await Task.Yield();
+                        if (Input.GetKeyUp(KeyCode.Escape)) OnEscape();
+                    }
+                }
+
+                void OnEscape()
+                {
+                    if (!isActive) return;
+                    Debugger.UI(5439, $"Self Escaping {this}");
+                    SetActive(false, true);
                 }
             }
 
-            void OnEscape()
-            {
-                if (!isActive) return;
-                SetActive(false, true);
-            }
         }
+        
         public void OnPointerEnter(PointerEventData eventData)
         {
 

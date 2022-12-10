@@ -10,6 +10,7 @@ namespace Architome
         void Start()
         {
             GetDependencies();
+            
         }
 
         // Update is called once per frame

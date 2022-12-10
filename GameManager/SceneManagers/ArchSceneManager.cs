@@ -65,8 +65,7 @@ namespace Architome
         {
             if (active == this)
             {
-                transform.SetParent(null);
-                DontDestroyOnLoad(gameObject);
+                ArchGeneric.DontDestroyOnLoad(gameObject);
 
             }
         }
@@ -190,6 +189,7 @@ namespace Architome
             eventDict[SceneEvent.OnLoadScene]?.Invoke(this);
             await Task.Delay(2500);
             isLoading = false;
+            eventDict[SceneEvent.OnLoadSceneLate]?.Invoke(this);
         }
 
         public bool IsScene(ArchScene scene)

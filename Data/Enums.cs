@@ -175,6 +175,7 @@ namespace Architome.Enums
         BeforeActivateScene,
         BeforeConfirmLoad,
         OnLoadScene,
+        OnLoadSceneLate,
     }
 
     public enum CatalystParticleTarget

@@ -16,6 +16,7 @@ namespace Architome.Debugging
 
     public class IGDebugger : MonoBehaviour
     {
+        public static IGDebugger active;
         public static List<LogData> unCaughtLogs;
         static bool globalEnableDebug;
         static bool globalPopUpError;
@@ -65,15 +66,29 @@ namespace Architome.Debugging
 
         public Dictionary<string, LogData> logHistory;
 
+        private void Awake()
+        {
+            if (active)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            active = this;
+        }
+
         void Start()
         {
             if (module == null) return;
+            if (active == this)
+            {
+                ArchGeneric.DontDestroyOnLoad(gameObject, true);
+            }
 
             CreateDictionary();
             GetDependencies();
             logHistory = new();
             HandleTestErrorOnStart();
-            HandleUncaughtLogs();
             
         }
 
@@ -114,7 +129,7 @@ namespace Architome.Debugging
         }
         async void HandleUncaughtLogs()
         {
-            unCaughtLogs ??= new();
+            if (!sceneManager.isLoading) return;
 
             while (sceneManager.isLoading)
             {
@@ -211,28 +226,23 @@ namespace Architome.Debugging
             }
         }
 
-        async void Log(string logString, string stackTrace, LogType type)
+        void Log(string logString, string stackTrace, LogType type)
         {
 
 
             var logData = new LogData(logString, stackTrace, type);
 
-            unCaughtLogs.Add(logData);
-
-            while (this && sceneManager.isLoading)
-            {
-                await Task.Yield();
-            }
-
-            if (this == null) return;
-
-            unCaughtLogs = new();
 
             CreateLog(logData);
         }
 
-        void CreateLog(LogData logData)
+        async void CreateLog(LogData logData)
         {
+            while (sceneManager.isLoading)
+            {
+                if (this == null) return;
+                await Task.Yield();
+            }
             if (popUpError)
             {
                 if (logData.type == LogType.Error || logData.type == LogType.Exception)
