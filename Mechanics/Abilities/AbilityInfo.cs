@@ -1115,7 +1115,7 @@ public class AbilityInfo : MonoBehaviour
     }
     public bool EndCast()
     {
-        if (abilityType == AbilityType.LockOn)
+        if (abilityType == AbilityType.LockOn && abilityType2 != AbilityType2.AutoAttack)
         {
             var offset = range * .25f;
             if(!IsInRange(offset) || !HasLineOfSight())
@@ -1135,18 +1135,7 @@ public class AbilityInfo : MonoBehaviour
 
         void HandleResources()
         {
-            
-            //coolDown.charges--;
             timerPercentActivated = false;
-            //UseMana();
-            //HandleResourceProduction();
-
-            //void HandleResourceProduction()
-            //{
-            //    entityInfo.GainResource(resources.producedAmount);
-            //    entityInfo.GainResource(resources.producedPercent * entityInfo.maxMana);
-            //}
-
             
         }
 
@@ -1279,31 +1268,15 @@ public class AbilityInfo : MonoBehaviour
         var info = target;
         if(target == null) { return true; }
 
-
         var orChecks = new List<bool>();
         var andChecks = new List<bool>();
-
 
         OnCorrectTargetCheck?.Invoke(this, target, orChecks, andChecks);
         foreach(var check in orChecks) { if (check) return true; }
         foreach(var check in andChecks) { if (!check) return false; }
 
-        
-
-        if((isHealing || isAssisting) && entityInfo.CanHelp(target))
-        {
-            return true;
-        }
-
-        if(isHarming && entityInfo.CanAttack(target))
-        {
-            return true;
-        }
-            
-        if(isHealing && isHarming && isAssisting)
-        {
-            return true;
-        }
+        if (CanHarm(target)) return true;
+        if (CanHeal(target)) return true;
 
         return false;
     }

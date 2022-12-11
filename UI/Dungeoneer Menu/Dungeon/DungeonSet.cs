@@ -31,7 +31,7 @@ namespace Architome
         public string dungeonSetName;
         public int dungeonLevel = 1;
         public Sprite background;
-        public List<RoomInfo> rooms;
+        public List<RoomInfo> rooms, entrances, bosses, main, sides;
 
     }
 }

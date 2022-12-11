@@ -66,7 +66,7 @@ namespace Architome
             return itemName;
         }
 
-        public bool Equals(Item other)
+        public virtual bool Equals(Item other)
         {
 
             return other._id == _id;

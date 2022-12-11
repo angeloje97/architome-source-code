@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using System.Linq;
 using Architome.Enums;
 
-
 namespace Architome
 {
     public class PlayableEntitiesManager : MonoBehaviour
@@ -330,16 +329,21 @@ namespace Architome
         }
         async void BeforeLoadScene(ArchSceneManager sceneManager)
         {
+
             if (!inPostDungeon)
             {
                 inPostDungeon = sceneManager.sceneToLoad.scene == ArchScene.PostDungeon;
             }
 
-
             if (inPostDungeon)
             {
                 HandleAutoSave();
+                if (loadFromSave)
+                {
+                    SaveSystem.active.CompleteCurrentDungeon();
+                }
             }
+
 
             var abilityManagers = new List<AbilityManager>();
             foreach(var member in party.members)

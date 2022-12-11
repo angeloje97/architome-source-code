@@ -16,7 +16,6 @@ namespace Architome
 
         public DataMap data;
 
-        [SerializeField] SaveGame currentSave;
 
         [SerializeField] GameState gameState;
         [SerializeField] bool destroyOnLoad;
@@ -81,23 +80,8 @@ namespace Architome
         {
             sceneManager = ArchSceneManager.active;
             HandleDungeoneer();
-            HandleCurrentSave();
         }
 
-        void HandleCurrentSave()
-        {
-            LoadSave();
-
-            if (sceneManager)
-            {
-                sceneManager.AddListener(SceneEvent.OnLoadScene, LoadSave, this);
-            }
-
-            void LoadSave()
-            {
-                currentSave = SaveSystem.current;
-            }
-        }
 
         void HandleDungeoneer()
         {

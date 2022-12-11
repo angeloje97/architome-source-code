@@ -67,8 +67,23 @@ namespace Architome
 
                 equipmentEffects ??= new();
 
-                
+
             }
+        }
+
+        public override bool Equals(Item other)
+        {
+            if (!base.Equals(other)) return false;
+            if (!IsEquipment(other)) return false;
+            if (other.rarity != rarity) return false;
+
+            var equipment = (Equipment)other;
+
+            if (!stats.Equals(equipment.stats)) return false;
+            Debugger.UI(4912, $"Equipment equals other made it here");
+            if (itemLevel != equipment.itemLevel) return false;
+
+            return true;
         }
 
         public override void AdjustValue()

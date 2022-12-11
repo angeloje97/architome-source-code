@@ -32,7 +32,6 @@ namespace Architome
         public List<EntityData> savedEntities;
 
         public List<DungeonData> savedDungeons;
-        public List<DungeonData> completedDungeons;
 
         public List<int> selectedEntitiesIndex;
         public DungeonData currentDungeon;
@@ -87,8 +86,14 @@ namespace Architome
             {
                 savedDungeons[dungeon.SaveIndex] = new(dungeon, dungeon.SaveIndex);
             }
-
         }
+
+        //public void SaveNewDungeon(Dungeon dungeon)
+        //{
+        //    savedDungeons ??= new();
+        //    var data = new DungeonData(dungeon, dungeon.SaveIndex);
+        //    savedDungeons.Add(data);
+        //}
 
         public DungeonData DungeonData(Dungeon dungeon)
         {

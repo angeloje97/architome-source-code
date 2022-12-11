@@ -458,7 +458,7 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
     public void HandleItem(ItemInfo item)
     {
         if (item == this) return;
-        var sameItem = item.item._id == this.item._id;
+        var sameItem = item.item.Equals(this.item);
 
         if (sameItem)
         {
@@ -478,7 +478,6 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
             item.HandleNewSlot(currentSlot);
         }
     }
-
     public void OnDrop(PointerEventData eventData)
     {
 
@@ -507,7 +506,6 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
         return leftover;
     }
-
     public bool SetStacks(int amount)
     {
         if (!item.ValidStacks(amount)) return false;
@@ -524,7 +522,6 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
         return true;
     }
-
     public bool ReduceStacks(int amount = 1)
     {
         if (currentStacks < amount) return false;
@@ -543,7 +540,6 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
         return true;
     }
-
     public void DestroySelf(bool triggerDestroyEffect = false)
     {
         if (isDestroyed) return;
@@ -573,7 +569,6 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
             Destroy(gameObject); 
         });
     }
-
     async public Task<bool> SafeDestroy()
     {
 
@@ -669,7 +664,6 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         item.Use(data);
         OnUse?.Invoke(this, data);
     }
-
     public bool InsertIntoSlots(List<InventorySlot> slots)
     {
         var items = new List<ItemInfo>();

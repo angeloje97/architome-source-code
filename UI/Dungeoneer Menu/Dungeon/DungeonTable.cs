@@ -109,13 +109,16 @@ namespace Architome
         {
             var currentSave = Core.currentSave;
             if (currentSave == null) return;
-
             foreach (var info in dungeonInfos)
             {
-                foreach (var dungeon in info.dungeons)
+                for(int i = 0; i < info.dungeons.Count; i++)
                 {
+                    var dungeon = info.dungeons[i];
                     if (dungeon.preset) continue;
+
+
                     currentSave.SaveDungeon(dungeon);
+                    dungeon.UpdateData();
                 }
             }
 
@@ -200,6 +203,8 @@ namespace Architome
                 var savedDungeons = currentSave.savedDungeons;
                 if (savedDungeons == null || savedDungeons.Count == 0) return;
 
+                var selectedIndex = DungeonData.Exists(currentSave.currentDungeon) ? currentSave.currentDungeon.saveIndex : -1;
+
                 foreach (var savedDungeon in savedDungeons)
                 {
                     if (savedDungeon.completed) continue;
@@ -212,6 +217,10 @@ namespace Architome
                     newDungeon.OnSelectDungeon += OnSelectDungeon;
 
                     newDungeon.SetDungeon(info, savedDungeon);
+                    if(savedDungeon.saveIndex == selectedIndex)
+                    {
+                        ArchAction.Yield(() => { OnSelectDungeon(newDungeon); });
+                    }                    
                     info.dungeons.Add(newDungeon);
                 }
             }

@@ -16,12 +16,21 @@ namespace Architome
 
         public static SaveGame current { get { return Core.currentSave; } }
 
+
+        [SerializeField] SaveGame currentSave;
+
         Dictionary<SaveEvent, Action<SaveSystem, SaveGame>> eventDict;
 
         private void Awake()
         {
             active = this;
             CreateEvents();
+        }
+
+        private void Start()
+        {
+            currentSave = Core.currentSave;
+            
         }
 
         void CreateEvents()
@@ -48,6 +57,7 @@ namespace Architome
             }
         }
 
+
         public void Save()
         {
             if (current == null) return;
@@ -59,6 +69,14 @@ namespace Architome
 
             eventDict[SaveEvent.OnSave]?.Invoke(this, current);
 
+        }
+
+        public void CompleteCurrentDungeon()
+        {
+            if (current == null) return;
+            if (DungeonData.Exists(current.currentDungeon)) return;
+            current.currentDungeon.completed = true;
+            current.currentDungeon = null;
         }
     }
 }

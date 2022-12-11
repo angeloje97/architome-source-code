@@ -128,6 +128,8 @@ namespace Architome
             public Action<Quest> OnQuestComplete;
             public Action<Inventory.LootEventData> OnLootItem { get; set; }
             public Action<Inventory.LootEventData, List<bool>> OnLootItemCheck { get; set; }
+
+
             public Action<Inventory.LootEventData> OnLootItemFromWorld { get; set; }
 
             public Action<ItemInfo, EntityInfo> OnTryEquip { get; set; }
@@ -139,6 +141,7 @@ namespace Architome
             public Action<EntityInfo> OnNullPortraitCheck;
             public Action<Currency, int, List<bool>> OnCanSpendCheck { get; set; }
             public Action<ItemData, List<bool>> OnCanPickUpCheck { get; set; }
+            public Action<ItemData, List<bool>> OnCanDropCheck { get; set; }
             public Action<EntityInfo> OnDestroy { get; set; }
 
         }
@@ -803,6 +806,19 @@ namespace Architome
             return true;
         }
 
+        public bool UseAutoOn(EntityInfo target)
+        {
+            var checks = new List<bool>();
+
+            abilityEvents.OnUseAuto?.Invoke(target, checks);
+
+            foreach(var check in checks)
+            {
+                if (check) return true;
+            }
+
+            return false;
+        }
 
         public bool SetCombatTarget(EntityInfo target)
         {
@@ -1098,6 +1114,19 @@ namespace Architome
             return entityName;
         }
 
+        public bool CanDrop(ItemData item)
+        {
+            var checks = new List<bool>();
+
+            infoEvents.OnCanDropCheck?.Invoke(item, checks);
+
+            foreach(var check in checks)
+            {
+                if (!check) return false;
+            }
+
+            return true;
+        }
         public bool CanSpend(Currency currency, int amount)
         {
             var checks = new List<bool>();

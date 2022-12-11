@@ -62,6 +62,7 @@ namespace Architome
 
         public Size size;
         public DungeonTable.DungeonInfo dungeonInfo;
+        public DungeonData currentData;
         public Info info;
         //public Rooms rooms;
         public List<Rooms> levels;
@@ -272,8 +273,7 @@ namespace Architome
 
             void HandleLevelBoss()
             {
-                rooms.boss = bossPresets[UnityEngine.Random.Range(0, bossPresets.Count)];
-
+                rooms.boss = ArchGeneric.RandomItem(bossPresets);
                 var bosses = rooms.boss.pool.bossEntities;
 
                 if (randomBoss)
@@ -427,6 +427,12 @@ namespace Architome
         {
             info.name.text = LevelNames();
             info.description.text = $"Dungeon Level : {RecommendedLevel()}\nFloors: {levels.Count}";
+        }
+
+        public void UpdateData()
+        {
+            currentData = new(this, SaveIndex);
+
         }
 
         public float RecommendedLevel()

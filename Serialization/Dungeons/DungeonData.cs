@@ -71,6 +71,7 @@ namespace Architome
         public bool completed;
         public Size size;
 
+
         public DungeonData(Dungeon dungeon, int saveIndex)
         {
             levelDatas = new();
@@ -113,6 +114,15 @@ namespace Architome
             //{
             //    bossRoomID = dungeon.rooms.boss._id;
             //}
+        }
+
+        public static bool Exists(DungeonData data)
+        {
+            if (data == null) return false;
+            if (data.levelDatas == null) return false;
+            if (data.levelDatas.Count == 0) return false;
+
+            return true;
         }
     }
 }

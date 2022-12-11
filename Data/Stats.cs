@@ -376,7 +376,20 @@ namespace Architome
             get { return Attributes().Where(attribute => attribute.Type.Equals(typeof(int).ToString())).ToList(); }
         }
 
-        
+        public bool Equals(Stats other)
+        {
+            foreach(var field in GetType().GetFields())
+            {
+                var thisValue = field.GetValue(this);
+                var otherValue = field.GetValue(other);
+                if (!thisValue.Equals(otherValue))
+                {
+                    
+                    return false;
+                }
+            }
+            return true;
+        }
 
         public List<Attribute> Secondaries
         {

@@ -61,6 +61,8 @@ namespace Architome
             public Action<AbilityInfo> OnCastReleasePercent;
             public Action<AbilityInfo> OnCastRelease;
             public Action<AbilityInfo> OnAttack;
+
+            public Action<EntityInfo, List<bool>> OnUseAuto;
         }
 
         public Events events
@@ -162,6 +164,7 @@ namespace Architome
         {
             GetDependencies();
             HandleUseWeaponAbility(null);
+            HandleUseAuto();
         }
 
         void HandleUseWeaponAbility(Item weaponItem)
@@ -206,6 +209,8 @@ namespace Architome
                 OnCastChange?.Invoke(currentlyCasting, isCasting);
             }
         }
+
+        
 
         public void OnLifeChange(bool isAlive)
         {
@@ -253,6 +258,19 @@ namespace Architome
             }
 
             SetAbilities(true);
+        }
+
+        void HandleUseAuto()
+        {
+            if (entityInfo == null) return;
+            events.OnUseAuto += HandleTargetCheck;
+
+
+            void HandleTargetCheck(EntityInfo target, List<bool> checks)
+            {
+                if (attackAbility == null) return;
+                if (!attackAbility.CanCastAt(target)) return;
+            }
         }
 
         public void SetAbilities(bool val, bool canAutoAttack = true)

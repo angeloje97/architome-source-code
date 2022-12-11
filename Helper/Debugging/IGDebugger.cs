@@ -62,9 +62,9 @@ namespace Architome.Debugging
         public Action<LogData> OnNewData { get; set; }
 
         public Action<LoggedItem> OnStackedLog;
-
-
         public Dictionary<string, LogData> logHistory;
+
+        bool showDevConsole;
 
         private void Awake()
         {
@@ -95,7 +95,10 @@ namespace Architome.Debugging
 
         void Update()
         {
-            Debug.developerConsoleVisible = false;
+            if (!showDevConsole)
+            {
+                Debug.developerConsoleVisible = false;
+            }
             if (!gameObject.activeInHierarchy) return;
             if (enableDebug != enableDebugCheck)
             {
@@ -202,6 +205,16 @@ namespace Architome.Debugging
             {
                 enableDebug = true;
                 UpdateComponents();
+            }
+        }
+
+        public void SetDevConsole(Toggle toggle)
+        {
+            showDevConsole = toggle.isOn;
+
+            if (showDevConsole)
+            {
+                Debug.developerConsoleVisible = true;
             }
         }
 
