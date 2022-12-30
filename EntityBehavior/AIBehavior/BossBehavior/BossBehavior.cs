@@ -41,6 +41,10 @@ namespace Architome
 
         private void Awake()
         {
+        }
+
+        private void Start()
+        {
             GetDependencies();
         }
 
@@ -55,6 +59,7 @@ namespace Architome
             if (bossRoom == null)
             {
                 var room = Entity.Room(transform.position);
+                if (room == null) return null;
                 if (room.GetType() == typeof(BossRoom))
                 {
                     bossRoom = (BossRoom)room;

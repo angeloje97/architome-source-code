@@ -186,6 +186,7 @@ namespace Architome
                 if (gameState != GameState.Play) return;
                 var worldActions = WorldActions.active;
                 if (worldActions == null) return;
+                if (!entityInfo.CanDrop(new(item))) return;
 
                 var newItem = worldActions.DropItem(new(item), entityInfo.transform.position, false);
 

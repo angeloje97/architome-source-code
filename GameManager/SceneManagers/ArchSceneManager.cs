@@ -8,6 +8,14 @@ using System;
 
 namespace Architome
 {
+    public enum SceneEvent
+    {
+        BeforeLoadScene,
+        BeforeActivateScene,
+        BeforeConfirmLoad,
+        OnLoadScene,
+        OnLoadSceneLate,
+    }
     public class ArchSceneManager : MonoBehaviour
     {
         public static ArchSceneManager active { get; private set; }
@@ -19,7 +27,7 @@ namespace Architome
         public Dictionary<SceneEvent, Action<ArchSceneManager>> eventDict;
 
         public List<Task> tasksBeforeLoad;
-        public List<Task<bool>> tasksBeforeConfirmLoad;
+        public List<Task<bool>> tasksBeforeConfirmLoad { get; set; }
         public List<Task> tasksBeforeActivateScene;
 
         public Action<AsyncOperation> OnLoadStart { get; set; }
@@ -177,6 +185,7 @@ namespace Architome
             }
 
             OnLoadEnd?.Invoke(scene);
+            
 
             tasksBeforeActivateScene = new();
 

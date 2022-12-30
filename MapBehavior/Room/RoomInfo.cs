@@ -367,9 +367,13 @@ namespace Architome
 
             void SetLights(bool val)
             {
-                foreach (var light in GetComponentsInChildren<Light>())
+                var lights = GetComponentsInChildren<Light>();
+                foreach (var light in lights)
                 {
                     if (isRevealed != val) { break; }
+                    var ignore = light.GetComponent<IgnoreProp>();
+                    if (ignore && !ignore.CanSet(val)) continue;
+
                     light.enabled = val;
                 }
             }

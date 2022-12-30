@@ -30,9 +30,10 @@ namespace Architome
         // Start is called before the first frame update
         public string className;
         public Color classColor;
+        public Sprite classIcon;
+        public int classIconId = -1;
 
         public ClassType classType;
-        public int equipableArmorLevel;
         public ArmorType highestArmorLevel;
         public List<WeaponType> equipableWeapons;
         public List<Role> possibleRoles;
@@ -41,6 +42,7 @@ namespace Architome
         public List<AbilityInfo> tankAbilities;
         public List<AbilityInfo> healerAbilities;
         public List<AbilityInfo> damageAbilities;
+
 
         public bool CanEquip(Item item, out string reason)
         {
@@ -66,11 +68,6 @@ namespace Architome
             {
                 var equipment = (Equipment)item;
 
-                //if (equipableArmorLevel < (int)equipment.armorType)
-                //{
-                //    reason = $"{className} can't equipment {equipment.armorType}";
-                //    return false;
-                //}
 
                 if(highestArmorLevel < equipment.armorType)
                 {

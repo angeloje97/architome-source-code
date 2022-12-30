@@ -6,7 +6,6 @@ using Architome;
 using UnityEngine.UI;
 using System;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
 
 public class AbilityInfo : MonoBehaviour
 {
@@ -94,6 +93,7 @@ public class AbilityInfo : MonoBehaviour
     {
         public bool showCastBar;
         public bool showTargetIconOnTarget;
+        public bool showAbilityName;
         public bool activateWeaponParticles;
     }
 
@@ -157,7 +157,7 @@ public class AbilityInfo : MonoBehaviour
 
     [Header("Ability Timers")]
     public float castTimer;
-    public bool canceledCast;
+    public bool canceledCast { get; set; }
     public bool isCasting;
     public bool timerPercentActivated;
     public bool alternateCastingActive;
@@ -314,6 +314,7 @@ public class AbilityInfo : MonoBehaviour
     }
     public void OnStartMove(Movement movement)
     {
+
         if (cancelCastIfMoved && isCasting)
         {
             CancelCast("Moved On Cast");
@@ -1016,30 +1017,54 @@ public class AbilityInfo : MonoBehaviour
             if (targetLocked == null) { return false; }
         }
 
-        if (IsInRange() && HasLineOfSight()) { return true; }
+        if (!IsInRange()) return false;
+        if (!HasLineOfSight()) return false;
 
-        return false;
+        return true;
     }
-    bool IsInRange(float offset = 0f)
+    bool IsInRange(bool useOffset = false, bool moveToTarget = true)
     {
         if (range == -1)
         {
             return true;
         }
 
+        var offset = useOffset ? range * .25f : 0;
 
         if (abilityType == AbilityType.LockOn && target == null) return false;
 
         if (V3Helper.Distance(target.transform.position, entityObject.transform.position) > range + offset)
         {
-            movement.MoveTo(target.transform, range - offset);
-            ActivateWantsToCast("Target is out of range");
+            if (moveToTarget)
+            {
+                Debugger.Combat(7561, $"Moving closter to target because out of range");
+                HandleMoveToTarget(target, movement, range -1f);
+            }
+            //ActivateWantsToCast("Target is out of range");
             return false;
         }
         return true;
     }
+    
+    async void HandleMoveToTarget(EntityInfo target, Movement movement, float range)
+    {
+        ActivateWantsToCast("Out of Range");
+        var success = await movement.MoveToAsync(target.transform, range);
+        DeactivateWantsToCast("Movement finished", !success);
+        if (!success) return;
+        Cast();
+    }
 
-    bool HasLineOfSight()
+    async void HandleMoveToTargetLOS(EntityInfo target, Movement movement)
+    {
+        ActivateWantsToCast("No Line of Sight");
+        var success = await movement.MoveToAsyncLOS(target.transform);
+        DeactivateWantsToCast("Movement Finished", !success);
+        if (!success) return;
+        Cast();
+    }
+
+    bool HasLineOfSight(bool moveToTarget = true)
     {
         if (range == -1) return true;
         if (!lineOfSight)
@@ -1054,12 +1079,13 @@ public class AbilityInfo : MonoBehaviour
 
         if (abilityType == AbilityType.LockOn && target == null) return false;
 
-        if (!lineOfSight.HasLineOfSight(target.gameObject))
+
+        if (!entityInfo.CanSee(target.transform))
         {
-            if (movement)
+            if (movement && moveToTarget)
             {
-                movement.MoveTo(target.transform);
-                ActivateWantsToCast("Target is out of line of sight.");
+                Debugger.Combat(7562, $"Moving closer to target because no line of sight");
+                HandleMoveToTargetLOS(target, movement);
             }
             return false;
         }
@@ -1113,12 +1139,11 @@ public class AbilityInfo : MonoBehaviour
 
         return false;
     }
-    public bool EndCast()
+    public bool EndCast(bool checkRangeLos)
     {
-        if (abilityType == AbilityType.LockOn && abilityType2 != AbilityType2.AutoAttack)
+        if (checkRangeLos)
         {
-            var offset = range * .25f;
-            if(!IsInRange(offset) || !HasLineOfSight())
+            if(!IsInRange(true) || !HasLineOfSight())
             {
                 return false;
             }
@@ -1142,13 +1167,11 @@ public class AbilityInfo : MonoBehaviour
         void HandleFullHealth()
         {
             if (!target) return;
-            if (!target.GetComponent<EntityInfo>()) { return; }
-            var targetInfo = target.GetComponent<EntityInfo>();
             if (isHealing && entityInfo.CanHelp(target))
             {
-                if (targetInfo.health == targetInfo.maxHealth)
+                if (target.health == target.maxHealth)
                 {
-                    //isAutoAttacking = false;
+                    isAutoAttacking = false;
                 }
             }
         }
@@ -1323,35 +1346,36 @@ public class AbilityInfo : MonoBehaviour
     }
     public void HandleWantsToCast()
     {
-        if(!wantsToCast)
-        {
-            return;
-        }
+        //if(!wantsToCast)
+        //{
+        //    return;
+        //}
         
-        if (coolDown.charges <= 0)
-        {
-            DeactivateWantsToCast("No Charges");
-            return;
-        }
+        //if (coolDown.charges <= 0)
+        //{
+        //    DeactivateWantsToCast("No Charges");
+        //    return;
+        //}
 
-        if (target == null && abilityType == AbilityType.LockOn)
-        {
-            DeactivateWantsToCast("Target = null", true);
-            return;
-        }
+        //if (target == null && abilityType == AbilityType.LockOn)
+        //{
+        //    DeactivateWantsToCast("Target = null", true);
+        //    return;
+        //}
 
 
-        if (!target.isAlive && !targetsDead) {
-            abilityManager.OnDeadTarget?.Invoke(this);
-            DeactivateWantsToCast("Target Died", true);
-            return; }
+        //if (!target.isAlive && !targetsDead) {
+        //    abilityManager.OnDeadTarget?.Invoke(this);
+        //    DeactivateWantsToCast("Target Died", true);
+        //    return; 
+        //}
         
 
-        if(IsInRange() && HasLineOfSight())
-        {
-            Cast();
+        //if(IsInRange() && HasLineOfSight())
+        //{
+        //    Cast();
             
-        }
+        //}
     }
     public void UpdateAbility()
     {
@@ -1582,11 +1606,13 @@ public class AbilityInfo : MonoBehaviour
         async Task<bool> Casting()
         {
             var success = true;
+            float timeElapsed = 0f;
+            canceledCast = false;
 
             if (UseAlternateCasting())
             {
                 BeginCast();
-                success = await AlternateCasting();
+                (success, timeElapsed) = await AlternateCasting();
                 EndCasting();
                 return success;
             }
@@ -1604,6 +1630,7 @@ public class AbilityInfo : MonoBehaviour
             {
                 await Task.Yield();
                 timer -= Time.deltaTime;
+                timeElapsed += Time.deltaTime;
                 progress = 1 - (timer / startTime);
                 progressTimer = timer;
 
@@ -1632,7 +1659,7 @@ public class AbilityInfo : MonoBehaviour
             {
                 if (success)
                 {
-                    success = EndCast();
+                    success = EndCast(abilityType == AbilityType.LockOn && abilityType2 != AbilityType2.AutoAttack && timeElapsed > .50f);
                 }
 
                 abilityEvents.OnCastEnd?.Invoke(this);
@@ -1686,8 +1713,9 @@ public class AbilityInfo : MonoBehaviour
                 return false;
             }
 
-            async Task<bool> AlternateCasting()
+            async Task<(bool, float)> AlternateCasting()
             {
+                var timeElapsed = 0f;
                 alternateCastingActive = true;
                 cancelAlternateCasting = false;
 
@@ -1699,10 +1727,12 @@ public class AbilityInfo : MonoBehaviour
                     {
                         successful = false;
                     }
+
+                    timeElapsed += Time.deltaTime;
                     await Task.Yield();
                 }
 
-                return successful;
+                return (successful, timeElapsed) ;
             }
         }
 
@@ -1736,6 +1766,17 @@ public class AbilityInfo : MonoBehaviour
     {
         while (activated)
         {
+            await Task.Yield();
+        }
+
+        return this;
+    }
+
+    public async Task<AbilityInfo> EndActivation(Action<AbilityInfo> action)
+    {
+        while (activated)
+        {
+            action(this);
             await Task.Yield();
         }
 

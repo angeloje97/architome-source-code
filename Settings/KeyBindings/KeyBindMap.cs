@@ -44,6 +44,7 @@ namespace Architome.Settings
             DetermineKeyBind();
         }
 
+
         public void DetermineKeyBind()
         {
             currentBinding = (KeyCode)Enum.Parse(typeof(KeyCode), keyCodeString);
@@ -68,8 +69,15 @@ namespace Architome.Settings
         {
             info.keyButtonDisplay.text = "_";
 
+            mapper.pickingKey = true;
             var newKey = await ArchAction.NewKey();
 
+            while (Input.GetKey(newKey))
+            {
+                await Task.Yield();
+            }
+
+            mapper.pickingKey = false;
 
 
             if (mapper.blackList.Contains(newKey))

@@ -20,6 +20,8 @@ namespace Architome
         public int releasePerInterval;
         public float interval = 1f;
         public float radius, rotationPerInterval, startDelay;
+
+        public bool targetsCaster;
         public bool combatInclusive;
 
         
@@ -145,12 +147,6 @@ namespace Architome
                     var delay = position / (float) releasePerInterval;
 
                     var index = (catalingsReleased + position) % targets.Count;
-
-                    //Debugger.Combat(24153, $"Releasing lock on catalyst {catalyst}");
-                    //Debugger.Combat(24154, $"Delay is {delay}");
-                    
-                    //Debugger.Combat(24155, $"Percent is {percent}");
-                    //Debugger.Combat(24156, $"Index: {index}");
 
 
 

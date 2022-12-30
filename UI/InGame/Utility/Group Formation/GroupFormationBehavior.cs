@@ -1,13 +1,18 @@
+using JetBrains.Annotations;
+using Mono.Cecil;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using UnityEngine;
-
+using UnityEngine.UI;
 
 namespace Architome
 {
+    [RequireComponent(typeof(GroupFormationSaveHandler))]
     public class GroupFormationBehavior : MonoBehaviour
     {
-        // Start is called before the first frame update
         [Header("Party Info")]
         public PartyInfo partyInfo;
         public PartyFormation partyFormation;
@@ -16,15 +21,22 @@ namespace Architome
         [Header("Group Formation Behavior Properties")]
         public GameObject radiusCircle;
         public List<GameObject> memberSpots;
+        public List<Image> positionImages;
         public List<Vector2> memberCoordinates;
 
+        public List<EntityInfo> members;
         public float radius;
 
         public bool update;
         public bool isInteracting;
 
+        bool interactingCheck;
+
 
         public PartyInfo currentParty;
+
+        public Action<GroupFormationBehavior, List<EntityInfo>> OnSetGroup;
+        public Action<GroupFormationBehavior, bool> OnInteractingChange;
         void GetDependencies()
         {
             radius = radiusCircle.GetComponent<RectTransform>().sizeDelta.x / 2;
@@ -35,12 +47,29 @@ namespace Architome
             }
 
             GameManager.active.OnNewPlayableParty += OnNewPlayableParty;
+
+            for(int i = 0; i < memberSpots.Count; i++)
+            {
+                var spot = memberSpots[i];
+                var toolTipElement = spot.GetComponent<ToolTipElement>();
+                if (!toolTipElement) continue;
+                toolTipElement.OnCanShowCheck += (ToolTipElement element) => { HandleToolTipElement(element, memberSpots.IndexOf(spot)); };
+            }
         }
 
         void Start()
         {
             GetDependencies();
             HandleMemberSpotRestrictions();
+
+            OnInteractingChange += HandleInteractingChange;
+        }
+
+        void HandleInteractingChange(GroupFormationBehavior behavior, bool isInteracting)
+        {
+            partyFormation.OnHoldingChange?.Invoke(isInteracting);
+
+            partyFormation.effects.SetParticles(isInteracting);
         }
 
         public void OnNewPlayableParty(PartyInfo party, int index)
@@ -59,7 +88,35 @@ namespace Architome
 
                     currentParty = partyInfo;
                 }
+
+                UpdateMembers(party.members);
+
+                party.events.OnAddMember += (EntityInfo newMember) => {
+                    UpdateMembers(party.members);
+                };
             }
+
+
+        }
+
+        void UpdateMembers(List<EntityInfo> members)
+        {
+            this.members = members.ToList();
+
+            if (positionImages == null) return;
+            
+            
+            for(int i = 0; i < members.Count; i++)
+            {
+                if (i >= positionImages.Count) return;
+                var member = members[i];
+                var archClass = member.archClass;
+                if (archClass == null) continue;
+                var classSprite = archClass.classIcon;
+
+                positionImages[i].sprite = classSprite;
+            }
+            OnSetGroup?.Invoke(this, this.members);
         }
 
 
@@ -71,6 +128,23 @@ namespace Architome
             HandleMemberSpotRestrictions();
 
             update = false;
+        }
+
+        void HandleToolTipElement(ToolTipElement element, int index)
+        {
+            Debugger.UI(6759, $"Trying to show tool tip for {this}");
+            if (index >= members.Count)
+            {
+                element.checks.Add(false);
+                Debugger.UI(6760, $"Won't show tooltip because index out of range {index} >= {members.Count}");
+                return;
+            }
+
+            Debugger.UI(6761, $"Successfuly showing tooltip");
+
+            element.data = new() {
+                name = $"{members[index]}",
+            };
         }
 
         void SetMemberCoordinates()
@@ -95,6 +169,7 @@ namespace Architome
         // Update is called once per frame
         void LateUpdate()
         {
+            HandleEvents();
             if (!moduleInfo.isActive) { return; }
 
 
@@ -102,9 +177,34 @@ namespace Architome
             
         }
 
-        void UpdateFormation()
+        void HandleEvents()
         {
-            if (!IsInteracting()) { return; }
+            if (!moduleInfo.isActive)
+            {
+                if (isInteracting)
+                {
+                    isInteracting = false;
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            if(interactingCheck != isInteracting)
+            {
+                interactingCheck = isInteracting;
+                OnInteractingChange?.Invoke(this, isInteracting);
+            }
+        }
+
+        public void UpdateFormation(bool forceInteract = false)
+        {
+            if (!forceInteract)
+            {
+                if (!IsInteracting()) { return; }
+
+            }
             HandleUserInput();
             HandleMemberSpotRestrictions();
         }

@@ -5,6 +5,7 @@ using System.Reflection;
 using System;
 using UnityEngine.UI;
 using Architome.Enums;
+using Architome.Serialization;
 using UnityEngine.SceneManagement;
 
 namespace Architome
@@ -35,6 +36,9 @@ namespace Architome
 
         public List<int> selectedEntitiesIndex;
         public DungeonData currentDungeon;
+
+        [SerializeField] SaveUI saveUI;
+        public SaveUI UI { get { saveUI ??= new(); return saveUI; } }
 
 
         public void SaveEntity(EntityInfo entity)
@@ -94,6 +98,11 @@ namespace Architome
         //    var data = new DungeonData(dungeon, dungeon.SaveIndex);
         //    savedDungeons.Add(data);
         //}
+
+        public SaveGame()
+        {
+            saveUI = new();
+        }
 
         public DungeonData DungeonData(Dungeon dungeon)
         {
@@ -167,6 +176,8 @@ namespace Architome
                 field.SetValue(this, field.GetValue(otherSave));
             }
         }
+
+
     }
 
     

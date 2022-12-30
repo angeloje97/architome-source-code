@@ -16,7 +16,6 @@ namespace Architome
         public List<AudioSource> audioSources;
         public AudioSource presetAudio;
         public AudioMixerGroup mixerGroup;
-        public Action<AudioManager> OnEmptyAudio;
         public List<Action> Actions;
 
         public bool audioRoutineIsActive;
@@ -28,6 +27,7 @@ namespace Architome
         
         public float pitchRandomRange;
 
+        public Action<AudioManager> OnEmptyAudio { get; set; }
 
         void Start()
         {
@@ -141,9 +141,9 @@ namespace Architome
                 }
             }
         }
-        public void PlayAudioClip(AudioClip audioClip)
+        public AudioSource PlayAudioClip(AudioClip audioClip)
         {
-            PlaySound(audioClip);
+            return PlaySound(audioClip);
         }
         public AudioSource PlaySound(AudioClip clip, float volume = 1f)
         {

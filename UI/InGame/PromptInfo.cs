@@ -141,7 +141,6 @@ namespace Architome
         {
             choiceData.optionPicked = option;
 
-
             OnPickChoice?.Invoke(this);
 
         }
@@ -237,13 +236,16 @@ namespace Architome
             }
 
             var hasEscape = false;
+            var hasAutoPick = false;
             
             for(int i = 0; i < promptData.options.Count; i++)
             {
                 var option = promptData.options[i];
                 if (hasEscape) option.isEscape = false;
+                if (hasAutoPick) option.autoPick = false;
 
                 if (option.isEscape) hasEscape = true;
+                if (option.autoPick) hasAutoPick = true;
                 Debugger.UI(2337, $"Option {i +1} is {option.text}");
 
                 option.HandlePrompt(this);
@@ -378,6 +380,8 @@ namespace Architome
         public bool affectedByInvalidInput;
         public bool preventClosePrompt;
         public bool isEscape { get; set; }
+        public bool autoPick { get; set; }
+        public int autoPickTimer { get; set; }
         public int timer;
 
         ArchButton button;
@@ -420,7 +424,28 @@ namespace Architome
 
             HandleButtonTimer();
             HandleEscape();
+            HandleAutoPick();
 
+        }
+
+        async void HandleAutoPick()
+        {
+            if (!autoPick) return;
+            var autoTimer = autoPickTimer;
+
+            var finalText = $"{text} ({autoTimer}s)";
+            button.SetName(finalText);
+
+            while(autoTimer > 0)
+            {
+                await Task.Delay(1000);
+                autoTimer--;
+                if (!promptInfo) return;
+                button.SetName($"{text} ({autoTimer}s)");
+            }
+
+            if (!promptInfo) return;
+            ChooseOption();
         }
 
         async void HandleEscape()

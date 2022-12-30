@@ -6,13 +6,14 @@ using UnityEngine.UI;
 using TMPro;
 using System;
 using System.Threading.Tasks;
+using Architome.Serialization;
 using Architome.Enums;
-using JetBrains.Annotations;
 
 namespace Architome
 {
     [RequireComponent(typeof(AudioSource))]
     [RequireComponent(typeof(CanvasGroup))]
+    [RequireComponent(typeof(ModuleSaveHandler))]
     public class ModuleInfo : MonoBehaviour, IPointerEnterHandler, IPointerDownHandler, IPointerExitHandler
     {
         // Start is called before the first frame update
@@ -249,8 +250,6 @@ namespace Architome
             }
             SetActive(isActive, false, true);
         }
-
-
         public void Toggle()
         {
             SetActive(!isActive);

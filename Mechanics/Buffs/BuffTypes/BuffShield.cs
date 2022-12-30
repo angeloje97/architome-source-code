@@ -79,7 +79,7 @@ namespace Architome
                 buffInfo.sourceInfo.OnDamagePreventedFromShields?.Invoke(new CombatEventData(buffInfo, value) { target = buffInfo.hostInfo});
             }
 
-            if (shieldAmount == 0)
+            if (shieldAmount <= 0)
             {
                 buffInfo.Deplete();
             }

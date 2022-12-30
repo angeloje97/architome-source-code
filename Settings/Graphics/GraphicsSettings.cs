@@ -32,6 +32,18 @@ namespace Architome.Settings
                 return current;
             }
         }
+
+        public static void SetSettings(GraphicsSettings newSettings)
+        {
+            current = new(newSettings);
+            SaveGraphics();
+        }
+
+        public static void ResetToDefault()
+        {
+            current = new();
+        }
+
         public static void SaveGraphics()
         {
             SerializationManager.SaveConfig("Graphics", current);
@@ -40,18 +52,21 @@ namespace Architome.Settings
         [Serializable]
         public class Resolution
         {
-            public float width;
-            public float height;
+            [HideInInspector] public string name;
+            public int width;
+            public int height;
 
-            public override bool Equals(object obj)
+            public bool Equals(Resolution otherResolution)
             {
-                if (obj.GetType() != typeof(Resolution)) return false;
-
-                var otherResolution = (Resolution)obj;
 
                 if (width == otherResolution.width && height == otherResolution.height) return true;
 
                 return false;
+            }
+
+            public void OnValidate()
+            {
+                name = $"({width}px,{height}px)";
             }
         }
 
@@ -60,16 +75,28 @@ namespace Architome.Settings
             qualityLevel = 3;
             resolution = new()
             {
-                height = 1080,
-                width = 1920,
+                width = Screen.width,
+                height = Screen.height
             };
             maxFPS = 144;
             vsync = false;
+            limitFPS = false;
+            fullScreenMode = FullScreenMode.FullScreenWindow;
         }
 
         public int qualityLevel;
         public Resolution resolution;
+        public FullScreenMode fullScreenMode;
         public bool vsync;
-        public float maxFPS = 144;
+        public bool limitFPS;
+        public int maxFPS = 144;
+
+        public GraphicsSettings(GraphicsSettings copy)
+        {
+            foreach(var field in GetType().GetFields())
+            {
+                field.SetValue(this, field.GetValue(copy));
+            }
+        }
     }
 }

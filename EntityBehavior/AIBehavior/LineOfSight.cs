@@ -44,6 +44,7 @@ namespace Architome
                 entityObject = entityInfo.gameObject;
                 entityInfo.OnChangeNPCType += OnChangeNPCType;
                 entityInfo.OnLifeChange += OnLifeChange;
+                entityInfo.infoEvents.OnCanSeeCheck += HandleCanSeeCheck;
                 character = entityInfo.CharacterInfo();
             }
             else
@@ -220,7 +221,13 @@ namespace Architome
         }
 
         
-
+        public void HandleCanSeeCheck(EntityInfo entity, Transform target)
+        {
+            if (HasLineOfSight(target.gameObject))
+            {
+                entity.checks.Add(true);
+            }
+        }
         public bool RoomIsRevealed()
         {
             if (entityInfo.rarity == EntityRarity.Player) return true;

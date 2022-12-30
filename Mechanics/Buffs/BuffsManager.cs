@@ -323,8 +323,7 @@ namespace Architome
                 if (sourceCatalyst && sourceCatalyst.target)
                 {
                     
-                    newBuff.targetObject = sourceCatalyst.target;
-                    newBuff.targetInfo = sourceCatalyst.target.GetComponent<EntityInfo>();
+                    newBuff.SetTarget(sourceCatalyst.target.GetComponent<EntityInfo>());
                 }
 
                 var buffInfo = Instantiate(buffObject, transform).GetComponent<BuffInfo>();

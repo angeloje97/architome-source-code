@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using Architome.Enums;
-
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace Architome
 {
@@ -40,6 +41,25 @@ namespace Architome
             return items[randomIndex];
         }
 
+        public static List<T> Shuffle<T>(List<T> items)
+        {
+            var newList = items.ToList();
+
+            var random = new System.Random();
+
+            int count = items.Count;
+
+            while(count > 1)
+            {
+                count--;
+
+                int randomIndex = random.Next(count + 1);
+                (newList[count], newList[randomIndex]) = (newList[randomIndex], newList[count]);
+            }
+
+            return newList;
+        }
+
 
         public static void DestroyOnLoad(GameObject gameObject)
         {
@@ -49,7 +69,7 @@ namespace Architome
             UnityEngine.Object.Destroy(tempObject);
         }
 
-        public static void DontDestroyOnLoad(GameObject gameObject, bool canvasItem = false)
+        public static async void DontDestroyOnLoad(GameObject gameObject, bool canvasItem = false)
         {
             gameObject.transform.SetParent(null);
 
@@ -59,8 +79,14 @@ namespace Architome
                 return;
             }
 
+
             var persistantCanvas = PersistantCanvas.active;
-            if (!persistantCanvas) return;
+
+            while(persistantCanvas == null)
+            {
+                await Task.Yield();
+                persistantCanvas = PersistantCanvas.active;
+            }
 
             gameObject.transform.SetParent(persistantCanvas.transform);
         }

@@ -13,7 +13,7 @@ namespace Architome
         public AbilityInfo abilityInfo;
         public CatalystInfo catalystInfo;
 
-        public AugmentProp.DestroyConditions conditions;
+        public AugmentProp.DestroyConditions conditions { get; set; }
 
         public LayerMask structureLayer;
 
@@ -34,8 +34,12 @@ namespace Architome
             {
                 abilityInfo = catalystInfo.abilityInfo;
 
+                ArchAction.Delay(() => {
+                    catalystInfo.OnTickChange += OnTickChange;
+                    OnTickChange(catalystInfo, catalystInfo.Ticks());
+                
+                }, .0625f);
                 catalystInfo.OnWrongTargetHit += OnWrongTargetHit;
-                catalystInfo.OnTickChange += OnTickChange;
                 catalystInfo.OnReturn += OnReturn;
                 catalystInfo.OnCantFindEntity += OnCantFindEntity;
                 catalystInfo.OnDeadTarget += OnDeadTarget;

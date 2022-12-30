@@ -14,7 +14,7 @@ namespace Architome
         {
             if (canvas == null) return;
 
-            var targetAlpha = val ? 1 : 0;
+            var targetAlpha = val ? 1f : 0f;
 
             UpdateCanvas();
 
@@ -53,7 +53,7 @@ namespace Architome
         {
             if (canvas == null) return;
 
-            var targetAlpha = val ? 1 : 0;
+            var targetAlpha = val ? 1f : 0f;
 
             await UpdateCanvas();
 
@@ -69,6 +69,12 @@ namespace Architome
                     while (canvas != null && canvas.alpha != targetAlpha)
                     {
                         canvas.alpha = Mathf.Lerp(canvas.alpha, targetAlpha, lerpValue);
+                        var difference = Mathf.Abs(canvas.alpha - targetAlpha);
+
+                        if(difference <= .01)
+                        {
+                            canvas.alpha = targetAlpha;
+                        }
                         await Task.Yield();
                     }
                 }

@@ -4,12 +4,17 @@ using UnityEngine;
 
 public class LookAtCamera : MonoBehaviour
 {
-    // Start is called before the first frame update
-    
+
+    Camera currentCamera;
 
     void Start()
     {
-        
+        GetDependencies();        
+    }
+
+    void GetDependencies()
+    {
+        currentCamera = Camera.main;
     }
 
     // Update is called once per frame
@@ -20,8 +25,7 @@ public class LookAtCamera : MonoBehaviour
 
     void MirrorCamera()
     {
-        var cameraRotation = Camera.main.transform.rotation;
-
+        var cameraRotation = currentCamera.transform.rotation;
 
         transform.rotation = cameraRotation;
     }

@@ -124,6 +124,7 @@ namespace Architome
 
         public struct InfoEvents
         {
+            
             public Action<List<string>> OnUpdateObjectives;
             public Action<Quest> OnQuestComplete;
             public Action<Inventory.LootEventData> OnLootItem { get; set; }
@@ -144,6 +145,7 @@ namespace Architome
             public Action<ItemData, List<bool>> OnCanDropCheck { get; set; }
             public Action<EntityInfo> OnDestroy { get; set; }
 
+            public Action<EntityInfo, Transform> OnCanSeeCheck;
         }
 
         public struct CombatEvents
@@ -169,6 +171,9 @@ namespace Architome
             public Action<CombatEventData> OnKillPlayer { get; set; }
 
             public Action<ThreatManager.ThreatInfo> OnFirstThreatWithPlayer { get; set; }
+
+            public Action<EntityState> OnAddImmuneState { get; set; }
+            public Action<EntityState> OnRemoveImmuneState { get; set; }
         }
 
         public struct PartyEvents
@@ -180,6 +185,7 @@ namespace Architome
             public Action<PartyInfo> OnAddedToParty { get; set; }
             public Action<PartyInfo> OnRemovedFromParty { get; set; }
 
+            public PartyInfo currentParty { get; set; }
         }
 
         public struct SceneEvents
@@ -216,6 +222,8 @@ namespace Architome
         public Action<EntityInfo, Collision, bool> OnCollisionEvent;
         public Action<EntityInfo, GameObject, bool> OnPhysicsEvent;
         public Action<EntityInfo> OnChangeStats { get; set; }
+        public List<bool> checks { get; private set; }
+
         public AbilityManager.Events abilityEvents { get; set; }
         public PartyEvents partyEvents;
         public InfoEvents infoEvents;
@@ -930,6 +938,19 @@ namespace Architome
             combatEvents.OnPingThreat?.Invoke(entity, 20);
         }
 
+        public bool CanSee(Transform target)
+        {
+            checks = new();
+
+            infoEvents.OnCanSeeCheck?.Invoke(this, target);
+
+            foreach(var check in checks)
+            {
+                if (check) return true;
+            }
+
+            return false;
+        }
         public NPCType EnemyType()
         {
             if (npcType == NPCType.Hostile)
@@ -1594,6 +1615,14 @@ namespace Architome
                 if (light == null)
                 {
                     return;
+                }
+                var ignore = light.GetComponent<IgnoreProp>();
+
+                if (ignore)
+                {
+                    var canSet = ignore.CanSet(val);
+                    Debugger.Environment(1752, $"{this} Can set {light}: {canSet}");
+                    if (!canSet) continue;
                 }
                 light.enabled = val;
                 await Task.Yield();

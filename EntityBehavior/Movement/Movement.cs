@@ -341,11 +341,37 @@ namespace Architome
 
             while (isMoving || distanceFromTarget > endReachDistance + 2f)
             {
-                await Task.Yield();
                 if (!Application.isPlaying) return false;
-            
+                if (destinationSetter.target != target) return false;
+                if (!entityInfo.isAlive) return false;
+
+                await Task.Yield();
+            }
+
+            return true;
+        }
+
+        async public Task<bool> MoveToAsyncLOS(Transform locationTransform)
+        {
+            if (!entityInfo.isAlive) return false;
+            MoveTo(locationTransform);
+
+            isMoving = true;
+            var target = locationTransform;
+
+            await Task.Delay(62);
+
+            while (isMoving)
+            {
+                if (!this) return false;
 
                 if (destinationSetter.target != target) return false;
+                if (!entityInfo.isAlive) return false;
+
+
+                if (entityInfo.CanSee(locationTransform)) break;
+
+                await Task.Delay(250);
             }
 
             return true;
@@ -377,7 +403,7 @@ namespace Architome
             OnChangePath?.Invoke(this);
 
         }
-        public void MoveTo(Transform locationTransform, float endReachDistance = 0f)
+        public void MoveTo(Transform locationTransform,  float endReachDistance = 0f)
         {
             if (!entityInfo.isAlive) { return; }
             path.endReachedDistance = endReachDistance;
@@ -525,6 +551,7 @@ namespace Architome
             {
                 var range = attackAbility.range;
                 movement.MoveTo(target.transform, range);
+                
             }
         }
         async void OnCastStart(AbilityInfo ability)

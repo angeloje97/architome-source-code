@@ -87,8 +87,17 @@ namespace Architome
 
         void DetermineActive(ArchSceneManager.SceneInfo sceneInfo)
         {
-            var scene = sceneInfo == null ? ArchSceneManager.active.CurrentScene().scene : sceneInfo.scene;
+            var sceneManager = ArchSceneManager.active;
+            if(sceneManager == null)
+            {
+                active = false;
+                return;
+            }
 
+
+            
+            var scene = sceneInfo == null ? sceneManager.CurrentScene().scene : sceneInfo.scene;
+            
             active = activeScenes.Contains(scene);
 
         }

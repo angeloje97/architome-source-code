@@ -169,14 +169,7 @@ namespace Architome.Enums
         Yell,
     }
 
-    public enum SceneEvent
-    {
-        BeforeLoadScene,
-        BeforeActivateScene,
-        BeforeConfirmLoad,
-        OnLoadScene,
-        OnLoadSceneLate,
-    }
+    
 
     public enum CatalystParticleTarget
     {

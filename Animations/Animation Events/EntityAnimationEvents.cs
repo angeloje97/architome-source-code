@@ -83,8 +83,6 @@ namespace Architome
         {
             if(ability == null) { return; }
 
-            ability.EndCast();
-
             ability = null;
         }
 

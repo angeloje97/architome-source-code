@@ -4,6 +4,7 @@ using UnityEngine;
 using Architome.Enums;
 using System;
 using System.Threading.Tasks;
+using static UnityEngine.EventSystems.EventTrigger;
 
 namespace Architome
 {
@@ -51,6 +52,8 @@ namespace Architome
         [Header("Modules")]
         public GuildVault guildVault;
         public ModuleInfo equipmentModule;
+
+        KeyBindings keybindManager;
 
         [SerializeField] bool updateVault;
         
@@ -132,6 +135,7 @@ namespace Architome
             var pauseMenu = PauseMenu.active;
 
             manager = GetComponentInParent<DungeoneerManager>();
+            keybindManager = KeyBindings.active;
             var saveSystem = SaveSystem.active;
             ArchSceneManager.active.AddListener(SceneEvent.BeforeLoadScene, BeforeLoadScene, this);
             
@@ -150,6 +154,16 @@ namespace Architome
             if (saveSystem)
             {
                 saveSystem.AddListener(SaveEvent.BeforeSave, BeforeSave, this);
+            }
+
+            foreach(var slot in partySlots)
+            {
+                var toolTipElement = slot.GetComponent<ToolTipElement>();
+                if (!toolTipElement) continue;
+
+                toolTipElement.OnCanShowCheck += (ToolTipElement element) => {
+                    HandleToolTip(slot.entity, element);
+                };
             }
 
         }
@@ -196,9 +210,15 @@ namespace Architome
 
             card.OnSelect += OnSelectCard;
             card.OnAction += OnCardAction;
+            var toolTipElement = card.GetComponent<ToolTipElement>();
             rosterCards.Add(card);
 
             var save = manager.currentSave;
+
+            if (toolTipElement)
+            {
+                toolTipElement.OnCanShowCheck += (ToolTipElement element) => { HandleToolTip(card.entity, element);  };
+            }
 
             if (save == null) return;
 
@@ -336,6 +356,30 @@ namespace Architome
             }
         }
 
+        public void HandleToolTip(object entityObject, ToolTipElement element)
+        {
+            if(entityObject == null)
+            {
+                element.checks.Add(false);
+                return;
+            }
+
+            if(entityObject.GetType() != typeof(EntityInfo))
+            {
+                element.checks.Add(false);
+                return;
+            }
+
+            var entity = (EntityInfo)entityObject;
+
+            var rightClickIndex = keybindManager.SpriteIndex(KeyCode.Mouse1);
+
+            element.data = new()
+            {
+                name = $"{entity}",
+                description = $"Use <sprite={rightClickIndex}> for more options."
+            };
+        }
 
         public bool InParty(EntityInfo entity)
         {
@@ -347,6 +391,7 @@ namespace Architome
 
             return false;
         }
+
 
 
         public async void HandleEntityAction(object entityData)

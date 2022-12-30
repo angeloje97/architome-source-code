@@ -34,6 +34,7 @@ namespace Architome.Settings
             var mainMenuUI = MainMenuUI.active;
             var pauseMenu = PauseMenu.active;
             var canvasController = GetComponentInParent<CanvasController>();
+            var archSceneManager = ArchSceneManager.active;
 
 
             if (mainMenuUI)
@@ -52,6 +53,18 @@ namespace Architome.Settings
                 hasCanvasController = true;
             }
 
+            if (archSceneManager)
+            {
+                archSceneManager.AddListener(SceneEvent.BeforeConfirmLoad, HandleBeforeConfirmLoad, this);
+            }
+
+        }
+
+        void HandleBeforeConfirmLoad(ArchSceneManager sceneManager)
+        {
+            if (!dirty) return;
+
+            sceneManager.tasksBeforeConfirmLoad.Add(ConfirmLeave("Scene Manager"));
         }
 
         async void HandleCloseCanvasController(CanvasController controller)
@@ -64,9 +77,6 @@ namespace Architome.Settings
             Debugger.UI(7691, $"Confirm Leave {confirmLeave}");
             if (!confirmLeave) return;
 
-            if (dirty) HandleLeaveDirty();
-            
-            dirty = false;
             controller.SetCanvas(false);
 
 
@@ -87,9 +97,17 @@ namespace Architome.Settings
 
             if (confirmLeave)
             {
-                if(dirty) HandleLeaveDirty();
-                dirty = false;
-                mainMenu.OpenModule(desiredModule.gameObject);
+                //if(dirty) HandleLeaveDirty();
+                //dirty = false;
+                if (desiredModule)
+                {
+                    mainMenu.OpenModule(desiredModule);
+                }
+                else
+                {
+                    mainMenu.OpenModule(null);
+                }
+
             }
 
         }
@@ -115,32 +133,14 @@ namespace Architome.Settings
         public virtual async void HandleDirty(NavBar navBar, List<bool> checks)
         {
             if (!dirty) return;
-            var promptHandler = PromptHandler.active;
-
-            if (promptHandler == null)
-            {
-                if(dirty)HandleLeaveDirty();
-                dirty = false;
-                return;
-            }
 
             navBar.stallNavigation = true;
-            //checks.Add(false);
-
-            //var desiredIndex = navBar.ActiveIndex();
-            //navBar.UpdateFromIndex(navBar.previousIndex);
 
             var confirmLeave = await ConfirmLeave("Nav Bar");
 
             
 
-            if (confirmLeave)
-            {
-                if(dirty) HandleLeaveDirty();
-                dirty = false;
-
-            }
-            else
+            if (!confirmLeave)
             {
                 checks.Add(false);
             }
@@ -167,7 +167,10 @@ namespace Architome.Settings
                         chosenApply = true;
                         HandleChooseApply(); 
                     }),
-                    new("Discard Changes"),
+                    new("Discard Changes", (OptionData data) => {
+                        HandleLeaveDirty();
+                        dirty = false;
+                    }),
                     new("Cancel") {isEscape = true}
                 },
                 blocksScreen = true,

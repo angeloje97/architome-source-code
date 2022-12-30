@@ -31,7 +31,7 @@ namespace Architome
         public struct PartyEvents
         {
             public Action<bool> OnCombatChange;
-            public Action<EntityInfo> OnAddMember;
+            public Action<EntityInfo> OnAddMember { get; set; }
             public Action<EntityInfo> OnRemoveMember;
             public Action<PartyFormation> OnMoveFormation { get; set; }
             public Action<string> OnTransferScene;
@@ -178,6 +178,7 @@ namespace Architome
 
 
             liveMembers = Entity.LiveEntities(members);
+            entity.partyEvents.currentParty = this;
             events.OnAddMember?.Invoke(entity);
             entity.partyEvents.OnAddedToParty?.Invoke(this);
             //entity.rarity = EntityRarity.Player;
@@ -197,7 +198,7 @@ namespace Architome
 
             events.OnRemoveMember?.Invoke(entity);
             entity.partyEvents.OnRemovedFromParty?.Invoke(this);
-
+            if (entity.partyEvents.currentParty == this) entity.partyEvents.currentParty = null;
             members.Remove(entity);
             entity.transform.SetParent(newParent);
         }

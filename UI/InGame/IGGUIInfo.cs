@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Architome
 {
@@ -108,25 +109,15 @@ namespace Architome
             SetWidgets(false);
         }
 
-        public void OnEscape()
+        public async void OnEscape()
         {
+            await Task.Yield();
             if (!CanCloseModules()) return;
 
             if (SetExtra())
             {
                 return;
             }
-
-            //if (SetPrompts())
-            //{
-            //    return;
-            //}
-
-            //if (SetWorldModules())
-            //{
-            //    return;
-            //}
-
             if (SetModules(false))
             {
                 return;

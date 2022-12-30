@@ -14,6 +14,7 @@ namespace Architome
 
         DungeoneerManager manager;
         GuildManager guildManager;
+        KeyBindings keybindManager;
 
         private void Start()
         {
@@ -24,16 +25,28 @@ namespace Architome
         void GetDependencies()
         {
             manager = DungeoneerManager.active;
+            keybindManager = KeyBindings.active;
             if (manager)
             {
                 manager.OnSetSelectedMembers += HandleSelectedMembers;
+
+                
             }
             guildManager = GuildManager.active;
 
             if (guildManager)
             {
+                foreach (var icon in memberIcons)
+                {
+                    var toolTipElement = icon.GetComponent<ToolTipElement>();
+                    if (!toolTipElement) continue;
+                    Debugger.UI(5981, $"Found tooltip element {toolTipElement}");
 
+                    toolTipElement.OnCanShowCheck += (ToolTipElement element) => { guildManager.HandleToolTip(icon.data, element); };
+                    
+                }
             }
+            
         }
 
         void HandleSelectedMembers(DungeoneerManager manager, List<EntityInfo> members)

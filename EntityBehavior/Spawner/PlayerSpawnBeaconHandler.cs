@@ -20,6 +20,7 @@ namespace Architome
         public WorldInfo worldInfo;
 
         public UnityEvent OnSetSpawnBeacon;
+        public UnityEvent OnUnsetSpawnBeacon;
 
         WorkInfo workInfo;
 

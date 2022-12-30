@@ -28,6 +28,7 @@ public class ProgressBarsBehavior : MonoBehaviour, IPointerEnterHandler, IPointe
     [Header("CastBar")]
     public AbilityInfo currentAbility;
     public Image castBar;
+    public CanvasGroup castBarCanvas;
     public bool castBarActive;
 
     //Original Properties
@@ -65,18 +66,16 @@ public class ProgressBarsBehavior : MonoBehaviour, IPointerEnterHandler, IPointe
             entityInfo.OnNewBuff += OnNewBuff;
             OnCombatChange(entityInfo.isInCombat);
 
+            abilityManager = entityInfo.AbilityManager();
+        }
 
-            if(entityInfo.AbilityManager())
-            {
-                abilityManager = entityInfo.AbilityManager();
-
-
-                abilityManager.OnAbilityStart += OnAbilityStart;
-                abilityManager.OnAbilityEnd += OnAbilityEnd;
-                abilityManager.WhileCasting += WhileCasting;
+        if(abilityManager)
+        {
 
 
-            }
+            abilityManager.OnAbilityStart += OnAbilityStart;
+
+
         }
 
         if(graphicsInfo)
@@ -160,19 +159,18 @@ public class ProgressBarsBehavior : MonoBehaviour, IPointerEnterHandler, IPointe
         transform.localPosition = localPosition + new Vector3(0, index * 1, 0);
     }
 
-    public void OnCombatChange(bool isInCombat)
+    public async void OnCombatChange(bool isInCombat)
     {
-        
+        if (!isInCombat) return;
+        while (entityInfo.isInCombat)
+        {
+            UpdateCanvasTimer(4f);
+            await Task.Delay(3000);
+        }
 
-
-        var delay = isInCombat ? 0f : 3f;
-
-        ArchAction.Delay(() => {
-            UpdateCanvas(entityInfo.isInCombat);
-        }, delay);
     }
 
-    async public void UpdateCanvas(bool val)
+    async void UpdateCanvas(bool val)
     {
         targetAlpha = val ? 1f : 0f;
         if (canvasGroup == null) return;
@@ -199,14 +197,13 @@ public class ProgressBarsBehavior : MonoBehaviour, IPointerEnterHandler, IPointe
 
         changingAlpha = false;
     }
-    async void UpdateOutOfCombatCanvas(float timer)
+    async public void UpdateCanvasTimer(float timer)
     {
         if (timer > canvasTimer)
         {
             canvasTimer = timer;
         }
 
-        if (entityInfo.isInCombat) return;
 
         targetAlpha = 1f;
 
@@ -223,10 +220,7 @@ public class ProgressBarsBehavior : MonoBehaviour, IPointerEnterHandler, IPointe
         }
 
         activeTimer = false;
-
-
-
-        if (entityInfo.isInCombat) return;
+        
         targetAlpha = 0f;
         UpdateCanvas(false);
     }
@@ -308,26 +302,27 @@ public class ProgressBarsBehavior : MonoBehaviour, IPointerEnterHandler, IPointe
     //}
     public void UpdateCastBar()
     {
-        castBar.transform.parent.gameObject.SetActive(castBarActive);
+        ArchUI.SetCanvas(castBarCanvas, castBarActive);
     }
+
 
 
     public void OnHealingTaken(CombatEventData eventData)
     {
-        UpdateOutOfCombatCanvas(2.5f);
+        UpdateCanvasTimer(2.5f);
     }
 
     public void OnNewBuff(BuffInfo newBuff, EntityInfo source)
     {
 
-        UpdateOutOfCombatCanvas(3f);
+        UpdateCanvasTimer(3f);
         
 
     }
 
-    public void OnAbilityStart(AbilityInfo ability)
+    public async void OnAbilityStart(AbilityInfo ability)
     {
-        UpdateOutOfCombatCanvas(ability.castTime + 2f);
+        UpdateCanvasTimer(3f);
 
         if(!ability.vfx.showCastBar) { return; }
 
@@ -336,27 +331,29 @@ public class ProgressBarsBehavior : MonoBehaviour, IPointerEnterHandler, IPointe
         castBarActive = true;
 
         UpdateCastBar();
-    }
 
-    public void OnAbilityEnd(AbilityInfo ability)
-    {
-        canvasTimer = 2f;
+        var intervals = 0f;
 
-        if (!ability.vfx.showCastBar) return;
+        await ability.EndActivation((AbilityInfo activatedAbility) => {
+            castBar.fillAmount = activatedAbility.progress;
+
+            if(intervals > 0)
+            {
+                intervals -= Time.deltaTime;
+                return;
+
+            }
+
+            intervals = 2f;
+            UpdateCanvasTimer(3f);
+        });
+
 
         castBarActive = false;
         UpdateCastBar();
+
         
     }
-
-
-    public void WhileCasting(AbilityInfo ability)
-    {
-        if (!castBarActive) return;
-        if (!ability.vfx.showCastBar) return;
-        castBar.fillAmount = ability.progress;
-    }
-
 }
 
 [Serializable]
@@ -365,6 +362,8 @@ public struct TaskProgressBarHandler
     private EntityInfo entityInfo;
     private Image progressBar;
     public ProgressBarsBehavior behavior;
+
+    float timeBetween;
 
     public void Initialize(ProgressBarsBehavior behavior)
     {
@@ -380,10 +379,7 @@ public struct TaskProgressBarHandler
 
     void OnStartTask(TaskEventData eventData)
     {
-        if (!entityInfo.isInCombat)
-        {
-            behavior.UpdateCanvas(true);
-        }
+        behavior.UpdateCanvasTimer(3f);
         var prop = eventData.task.properties;
 
         progressBar.fillAmount = prop.workDone / prop.workAmount;
@@ -392,6 +388,8 @@ public struct TaskProgressBarHandler
 
         behavior.castBarActive = true;
         behavior.UpdateCastBar();
+
+
     }
 
     void WhileWorkingOnTask(TaskEventData eventData)
@@ -399,6 +397,16 @@ public struct TaskProgressBarHandler
         var prop = eventData.task.properties;
 
         progressBar.fillAmount = prop.workDone / prop.workAmount;
+
+        if(timeBetween > 0)
+        {
+            timeBetween -= Time.deltaTime;
+            return;
+        }
+
+        timeBetween = 1f;
+
+        behavior.UpdateCanvasTimer(2f);
         
     }
 
@@ -410,15 +418,11 @@ public struct TaskProgressBarHandler
 
     void OnEndTask(TaskEventData eventData)
     {
-        if (!entityInfo.isInCombat)
-        {
-            behavior.UpdateCanvas(false);
-        }
 
         behavior.castBarActive = false;
         behavior.UpdateCastBar();
 
-        progressBar.transform.parent.gameObject.SetActive(false);
+        
     }
 
 }

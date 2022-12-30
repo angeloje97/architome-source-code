@@ -59,6 +59,12 @@ namespace Architome
             info.saveName.text = save.saveName;
             info.lastSave.text = save.timeString;
             info.version.text = $"Version {save.build}";
+
+            if(!save.build.Equals(Application.version))
+            {
+                info.version.color = Color.red;
+                info.version.text += " (Outdated)";
+            }
         }
 
         async public void SelectSave()

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.Linq;
+using UnityEngine.UIElements;
 
 namespace Architome.Settings
 {
@@ -38,8 +39,12 @@ namespace Architome.Settings
         public Action<KeyBindMapping> OnRevertChanges;
         public Action<KeyBindMapping> OnApplyChanges { get; set; }
 
-
-
+        public bool pickingKey;
+        private void Start()
+        {
+            GetDependencies();
+            HandleDirtyConflicts();
+        }
         void GetDependencies()
         {
             keyBindings = KeyBindings.active;
@@ -54,11 +59,22 @@ namespace Architome.Settings
 
             ClearMaps();
             SpawnMaps();
+
+            var mainMenuUI = MainMenuUI.active;
+
+            if (mainMenuUI)
+            {
+                mainMenuUI.OnEscapeIsFree += HandleEscapeIsFree;
+            }
         }
-        private void Start()
+
+
+        void HandleEscapeIsFree(MainMenuUI mainMenu, List<bool> checks)
         {
-            GetDependencies();
-            HandleDirtyConflicts();
+            if (pickingKey)
+            {
+                checks.Add(false);
+            }
         }
 
         public override void HandleLeaveDirty()

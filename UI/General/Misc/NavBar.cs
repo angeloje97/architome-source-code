@@ -47,7 +47,7 @@ namespace Architome
             update = false;
             toggles = GetComponentsInChildren<Toggle>().ToList();
             UpdateFromIndex();
-            OnValueChange();
+            ForceUpdate(index);
         }
 
         public void AddToggle(string toggleName, GameObject toggleTarget)
@@ -97,6 +97,19 @@ namespace Architome
             index = Mathf.Clamp(index, 0, toggles.Count - 1);
 
             toggles[index].isOn = true;
+
+        }
+
+        public void ForceUpdate(int index)
+        {
+            for(int i =0; i < items.Count; i++)
+            {
+                var item = items[i];
+                if (item == null) continue;
+                var canvasGroup = item.GetComponent<CanvasGroup>();
+                if (canvasGroup == null) continue;
+                ArchUI.SetCanvas(canvasGroup, i == index);
+            }
         }
 
         public void UpdateFromIndex(int newIndex)
@@ -134,12 +147,19 @@ namespace Architome
             var activeCanvases = new HashSet<CanvasGroup>();
             var targetCanvases = new HashSet<CanvasGroup>();
 
-
             var lerpValue = smoothening != 0 ? 1 / smoothening : 1;
-            for (int i = 0; i < items.Count; i++)
+            for (int i = 0; i < toggles.Count; i++)
             {
-                if (items[i] == null) continue;
-                if (toggles.Count <= i) continue;
+                if(items.Count <= i || items[i] == null)
+                {
+                    if (toggles[i].isOn)
+                    {
+                        index = i;
+                        previousIndex = -1;
+                    }
+
+                    continue;
+                }
                 var toggle = toggles[i];
                 var canvasGroup = items[i].GetComponent<CanvasGroup>();
 
@@ -161,38 +181,13 @@ namespace Architome
                 {
                     canvasGroup = items[i].AddComponent<CanvasGroup>();
                 }
-
-                //float targetAlpha = toggle.isOn ? 1 : 0;
-
-                //if (targetAlpha == canvasGroup.alpha) continue;
-
-
-                //if (!CanNavigate())
-                //{
-                //    navigationBlocked = true;
-
-
-                    
-
-                //    UpdateFromIndex();
-                //    ArchAction.Delay(() => {
-                //        navigationBlocked = false;
-                //    }, .125f);
-                //    return;
-                //}
-
-
-                //canvasGroup.alpha = targetAlpha;
-
-                //canvasGroup.blocksRaycasts = toggle.isOn;
-                //canvasGroup.interactable = toggle.isOn;
-
             }
             var canNavigate = await CanNavigate();
             if (!canNavigate)
             {
-                index = previousIndex;
-                previousIndex = -1;
+                var temp = previousIndex;
+                previousIndex = index;
+                index = temp;
                 toggles[index].isOn = true;
                 return;
             }

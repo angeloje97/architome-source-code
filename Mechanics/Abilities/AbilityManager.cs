@@ -120,10 +120,6 @@ namespace Architome
                 character = entityInfo.GetComponentInChildren<CharacterInfo>();
                 var movement = entityInfo.Movement();
 
-                if (movement)
-                {
-                    movement.OnStartMove += OnStartMove;
-                }
             }
 
             equipmentSlots = new EquipmentSlot[0];
@@ -215,6 +211,11 @@ namespace Architome
         public void OnLifeChange(bool isAlive)
         {
             SetAbilities(isAlive, isAlive);
+
+            if (attackAbility)
+            {
+                attackAbility.isAutoAttacking = false;
+            }
         }
 
         public async Task CastingEnd()
@@ -370,13 +371,13 @@ namespace Architome
             }
         }
 
-        public void OnStartMove(Movement movement)
-        {
-            if(currentlyCasting && currentlyCasting.cancelCastIfMoved)
-            {
-                currentlyCasting.CancelCast("Moved on non movable ability");
-            }
-        }
+        //public void OnStartMove(Movement movement)
+        //{
+        //    if(currentlyCasting && currentlyCasting.cancelCastIfMoved)
+        //    {
+        //        currentlyCasting.CancelCast("Moved on non movable ability");
+        //    }
+        //}
 
         public AbilityInfo Ability(int num)
         {

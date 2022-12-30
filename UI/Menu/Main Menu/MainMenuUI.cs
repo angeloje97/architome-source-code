@@ -17,15 +17,46 @@ namespace Architome
 
         public Action<MenuModule> OnOpenMenu;
 
-        public Action<MainMenuUI, List<bool>> OnCanChangeModuleCheck;
+        public Action<MainMenuUI, List<bool>> OnCanChangeModuleCheck { get; set; }
+        public Action<MainMenuUI, List<bool>> OnEscapeIsFree { get; set; }
 
-        public MenuModule desiredModule;
+        public GameObject desiredModule { get; set; }
 
-        bool CanOpenModule()
+        bool CanChangeModules()
         {
             var checks = new List<bool>();
 
             OnCanChangeModuleCheck?.Invoke(this, checks);
+
+            foreach (var check in checks)
+            {
+                if (!check) return false;
+            }
+
+            return true;
+        }
+
+
+        public void OpenModule(GameObject menuModule)
+        {
+            desiredModule = menuModule;
+            if (!CanChangeModules()) return;
+            if (menuItems == null) return;
+
+            CloseAllMenuModules();
+
+            if (menuModule == null) return;
+            var module = menuModule.GetComponent<MenuModule>();
+            if (module == null) return;
+            module.Show(true);
+            module.transform.SetAsLastSibling();
+        }
+
+        public bool EscapeIsFree()
+        {
+            var checks = new List<bool>();
+
+            OnEscapeIsFree?.Invoke(this, checks);
 
             foreach(var check in checks)
             {
@@ -35,24 +66,20 @@ namespace Architome
             return true;
         }
 
-        public void OpenModule(GameObject menuModule)
-        {
-            var module = menuModule.GetComponent<MenuModule>();
-            desiredModule = module;
-            if (!CanOpenModule()) return;
-            if (menuItems == null) return;
-            if (module == null) return;
-
-            CloseAllMenuModules();
-
-            module.Show(true);
-            module.transform.SetAsLastSibling();
-        }
-
         public void Awake()
         {
             active = this;
             audioManager = GetComponent<AudioManager>();
+        }
+
+        private void Update()
+        {
+            if (Input.GetKeyUp(KeyCode.Escape))
+            {
+                if (!EscapeIsFree()) return;
+                desiredModule = null;
+                OpenModule(null);
+            }
         }
 
         public void PlayAudioClip(AudioClip audio)

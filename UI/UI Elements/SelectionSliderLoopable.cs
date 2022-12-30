@@ -22,13 +22,18 @@ namespace Architome
         public int index;
         public List<string> options = new();
 
-        public UnityEvent OnChangeValue;
-
+        public UnityEvent<Int32> OnChangeValue;
         bool active = false;
 
         private void Start()
         {
             active = true;
+        }
+
+        public void SetOptions(List<string> options)
+        {
+            this.options = options;
+            UpdateText(false);
         }
 
         public void Next()
@@ -49,7 +54,7 @@ namespace Architome
             UpdateText();
         }
 
-        void UpdateText()
+        void UpdateText(bool triggerEvents = true)
         {
             if(options.Count == 0) return;
             if (index < 0)
@@ -63,7 +68,7 @@ namespace Architome
 
             if (!active) return;
 
-            OnChangeValue?.Invoke();
+            OnChangeValue?.Invoke(index);
         }
 
         

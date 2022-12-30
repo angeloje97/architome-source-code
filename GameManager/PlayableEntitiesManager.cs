@@ -19,6 +19,7 @@ namespace Architome
         public PartyInfo party;
         public SaveSystem saveSystem;
         public ArchSceneManager sceneManager;
+        GameManager gameManager;
 
         public List<string> scenesToSaveEntities;
 
@@ -39,6 +40,7 @@ namespace Architome
 
             saveSystem = SaveSystem.active;
             sceneManager = ArchSceneManager.active;
+            gameManager = GMHelper.GameManager();
 
             var questManager = QuestManager.active;
 
@@ -56,6 +58,11 @@ namespace Architome
             {
                 sceneManager.AddListener(SceneEvent.BeforeLoadScene, BeforeLoadScene, this);
                 sceneManager.AddListener(SceneEvent.OnLoadScene, OnLoadScene, this);
+            }
+
+            if (gameManager)
+            {
+                gameManager.OnNewPlayableEntity += HandleNewPlayableEntity;
             }
         }
         void Start()
@@ -161,11 +168,22 @@ namespace Architome
             }
         }
 
+        void HandleNewPlayableEntity(EntityInfo entity, int index)
+        {
+            entity.infoEvents.OnCanDropCheck += delegate (ItemData data, List<bool> checks) {
+                if (inPostDungeon) checks.Add(false);
+            };
+
+
+        }
+
         void HandlePortals()
         {
             var mapRoomGenerator = MapRoomGenerator.active;
 
             var promptHandler = PromptHandler.active;
+
+            if (mapRoomGenerator == null) return;
 
             mapRoomGenerator.OnRoomsGenerated += (generator) => {
                 var portals = PortalInfo.portals;

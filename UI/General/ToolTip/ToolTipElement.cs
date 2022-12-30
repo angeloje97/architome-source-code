@@ -10,6 +10,7 @@ namespace Architome
     public class ToolTipElement : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         ToolTipManager manager;
+        ContextMenu activeMenu;
         public ToolTipType type;
         public ToolTipData data;
 
@@ -17,6 +18,8 @@ namespace Architome
         public bool isShowing;
         public bool hideToolTip;
         public bool followCursor;
+
+        public bool hideOnActiveContextMenu;
 
         public Action<ToolTipElement> BeforeShowToolTip;
         public Action<ToolTipElement> OnCanShowCheck;
@@ -31,11 +34,14 @@ namespace Architome
         void GetDependenciess()
         {
             manager = ToolTipManager.active;
+            activeMenu = ContextMenu.current;
+
 
             if (!manager)
             {
                 gameObject.SetActive(false);
             }
+
         }
 
         // Update is called once per frame
@@ -44,6 +50,15 @@ namespace Architome
 
         }
 
+        void OnMouseEnter()
+        {
+            HandleShow();
+        }
+
+        void OnMouseExit()
+        {
+            StopShowing();
+        }
 
         public bool CanShow()
         {
@@ -53,14 +68,14 @@ namespace Architome
 
             foreach (var check in checks)
             {
+
                 if (!check) return false;
             }
 
             return true;
         }
 
-
-        public async void OnPointerEnter(PointerEventData eventData)
+        public async void HandleShow()
         {
             if (isShowing) return;
             if (hideToolTip) return;
@@ -77,7 +92,9 @@ namespace Architome
             }
 
             toolTip.SetToolTip(data);
-            
+
+            HandleContextMenu(toolTip);
+
 
             while (isShowing)
             {
@@ -89,11 +106,42 @@ namespace Architome
             isShowing = false;
         }
 
+
+        async void HandleContextMenu(ToolTip tooltip)
+        {
+            if (!hideOnActiveContextMenu) return;
+            if (!activeMenu) return;
+
+            activeMenu.OnChoosingChange += HandleChoosingChange;
+            tooltip.SetVisibility(!activeMenu.isChoosing);
+
+            while (isShowing)
+            {
+                if (tooltip == null) break;
+                await Task.Yield();
+            }
+
+            activeMenu.OnChoosingChange -= HandleChoosingChange;
+
+            void HandleChoosingChange(ContextMenu contextMenu, bool isActive)
+            {
+                tooltip.SetVisibility(!isActive);
+            }
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            HandleShow();
+        }
+
         public void OnPointerExit(PointerEventData eventData)
+        {
+            StopShowing();
+        }
+
+        public void StopShowing()
         {
             isShowing = false;
         }
-
-        
     }
 }

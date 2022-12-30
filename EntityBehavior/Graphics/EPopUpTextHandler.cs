@@ -45,6 +45,9 @@ namespace Architome
 
                     entityInfo.combatEvents.OnStateNegated += OnStateNegated;
                     entityInfo.combatEvents.OnStatesChange += OnStatesChange;
+                    entityInfo.combatEvents.OnAddImmuneState += OnAddImmuneState;
+                    entityInfo.combatEvents.OnRemoveImmuneState += OnRemoveImmuneState;
+
 
                 }
             }, .25f);
@@ -160,6 +163,18 @@ namespace Architome
             if (popUpManager == null) return;
 
             popUpManager.StateChangeImmunityPopUp(transform, negatedState.ToString());
+        }
+
+        void OnAddImmuneState(EntityState newState)
+        {
+            if (popUpManager == null) return;
+            popUpManager.StateChangePopUp(transform, $"Immune to {newState}");
+        }
+
+        void OnRemoveImmuneState(EntityState removedState)
+        {
+            if (popUpManager == null) return;
+            popUpManager.StateChangePopUp(transform, $"Removed immunity to {removedState}");
         }
 
         void OnLifeChange(bool isAlive)

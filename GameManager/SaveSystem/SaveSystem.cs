@@ -56,8 +56,6 @@ namespace Architome
                 action(system, save);
             }
         }
-
-
         public void Save()
         {
             if (current == null) return;
@@ -70,13 +68,18 @@ namespace Architome
             eventDict[SaveEvent.OnSave]?.Invoke(this, current);
 
         }
-
         public void CompleteCurrentDungeon()
         {
             if (current == null) return;
-            if (DungeonData.Exists(current.currentDungeon)) return;
+            if (!DungeonData.Exists(current.currentDungeon)) return;
             current.currentDungeon.completed = true;
             current.currentDungeon = null;
+        }
+
+        public static void Operate(Action<SaveGame> action)
+        {
+            if (current == null) return;
+            action(current);
         }
     }
 }

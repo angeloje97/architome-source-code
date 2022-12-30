@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using Architome.Enums;
+using System.Linq;
 
 namespace Architome
 {
@@ -40,6 +41,7 @@ namespace Architome
             module = GetComponent<MenuModule>();
             CreateSlots();
             UpdateButtons();
+            ReorderSlots();
         }
         private void Update()
         {
@@ -78,6 +80,16 @@ namespace Architome
 
                 slots.Add(newSlot);
                 
+            }
+        }
+
+        void ReorderSlots()
+        {
+            var orderedSlots = slots.OrderBy(slot => slot.saveGame.time).ToList();
+
+            foreach(var slot in orderedSlots)
+            {
+                slot.transform.SetAsFirstSibling();
             }
         }
         public void HandleSelect(SaveGameSlot saveSlot)

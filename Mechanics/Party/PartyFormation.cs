@@ -18,17 +18,33 @@ namespace Architome
         public string actionRelease;
         public bool isHolding;
 
-        public Action<bool> OnHoldingChange;
+        public Action<bool> OnHoldingChange { get; set; }
         
         [Serializable]
         public struct Effects
         {
-            public ParticleSystem pointingParticle;
+            public List<ParticleSystem> particlesToPlay;
+
+            public void SetParticles(bool val)
+            {
+                particlesToPlay ??= new();
+                foreach(var particle in particlesToPlay)
+                {
+                    if (val)
+                    {
+                        particle.Play(true);
+                    }
+                    else
+                    {
+                        particle.Stop(true);
+                    }
+                }
+            }
         }
 
         public Effects effects;
 
-        public Action OnMove;
+        public Action OnMove { get; set; }
         public UnityEvent OnUnityMove;
         public UnityEvent OnHoldStart;
         public UnityEvent OnHoldEnd;
@@ -133,7 +149,7 @@ namespace Architome
             if (isHolding) return;
             OnHoldingChange?.Invoke(true);
             OnHoldStart?.Invoke();
-            effects.pointingParticle?.Play(true);
+            effects.SetParticles(true);
             await Task.Delay(125);
             isHolding = true;
 
@@ -145,7 +161,8 @@ namespace Architome
 
             isHolding = false;
             OnHoldEnd?.Invoke();
-            effects.pointingParticle?.Stop(true);
+            effects.SetParticles(false);
+
             OnHoldingChange?.Invoke(false);
         }
 
