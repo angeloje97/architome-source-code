@@ -54,7 +54,7 @@ namespace Architome
             info.level.text = $"Level: {entity.entityStats.Level}";
             info.role.text = $"Role: {entity.role}";
             info.entityClass.text = info.entityClass != null ? $"Class: {entity.archClass.className}" : "";
-            info.exp.text = $"Exp: {entity.entityStats.experience}/{entity.entityStats.experienceReq}";
+            info.exp.text = $"Exp: {(int)entity.entityStats.experience}/{(int) entity.entityStats.experienceReq}";
         }
 
         public void SelectCard()

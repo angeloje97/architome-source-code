@@ -80,7 +80,7 @@ namespace Architome
             isPlaying = false;
         }
 
-        public async Task<AudioSource> FadeIn(AudioClip clip, float time)
+        public async Task<AudioSource> FadeIn(AudioClip clip, float time, float targetVolume = 1f)
         {
             while (audioManager == null) await Task.Yield();
 
@@ -88,7 +88,6 @@ namespace Architome
             currentSource.volume = 0f;
             isPlaying = true;
 
-            float targetVolume = 1f;
             float startingVolume = 0f;
 
             float current = 0f;
@@ -108,12 +107,12 @@ namespace Architome
             
         }
 
-        public async Task<bool> PlaySong<T>(AudioClip audioClip, T caller, float transitionTime) where T: MonoBehaviour
+        public async Task<bool> PlaySong<T>(AudioClip audioClip, T caller, float transitionTime, float targetVolume) where T: MonoBehaviour
         {
             await FadeOut(transitionTime);
 
 
-            currentSource = await FadeIn(audioClip, 0f);
+            currentSource = await FadeIn(audioClip, 0f, targetVolume);
             OnPlaySong?.Invoke(currentSource, caller);
 
             while (currentSource.isPlaying)
@@ -142,9 +141,14 @@ namespace Architome
 
         }
 
-        public static void PlayImmeidate(AudioClip clip)
+        public static async void PlayImmeidate<T>(AudioClip clip, T caller) where T: MonoBehaviour
         {
+            var musicPlayer = active;
+            if (musicPlayer == null) return;
 
+            _ = musicPlayer.FadeOut(.25f);
+            var audioSource = await musicPlayer.FadeIn(clip, 0f);
+            musicPlayer.OnPlaySong?.Invoke(audioSource, caller);
         }
 
         

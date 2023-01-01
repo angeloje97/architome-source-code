@@ -80,10 +80,10 @@ namespace Architome
         [Serializable]
         struct TaskCompletionEvent
         {
-            public UnityEvent OnCompleted;
-            public UnityEvent OnFailed;
-            public UnityEvent OnLingeringStart;
-            public UnityEvent OnLingeringEnd;
+            public UnityEvent<TaskEventData> OnCompleted;
+            public UnityEvent<TaskEventData> OnFailed;
+            public UnityEvent<TaskEventData> OnLingeringStart;
+            public UnityEvent<TaskEventData> OnLingeringEnd;
         }
 
         public TaskProperties properties;
@@ -241,29 +241,12 @@ namespace Architome
             states.isBeingWorkedOn = false;
             var eventData = new TaskEventData(this);
 
-            HandleLingering();
             HandleWorkerEvents();
             HandleStationEvents();
 
-            completionEvents.OnCompleted?.Invoke();
+            Debugger.Environment(0671, $"Workers {workers.working.Count}");
+            completionEvents.OnCompleted?.Invoke(eventData);
 
-            void HandleLingering()
-            {
-                //if (!properties.allowLinger) return;
-                //workers.lingering = workers.working.ToList();
-
-                //ArchAction.Delay(() => {
-
-                //    foreach (var worker in workers.lingering)
-                //    {
-                //        worker.taskEvents.OnLingeringStart?.Invoke(eventData);
-                //    }
-
-                //    WhileLingering();
-
-                //}, .0625f);
-                
-            }
 
             void HandleWorkerEvents()
             {
@@ -284,7 +267,8 @@ namespace Architome
 
         public async void WhileLingering()
         {
-            completionEvents.OnLingeringStart?.Invoke();
+            var taskEvent = new TaskEventData(this);
+            completionEvents.OnLingeringStart?.Invoke(taskEvent);
             while (workers.lingering.Count > 0)
             {
                 await Task.Yield();
@@ -302,7 +286,7 @@ namespace Architome
 
                     if (remove)
                     {
-                        worker.taskEvents.OnLingeringEnd?.Invoke(new TaskEventData(this));
+                        worker.taskEvents.OnLingeringEnd?.Invoke(taskEvent);
                         workers.lingering.RemoveAt(i);
                         i--;
 
@@ -310,7 +294,7 @@ namespace Architome
                     }
                 }
             }
-            completionEvents.OnLingeringEnd?.Invoke();
+            completionEvents.OnLingeringEnd?.Invoke(taskEvent);
         }
 
         public bool CanStartWork(EntityInfo entity)

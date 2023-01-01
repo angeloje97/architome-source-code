@@ -4,14 +4,16 @@ using UnityEngine;
 
 namespace Architome
 {
-    public class MusicPlayerSceneManager : MonoBehaviour
+    public class MusicPlayerSceneManager : MusicManager
     {
         public static MusicPlayerSceneManager active;
         public MusicPlaylist musicPlaylist;
         public List<AudioClip> currentPlaylist;
 
-        MusicPlayer musicPlayer;
+        
         ArchSceneManager sceneManager;
+
+        public bool ignoreFadeOut;
 
 
         private void Awake()
@@ -28,32 +30,40 @@ namespace Architome
         {
             if (active != this) return;
             GetDependencies();
-            PlaySceneMusic();
+            OnLoadScene(ArchSceneManager.active);
         }
-        void GetDependencies()
+
+        void Update()
         {
-            musicPlayer = GetComponent<MusicPlayer>();
+            HandleEvents();
+        }
+
+        new void GetDependencies()
+        {
+            base.GetDependencies();
             sceneManager = ArchSceneManager.active;
 
             sceneManager.AddListener(SceneEvent.BeforeLoadScene, BeforeLoadScene, this);
-            sceneManager.AddListener(SceneEvent.OnLoadSceneLate, OnLoadScene, this);
+            sceneManager.AddListener(SceneEvent.OnLoadScene, OnLoadScene, this);
 
             musicPlayer.OnPlaySong += HandlePlayerPlaySong;
         }
 
         // Update is called once per frame
-        void Update()
-        {
         
-        }
 
         async void BeforeLoadScene(ArchSceneManager sceneManager)
         {
+            if (ignoreFadeOut) return;
             await musicPlayer.FadeOut(.1f);
+
+
         }
 
-        void OnLoadScene(ArchSceneManager sceneManager)
+        async void OnLoadScene(ArchSceneManager sceneManager)
         {
+            var setCurrent = await SetCurrentManager(this);
+            if (!setCurrent) return;
             PlaySceneMusic();
         }
 
@@ -66,11 +76,7 @@ namespace Architome
         {
             currentPlaylist = musicPlaylist.CurrentScenePlaylist();
 
-            foreach(var song in currentPlaylist)
-            {
-                var success = await musicPlayer.PlaySong(song, this, .25f);
-                if (!success) return;
-            }
+            await PlayPlaylist(currentPlaylist);
         }
 
 

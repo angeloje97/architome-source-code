@@ -17,10 +17,14 @@ namespace Architome
 
         //Dungeon Properties
         public static int dungeonIndex { get; set; }
-        public static List<Dungeon.Rooms> currentDungeon { get; set; }
+        public static List<Dungeon.Rooms> currentDungeon { get; private set; }
+
+        public static List<DungeonSet> currentDungeonSets { get; private set; }
 
 
         public static Action<GameState> OnSetState;
+
+        
 
         public static void Reset()
         {
@@ -76,6 +80,12 @@ namespace Architome
 
             return savedGames;
         }
-        
+
+        public static void SetDungeon(List<Dungeon.Rooms> dungeonRooms, List<DungeonSet> dungeonSets)
+        {
+            currentDungeon = dungeonRooms;
+            currentDungeonSets = dungeonSets;
+        }
+
     }
 }

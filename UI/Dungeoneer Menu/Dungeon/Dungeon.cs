@@ -66,6 +66,7 @@ namespace Architome
         public Info info;
         //public Rooms rooms;
         public List<Rooms> levels;
+        public List<DungeonSet> dungeonSets;
         public bool highlighted;
         public int skeletonRooms, availableRooms;
 
@@ -156,9 +157,10 @@ namespace Architome
             levels = presetDungeon.levels;
             preset = true;
             dungeonInfo = info;
+
+
             UpdateDungeonInfo();
         }
-
         public void SetHighlight(bool highlighted)
         {
             this.highlighted = highlighted;
@@ -168,7 +170,6 @@ namespace Architome
                 info.border.enabled = highlighted;
             }
         }
-
         int RandomSize()
         {
             if (dungeonInfo.allowedSize.Count == 0) return 1;
@@ -188,7 +189,6 @@ namespace Architome
                 _ => 1
             };
         }
-
         public void FillRooms(DungeonTable.DungeonInfo info, int setIndex, bool randomBoss)
         {
             var originalIndex = setIndex;
@@ -198,9 +198,14 @@ namespace Architome
                 setIndex = info.sets.Count - 1;
             }
 
+
             var rooms = new Rooms();
 
-            rooms.levelName = info.sets[setIndex].dungeonSetName;
+            var currentSet = info.sets[setIndex];
+            rooms.levelName = currentSet.dungeonSetName;
+
+
+
             rooms.levelSeed = RandomGen.RandomString(10);
             rooms.level = info.sets[setIndex].dungeonLevel;
 
@@ -427,12 +432,31 @@ namespace Architome
         {
             info.name.text = LevelNames();
             info.description.text = $"Dungeon Level : {RecommendedLevel()}\nFloors: {levels.Count}";
+            UpdateDungeonSets();
         }
 
         public void UpdateData()
         {
             currentData = new(this, SaveIndex);
 
+        }
+
+        public void UpdateDungeonSets()
+        {
+            dungeonSets = new();
+            if (levels == null) return;
+            if (dungeonInfo == null) return;
+            var lastIndex = 0;
+            for (int i = 0; i < levels.Count; i++)
+            {
+
+                dungeonSets.Add(dungeonInfo.sets[lastIndex]);
+                if (i < dungeonInfo.sets.Count - 1)
+                {
+                    lastIndex++;
+                }
+
+            }
         }
 
         public float RecommendedLevel()

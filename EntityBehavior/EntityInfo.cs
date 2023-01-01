@@ -122,59 +122,6 @@ namespace Architome
 
         ComponentManager components;
 
-        public struct InfoEvents
-        {
-            
-            public Action<List<string>> OnUpdateObjectives;
-            public Action<Quest> OnQuestComplete;
-            public Action<Inventory.LootEventData> OnLootItem { get; set; }
-            public Action<Inventory.LootEventData, List<bool>> OnLootItemCheck { get; set; }
-
-
-            public Action<Inventory.LootEventData> OnLootItemFromWorld { get; set; }
-
-            public Action<ItemInfo, EntityInfo> OnTryEquip { get; set; }
-
-            public Action<EntityInfo, bool, GameObject> OnMouseHover;
-            public Action<EntityInfo, List<bool>> OnIsPlayerCheck { get; set; }
-            public Action<Vector3> OnSignificantMovementChange { get; set; }
-            public Action<EntityRarity, EntityRarity> OnRarityChange { get; set; }
-            public Action<EntityInfo> OnNullPortraitCheck;
-            public Action<Currency, int, List<bool>> OnCanSpendCheck { get; set; }
-            public Action<ItemData, List<bool>> OnCanPickUpCheck { get; set; }
-            public Action<ItemData, List<bool>> OnCanDropCheck { get; set; }
-            public Action<EntityInfo> OnDestroy { get; set; }
-
-            public Action<EntityInfo, Transform> OnCanSeeCheck;
-        }
-
-        public struct CombatEvents
-        {
-            public Action<CombatEventData, bool> OnFixate;
-            public Action<List<EntityState>, List<EntityState>> OnStatesChange;
-            public Action<List<EntityState>, EntityState> OnStateNegated;
-
-            public Action<ThreatManager.ThreatInfo, float> OnGenerateThreat;
-            public Action<EntityInfo, float> OnPingThreat { get; set; }
-            public Action<CombatEventData> OnImmuneDamage;
-            public Action<EntityInfo> OnSummonEntity;
-            public Action<EntityInfo, EntityInfo> OnNewCombatTarget { get; set; }
-            public Action<CombatEventData> BeforeDamageTaken { get; set; }
-            public Action<CombatEventData> BeforeDamageDone { get; set; }
-            public Action<CombatEventData> BeforeHealingTaken { get; set; }
-            public Action<CombatEventData> BeforeHealingDone { get; set; }
-            public Action<EntityInfo, List<bool>> OnCanAttackCheck { get; set; }
-            public Action<EntityInfo, List<bool>> OnCanHelpCheck { get; set; }
-            public Action<List<bool>> OnCanBeAttackedCheck { get; set; }
-            public Action<List<bool>> OnCanBeHelpedCheck { get; set; }
-
-            public Action<CombatEventData> OnKillPlayer { get; set; }
-
-            public Action<ThreatManager.ThreatInfo> OnFirstThreatWithPlayer { get; set; }
-
-            public Action<EntityState> OnAddImmuneState { get; set; }
-            public Action<EntityState> OnRemoveImmuneState { get; set; }
-        }
 
         public struct PartyEvents
         {
@@ -250,6 +197,7 @@ namespace Architome
         private bool isAliveCheck;
         EntityInfo combatTargetCheck;
         private NPCType npcTypeCheck;
+
 
 
         //Private Variables
@@ -388,6 +336,7 @@ namespace Architome
         private void Awake()
         {
             abilityEvents ??= new();
+            infoEvents.Initiate(this);
         }
         void Start()
         {
@@ -828,6 +777,7 @@ namespace Architome
             return false;
         }
 
+        
         public bool SetCombatTarget(EntityInfo target)
         {
             this.combatTarget = target;
@@ -1229,6 +1179,9 @@ namespace Architome
             }
             return true;
         }
+
+        
+
         public bool IsPlayer()
         {
 

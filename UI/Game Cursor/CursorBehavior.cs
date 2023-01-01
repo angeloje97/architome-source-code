@@ -100,7 +100,7 @@ namespace Architome
             float ySpot = texture.height / 4f;
             Vector2 hotSpot = new (xSpot, ySpot);
 
-            Cursor.SetCursor(texture, hotSpot, CursorMode.ForceSoftware);
+            Cursor.SetCursor(texture, hotSpot, CursorMode.Auto);
         }
 
         

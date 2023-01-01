@@ -22,6 +22,10 @@ namespace Architome
         public Dictionary<BodyPart, Transform> partDict;
         public Sprite characterIcon;
 
+        ArchitomeCharacter archCharacter;
+        [SerializeField] bool isMale;
+        [SerializeField] bool isFemale;
+
         //public GameObject rightHand;
         //public GameObject rightThumb;
         //public GameObject leftHand;
@@ -31,6 +35,8 @@ namespace Architome
         //public GameObject hipsAttachment;
         //public GameObject backAttachment;
         //public GameObject capeAttachment;
+
+        
 
         private void OnValidate()
         {
@@ -47,6 +53,11 @@ namespace Architome
                 {
                     partPairs.Add(new() { part = part });
                 }
+            }
+
+            if(isMale && isFemale)
+            {
+                isFemale = false;
             }
         }
 
@@ -74,6 +85,8 @@ namespace Architome
         void GetDepedencies()
         {
             entity = GetComponentInParent<EntityInfo>();
+            archCharacter = GetComponent<ArchitomeCharacter>();
+
             
             if(entity)
             {
@@ -83,9 +96,36 @@ namespace Architome
                         info.SetPortrait(characterIcon);
                     };
                 }
+
+                entity.infoEvents.AddOneTrue(InfoEvents.EventType.IsFemaleCheck, HandleFemaleCheck);
+                entity.infoEvents.AddOneTrue(InfoEvents.EventType.IsMaleCheck, HandleMaleCheck);
             }
 
             catalystHandler = new(this);
+        }
+
+        void HandleFemaleCheck(EntityInfo entity, object data, List<bool> checks)
+        {
+            if (archCharacter)
+            {
+                if (archCharacter.isFemale)
+                {
+                    checks.Add(true);
+                    return;
+                }
+            }
+
+            if (isFemale) checks.Add(true);
+        }
+        void HandleMaleCheck(EntityInfo entity, object data, List<bool> checks)
+        {
+            if(archCharacter && archCharacter.isMale)
+            {
+                checks.Add(true);
+                return;
+            }
+
+            if(isMale) checks.Add(true);
         }
 
         public VectorBodyPart GetPair(BodyPart check)

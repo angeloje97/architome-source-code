@@ -25,7 +25,11 @@ namespace Architome
 
             BossRoom();
 
-            originalPosition = bossRoom.bossPosition;
+            if (bossRoom)
+            {
+                originalPosition = bossRoom.bossPosition;
+            }
+
 
             if (entityInfo)
             {

@@ -33,5 +33,6 @@ namespace Architome
         public Sprite background;
         public List<RoomInfo> rooms, entrances, bosses, main, sides;
 
+        public MusicPlaylist dungeonPlaylist;
     }
 }

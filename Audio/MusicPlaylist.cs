@@ -17,7 +17,17 @@ namespace Architome
             public bool shuffle;
         }
 
+        [Serializable]
+        public class DungeonPlaylist
+        {
+            public List<AudioClip> songs;
+            public bool shuffle;
+        }
+
         public List<ScenePlaylist> scenePlaylists;
+
+        public DungeonPlaylist dungeonPlaylist;
+
 
         public List<AudioClip> CurrentScenePlaylist()
         {
@@ -45,6 +55,16 @@ namespace Architome
            
 
             return playlist;
+        }
+
+        public List<AudioClip> DungeonSongs()
+        {
+            if (dungeonPlaylist != null && dungeonPlaylist.songs != null)
+            {
+                return dungeonPlaylist.shuffle ? ArchGeneric.Shuffle(dungeonPlaylist.songs) : dungeonPlaylist.songs;
+            }
+
+            return new();
         }
 
     }

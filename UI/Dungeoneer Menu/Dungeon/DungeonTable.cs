@@ -126,7 +126,8 @@ namespace Architome
 
             if (selectedDungeon)
             {
-                Core.currentDungeon = selectedDungeon.levels;
+
+                Core.SetDungeon(selectedDungeon.levels, selectedDungeon.dungeonSets);
 
                 currentSave.currentDungeon = currentSave.savedDungeons[selectedDungeon.SaveIndex];
             }

@@ -79,6 +79,8 @@ public class BuffInfo : MonoBehaviour
     public CleanseConditions cleanseConditions;
     public UISettings settings;
 
+
+
     [Serializable]
     public struct CleanseConditions {
         public bool enterCombat, exitCombat, damageTaken, isMoving;

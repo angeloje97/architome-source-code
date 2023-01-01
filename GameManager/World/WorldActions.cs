@@ -25,14 +25,25 @@ namespace Architome
         public bool damage;
         public bool forceLoadScene;
         public bool completeAllQuests;
+        public bool forceNextLevel;
         private void Update()
         {
             if (!devToolsActive) return;
             HandleLoadScene();
             HandleCompleteQuests();
             HandleAllPlayableEntities();
+            HandleForceNextLevel();
         }
 
+
+        void HandleForceNextLevel()
+        {
+            if (!forceNextLevel) return;
+            forceNextLevel = false;
+
+            var playableEntitiesManager = PlayableEntitiesManager.active;
+            if (playableEntitiesManager) playableEntitiesManager.NextLevel();
+        }
         void HandleAllPlayableEntities()
         {
             if (!affectAllPlayableEntities) return;

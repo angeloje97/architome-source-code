@@ -4,6 +4,7 @@ using UnityEngine;
 using System.Threading.Tasks;
 using System.Linq;
 using Architome.Enums;
+using static UnityEditor.Progress;
 
 namespace Architome
 {
@@ -177,6 +178,22 @@ namespace Architome
 
         }
 
+        public void NextLevel()
+        {
+            if (!LastLevel())
+            {
+                Core.dungeonIndex++;
+                sceneManager.LoadScene(ArchScene.Dungeon, 0, true);
+                HandleAutoSave();
+            }
+            else
+            {
+                sceneManager.LoadScene(ArchScene.PostDungeon);
+                HandleAutoSave();
+            }
+                
+        }
+
         void HandlePortals()
         {
             var mapRoomGenerator = MapRoomGenerator.active;
@@ -326,19 +343,6 @@ namespace Architome
 
             HandleMoveOutOfPortal(entryPortal);
 
-            //async void HandleEntitiesSuspension()
-            //{
-            //    while (!portalFound)
-            //    {
-            //        if (!this) return;
-            //        foreach(var entity in party.members)
-            //        {
-            //            entity.transform.localPosition = new Vector3();
-            //            party.transform.position = new Vector3();
-            //        }
-            //        await Task.Yield();
-            //    }
-            //}
 
         }
         void BeforeSave(SaveSystem system, SaveGame save)
