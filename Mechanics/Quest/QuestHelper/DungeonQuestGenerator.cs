@@ -4,11 +4,13 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
+using System;
 
 namespace Architome
 {
     public class DungeonQuestGenerator : MonoBehaviour
     {
+        public static DungeonQuestGenerator active { get; set; }
         MapInfo map;
         public GameObject questPrefab;
         public bool generateForcesKilled;
@@ -16,6 +18,13 @@ namespace Architome
 
         public Quest questGenerated;
         ArchSceneManager sceneManager;
+
+        public Action<Quest> OnGenerateQuest;
+
+        private void Awake()
+        {
+            active = this;
+        }
 
         void Start()
         {
@@ -143,8 +152,10 @@ namespace Architome
             dungeonQuest.rewards.experience = experience;
             dungeonQuest.questName = QuestName();
 
-            ArchAction.Yield(() => dungeonQuest.Activate());
-            //dungeonQuest.Activate();
+            ArchAction.Yield(() => { 
+                dungeonQuest.Activate();
+                OnGenerateQuest?.Invoke(dungeonQuest);
+            });
 
 
 

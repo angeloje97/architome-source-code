@@ -27,11 +27,14 @@ namespace Architome
         public Action<List<string>> OnUpdateObjectives;
         public Action<Quest> OnQuestComplete;
         public Action<Inventory.LootEventData> OnLootItem { get; set; }
+
+        public Action<EntityInfo, Consumable> OnConsumeStart, OnConsumeEnd, OnConsumeComplete;
+
         public Action<Inventory.LootEventData, List<bool>> OnLootItemCheck { get; set; }
         public Action<Inventory.LootEventData> OnLootItemFromWorld { get; set; }
         public Action<ItemInfo, EntityInfo> OnTryEquip { get; set; }
 
-        public Action<EntityInfo, bool, GameObject> OnMouseHover;
+        public Action<EntityInfo, bool, GameObject> OnMouseHover { get; set; }
         public Action<EntityInfo, List<bool>> OnIsPlayerCheck { get; set; }
         public Action<Vector3> OnSignificantMovementChange { get; set; }
         public Action<EntityRarity, EntityRarity> OnRarityChange { get; set; }

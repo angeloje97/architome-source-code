@@ -63,6 +63,7 @@ namespace Architome
         public Action<List<ItemData>> OnCurrenciesChange { get; set; }
 
         public Action<Currency, int, List<bool>> OnCanSpendCheck { get; set; }
+        public Action<Currency, int, List<bool>> OnOutSourceSpendCheck { get; set; }
 
         [Serializable]
         public struct States
@@ -236,6 +237,24 @@ namespace Architome
 
         }
 
+        public int CurrencyIndex(Currency currency)
+        {
+            var currencies = guildInfo.currencies;
+
+            if (currencies != null)
+            {
+                for(int i = 0; i < currencies.Count; i++)
+                {
+                    if (currencies[i].item.Equals(currency))
+                    {
+                        return i;
+                    }
+                }
+            }
+
+            return -1;
+        }
+
         public void GainCurrency(Currency currency, int amount)
         {
             guildInfo.currencies ??= new();
@@ -262,42 +281,47 @@ namespace Architome
 
         }
 
-        public bool SpendCurrency(Currency currency, int amount)
+        public bool CanSpend(Currency currency, int amount)
         {
-            guildInfo.currencies ??= new();
+            var currencyIndex = CurrencyIndex(currency);
+            if (currencyIndex == -1) return false;
+            if (guildInfo.currencies[currencyIndex].amount < amount) return false;
+
+
+            return true;
+        }
+
+        public bool OutSourceSpends(Currency currency, int amount)
+        {
             var checks = new List<bool>();
 
-            OnCanSpendCheck?.Invoke(currency, amount, checks);
+            OnOutSourceSpendCheck?.Invoke(currency, amount, checks);
 
             foreach(var check in checks)
             {
-                if (check)
-                {
-                    return true;
-                }
+                if (check) return true;
             }
 
-            var success = HandleCurrency();
+            return false;
+        }
 
+        public bool SpendCurrency(Currency currency, int amount)
+        {
+            var currencies = guildInfo.currencies;
+
+            if (OutSourceSpends(currency, amount)) return true;
+            if (currencies == null) return false;
+            var currencyIndex = CurrencyIndex(currency);
+            if (currencyIndex == -1) return false;
+
+            if (currencies[currencyIndex].amount < amount) return false;
+
+            currencies[currencyIndex].amount -= amount;
             ArchAction.Yield(() => OnCurrenciesChange?.Invoke(guildInfo.currencies));
 
-            return success;
+            return true;
+            
 
-            bool HandleCurrency()
-            {
-                foreach (var guildCurrency in guildInfo.currencies)
-                {
-                    if (!guildCurrency.item.Equals(currency)) continue;
-                    if (guildCurrency.amount < amount) continue;
-
-
-                    guildCurrency.amount -= amount;
-                    return true;
-                }
-
-                return false;
-
-            }
         }
         public bool HasCurrency(Currency currency, int amount)
         {
@@ -408,12 +432,25 @@ namespace Architome
 
             states.choosingCardAction = true;
 
-            var firstChoice = InParty(entity) ? "Remove from party" : "Add to party";
+            ContextMenu.OptionData firstChoice = InParty(entity) ?
+                new("Remove from party", (data) => {
+                    slotMap[entity].entity = null;
+                }) : 
+                new("Add to party", (data) => {
+                    var slot = FirstAvailablePartySlot(entity.role);
+                    slot.entity = entity;
+                });
 
-            var choices = new List<string>()
+
+            var choices = new List<ContextMenu.OptionData>()
             {
                 firstChoice,
-                "Equipment",
+                new("Equipment", (data) => {
+                    if (equipmentModule == null) return;
+                    equipmentModule.SelectEntity(entity);
+                    equipmentModule.SetActive(true);
+
+                }),
             };
 
             var response = await ContextMenu.current.UserChoice(new()
@@ -428,40 +465,10 @@ namespace Architome
 
             if (userOption == -1) return;
 
-            HandleAddToParty();
-            HandleRemoveFromParty();
-            HandleEquipment();
+            //HandleAddToParty();
+            //HandleRemoveFromParty();
+            //HandleEquipment();
             UpdatePartyManager(true);
-
-            
-
-            void HandleAddToParty()
-            {
-                if (response.stringValue != "Add to party") return;
-
-                var slot = FirstAvailablePartySlot(entity.role);
-
-                slot.entity = entity;
-
-                //RosterToParty(slot, card);
-            }
-
-            void HandleRemoveFromParty()
-            {
-                if (response.stringValue != "Remove from party") return;
-
-                slotMap[entity].entity = null;
-            }
-
-            void HandleEquipment()
-            {
-                if (response.stringValue != "Equipment") return;
-                if (equipmentModule == null) return;
-
-                equipmentModule.SelectEntity(entity);
-                equipmentModule.SetActive(true);
-
-            }
         }
 
         public void OnPartySlotSelect(EntitySlot slot)

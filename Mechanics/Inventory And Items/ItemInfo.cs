@@ -8,8 +8,6 @@ using TMPro;
 using System;
 using Architome;
 using Architome.Enums;
-
-[RequireComponent(typeof(ItemToolTipHandler))]
 public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, IDropHandler
 {
     public Item item;
@@ -43,8 +41,7 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
     public ItemFXHandler fxHandler;
 
-    ToolTip toolTip;
-
+    #region Events
     public Action<InventorySlot> OnNewSlot { get; set; }
     public Action<ItemInfo> OnUpdate { get; set; }
     public Action<ItemInfo> OnItemAction { get; set; }
@@ -53,42 +50,13 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
     public Action<ItemInfo, UseData> OnUse { get; set; }
     public Action<ItemInfo, bool> OnDragChange {get; set;}
     public Action<ItemInfo, bool> OnEquipChange {get; set;}
-
     public Action<ItemInfo, EntityInfo> OnPickUp { get; set; }
+    public Action<ItemInfo, ToolTipElement> BeforeShowItemToolTip { get; set; }
+
+    #endregion
 
     bool isDestroyed;
 
-    //3d World Trigger
-    private void OnTriggerEnter(Collider other)
-    {
-        HandlePickUp(other.gameObject);
-    }
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        HandlePickUp(collision.gameObject);
-    }
-
-    void HandlePickUp(GameObject other)
-    {
-        if (isUI) return;
-        if (blockLooting) return;
-        var entity = other.GetComponent<EntityInfo>();
-        if (entity == null) return;
-        if (!Entity.IsPlayer(entity.gameObject)) return;
-        if (!entity.CanPickUp(new(this))) return;
-
-        var success = entity.LootItem(this, true);
-
-        entityPickedUp = entity;
-        pickedUp = true;
-        DestroySelf();
-
-        //if (success)
-        //{
-            
-        //}
-    }
 
     void Start()
     {
@@ -104,6 +72,7 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
             ManifestItem(new() { item = item, amount = currentStacks }, true);
         }
 
+        HandleToolTipElement();
     }
 
     async public void ThrowRandomly()
@@ -173,7 +142,18 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
         UpdateItemInfo();
     }
+    void HandleToolTipElement()
+    {
+        var toolTipElement = GetComponent<ToolTipElement>();
 
+        if (toolTipElement)
+        {
+            toolTipElement.BeforeShowToolTip += (ToolTipElement element) => {
+                element.data = item.ToolTipData(currentStacks);
+                BeforeShowItemToolTip?.Invoke(this, element);
+            };
+        }
+    }
     void HandleEvents()
     {
         if (item.effects == null) return;
@@ -197,8 +177,58 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
             else item.fxHandler.HandleItemFX(item, ItemEvent.OnUnequip);
         };
     }
+    #region 3d World Trigger
+    private void OnTriggerEnter(Collider other)
+    {
+        HandlePickUp(other.gameObject);
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        HandlePickUp(collision.gameObject);
+    }
+
+    void HandlePickUp(GameObject other)
+    {
+        if (isUI) return;
+        if (blockLooting) return;
+        var entity = other.GetComponent<EntityInfo>();
+        if (entity == null) return;
+        if (!Entity.IsPlayer(entity.gameObject)) return;
+        if (!entity.CanPickUp(new(this))) return;
+
+        var success = entity.LootItem(this, true);
+
+        entityPickedUp = entity;
+        pickedUp = true;
+        DestroySelf();
+
+        //if (success)
+        //{
+
+        //}
+    }
+    #endregion
+
+    #region Event System
+    bool disableMove;
+    DragAndDrop dragAndDrop;
+    public void SetMovable(bool movable)
+    {
+        if(dragAndDrop == null)
+        {
+            dragAndDrop = GetComponent<DragAndDrop>();
+
+            if (!dragAndDrop) return;
+        }
+
+        disableMove = !movable;
+
+        dragAndDrop.enabled = movable;
+    }
     public void OnPointerUp(PointerEventData eventData)
     {
+        if (disableMove) return;
         ReturnToSlot();
         if (moduleHover != null || currentSlotHover != null) return;
 
@@ -206,32 +236,10 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         {
             currentSlot.itemSlotHandler.NullHover(this);
         }
-
-
-        //var gameState = GameManager.active.GameState;
-        //ArchAction.Yield(() => ReturnToSlot());
-
-        //HandleWorld();
-        //HandleLobby();
-
-        //void HandleWorld()
-        //{
-        //    if (gameState != GameState.Play) return;
-            
-        //}
-
-        //async void HandleLobby()
-        //{
-        //    if (gameState != GameState.Lobby) return;
-
-        //    await SafeDestroy();
-        //}
-
-        
-        
     }
     public void OnPointerDown(PointerEventData eventData)
     {
+        if (disableMove) return;
         if(isUI == false) { return; }
 
         var module = GetComponentInParent<ModuleInfo>();
@@ -258,6 +266,18 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         moduleHover = module;
 
     }
+    public void OnDrop(PointerEventData eventData)
+    {
+        if (disableMove) return;
+        var dragging = eventData.pointerDrag;
+        if (dragging == null) return;
+        var itemInfo = dragging.GetComponent<ItemInfo>();
+        if (itemInfo == null) return;
+
+        itemInfo.HandleItem(this);
+       
+    }
+    #endregion
 
     public void ManifestItem(ItemData data, bool cloned)
     {
@@ -478,17 +498,6 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
             item.HandleNewSlot(currentSlot);
         }
     }
-    public void OnDrop(PointerEventData eventData)
-    {
-
-        var dragging = eventData.pointerDrag;
-        if (dragging == null) return;
-        var itemInfo = dragging.GetComponent<ItemInfo>();
-        if (itemInfo == null) return;
-
-        itemInfo.HandleItem(this);
-       
-    }
     public int IncreaseStacks(int amount = 1)
     {
         currentStacks = item.NewStacks(currentStacks, amount, out int leftover);
@@ -561,11 +570,6 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         }
 
         ArchAction.Yield(() => {
-
-            if (toolTip)
-            {
-                toolTip.DestroySelf();
-            }
             Destroy(gameObject); 
         });
     }
@@ -643,7 +647,7 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
         if (itemPrefab == null) return null;
 
-        var newItem = Instantiate(itemPrefab).GetComponent<ItemInfo>();
+        var newItem = Instantiate(itemPrefab);
 
         ReduceStacks(amount);
         newItem.ManifestItem(new() { item = item, amount = amount }, true);
@@ -653,6 +657,7 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
     public void ActivateAction()
     {
         OnItemAction?.Invoke(this);
+        Debugger.UI(0142, $"User right clicked {this}");
 
         if (currentSlot && currentSlot.itemSlotHandler)
         {
@@ -664,7 +669,7 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         item.Use(data);
         OnUse?.Invoke(this, data);
     }
-    public bool InsertIntoSlots(List<InventorySlot> slots)
+    public bool InsertIntoSlots(List<InventorySlot> slots, bool destroyFail = false)
     {
         var items = new List<ItemInfo>();
         var availableSlots = new List<InventorySlot>();
@@ -696,7 +701,14 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
 
         if (currentStacks == 0) return true;
-        if (availableSlots.Count == 0) return false;
+        if (availableSlots.Count == 0)
+        {
+            if (destroyFail)
+            {
+                DestroySelf();
+            }
+            return false;
+        }
 
         HandleNewSlot(availableSlots[0]);
 

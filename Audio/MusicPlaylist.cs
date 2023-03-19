@@ -10,61 +10,91 @@ namespace Architome
     public class MusicPlaylist : ScriptableObject
     {
         [Serializable]
-        public class ScenePlaylist
+        public class Playlist
         {
-            public ArchScene scene;
             public List<AudioClip> songs;
             public bool shuffle;
+
+            public List<AudioClip> songList
+            {
+                get
+                {
+                    return shuffle ? ArchGeneric.Shuffle(songs) : songs;
+                }
+            }
+        }
+        [Serializable]
+        public class ScenePlaylist: Playlist
+        {
+            public ArchScene scene;
         }
 
         [Serializable]
-        public class DungeonPlaylist
+        public class BossPlaylist: Playlist
         {
-            public List<AudioClip> songs;
-            public bool shuffle;
+            public AudioClip combatEnd;
+            
         }
+
 
         public List<ScenePlaylist> scenePlaylists;
+        public Playlist dungeonPlaylist;
+        public BossPlaylist bossPlaylist;
 
-        public DungeonPlaylist dungeonPlaylist;
 
 
-        public List<AudioClip> CurrentScenePlaylist()
+        public List<AudioClip> CurrentScenePlaylist
         {
-            var playlist = new List<AudioClip>();
-
-            var sceneManager = ArchSceneManager.active;
-            if (sceneManager == null) return playlist;
-            var currentScene = sceneManager.sceneToLoad;
-
-            if (currentScene == null) return playlist;
-
-
-
-            foreach(var scenePlaylist in scenePlaylists)
+            get
             {
-                if(scenePlaylist.scene == currentScene.scene)
+
+                var playlist = new List<AudioClip>();
+
+                var sceneManager = ArchSceneManager.active;
+                if (sceneManager == null) return playlist;
+                var currentScene = sceneManager.sceneToLoad;
+
+                if (currentScene == null) return playlist;
+
+
+
+                foreach(var scenePlaylist in scenePlaylists)
                 {
-                    if (scenePlaylist.shuffle)
+                    if(scenePlaylist.scene == currentScene.scene)
                     {
-                        return ArchGeneric.Shuffle(scenePlaylist.songs);
+                        return  scenePlaylist.songList;
                     }
-                    return scenePlaylist.songs;
                 }
-            }
            
 
-            return playlist;
+                return playlist;
+            }
         }
 
-        public List<AudioClip> DungeonSongs()
+        public List<AudioClip> DungeonSongs
         {
-            if (dungeonPlaylist != null && dungeonPlaylist.songs != null)
+            get
             {
-                return dungeonPlaylist.shuffle ? ArchGeneric.Shuffle(dungeonPlaylist.songs) : dungeonPlaylist.songs;
-            }
 
-            return new();
+                if (dungeonPlaylist != null && dungeonPlaylist.songs != null)
+                {
+                    return dungeonPlaylist.songList;
+                }
+
+                return new();
+            }
+        }
+
+        public List<AudioClip> BossSongs
+        {
+            get
+            {
+                if(bossPlaylist != null && bossPlaylist.songs != null)
+                {
+                    return bossPlaylist.songList;
+                }
+                return new();
+            }
         }
 
     }

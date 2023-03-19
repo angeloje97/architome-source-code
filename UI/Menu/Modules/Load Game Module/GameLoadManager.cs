@@ -4,6 +4,7 @@ using UnityEngine;
 using System;
 using Architome.Enums;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Architome
 {
@@ -225,13 +226,44 @@ namespace Architome
                 slot.SetStatus(slot.saveGame == selectedSave);
             }
         }
-        public void LoadGame()
+        public async void LoadGame()
         {
+            if (!selectedSave.build.Equals(Application.version))
+            {
+                var confirmLoad = await ConfirmLoadOutdated(selectedSave.build);
+
+                if (!confirmLoad) return;
+            }
+
             Core.SetSave(selectedSave);
 
             ArchSceneManager.active.LoadScene(ArchScene.DungeoneerMenu);
             //SceneManager.LoadScene(selectedSave.currentSceneName);
         }
+
+        async Task<bool> ConfirmLoadOutdated(string saveVersion)
+        {
+            var promptHandler = PromptHandler.active;
+
+            var load = true;
+            if (promptHandler == null) return load;
+
+            await promptHandler.GeneralPrompt(new() {
+                title = "Outdated Save",
+                question = $"Are you sure you want to load a save with version {saveVersion} when the current version is {Application.version}?",
+                options = new()
+                {
+                    new("Load Anyways"),
+                    new("Cancel", (OptionData data) => { load = false; })
+                    {
+                        isEscape = true,
+                    }
+                }
+            });
+
+            return load;
+        }
+
         
 
     }

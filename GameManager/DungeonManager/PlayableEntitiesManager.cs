@@ -4,7 +4,6 @@ using UnityEngine;
 using System.Threading.Tasks;
 using System.Linq;
 using Architome.Enums;
-using static UnityEditor.Progress;
 
 namespace Architome
 {
@@ -415,10 +414,6 @@ namespace Architome
             }
 
 
-            //foreach (var entity in party.GetComponentsInChildren<EntityInfo>())
-            //{
-            //    Core.currentSave.SaveEntity(entity);
-            //}
         }
 
         public List<InventorySlot> AvailableInventorySlots()

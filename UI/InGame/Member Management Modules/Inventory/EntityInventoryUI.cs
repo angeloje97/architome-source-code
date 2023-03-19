@@ -315,7 +315,7 @@ namespace Architome
         {
             var itemPrefab = World.active.prefabsUI.item;
 
-            var newItem = Instantiate(itemPrefab, transform).GetComponent<ItemInfo>();
+            var newItem = Instantiate(itemPrefab, transform);
             newItem.ManifestItem(data, true);
 
             //var newItem = module.CreateItem(data, true);
@@ -358,10 +358,12 @@ namespace Architome
 
             var gameState = GameManager.active ? GameManager.active.GameState : GameState.Lobby;
 
-            var options = new List<string>();
+            var options = new List<ContextMenu.OptionData>();
         
             UpdateOptions();
-            options.Add("Destroy");
+            options.Add(new("Destroy", async (data) => {
+                await info.SafeDestroy();
+            }));
             var name = info.item.itemName;
 
             var response = await contextMenu.UserChoice(new()
@@ -375,102 +377,63 @@ namespace Architome
 
             if (choice < 0 || choice >= options.Count) return;
 
-
-            HandleDestroy();
-            HandleEquip();
-            HandleUse();
-            HandleSplit();
-            HandleSplitInHalf();
-            HandleVaultItem();
-
             void UpdateOptions()
             {
                 if (info.currentStacks > 1)
                 {
-                    options.Insert(0, "Split in Half");
-                    options.Insert(0, "Split");
+                    options.Insert(0, new("Split in Half", (data) => {
+                        var availableSlot = FirstAvailableSlot();
+                        if (availableSlot == null) return;
+
+                        var newItem = info.SplitHalf();
+
+                        if (newItem == null) return;
+
+                        newItem.HandleNewSlot(availableSlot);
+                    }));
+                    options.Insert(0, new("Split", async(data) => {
+                        var availableSlot = FirstAvailableSlot();
+
+                        if (availableSlot == null) return;
+
+                        var newItem = await info.HandleSplit();
+
+                        if (newItem == null) return;
+
+                        newItem.HandleNewSlot(availableSlot);
+                    }));
                 }
 
                 if (Item.Equipable(info.item))
                 {
-                    options.Insert(0, "Equip");
+                    options.Insert(0, new("Equip", (data) => {
+                        if (entityCharacter == null) return;
+                        entityInfo.infoEvents.OnTryEquip?.Invoke(info, entityInfo);
+                    }));
                 }
 
                 if (Item.Useable(info.item) && gameState == GameState.Play)
                 {
-                    options.Insert(0, "Use");
+                    options.Insert(0, new("Use", (data) => {
+                        if (entityCharacter == null) return;
+                        info.Use(new()
+                        {
+                            itemInfo = info,
+                            entityUsed = entityInfo
+                        });
+                    }));
                 }
 
                 if (gameState == GameState.Lobby)
                 {
-                    options.Add("Store in Vault");
+                    options.Add(new("Store in Vault", (data) => {
+                        Debugger.UI(8718, $"Trying to store {info} in vault");
+
+                        var guildVault = GuildVault.active;
+
+                        guildVault.VaultItem(info);
+                    }));
                 }
-
-            }
-
-            async void HandleDestroy()
-            {
-                if (response.stringValue != "Destroy") return;
-
-                 await info.SafeDestroy();
-            }
-
-            void HandleEquip()
-            {
-                if (options[choice] != "Equip") return;
-                if (entityCharacter == null) return;
-
-                entityInfo.infoEvents.OnTryEquip?.Invoke(info, entityInfo);
-
-                //entityCharacter.modules.gearModule.EquipItem(info, entityInfo);
-            }
-
-            async void  HandleSplit()
-            {
-                if (options[choice] != "Split") return;
-                var availableSlot = FirstAvailableSlot();
-
-                if(availableSlot == null) return;
-
-                var newItem =  await info.HandleSplit();
-
-                if (newItem == null) return;
-
-                newItem.HandleNewSlot(availableSlot);
-            }
-
-            void HandleSplitInHalf()
-            {
-                if (options[choice] != "Split in Half") return;
-                var availableSlot = FirstAvailableSlot();
-                if(availableSlot == null) return;
-
-                var newItem = info.SplitHalf();
-
-                if (newItem == null) return;
-
-                newItem.HandleNewSlot(availableSlot);
-            }
-
-            void HandleUse()
-            {
-                if (options[choice] != "Use") return;
-                if (entityCharacter == null) return;
-                info.Use(new() {
-                    itemInfo = info,
-                    entityUsed = entityInfo
-                });
-            }
-
-            void HandleVaultItem()
-            {
-                if (response.stringValue != "Store in Vault") return;
-
-                Debugger.UI(8718, $"Trying to store {info} in vault");
-
-                var guildVault = GuildVault.active;
-
-                guildVault.VaultItem(info);
             }
         }
 

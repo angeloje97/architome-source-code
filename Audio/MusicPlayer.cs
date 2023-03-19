@@ -1,4 +1,3 @@
-using DungeonArchitect;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -21,11 +20,16 @@ namespace Architome
         public static MusicPlayer active;
 
         public MusicPlayerState currentState;
+        public MusicPlayerState tempState;
+        
 
         public AudioManager audioManager;
+        public AudioSource tempAudioSource;
         public AudioSource currentSource;
 
         public bool isPlaying;
+        public bool playingTemp;
+
 
         public Action<AudioSource, MonoBehaviour> OnPlaySong;
 
@@ -39,11 +43,12 @@ namespace Architome
 
             active = this;
             currentState = MusicPlayerState.NotPlaying;
-            ArchGeneric.DontDestroyOnLoad(gameObject);
+            tempState = MusicPlayerState.NotPlaying;
         }
 
         void Start()
         {
+            if(active != this) return;
             ArchGeneric.DontDestroyOnLoad(gameObject);
             GetDependencies();
         }
@@ -63,22 +68,32 @@ namespace Architome
             float current = 0f;
 
             currentState = MusicPlayerState.FadingOut;
-            while(current < time)
+            while (current < time)
             {
                 await Task.Yield();
                 current += Time.deltaTime;
 
                 var lerpPercent = current / time;
 
+                if (currentSource == null)
+                {
+                    currentState = MusicPlayerState.NotPlaying;
+                    isPlaying = false;
+                    return;
+                }
                 currentSource.volume = Mathf.Lerp(startVolume, targetVolume, lerpPercent);
             }
 
             currentSource.volume = 0f;
             currentState = MusicPlayerState.NotPlaying;
             currentSource.Stop();
-            currentState = MusicPlayerState.NotPlaying;
             isPlaying = false;
         }
+
+
+        
+
+
 
         public async Task<AudioSource> FadeIn(AudioClip clip, float time, float targetVolume = 1f)
         {
@@ -107,10 +122,62 @@ namespace Architome
             
         }
 
+        public async Task PlayTemp(AudioClip clip, Predicate<object> continueCondition, float volume = 1f )
+        {
+
+            tempAudioSource = audioManager.PlaySound(clip, volume);
+            _ = FadeOut(.10f);
+
+            playingTemp = true;
+
+            tempState = MusicPlayerState.Playing;
+
+            while (true)
+            {
+                await Task.Delay(250);
+
+
+                var canContinue = continueCondition(null);
+
+                Debugger.Environment(5014, $"Temp Music Can Continue: {canContinue}");
+
+
+                if (!canContinue) break;
+
+                if (!tempAudioSource.isPlaying) break;
+            }
+
+            tempState = MusicPlayerState.FadingOut;
+
+            if (tempAudioSource && tempAudioSource.isPlaying)
+            {
+                var targetVolume = 0f;
+                var startingVolume = tempAudioSource.volume;
+                var startTime = 0f;
+                var totalTime = .25f;
+
+                while(startTime < totalTime)
+                {
+                    await Task.Yield();
+                    startTime += Time.deltaTime;
+
+                    tempAudioSource.volume = Mathf.Lerp(startingVolume, targetVolume, startTime / totalTime);
+                }
+            }
+
+            playingTemp = false;
+            tempState = MusicPlayerState.NotPlaying;
+
+        }
+
         public async Task<bool> PlaySong<T>(AudioClip audioClip, T caller, float transitionTime, float targetVolume) where T: MonoBehaviour
         {
             await FadeOut(transitionTime);
 
+            while (playingTemp)
+            {
+                await Task.Delay(500);
+            }
 
             currentSource = await FadeIn(audioClip, 0f, targetVolume);
             OnPlaySong?.Invoke(currentSource, caller);
@@ -119,6 +186,7 @@ namespace Architome
             {
                 await Task.Delay(500);
 
+                if (playingTemp) return true;
                 if (!isPlaying) return false;
             }
 

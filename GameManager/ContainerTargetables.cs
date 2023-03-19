@@ -230,13 +230,6 @@ namespace Architome
                     Hover(entity);
 
                     return true;
-                    //if (result)
-                    //{
-                    //    if (!Player.HasLineOfSight(result.gameObject)) { return false; }
-                    //    Hover(result.gameObject);
-
-                    //    return true;
-                    //}
                 }
 
 

@@ -5,9 +5,9 @@ using System.Reflection;
 using System;
 using UnityEngine.UI;
 using Architome.Enums;
+using Architome.History;
 using Architome.Serialization;
 using UnityEngine.SceneManagement;
-
 namespace Architome
 {
     [Serializable]
@@ -28,6 +28,7 @@ namespace Architome
 
         public GameSettingsData gameSettings;
         public World.Time worldTime;
+        public SaveHistory history;
 
         public GuildData guildData;
         public List<EntityData> savedEntities;
@@ -91,13 +92,6 @@ namespace Architome
                 savedDungeons[dungeon.SaveIndex] = new(dungeon, dungeon.SaveIndex);
             }
         }
-
-        //public void SaveNewDungeon(Dungeon dungeon)
-        //{
-        //    savedDungeons ??= new();
-        //    var data = new DungeonData(dungeon, dungeon.SaveIndex);
-        //    savedDungeons.Add(data);
-        //}
 
         public SaveGame()
         {
@@ -177,6 +171,12 @@ namespace Architome
             }
         }
 
+
+        public void OnSetSave()
+        {
+            history ??= new();
+            history.SetActiveSingleTon();
+        }
 
     }
 

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
+using JetBrains.Annotations;
 
 namespace Architome
 {
@@ -90,8 +91,9 @@ namespace Architome
         {
             base.AdjustValue();
 
-
-            value = itemLevel * LevelRequired * (int) rarity;
+            int minLevel = LevelRequired > 0 ? LevelRequired : 1;
+            int minIlevel = itemLevel > 0 ? itemLevel : 1;
+            value = minIlevel * minLevel * (int) rarity;
             
         }
 

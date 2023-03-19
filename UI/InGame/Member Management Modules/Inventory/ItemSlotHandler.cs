@@ -16,7 +16,7 @@ namespace Architome
         public event Action<ItemEventData> OnChangeItem;
         public ItemFXHandler fxHandler;
         public Action<bool> OnActiveChange;
-        public Action<ItemInfo> OnItemAction;
+        public Action<ItemInfo> OnItemAction { get; set; }
         public Action<ItemInfo> OnNullHover;
         public Action<InventorySlot, ItemInfo, string> OnCantInsertToSlot { get; set; }
         public Action<InventorySlot, ItemInfo, List<bool>> OnCanInsertToSlotCheck { get; set; }

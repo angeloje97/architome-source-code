@@ -4,6 +4,8 @@ using UnityEngine;
 using System;
 using Architome;
 using System.Threading.Tasks;
+using UnityEngine.Events;
+
 public class MapEntityGenerator : MonoBehaviour
 {
     public static MapEntityGenerator active;
@@ -20,22 +22,10 @@ public class MapEntityGenerator : MonoBehaviour
     public int entitiesSpawned;
     public int expectedEntities;
     public int targetYield;
-    //[Serializable] public class PatrolGroup
-    //{
-    //    public List<GameObject> entityMembers;
-    //}
-    
-    //[Header("Entity Properties")]
-    //public List<GameObject> tier1Entities;
-    //public List<GameObject> tier2Entities;
-    //public List<GameObject> tier3Entities;
-    //public List<GameObject> neutralEntities;
-    //public List<GameObject> bossEntities;
-    //public List<PatrolGroup> patrolGroups;
 
     //Events
     public Action<MapEntityGenerator> OnEntitiesGenerated;
-    public Action<MapEntityGenerator, EntityInfo> OnGenerateEntity;
+    public Action<MapEntityGenerator, EntityInfo> OnGenerateEntity { get; set; }
 
     LayerMask strucutreLayerMask, groundLayerMask;
 

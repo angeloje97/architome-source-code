@@ -22,6 +22,8 @@ namespace Architome
         public float targetVolume = 1f;
 
         public bool queued;
+        public bool requeued;
+
 
         void Start()
         {
@@ -52,9 +54,30 @@ namespace Architome
         protected static async Task<bool> SetCurrentManager(MusicManager newManager, bool setLocked = false)
         {
             if (newManager == currentManager) return true;
-            if (newManager.queued) return false;
+            if (newManager.queued)
+            {
+                newManager.requeued = true;
+
+                while (newManager.queued)
+                {
+                    await Task.Yield();
+                }
+            }
+
             newManager.queued = true;
-            while (locked) await Task.Yield();
+
+            while (locked)
+            {
+                await Task.Yield();
+
+                if (newManager.requeued)
+                {
+                    newManager.requeued = false;
+                    newManager.queued = false;
+                    return false;
+                }
+            }
+
             newManager.queued = false;
             locked = setLocked;
             currentManager = newManager;

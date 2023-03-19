@@ -157,15 +157,21 @@ namespace Architome
             forceActive = promptData.forcePick;
 
             HandleSlider();
+
+            if (this.promptData.icon)
+            {
+                info.promptIcon.sprite = this.promptData.icon;
+                info.iconFrame.gameObject.SetActive(true);
+            }
+
+            this.promptData.OnStart?.Invoke(this);
+
             HandleOptions();
             HandleInputField();
 
             UpdateSize();
 
-            if (promptData.icon)
-            {
-                info.promptIcon.sprite = promptData.icon;
-            }
+            
         }
 
         async void UpdateSize()
@@ -264,6 +270,7 @@ namespace Architome
             choiceData.userInput = input.text;
 
             Debugger.Environment(5491, $"Input text is valid: {validInput}");
+            promptData.OnInputFieldChange?.Invoke(this, input);
 
             if (!this.input.start)
             {
@@ -306,7 +313,7 @@ namespace Architome
         void HandleInputField()
         {
             if (!input.enable) return;
-
+            
 
             UpdateInputField(input.inputField);
             
@@ -346,12 +353,15 @@ namespace Architome
         public bool blocksScreen { get; set; }
         public bool forcePick;
 
+        public Action<PromptInfo> OnStart;
+
         //Slider
         public int amountMin;
         public int amountMax;
 
         //Input Field
         public int maxInputLength;
+        public Action<PromptInfo, TMP_InputField> OnInputFieldChange;
 
         public Sprite icon;
 
@@ -508,6 +518,7 @@ namespace Architome
         public void HandleInput(bool val)
         {
             if (!affectedByInvalidInput) return;
+            
             this.button.SetButton(val);
         }
     }

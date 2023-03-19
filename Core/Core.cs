@@ -41,6 +41,7 @@ namespace Architome
         public static void SetSave(SaveGame save)
         {
             currentSave = save;
+            currentSave.OnSetSave();
         }
 
         public static void SaveCurrent()

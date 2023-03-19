@@ -25,6 +25,31 @@ namespace Architome
         public bool sameChildIndex;
 
         public Action<DragAndDrop, bool> OnDragChange;
+        void Start()
+        {
+            if (objectToDrag == null)
+            {
+                objectToDrag = transform;
+            }
+
+            if (GetComponent<CanvasGroup>())
+            {
+                canvasGroup = GetComponent<CanvasGroup>();
+            }
+            else
+            {
+                canvasGroup = gameObject.AddComponent<CanvasGroup>();
+            }
+
+            var archSceneManager = ArchSceneManager.active;
+
+            if (archSceneManager)
+            {
+                archSceneManager.AddListener(SceneEvent.OnLoadScene, () => {
+                    OnEndDrag(null);
+                }, this);
+            }
+        }
 
         public void OnPointerDown(PointerEventData eventData)
         {
@@ -69,22 +94,7 @@ namespace Architome
             HandleDrag();
         }
 
-        void Start()
-        {
-            if (objectToDrag == null)
-            {
-                objectToDrag = transform;
-            }
-
-            if (GetComponent<CanvasGroup>())
-            {
-                canvasGroup = GetComponent<CanvasGroup>();
-            }
-            else
-            {
-                canvasGroup = gameObject.AddComponent<CanvasGroup>();
-            }
-        }
+        
 
         void HandleDrag()
         {

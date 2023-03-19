@@ -304,7 +304,7 @@ namespace Architome
 
                     var itemPrefab = World.active.prefabsUI.item;
 
-                    var newItem = Instantiate(itemPrefab, entityInventoryUI.transform).GetComponent<ItemInfo>();
+                    var newItem = Instantiate(itemPrefab, entityInventoryUI.transform);
 
                     newItem.ManifestItem(new(info), true);
 

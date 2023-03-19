@@ -74,7 +74,7 @@ namespace Architome
 
         async void PlaySceneMusic()
         {
-            currentPlaylist = musicPlaylist.CurrentScenePlaylist();
+            currentPlaylist = musicPlaylist.CurrentScenePlaylist;
 
             await PlayPlaylist(currentPlaylist);
         }

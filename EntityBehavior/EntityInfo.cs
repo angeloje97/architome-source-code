@@ -14,7 +14,7 @@ namespace Architome
     [Serializable]
     public class EntityInfo : MonoBehaviour
     {
-        // Start is called before the first frame update
+        #region Identity
         [SerializeField] int id;
         public int _id
         {
@@ -25,15 +25,7 @@ namespace Architome
 
         }
         [SerializeField] bool idSet;
-
-        [Serializable]
-        public class Properties
-        {
-            public bool unlocked, custom, created;
-        }
-
-        public Properties properties;
-
+        public int SaveIndex { get { return saveIndex; } set { saveIndex = value; } }
         public void SetId(int id, bool forceSet = false)
         {
             if (idSet && !forceSet) return;
@@ -43,9 +35,15 @@ namespace Architome
 
         int saveIndex = -1;
 
-        
+        [Serializable]
+        public class Properties
+        {
+            public bool unlocked, custom, created;
+        }
 
-        public int SaveIndex { get { return saveIndex; } set { saveIndex = value; } }
+        public Properties properties;
+        #endregion
+
 
         public string entityName;
         [Multiline]
@@ -122,7 +120,7 @@ namespace Architome
 
         ComponentManager components;
 
-
+        #region Events
         public struct PartyEvents
         {
             public Action<GroupFormationBehavior> OnRotationFormationStart { get; set; }
@@ -197,6 +195,7 @@ namespace Architome
         private bool isAliveCheck;
         EntityInfo combatTargetCheck;
         private NPCType npcTypeCheck;
+        #endregion
 
 
 
@@ -931,6 +930,8 @@ namespace Architome
 
             return entityPortrait;
         }
+
+        #region Actions
         public bool LootItem(ItemInfo itemInfo, bool fromWorld = false)
         {
             var lootData = new Inventory.LootEventData(itemInfo) { fromWorld = fromWorld };
@@ -1014,7 +1015,43 @@ namespace Architome
             AIBehavior().behaviorType = behaviorType;
             
         }
+        public void SetSummoned(SpawnerInfo.SummonData summonData)
+        {
+            summon.SetSummoned(summonData);
+            
 
+            ChangeNPCType(summonData.master.npcType);
+            SetParent();
+
+            AIBehavior().CreateBehavior<ArchSummonAgent>("Summon Behavior");
+
+            void SetParent()
+            {
+                var entityGenerator = MapEntityGenerator.active;
+                if (entityGenerator == null) return;
+                transform.SetParent(entityGenerator.summons);
+            }
+
+
+        }
+        public void Move(Vector3 position)
+        {
+            transform.position = position;
+            infoEvents.OnSignificantMovementChange?.Invoke(position);
+        }
+        #endregion
+        public override string ToString()
+        {
+            if (entityName == null || entityName.Trim() == "")
+            {
+                return name;
+            }
+
+            return entityName;
+        }
+
+
+        #region Event Flags
         public bool CanAttack(EntityInfo target)
         {
             if (target == null) return false;
@@ -1040,7 +1077,6 @@ namespace Architome
 
             return false;
         }
-
         public bool CanHelp(EntityInfo target)
         {
             if (target == null) return false;
@@ -1068,23 +1104,6 @@ namespace Architome
 
             return true;
         }
-
-        public void Move(Vector3 position)
-        {
-            transform.position = position;
-            infoEvents.OnSignificantMovementChange?.Invoke(position);
-        }
-
-        public override string ToString()
-        {
-            if (entityName == null || entityName.Trim() == "")
-            {
-                return name;
-            }
-
-            return entityName;
-        }
-
         public bool CanDrop(ItemData item)
         {
             var checks = new List<bool>();
@@ -1179,9 +1198,6 @@ namespace Architome
             }
             return true;
         }
-
-        
-
         public bool IsPlayer()
         {
 
@@ -1211,25 +1227,7 @@ namespace Architome
             }
             return true;
         }
-        public void SetSummoned(SpawnerInfo.SummonData summonData)
-        {
-            summon.SetSummoned(summonData);
-            
-
-            ChangeNPCType(summonData.master.npcType);
-            SetParent();
-
-            AIBehavior().CreateBehavior<ArchSummonAgent>("Summon Behavior");
-
-            void SetParent()
-            {
-                var entityGenerator = MapEntityGenerator.active;
-                if (entityGenerator == null) return;
-                transform.SetParent(entityGenerator.summons);
-            }
-
-
-        }
+        #endregion
         public ToolTipData ToolTipData()
         {
 
@@ -1259,6 +1257,45 @@ namespace Architome
 
             return (health, maxHealth);
         }
+
+        public void AddEventTrigger(Action action, EntityEvent trigger)
+        {
+            switch (trigger)
+            {
+                case EntityEvent.OnDeath:
+                    OnDeath += (eventData) => { action(); };
+                    break;
+                case EntityEvent.OnRevive:
+                    OnReviveThis += (eventData) => { action(); };
+                    break;
+                case EntityEvent.OnLevelUp:
+                    OnLevelUp += (newLevel) => { action(); };
+                    break;
+                case EntityEvent.OnDamageTaken:
+                    OnDamageTaken += (eventData) => { action(); };
+                    break;
+                case EntityEvent.OnDetectPlayer:
+                    combatEvents.OnFirstThreatWithPlayer += (threatInfo) => { action(); };
+                    break;
+                case EntityEvent.OnKillPlayer:
+                    combatEvents.OnKillPlayer += (eventData) => { action(); };
+                    break;
+                case EntityEvent.OnCastStart:
+                    abilityEvents.OnCastStart += (ability) => { if(!ability.isAttack) action(); };
+                    break;
+                case EntityEvent.OnCastEnd:
+                    abilityEvents.OnCastEnd += (ability) => { if(!ability.isAttack) action(); };
+                    break;
+                case EntityEvent.OnAttack:
+                    abilityEvents.OnAttack += (ability) => { action(); };
+                    break;
+                default:
+                    if (summon.isSummoned) action();
+                    break;
+            }
+        }
+
+        #region Entity Components
         public IEnumerator HandleRegeneration()
         {
 
@@ -1329,43 +1366,6 @@ namespace Architome
                 return gameObject.GetComponent<AIDestinationSetter>();
             }
             return null;
-        }
-
-        public void AddEventTrigger(Action action, EntityEvent trigger)
-        {
-            switch (trigger)
-            {
-                case EntityEvent.OnDeath:
-                    OnDeath += (eventData) => { action(); };
-                    break;
-                case EntityEvent.OnRevive:
-                    OnReviveThis += (eventData) => { action(); };
-                    break;
-                case EntityEvent.OnLevelUp:
-                    OnLevelUp += (newLevel) => { action(); };
-                    break;
-                case EntityEvent.OnDamageTaken:
-                    OnDamageTaken += (eventData) => { action(); };
-                    break;
-                case EntityEvent.OnDetectPlayer:
-                    combatEvents.OnFirstThreatWithPlayer += (threatInfo) => { action(); };
-                    break;
-                case EntityEvent.OnKillPlayer:
-                    combatEvents.OnKillPlayer += (eventData) => { action(); };
-                    break;
-                case EntityEvent.OnCastStart:
-                    abilityEvents.OnCastStart += (ability) => { if(!ability.isAttack) action(); };
-                    break;
-                case EntityEvent.OnCastEnd:
-                    abilityEvents.OnCastEnd += (ability) => { if(!ability.isAttack) action(); };
-                    break;
-                case EntityEvent.OnAttack:
-                    abilityEvents.OnAttack += (ability) => { action(); };
-                    break;
-                default:
-                    if (summon.isSummoned) action();
-                    break;
-            }
         }
         public AIPath Path()
         {
@@ -1627,6 +1627,7 @@ namespace Architome
                 return (T)components[typeof(T)];
             }
         }
+        #endregion
     }
 }
 

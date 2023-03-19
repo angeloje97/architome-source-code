@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Architome
 {
@@ -85,7 +86,6 @@ namespace Architome
             }
         }
 
-
         public static async Task FixLayoutGroups(GameObject target, bool controlCanvas = false, float delay = 0f) // Needs multiple iterations for some reason
         {
 
@@ -133,5 +133,13 @@ namespace Architome
                 SetCanvas(canvasGroup, true);
             }
         }
+
+        public static void SetText(TextMeshProUGUI tmp, string str, SpriteAssetType type)
+        {
+            var spriteAsset = SpriteAssetData.active.SpriteAsset(type);
+            tmp.spriteAsset = spriteAsset;
+            tmp.text = str;
+        }
+
     }
 }

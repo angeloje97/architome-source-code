@@ -112,10 +112,33 @@ namespace Architome
             }
         }
 
-        public void UpdateFromIndex(int newIndex)
+        public async void UpdateFromIndex(int newIndex)
         {
-            index = newIndex;
-            UpdateFromIndex();
+            if (index == newIndex) return;
+
+            if(toggles == null || toggles.Count == 0)
+            {
+                var canNavigate = await CanNavigate();
+                if (!canNavigate) return;
+                index = newIndex;
+                UpdateNoToggles();
+            }
+            else
+            {
+                index = newIndex;
+                UpdateFromIndex();
+            }
+
+        }
+
+        void UpdateNoToggles()
+        {
+            for(int i = 0; i < items.Count; i++)
+            {
+                if (items[i] == null) continue;
+                var canvas = items[i].GetComponent<CanvasGroup>();
+                ArchUI.SetCanvas(canvas, i == index);
+            }
         }
 
         async Task<bool> CanNavigate()
@@ -136,7 +159,6 @@ namespace Architome
 
             return true;
         }
-
         public async void OnValueChange()
         {
             if (items == null) return;

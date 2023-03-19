@@ -95,7 +95,19 @@ namespace Architome
         {
             if (!logDict[ALogType.System]) return;
 
-            Debug.Log($"Social: {id} : {sentence}");
+            Debug.Log($"System: {id} : {sentence}");
+        }
+
+        public static void System(Action action)
+        {
+            if (!logDict[ALogType.System]) return;
+            action();
+        }
+
+        public static void InvokeCheck(ALogType type, Action action)
+        {
+            if (!logDict[type]) return;
+            action();
         }
 
         public static void OutSource(int id, string sentence)

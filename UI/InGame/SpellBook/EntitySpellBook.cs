@@ -161,7 +161,6 @@ public class EntitySpellBook : MonoBehaviour
         {
             var augmentSlots = slot.transform.parent.GetComponentsInChildren<AugmentSlot>();
             if (augmentSlots.Length == 0) return;
-            var itemTemplate = World.active.prefabsUI.item;
             if (slot.ability.augmentsData == null) return;
         
             for (int i = 0; i < slot.ability.augmentsData.Count; i++)
@@ -169,7 +168,7 @@ public class EntitySpellBook : MonoBehaviour
                 if (i >= augmentSlots.Length) continue;
                 var augmentData = slot.ability.augmentsData[i];
                 if (augmentData.item == null) continue;
-                var newItem = Instantiate(itemTemplate, augmentSlots[i].transform).GetComponent<ItemInfo>();
+                var newItem = Instantiate(itemTemplate, augmentSlots[i].transform);
 
                 newItem.ManifestItem(augmentData, true);
 

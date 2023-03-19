@@ -1,13 +1,15 @@
-using JetBrains.Annotations;
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.EventSystems;
 
 namespace Architome
 {
     [RequireComponent(typeof(CanvasGroup))]
-    public class CanvasController : MonoBehaviour
+    public class CanvasController : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         CanvasGroup canvasGroup;
         public bool isActive;
@@ -24,8 +26,14 @@ namespace Architome
 
         public Action<CanvasController> OnCanCloseCheck;
         public Action<CanvasController> OnCanOpenCheck;
+
+        public UnityEvent<bool> OnMouseOverChange;
         public List<bool> checks { get; private set; }
         public bool haltChange { get; set; }
+
+        public bool mouseOver;
+
+        bool mouseOverCheck;
 
         private void OnValidate()
         {
@@ -46,8 +54,20 @@ namespace Architome
         private void Update()
         {
             OnEscape();
+            HandleEvents();
         }
 
+        void HandleEvents()
+        {
+            if (!isActive) return;
+
+            if(mouseOver != mouseOverCheck)
+            {
+                mouseOverCheck = mouseOver;
+                OnMouseOverChange?.Invoke(mouseOver);
+
+            }
+        }
         void OnEscape()
         {
             if (!selfEscape) return;
@@ -128,7 +148,15 @@ namespace Architome
             return true;
         }
 
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            mouseOver = true;
+        }
 
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            mouseOver = false;
+        }
 
         public void ToggleCanvas()
         {

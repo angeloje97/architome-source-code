@@ -63,7 +63,6 @@ namespace Architome
         {
         }
 
-        // Update is called once per frame
         void Update()
         {
         
@@ -198,6 +197,10 @@ namespace Architome
             return true;
         }
 
+        public override string ToString()
+        {
+            return questName;
+        }
         public void SetSource(object sourceData, string alias)
         {
             this.sourceData = sourceData;

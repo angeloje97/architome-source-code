@@ -26,24 +26,15 @@ namespace Architome
         public bool forceLoadScene;
         public bool completeAllQuests;
         public bool forceNextLevel;
+
+
         private void Update()
         {
-            if (!devToolsActive) return;
-            HandleLoadScene();
-            HandleCompleteQuests();
-            HandleAllPlayableEntities();
-            HandleForceNextLevel();
+            UpdateDevActions();
         }
 
 
-        void HandleForceNextLevel()
-        {
-            if (!forceNextLevel) return;
-            forceNextLevel = false;
-
-            var playableEntitiesManager = PlayableEntitiesManager.active;
-            if (playableEntitiesManager) playableEntitiesManager.NextLevel();
-        }
+        
         void HandleAllPlayableEntities()
         {
             if (!affectAllPlayableEntities) return;
@@ -69,7 +60,11 @@ namespace Architome
         {
             var targetManager = ContainerTargetables.active;
 
-            targetManager.OnSelectTarget += OnSelectTarget;
+            if (targetManager)
+            {
+                targetManager.OnSelectTarget += OnSelectTarget;
+
+            }
         }
 
         public void Awake()
@@ -81,6 +76,17 @@ namespace Architome
         private void Start()
         {
             GetDependencies();
+        }
+
+        #region Dev Actions
+
+        void UpdateDevActions()
+        {
+            if (!devToolsActive) return;
+            HandleLoadScene();
+            HandleCompleteQuests();
+            HandleAllPlayableEntities();
+            HandleForceNextLevel();
         }
 
         public void Restore(EntityInfo entity, float health = 1, float mana = 1)
@@ -150,7 +156,78 @@ namespace Architome
                 quests.ForceComplete();
             }
         }
+        void HandleForceNextLevel()
+        {
+            if (!forceNextLevel) return;
+            forceNextLevel = false;
 
+            var playableEntitiesManager = PlayableEntitiesManager.active;
+            if (playableEntitiesManager) playableEntitiesManager.NextLevel();
+        }
+
+        #endregion
+
+        #region Creating Prefabs
+        public ItemInfo DropItem(ItemData data, Vector3 position, bool instantlyLootable = true, bool reveal = false)
+        {
+            var worldItem = World.active.prefabsUI.worldItem;
+
+            if (worldItem == null) return null;
+
+            var newItem = Instantiate(worldItem, position, new());
+
+            newItem.ManifestItem(data, true);
+
+            if (!instantlyLootable)
+            {
+                newItem.DelayLooting(2f);
+            }
+
+            if (reveal)
+            {
+                var fx = newItem.GetComponent<ItemFXHandler>();
+                if (fx != null)
+                {
+                    fx.Reveal();
+                }
+            }
+
+            newItem.ThrowRandomly();
+
+            return newItem;
+        }
+
+        public ItemInfo CreateItemUI(ItemData data, Transform parent, bool draggable = true)
+        {
+            var itemTemplate = World.active.prefabsUI.item;
+            if (itemTemplate == null) return null;
+            var createdItem = Instantiate(itemTemplate, parent);
+            createdItem.ManifestItem(data, true);
+
+            if (!draggable)
+            {
+                createdItem.SetMovable(false);
+            }
+
+            return createdItem;
+
+
+        }
+
+        public InventorySlot CreateInventorySlot(Transform parent)
+        {
+            var inventorySlot = World.active.prefabsUI.inventorySlot;
+
+            if (inventorySlot == null) return null;
+
+            var newSlot = Instantiate(inventorySlot, parent);
+
+            return newSlot;
+        }
+
+        #endregion
+
+        #region Generic Actions
         public void Revive(EntityInfo entity, Vector3 position = new Vector3(), float health = 1, float mana = 1)
         {
             if (entity == null) { return; }
@@ -179,36 +256,6 @@ namespace Architome
             entityInfo.health = 0;
             entityInfo.isAlive = false;
         }
-
-        public ItemInfo DropItem(ItemData data, Vector3 position, bool instantlyLootable = true, bool reveal = false)
-        {
-            var worldItem = World.active.prefabsUI.worldItem;
-
-            if (worldItem == null) return null;
-
-            var newItem = Instantiate(worldItem, position, new()).GetComponent<ItemInfo>();
-
-            newItem.ManifestItem(data, true);
-
-            if (!instantlyLootable)
-            {
-                newItem.DelayLooting(2f);
-            }
-
-            if (reveal)
-            {
-                var fx = newItem.GetComponent<ItemFXHandler>();
-                if (fx != null)
-                {
-                    fx.Reveal();
-                }
-            }
-
-            newItem.ThrowRandomly();
-
-            return newItem;
-        }
-
         public void ReviveAtSpawnBeacon(EntityInfo entity)
         {
             var entityInfo = entity.GetComponent<EntityInfo>();
@@ -260,6 +307,7 @@ namespace Architome
 
             return entity;
         }
+        #endregion
     }
 
 }

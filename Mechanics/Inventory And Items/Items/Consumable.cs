@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
+using System;
+using System.Threading.Tasks;
 
 namespace Architome
 {
@@ -11,6 +13,46 @@ namespace Architome
         public List<GameObject> consumableBuffs = new();
         public float power;
         public float coolDown = 1f;
+        public float consumptionTime = 0f;
+
+        float currentConsumptionTime;
+
+        public struct ValidUserStates
+        {
+            public bool noCombat;
+            public bool noMovement;
+
+            public bool ValidEntity(EntityInfo entity)
+            {
+                if(noCombat && entity.isInCombat)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+            public string Requirements()
+            {
+                var result = new List<string>();
+
+                if (noCombat)
+                {
+                    result.Add("Cannot be used during combat.");
+                }
+
+                if (noMovement)
+                {
+                    result.Add("Must be standing still.");
+                }
+
+                return ArchString.NextLineList(result);
+            }
+        }
+
+        [SerializeField] ValidUserStates validStates;
+
+
         private void OnValidate()
         {
             itemType = ItemType.Consumable;
@@ -50,14 +92,39 @@ namespace Architome
         }
 
 
-        public override void Use(UseData data)
+        public override async void Use(UseData data)
         {
             var info = data.itemInfo;
-            var success = info.ReduceStacks();
+            var entity = data.entityUsed;
 
+            if (!validStates.ValidEntity(entity))
+            {
+                return;
+            }
+
+            var success = info.ReduceStacks();
             if (!success) return;
 
-            var buffsManager = data.entityUsed.Buffs();
+            currentConsumptionTime = 0;
+
+            var successTime = true;
+
+            entity.infoEvents.OnConsumeStart?.Invoke(entity, this);
+
+            while(currentConsumptionTime < consumptionTime)
+            {
+                await Task.Yield();
+                currentConsumptionTime += Time.deltaTime;
+            }
+
+            entity.infoEvents.OnConsumeEnd?.Invoke(entity, this);
+
+            if (successTime)
+            {
+                entity.infoEvents.OnConsumeComplete?.Invoke(entity, this);
+            }
+
+            var buffsManager = entity.Buffs();
 
             foreach (var buff in consumableBuffs)
             {
@@ -65,6 +132,15 @@ namespace Architome
 
                 buffsManager.ApplyBuff(new(buffInfo, this, data.entityUsed));
             }
+        }
+
+        public override string Requirements()
+        {
+
+            return ArchString.NextLineList(new() {
+                validStates.Requirements()
+            });
+
 
         }
     }

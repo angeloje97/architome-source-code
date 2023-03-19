@@ -60,6 +60,11 @@ namespace Architome
             StopShowing();
         }
 
+        void OnDestroy()
+        {
+            StopShowing();
+        }
+
         public bool CanShow()
         {
             checks = new List<bool>();

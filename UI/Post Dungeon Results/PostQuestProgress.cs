@@ -150,7 +150,7 @@ namespace Architome
 
                 var slot = slots[i];
 
-                var newItem = Instantiate(itemPrefab, transform).GetComponent<ItemInfo>();
+                var newItem = Instantiate(itemPrefab, transform);
 
                 newItem.ManifestItem(items[i], true);
 

@@ -19,11 +19,17 @@ namespace Architome
 
         public List<MerchData> merchandise;
 
+        public Action<MerchData> OnMerchAction { get; set; }
+
         private void OnValidate()
         {
             if (!update) return;
             update = false;
 
+        }
+
+        private void Start()
+        {
             UpdatePrices();
         }
 
@@ -41,7 +47,7 @@ namespace Architome
             leftOver = merch.amount;
             if (amount > merch.amount) return false;
 
-            var totalPrice = amount * merch.pricePerCount;
+            var totalPrice = amount * merch.price;
 
             if (!entity.CanPickUp(new(merch.item, amount))) return false;
             if (!entity.CanSpend(merch.currency, totalPrice)) return false;
@@ -51,18 +57,21 @@ namespace Architome
         }
     }
 
+    #region Merch Data
+
+    [Serializable]
     public class MerchData : ItemData
     {
         public Currency currency;
         public int price;
-        public int pricePerCount;
+        public int originalPrice;
 
         public MerchData(ItemData itemData, float priceMultiplier = 1f)
         {
             item = itemData.item;
             amount = itemData.amount;
-            price = Mathf.RoundToInt(amount * item.value * priceMultiplier);
-            pricePerCount = Mathf.RoundToInt(item.value * priceMultiplier);
+
+            //price = Mathf.RoundToInt(amount * item.value * priceMultiplier);
         }
 
         public MerchData(ItemInfo itemInfo, float priceMultiplier = 1f) : base(itemInfo)
@@ -70,21 +79,17 @@ namespace Architome
             if (item == null)
             {
                 price = 0;
-                pricePerCount = 0;
                 return;
             }
-            price = Mathf.RoundToInt(amount * item.value * priceMultiplier);
-            pricePerCount = Mathf.RoundToInt(item.value * priceMultiplier);
+            originalPrice = Mathf.RoundToInt(amount * item.value * priceMultiplier);
 
         }
 
         public void UpdatePrice(float priceMultiplier = 1f)
         {
             if (item == null) return;
-
-            price = Mathf.RoundToInt(item.value * amount * priceMultiplier);
-            price = Mathf.RoundToInt(item.value * priceMultiplier);
-
+            price = (int) priceMultiplier * originalPrice;
         }
     }
+    #endregion
 }

@@ -12,9 +12,14 @@ public class WalkThroughActivate : MonoBehaviour
 
     public AstarPath astarPath;
 
-    
+
 
     // Start is called before the first frame update
+    private void Awake()
+    {
+        activatedObjects ??= new();
+        deactivatedObjects ??= new();
+    }
     void Start()
     {
         

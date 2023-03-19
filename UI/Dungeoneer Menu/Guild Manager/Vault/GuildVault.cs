@@ -122,9 +122,11 @@ namespace Architome
             var contextMenu = ContextMenu.current;
             if (contextMenu == null) return;
 
-            var options = new List<string>()
+            var options = new List<ContextMenu.OptionData>()
             {
-                "Destroy",
+                new("Destroy", async(data) => {
+                    await info.SafeDestroy();
+                }),
             };
 
             
@@ -144,80 +146,48 @@ namespace Architome
             if (userChoice.index == -1) return;
 
 
-
-            HandleSplit();
-            HandleHalfSplit();
-            HandleClaim();
-            HandleDestroy();
-            HandleSell();
-
-
             void HandleOptions()
             {
 
                 if (info.currentStacks > 1)
                 {
-                    options.Insert(0, "Split in Half");
-                    options.Insert(0, "Split");
+                    options.Insert(0, new("Split in Half", (data) => {
+                        var availableSlot = AvailableSlot();
+                        if (availableSlot == null) return;
+
+                        var newItem = info.SplitHalf();
+
+                        if (newItem == null) return;
+
+                        newItem.HandleNewSlot(availableSlot);
+                    }));
+                    options.Insert(0, new("Split", async(data) => {
+                        var availableSlot = AvailableSlot();
+
+                        if (availableSlot == null) return;
+
+                        var newItem = await info.HandleSplit();
+
+                        if (newItem == null) return;
+
+                        newItem.HandleNewSlot(availableSlot);
+                    }));
                 }
 
                 
                 if (!info.item.IsCurrency())
                 {
-                    options.Insert(0, "Sell");
+                    options.Insert(0, new("Sell", (data) => {
+                        manager.GainCurrency(defaultSellCurrency, (int)(info.item.value * info.currentStacks));
+                        info.DestroySelf(true);
+                    }));
                 }
                 else
                 {
-                    options.Insert(0, "Claim");
+                    options.Insert(0, new("Claim", (data) => {
+                        info.item.Use(new() { guildManager = manager, itemInfo = info });
+                    }));
                 }
-            }
-
-
-            async void HandleDestroy()
-            {
-                if (userChoice.stringValue != "Destroy") return;
-                await info.SafeDestroy();
-            }
-
-            async void HandleSplit()
-            {
-                if (userChoice.stringValue != "Split") return;
-                var availableSlot = AvailableSlot();
-
-                if (availableSlot == null) return;
-
-                var newItem = await info.HandleSplit();
-
-                if (newItem == null) return;
-
-                newItem.HandleNewSlot(availableSlot);
-            }
-
-            void HandleHalfSplit()
-            {
-                if (userChoice.stringValue != "Split in Half") return;
-                var availableSlot = AvailableSlot();
-                if (availableSlot == null) return;
-
-                var newItem = info.SplitHalf();
-
-                if (newItem == null) return;
-
-                newItem.HandleNewSlot(availableSlot);
-            }
-
-            void HandleClaim()
-            {
-                if (userChoice.stringValue != "Claim") return;
-
-                info.item.Use(new() { guildManager = manager, itemInfo = info });
-            }
-
-            void HandleSell()
-            {
-                if (userChoice.stringValue != "Sell") return;
-                manager.GainCurrency(defaultSellCurrency, (int) (info.item.value * info.currentStacks));
-                info.DestroySelf(true);
             }
 
         }

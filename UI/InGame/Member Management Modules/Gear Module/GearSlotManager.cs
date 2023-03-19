@@ -242,10 +242,14 @@ namespace Architome
             var contextMenu = ContextMenu.current;
             if (contextMenu == null) return;
 
-            var options = new List<string>()
+            var options = new List<ContextMenu.OptionData>()
             {
-                "Unequip",
-                "Destroy"
+                new("Unequip", (data) => {
+                    entityInfo.LootItem(info);
+                }),
+                new("Destroy", async(data) => {
+                    await info.SafeDestroy();
+                })
             };
 
             
@@ -258,23 +262,6 @@ namespace Architome
 
             var choice = response.index;
 
-            if (choice == -1) return;
-
-            HandleUnequip();
-            HandleDestroy();
-
-            void HandleUnequip()
-            {
-                if (response.stringValue != "Unequip") return;
-                entityInfo.LootItem(info);
-            }
-
-            async void HandleDestroy()
-            {
-                if (response.stringValue != "Destroy") return;
-
-                await info.SafeDestroy();
-            }
         }
 
 

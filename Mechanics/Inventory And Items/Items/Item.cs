@@ -210,6 +210,8 @@ namespace Architome
     [Serializable]
     public class ItemData
     {
+        public Item item;
+        public int amount;
         public static ItemData Empty { get { return new ItemData() { item = null, amount = 0 }; } }
         public ItemData(ItemInfo info)
         {
@@ -221,6 +223,12 @@ namespace Architome
             }
             this.item = info.item;
             this.amount = info.currentStacks;
+        }
+
+        public ItemData(MerchData data, int amount = 1)
+        {
+            item = data.item;
+            this.amount = amount;
         }
 
         public ItemData(Item item, int amount)
@@ -235,8 +243,6 @@ namespace Architome
             amount = 0;
         }
 
-        public Item item;
-        public int amount;
     }
 
     public class UseData

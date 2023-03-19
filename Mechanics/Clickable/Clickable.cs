@@ -113,7 +113,14 @@ namespace Architome
         }
         async void HandleOptions()
         {
-            List<string> options = this.options.Select(option => option.text).ToList();
+            //List<string> options = this.options.Select(option => option.text).ToList();
+
+            var options = new List<ContextMenu.OptionData>();
+
+            foreach(var option in this.options)
+            {
+                options.Add(new(option.text));
+            }
 
             var response = await ContextMenu.current.UserChoice(new()
             {

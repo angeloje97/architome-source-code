@@ -8,6 +8,7 @@ using System.Linq;
 
 namespace Architome
 {
+
     public class ArchGeneric
     {
 

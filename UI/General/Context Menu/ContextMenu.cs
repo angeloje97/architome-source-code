@@ -240,8 +240,10 @@ namespace Architome
             }
             else
             {
-                response.stringValue = contextData.options[pickedOption];
+                contextData.options[pickedOption].SelectOption();
+                response.stringValue = contextData.options[pickedOption].text;
                 response.index = pickedOption;
+                
             }
 
 
@@ -249,13 +251,13 @@ namespace Architome
             return response;
         }
 
-        async Task CreateOptions(List<string> options)
+        async Task CreateOptions(List<OptionData> options)
         {
             for (int i = 0; i < options.Count; i++)
             {
                 var context = Instantiate(info.optionPrefab, info.options).GetComponent<ContextOption>();
-
-                context.SetOption(options[i], i);
+                var text = options[i].text;
+                context.SetOption(text, i);
             }
 
             layoutGroup.enabled = true;
@@ -300,6 +302,39 @@ namespace Architome
 
         }
 
+        [Serializable]
+        public class OptionData
+        {
+            public ContextMenu contextMenu;
+            public string text;
+
+            Action<OptionData> OnSelect;
+
+            public OptionData(string text)
+            {
+                this.text = text;
+            }
+
+            public OptionData(string text, Action<OptionData> selectAction)
+            {
+                this.text = text;
+                OnSelect += selectAction;
+            }
+
+            public OptionData(string text, Action selectAction)
+            {
+                this.text = text;
+                OnSelect += (optionData) => {
+                    selectAction();
+                };
+            }
+
+            public void SelectOption()
+            {
+                OnSelect?.Invoke(this);
+            }
+        }
+
         
     }
 
@@ -312,7 +347,7 @@ namespace Architome
     public struct ContextMenuData
     {
         public string title;
-        public List<string> options;
+        public List<ContextMenu.OptionData> options;
 
         
     }

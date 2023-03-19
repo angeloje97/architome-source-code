@@ -30,12 +30,13 @@ namespace Architome
         [Serializable]
         public class UIPrefabs
         {
-            public GameObject item;
-            public GameObject worldItem;
+            public ItemInfo item;
+            public ItemInfo worldItem;
+            public InventorySlot inventorySlot;
+
             public GameObject ability;
             public GameObject entitySelector;
             public GameObject entityIcon;
-            public GameObject inventorySlot;
             public GameObject icon;
         }
 

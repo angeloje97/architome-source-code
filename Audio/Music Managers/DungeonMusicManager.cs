@@ -7,7 +7,7 @@ namespace Architome
 {
     public class DungeonMusicManager : MusicManager
     {
-        
+        public MusicPlaylist defaultPlaylist;
         void Start()
         {
             GetDependencies();
@@ -57,25 +57,28 @@ namespace Architome
         {
             var success = await SetCurrentManager(this, true);
             if (!success) return;
-            _= PlayPlaylist(CurrentDungeonPlaylist());   
+            _= PlayPlaylist(CurrentDungeonPlaylist);   
         }
 
-        public List<AudioClip> CurrentDungeonPlaylist()
+        public List<AudioClip> CurrentDungeonPlaylist
         {
-            var playlist = new List<AudioClip>();
-            var dungeonIndex = Core.dungeonIndex;
-            var dungeonSets = Core.currentDungeonSets;
+            get
+            {
+                var playlist = defaultPlaylist.DungeonSongs;
+                var dungeonIndex = Core.dungeonIndex;
+                var dungeonSets = Core.currentDungeonSets;
 
-            if (dungeonSets == null) return playlist;
+                if (dungeonSets == null) return playlist;
 
-            if (dungeonIndex < 0 || dungeonIndex >= dungeonSets.Count) return playlist;
+                if (dungeonIndex < 0 || dungeonIndex >= dungeonSets.Count) return playlist;
 
-            var dungeonPlaylist = dungeonSets[dungeonIndex].dungeonPlaylist;
-            if (dungeonPlaylist == null) return playlist;
+                var dungeonPlaylist = dungeonSets[dungeonIndex].dungeonPlaylist;
+                if (dungeonPlaylist == null) return playlist;
 
-            playlist = dungeonPlaylist.DungeonSongs();
+                playlist = dungeonPlaylist.DungeonSongs;
 
-            return playlist;
+                return playlist;
+            }
         }
     }
 }
