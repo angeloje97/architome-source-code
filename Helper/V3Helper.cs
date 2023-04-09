@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using System;
 
 namespace Architome
 {
@@ -372,7 +373,10 @@ namespace Architome
 
         public static Vector3 RandomVector3(Vector3 min, Vector3 max)
         {
-            return new Vector3(Random.Range(min.x, max.x), Random.Range(min.y, max.y), Random.Range(min.z, max.z));
+            var x = UnityEngine.Random.Range(min.x, max.x);
+            var y = UnityEngine.Random.Range(min.y, max.y);
+            var z = UnityEngine.Random.Range(min.z, max.z);
+            return new Vector3(x, y, z);
         }
 
         public static Vector2 ToTopDown(Vector3 position)
@@ -489,7 +493,7 @@ namespace Architome
                 positions.Add(newPosition);
             }
 
-            Object.Destroy(center);
+            UnityEngine.Object.Destroy(center);
 
             return positions;
         }
@@ -540,6 +544,44 @@ namespace Architome
             }
 
             return targets;
+        }
+
+        public static List<Vector3> GetSphereDirections(int numDirections)
+        {
+            var pts = new List<Vector3>();
+            var inc = Math.PI * (3 - Math.Sqrt(5));
+            var off = 2f / numDirections;
+
+            for (int i = 0; i < numDirections; i++)
+            {
+                var y = i * off - 1 + (off / 2);
+                var r = Math.Sqrt(1 - y * y);
+                var phi = i * inc;
+
+                var x = (float)(Math.Cos(phi) * r);
+                var z = (float)(Math.Sin(phi) * r);
+                pts.Add(new Vector3(x, y, z));
+            }
+
+            return pts;
+        }
+
+        public static void SphereDirections(int numDirections, Action<Vector3> operation)
+        {
+            var inc = Math.PI * (3 - Math.Sqrt(5));
+            var off = 2f / numDirections;
+
+            for (int i = 0; i < numDirections; i++)
+            {
+                var y = i * off - 1 + (off / 2);
+                var r = Math.Sqrt(1 - y * y);
+                var phi = i * inc;
+
+                var x = (float)(Math.Cos(phi) * r);
+                var z = (float)(Math.Sin(phi) * r);
+                operation(new Vector3(x, y, z));
+            }
+
         }
 
 

@@ -33,6 +33,8 @@ namespace Architome
             public int minItems;
             public int maxItems;
             public bool useItemPool;
+            //public bool useRequestData;
+            //public ItemPool.RequestData requestData;
             public bool createItemPools; // OnValidateField
             public List<ItemData> items;
             public ItemPool itemPool;
@@ -94,12 +96,18 @@ namespace Architome
 
         private void OnValidate()
         {
-
             if (!info.createItemPools) return; info.createItemPools = false;
+
+
+
             if (info.itemPool == null) return;
             info.items = info.itemPool.ItemsFromRarity(info.rarity, new() {
                 minItems = info.minItems,
                 maxItems = info.maxItems,
+                useMinMax = true,
+                replaceNull = true,
+                chanceMultiplier = 3,
+                uniqueItems = true,
             });
         }
 
@@ -117,6 +125,7 @@ namespace Architome
                 maxItems = info.maxItems,
                 useMinMax = true,
                 replaceNull = true,
+                uniqueItems = true,
                 chanceMultiplier = chestRarityProperty.valueMultiplier });
             //info.items = info.itemPool.ItemsFromRarity(info.maxChestSlots, info.rarity, chestRarityProperty.valueMultiplier);
 

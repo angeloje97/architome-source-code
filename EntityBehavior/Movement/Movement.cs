@@ -480,11 +480,13 @@ namespace Architome
         }
         public void StopMoving(bool targetSelf = false)
         {
-            if (targetSelf)
+            if (targetSelf && entityObject)
             {
                 destinationSetter.target = entityObject.transform;
                 MoveTo(entityObject.transform, float.PositiveInfinity);
             }
+
+            if (path == null) return;
 
             path.endReachedDistance = float.PositiveInfinity;
 

@@ -26,7 +26,7 @@ namespace Architome
         {
             info.maxSlots = inventory.maxSlots;
             info.level = level;
-            info.vault = VaultInvetory();
+            //info.vault = VaultInvetory();
             info.currencies = VaultCurrencies();
         }
 

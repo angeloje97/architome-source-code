@@ -39,6 +39,8 @@ namespace Architome
             public Transform partySlotParent;
         }
 
+        
+
         [Serializable]
         public struct Prefabs
         {
@@ -196,6 +198,9 @@ namespace Architome
                 slot.OnSlotSelect += OnPartySlotSelect;
             }
         }
+
+        #region Guild Member
+
         public void OnNewEntity(EntityInfo entity)
         {
             var rosterTemplate = prefabs.rosterSlotTemplate;
@@ -237,130 +242,6 @@ namespace Architome
 
         }
 
-        public int CurrencyIndex(Currency currency)
-        {
-            var currencies = guildInfo.currencies;
-
-            if (currencies != null)
-            {
-                for(int i = 0; i < currencies.Count; i++)
-                {
-                    if (currencies[i].item.Equals(currency))
-                    {
-                        return i;
-                    }
-                }
-            }
-
-            return -1;
-        }
-
-        public void GainCurrency(Currency currency, int amount)
-        {
-            guildInfo.currencies ??= new();
-            HandleCurrency();
-            //OnCurrenciesChange?.Invoke(guildInfo.currencies);
-            ArchAction.Yield(() => OnCurrenciesChange?.Invoke(guildInfo.currencies));
-
-            void HandleCurrency()
-            {
-                foreach (var guildCurrency in guildInfo.currencies)
-                {
-                    var isEqual = guildCurrency.item.Equals(currency);
-
-                    Debugger.UI(5349, $"{currency.itemName} == {guildCurrency.item.itemName} : {isEqual}");
-
-                    if (!isEqual) continue;
-                    guildCurrency.amount += amount;
-                    return;
-                }
-
-                guildInfo.currencies.Add(new() { item = currency, amount = amount });
-
-            }
-
-        }
-
-        public bool CanSpend(Currency currency, int amount)
-        {
-            var currencyIndex = CurrencyIndex(currency);
-            if (currencyIndex == -1) return false;
-            if (guildInfo.currencies[currencyIndex].amount < amount) return false;
-
-
-            return true;
-        }
-
-        public bool OutSourceSpends(Currency currency, int amount)
-        {
-            var checks = new List<bool>();
-
-            OnOutSourceSpendCheck?.Invoke(currency, amount, checks);
-
-            foreach(var check in checks)
-            {
-                if (check) return true;
-            }
-
-            return false;
-        }
-
-        public bool SpendCurrency(Currency currency, int amount)
-        {
-            var currencies = guildInfo.currencies;
-
-            if (OutSourceSpends(currency, amount)) return true;
-            if (currencies == null) return false;
-            var currencyIndex = CurrencyIndex(currency);
-            if (currencyIndex == -1) return false;
-
-            if (currencies[currencyIndex].amount < amount) return false;
-
-            currencies[currencyIndex].amount -= amount;
-            ArchAction.Yield(() => OnCurrenciesChange?.Invoke(guildInfo.currencies));
-
-            return true;
-            
-
-        }
-        public bool HasCurrency(Currency currency, int amount)
-        {
-            foreach (var guildCurrency in guildInfo.currencies)
-            {
-                if (!guildCurrency.item.Equals(currency)) continue;
-                if (guildCurrency.amount < amount) continue;
-
-                return true;
-            }
-
-            return false;
-        }
-        void BeforeLoadScene(ArchSceneManager sceneManager)
-        {
-            SaveEntities();
-            var currentSave = SaveSystem.current;
-            if (currentSave != null)
-            {
-                currentSave.guildData = new(this);
-            }
-        }
-
-        void BeforeSave(SaveSystem system, SaveGame save)
-        {
-            save.guildData = new(this);
-            SaveEntities();
-        }
-
-        void OnEscape(PauseMenu menu)
-        {
-            if (equipmentModule == null) return;
-            if (!equipmentModule.isActive) return;
-
-            menu.pauseBlocked = true;
-
-            equipmentModule.SetActive(false);
-        }
-
         void SaveEntities()
         {
             var currentSave = SaveSystem.current;
@@ -378,6 +259,16 @@ namespace Architome
                 if (slot.entity == null) continue;
                 currentSave.selectedEntitiesIndex.Add(slot.entity.SaveIndex);
             }
+        }
+        public bool InParty(EntityInfo entity)
+        {
+            if (entity == null) return false;
+            foreach (var slot in partySlots)
+            {
+                if (slot.entity == entity) return true;
+            }
+
+            return false;
         }
 
         public void HandleToolTip(object entityObject, ToolTipElement element)
@@ -404,20 +295,6 @@ namespace Architome
                 description = $"Use <sprite={rightClickIndex}> for more options."
             };
         }
-
-        public bool InParty(EntityInfo entity)
-        {
-            if (entity == null) return false;
-            foreach (var slot in partySlots)
-            {
-                if (slot.entity == entity) return true;
-            }
-
-            return false;
-        }
-
-
-
         public async void HandleEntityAction(object entityData)
         {
             if (entityData == null) return;
@@ -546,16 +423,11 @@ namespace Architome
             }
 
         }
-
         public void RosterToParty(EntitySlot slot, EntityCard card)
         {
 
             slot.entity = card.entity;
 
-        }
-        public void OnLoadSave(SaveGame save)
-        {
-            UpdatePartyManager();
         }
         public EntitySlot FirstAvailablePartySlot(Role role)
         {
@@ -581,6 +453,142 @@ namespace Architome
             }
 
             return totalEntityLevels / 5f;
+        }
+        #endregion
+
+        #region Guild Vault
+        public int CurrencyIndex(Currency currency)
+        {
+            var currencies = guildInfo.currencies;
+
+            if (currencies != null)
+            {
+                for(int i = 0; i < currencies.Count; i++)
+                {
+                    if (currencies[i].item.Equals(currency))
+                    {
+                        return i;
+                    }
+                }
+            }
+
+            return -1;
+        }
+
+        public void GainCurrency(Currency currency, int amount)
+        {
+            guildInfo.currencies ??= new();
+            HandleCurrency();
+            //OnCurrenciesChange?.Invoke(guildInfo.currencies);
+            ArchAction.Yield(() => OnCurrenciesChange?.Invoke(guildInfo.currencies));
+
+            void HandleCurrency()
+            {
+                foreach (var guildCurrency in guildInfo.currencies)
+                {
+                    var isEqual = guildCurrency.item.Equals(currency);
+
+                    Debugger.UI(5349, $"{currency.itemName} == {guildCurrency.item.itemName} : {isEqual}");
+
+                    if (!isEqual) continue;
+                    guildCurrency.amount += amount;
+                    return;
+                }
+
+                guildInfo.currencies.Add(new() { item = currency, amount = amount });
+
+            }
+
+        }
+
+        public bool CanSpend(Currency currency, int amount)
+        {
+            var currencyIndex = CurrencyIndex(currency);
+            if (currencyIndex == -1) return false;
+            if (guildInfo.currencies[currencyIndex].amount < amount) return false;
+
+
+            return true;
+        }
+
+        public bool OutSourceSpends(Currency currency, int amount)
+        {
+            var checks = new List<bool>();
+
+            OnOutSourceSpendCheck?.Invoke(currency, amount, checks);
+
+            foreach(var check in checks)
+            {
+                if (check) return true;
+            }
+
+            return false;
+        }
+
+        public bool SpendCurrency(Currency currency, int amount)
+        {
+            var currencies = guildInfo.currencies;
+
+            if (OutSourceSpends(currency, amount)) return true;
+            if (currencies == null) return false;
+            var currencyIndex = CurrencyIndex(currency);
+            if (currencyIndex == -1) return false;
+
+            if (currencies[currencyIndex].amount < amount) return false;
+
+            currencies[currencyIndex].amount -= amount;
+            ArchAction.Yield(() => OnCurrenciesChange?.Invoke(guildInfo.currencies));
+
+            return true;
+            
+
+        }
+        public bool HasCurrency(Currency currency, int amount)
+        {
+            foreach (var guildCurrency in guildInfo.currencies)
+            {
+                if (!guildCurrency.item.Equals(currency)) continue;
+                if (guildCurrency.amount < amount) continue;
+
+                return true;
+            }
+
+            return false;
+        }
+        #endregion
+
+        #region Serialization
+        void BeforeLoadScene(ArchSceneManager sceneManager)
+        {
+            SaveEntities();
+            var currentSave = SaveSystem.current;
+            if (currentSave != null)
+            {
+                currentSave.guildData = new(this);
+            }
+        }
+
+        void BeforeSave(SaveSystem system, SaveGame save)
+        {
+            save.guildData = new(this);
+            SaveEntities();
+        }
+
+
+        public void OnLoadSave(SaveGame save)
+        {
+            UpdatePartyManager();
+        }
+
+        #endregion
+        void OnEscape(PauseMenu menu)
+        {
+            if (equipmentModule == null) return;
+            if (!equipmentModule.isActive) return;
+
+            menu.pauseBlocked = true;
+
+            equipmentModule.SetActive(false);
         }
 
         void UnusedFunction()

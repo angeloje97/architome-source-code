@@ -291,6 +291,7 @@ namespace Architome
         {
             foreach (var movement in party.GetComponentsInChildren<Movement>())
             {
+                if (movement == null) continue;
                 movement.StopMoving(true);
             }
         }

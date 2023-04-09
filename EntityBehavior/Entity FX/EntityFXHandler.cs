@@ -94,10 +94,15 @@ namespace Architome
                 return;
             }
 
+            sceneInfo ??= sceneManager.CurrentScene();
 
-            
-            var scene = sceneInfo == null ? sceneManager.CurrentScene().scene : sceneInfo.scene;
-            
+            if(sceneInfo == null)
+            {
+                active = true;
+                return;
+            }
+
+            var scene = sceneInfo.scene;
             active = activeScenes.Contains(scene);
 
         }

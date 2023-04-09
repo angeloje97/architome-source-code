@@ -115,7 +115,11 @@ namespace Architome
 
             if (existingRoom)
             {
-                Destroy(room);
+                if (Application.isPlaying)
+                {
+                    Destroy(room);
+
+                }
             }
 
             var info = otherRoom.GetComponent<RoomInfo>();
@@ -159,7 +163,7 @@ namespace Architome
                 otherRoom.transform.SetParent(parent);
 
                 //Destroy(anchor);
-
+                
 
                 badRoom = await info.CheckBadSpawn();
 
@@ -174,6 +178,7 @@ namespace Architome
                     info = otherRoom.GetComponent<RoomInfo>();
                     info.spawnedByGenerator = true;
 
+                    if (!Application.isPlaying) break;
                     Destroy(destroyThis);
 
                 }
@@ -189,7 +194,11 @@ namespace Architome
             var tempRoom = otherRoom;
 
             otherRoom = Instantiate(tempRoom, position, rotation);
-            Destroy(tempRoom);
+            if (Application.isPlaying)
+            {
+                Destroy(tempRoom);
+
+            }
 
             info = otherRoom.GetComponent<RoomInfo>();
 
@@ -284,9 +293,10 @@ namespace Architome
                     otherRoom = otherPath.room.gameObject;
                 }
 
-                if (pathActivator)
+                if (pathActivator && otherPath.room)
                 {
                     pathActivator.gameObject.SetActive(true);
+                    
                     pathActivator.activatedObjects.Add(otherPath.room.gameObject);
                 }
 

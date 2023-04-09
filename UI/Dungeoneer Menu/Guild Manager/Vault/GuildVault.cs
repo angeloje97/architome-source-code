@@ -35,8 +35,10 @@ namespace Architome
             active = this;
         }
 
+        #region Initialization
         public void InitializeModule()
         {
+            manager.guildInfo.vault ??= new();
             items = manager.guildInfo.vault;
 
             CreateInventorySlots(manager.guildInfo.maxSlots);
@@ -60,21 +62,9 @@ namespace Architome
         }
         void CreateItems()
         {
-            var itemInfoPrefab = DungeoneerManager.active.prefabs.itemTemplate;
-            for (int i = 0; i < items.Count; i++)
-            {
-                if (items[i].item == null) continue;
-                if (i < 0 || i >= slots.Count) continue;
-
-                var slot = slots[i];
-                var newItemInfo = Instantiate(itemInfoPrefab, vaultParent).GetComponent<ItemInfo>();
-
-                newItemInfo.ManifestItem(items[i], true);
-
-                newItemInfo.HandleNewSlot(slot);
-
-                newItemInfo.ReturnToSlot(3);
-            }
+            SaveSystem.Operate((SaveGame save) => {
+                CoreLoader.LoadInventory(save.guildData.inventory, slots);
+            });
         }
         public bool VaultItem(ItemInfo item)
         {
@@ -110,11 +100,20 @@ namespace Architome
             return null;
         }
 
+        #endregion
+
+        #region Event Listeners
         private void OnChangeItem(ItemEventData eventData)
         {
             var slot = eventData.itemSlot;
             if (!slots.Contains(slot)) return;
             var index = slots.IndexOf(slot);
+
+            while(index > items.Count)
+            {
+                items.Add(new());
+            }
+
             items[index] = new(eventData.newItem);
         }
         async void OnItemAction(ItemInfo info)
@@ -129,13 +128,7 @@ namespace Architome
                 }),
             };
 
-            
-
-
             HandleOptions();
-
-
-            
 
             var userChoice = await contextMenu.UserChoice(new() 
             { 
@@ -175,6 +168,8 @@ namespace Architome
                 }
 
                 
+
+
                 if (!info.item.IsCurrency())
                 {
                     options.Insert(0, new("Sell", (data) => {
@@ -184,14 +179,29 @@ namespace Architome
                 }
                 else
                 {
-                    options.Insert(0, new("Claim", (data) => {
+                    options.Insert(0, new(info.item.UseString(), (data) => {
                         info.item.Use(new() { guildManager = manager, itemInfo = info });
                     }));
                 }
+
+                if (info.item.GetType() == typeof(LootBox))
+                {
+                    options.Insert(0, new(info.item.UseString(), (data) => {
+                        info.item.Use(new()
+                        {
+                            itemInfo = info,
+                            slots = slots,
+                        });
+                    }));
+                }
+
+
             }
 
         }
+        #endregion
 
+        #region Slot Management
         void UpdateInventorySlots()
         {
             var slotPrefab = DungeoneerManager.active.prefabs.inventorySlot;
@@ -215,5 +225,6 @@ namespace Architome
 
             return 12 * slots.Count;
         }
+        #endregion
     }
 }

@@ -89,7 +89,6 @@ namespace Architome
             public bool requiresLineOfSight;
             public bool canHitSameTarget;
             public bool canAssistSameTarget;
-            public bool explosive;
             public bool canBeIntercepted;
             public bool nullifyDamage;
             public bool interruptable;

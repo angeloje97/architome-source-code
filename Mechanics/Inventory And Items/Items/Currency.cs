@@ -32,6 +32,11 @@ namespace Architome
             return true;
         }
 
+        public override string UseString()
+        {
+            return "Claim";
+        }
+
         public override void Use(UseData data)
         {
             data.guildManager.GainCurrency(this, data.itemInfo.currentStacks);

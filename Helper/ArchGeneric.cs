@@ -72,6 +72,7 @@ namespace Architome
 
         public static async void DontDestroyOnLoad(GameObject gameObject, bool canvasItem = false)
         {
+            return;
             gameObject.transform.SetParent(null);
 
             if (!canvasItem)

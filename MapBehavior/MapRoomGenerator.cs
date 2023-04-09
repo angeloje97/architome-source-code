@@ -41,6 +41,7 @@ namespace Architome
         public bool hideRooms;
         public bool generatingSkeleton;
         public bool generatingAvailable;
+        public bool ignoreBackgorund;
 
         public float spawnDelay = 1f;
         public float startDelay = 0f;
@@ -90,7 +91,7 @@ namespace Architome
             roomsToGenerate += skeletonRooms.Count;
         }
 
-        async void GenerateRooms()
+        async public void GenerateRooms()
         {
             if (mapInfo.generateRooms)
             {
@@ -233,7 +234,7 @@ namespace Architome
             {
                 if (!mapInfo.generateRooms) { break; }
 
-                //generatingSkeleton = true;
+                if (!CanGenerate()) return;
                 
 
                 await HandleSekeletonRooms();
@@ -329,7 +330,10 @@ namespace Architome
             do
             {
                 if (!mapInfo.generateRooms) { break; }
-                
+
+                if (!CanGenerate()) return;
+
+
                 await HandleAvailableRooms();
                 await Task.Delay((int)(spawnDelay * 1000));
 
@@ -377,7 +381,7 @@ namespace Architome
 
                     if (availablePaths.Count == 0)
                     {
-                        Destroy(badRoom);
+                        DestroyRoom(badRoom);
                         return;
                     }
 
@@ -397,6 +401,7 @@ namespace Architome
         }
         async Task HandleBackgroundAdjustment()
         {
+            if (ignoreBackgorund) return;
             var mapAdjustment = GetComponentInParent<MapAdjustments>();
             if (mapAdjustment == null) return;
 
@@ -615,6 +620,26 @@ namespace Architome
             }
         }
 
+        public void DestroyRooms()
+        {
+            if (roomsInUse == null) return;
+            for(int i = roomsInUse.Count - 1; i >= 0; i--)
+            {
+                if (!Application.isPlaying) break;
+                Destroy(roomsInUse[i]);
+            }
+
+            foreach(var room in roomList.GetComponentsInChildren<RoomInfo>())
+            {
+                if (!Application.isPlaying)
+                {
+                    Destroy(room.gameObject);
+                }
+            }
+
+            roomsInUse = new();
+        }
+
         public void AddRoom(RoomInfo room)
         {
             if (paths == null)
@@ -673,7 +698,7 @@ namespace Architome
         public List<PathInfo> PreviousPaths(int currentIndex)
         {
             ClearNullRooms();
-            if (currentIndex == 0) { return AvailablePaths(); }
+            if (currentIndex <= 0) { return AvailablePaths(); }
             if (currentIndex >= roomsInUse.Count) { return AvailablePaths(); }
 
             var availablePaths = AvailablePaths(roomsInUse[currentIndex - 1].GetComponent<RoomInfo>());
@@ -752,6 +777,23 @@ namespace Architome
             }
         }
 
+        public void DestroyRoom<T>(T room) where T: MonoBehaviour
+        {
+            if (Application.isPlaying)
+            {
+                Destroy(room);
+            }
+            else
+            {
+                DestroyImmediate(room);
+            }
+        }
+
+
+        public bool CanGenerate()
+        {
+            return Application.isPlaying;
+        }
         //Event Handlers
         public void OnEntitiesGenerated(MapEntityGenerator entityGenerator)
         {

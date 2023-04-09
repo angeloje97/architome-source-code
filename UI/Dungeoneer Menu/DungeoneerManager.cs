@@ -74,6 +74,7 @@ namespace Architome
 
         }
 
+        #region Entities
         void SpawnPresetEntities()
         {
             if (entities.parent == null) return;
@@ -136,22 +137,6 @@ namespace Architome
             OnLoadSave?.Invoke(currentSave);
 
         }
-        void OnNewBorn()
-        {
-            if (currentSave == null)
-            {
-                SpawnPresetEntities();
-                return;
-            }
-
-            if (!currentSave.newBorn) return;
-            currentSave.newBorn = false;
-
-
-            OnNewSave?.Invoke(currentSave);
-
-            SpawnPresetEntities();
-        }
         public void SetSelectedEntities(List<EntityInfo> entities, float partyLevel = 0f)
         {
             selectedEntities = entities;
@@ -170,6 +155,24 @@ namespace Architome
 
             OnSetSelectedMembers?.Invoke(this, selectedEntities);
 
+        }
+        #endregion
+
+        void OnNewBorn()
+        {
+            if (currentSave == null)
+            {
+                SpawnPresetEntities();
+                return;
+            }
+
+            if (!currentSave.newBorn) return;
+            currentSave.newBorn = false;
+
+
+            OnNewSave?.Invoke(currentSave);
+
+            SpawnPresetEntities();
         }
 
         public void SetDungeon(Dungeon dungeon)

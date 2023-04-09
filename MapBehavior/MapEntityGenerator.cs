@@ -79,6 +79,7 @@ public class MapEntityGenerator : MonoBehaviour
 
         foreach (var room in generator.roomsInUse)
         {
+            if (room == null) continue;
             var info = room.GetComponent<RoomInfo>();
             if (info == null) continue;
 

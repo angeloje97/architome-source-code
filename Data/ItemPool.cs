@@ -10,24 +10,27 @@ namespace Architome
     public class ItemPool : ScriptableObject
     {
         [SerializeField] bool update;
+
+        #region Serializables
+
         [System.Serializable]
-        public class EntityRarityPool
+        public class PoolData
         {
             public string name;
-
-            public EntityRarity rarity;
-            public List<PossibleItem> possibleItems;
-            public List<PossibleItem> guaranteedItems;
+            public List<PossibleItem> possibleItems, guaranteedItems;
         }
 
         [System.Serializable]
-        public class RarityPool
+        public class EntityRarityPool: PoolData
         {
-            public string name;
+            public EntityRarity rarity;
+        }
+
+        [System.Serializable]
+        public class RarityPool: PoolData
+        {
 
             public Rarity rarity;
-            public List<PossibleItem> possibleItems;
-            public List<PossibleItem> guaranteedItems;
         }
 
         [System.Serializable]
@@ -46,9 +49,24 @@ namespace Architome
 
             }
         }
+        [System.Serializable]
+        public class RequestData
+        {
+            public int maxItems;
+            public int minItems;
+            public float chanceMultiplier = 0f;
+            public bool useMinMax;
+            public bool replaceNull;
+            public bool uniqueItems;
+            public List<PossibleItem> possibleItems;
+            public List<PossibleItem> guaranteedItems;
+        }
+
+        #endregion
 
         public List<EntityRarityPool> entityItems;
         public List<RarityPool> rarityItems;
+        public List<PoolData> genericItemPools;
 
         public List<PossibleItem> possibleItems;
         public List<PossibleItem> guaranteedItems;
@@ -68,11 +86,26 @@ namespace Architome
 
         RarityPool RarityItems(Rarity rarity)
         {
+            rarityItems ??= new();
+
             foreach (var rarityItem in rarityItems)
             {
                 if (rarity == rarityItem.rarity)
                 {
                     return rarityItem;
+                }
+            }
+
+            return null;
+        }
+
+        public PoolData ItemsFromName(string name)
+        {
+            foreach(var pooldata in genericItemPools)
+            {
+                if(pooldata.name.Equals(name))
+                {
+                    return pooldata;
                 }
             }
 
@@ -85,6 +118,7 @@ namespace Architome
 
             var guaranteedItems = request.guaranteedItems;
             var possibleItems = request.possibleItems;
+            var itemIds = new List<int>();
 
             if (possibleItems == null && request.replaceNull)
             {
@@ -93,7 +127,7 @@ namespace Architome
 
             if (guaranteedItems == null && request.replaceNull)
             {
-                guaranteedItems = this.possibleItems;
+                guaranteedItems = this.guaranteedItems;
             }
 
 
@@ -108,20 +142,25 @@ namespace Architome
 
             HandleGuaranteedItems();
 
-
+            int tries = 0;
             if (request.useMinMax)
             {
                 while (itemDatas.Count < targetCount)
                 {
                     if (possibleItems.Count == 0) break;
                     HandlePossibleItems();
+                    tries++;
+                    if (tries > 1000)
+                    {
+                        break;
+                    }
                 }
             }
             else
             {
                 HandlePossibleItems();
             }
-            
+
 
             return itemDatas;
 
@@ -142,6 +181,9 @@ namespace Architome
 
             void HandlePossibleItems()
             {
+                if (possibleItems == null) return;
+
+
                 foreach (var possible in possibleItems)
                 {
                     var chanceRole = Random.Range(0f, 100f);
@@ -151,6 +193,7 @@ namespace Architome
                     {
                         chance *= request.chanceMultiplier;
                     }
+
 
                     if (chanceRole >= chance) continue;
 
@@ -166,9 +209,10 @@ namespace Architome
 
             void AddItem(ItemData data)
             {
-                if (itemDatas.Count >= targetCount) return;
+                if (itemDatas.Count >= targetCount && request.useMinMax) return;
 
                 var count = data.amount;
+                if (!IsUnique(data)) return;
 
                 while (count != 0)
                 {
@@ -183,6 +227,21 @@ namespace Architome
                 }
 
             }
+
+            bool IsUnique(ItemData itemData)
+            {
+                if (!request.uniqueItems) return true;
+                var id = itemData.item._id;
+                if (itemIds.Contains(id))
+                {
+                    return false;
+                }
+
+                itemIds.Add(id);
+
+                return true;
+            }
+
         }
 
         public List<ItemData> CreatePossibleItems(int items)
@@ -198,20 +257,8 @@ namespace Architome
         public List<ItemData> ItemsFromRarity(Rarity rarity, RequestData data)
         {
 
-            var rarityItems = RarityItems(rarity);
 
-            if (rarityItems != null)
-            {
-                data.possibleItems = rarityItems.possibleItems;
-                data.guaranteedItems = rarityItems.guaranteedItems;
-                data.chanceMultiplier = 0f;
-                return GeneratedItems(data);
-
-            }
-            else
-            {
-                return GeneratedItems(data);
-            }
+            return ItemsFromPoolData(RarityItems(rarity), data);
 
 
         }
@@ -219,33 +266,36 @@ namespace Architome
         public List<ItemData> ItemsFromEntityRarity(EntityRarity rarity, RequestData request)
         {
 
-            var entityRarityItems = EntityItems(rarity);
+            return ItemsFromPoolData(EntityItems(rarity), request);
 
-            if (entityRarityItems != null)
+        }
+        public List<ItemData> ItemsFromCustom(string customName, RequestData request)
+        {
+            return ItemsFromPoolData(ItemsFromName(customName), request);
+        }
+
+        List<ItemData> ItemsFromPoolData(PoolData poolData, RequestData request)
+        {
+            if(poolData != null)
             {
-                request.possibleItems = entityRarityItems.possibleItems;
-                request.guaranteedItems = entityRarityItems.guaranteedItems;
-                request.chanceMultiplier = 0f;
-                
+                request.possibleItems = poolData.possibleItems;
+                request.guaranteedItems = poolData.guaranteedItems;
+                Debugger.UI(5401, $"Guaranteed Items: {request.guaranteedItems.Count}");
+                request.chanceMultiplier = 0;
+
                 return GeneratedItems(request);
             }
             else
             {
                 return GeneratedItems(request);
             }
-
         }
 
-        public class RequestData
-        {
-            public int maxItems;
-            public int minItems;
-            public float chanceMultiplier = 0f;
-            public bool useMinMax;
-            public bool replaceNull;
-            public List<PossibleItem> possibleItems;
-            public List<PossibleItem> guaranteedItems;
-        }
+        
+
+
+
+        #region Validate
 
         private void OnValidate()
         {
@@ -254,9 +304,9 @@ namespace Architome
 
             UpdatePossibleItems(possibleItems);
             UpdatePossibleItems(guaranteedItems);
-
             UpdateEntityItems(entityItems);
             UpdateRarityItems(rarityItems);
+            UpdateGeneric();
         }
 
         public void UpdatePossibleItems(List<PossibleItem> possibleItems)
@@ -295,6 +345,16 @@ namespace Architome
             }
         }
 
+        public void UpdateGeneric()
+        {
+            foreach(var generic in genericItemPools)
+            {
+                UpdatePossibleItems(generic.possibleItems);
+                UpdatePossibleItems(generic.guaranteedItems);
+            }
+        }
+
+        #endregion
 
     }
 }

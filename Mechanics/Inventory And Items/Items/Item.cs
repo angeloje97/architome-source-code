@@ -44,8 +44,10 @@ namespace Architome
 
         private void OnValidate()
         {
-            if (!infiniteStacks) return;
-            infiniteStacks = false;
+            if(itemName == null || itemName.Length == 0)
+            {
+                itemName = name;
+            }
         }
 
         public virtual void AdjustValue()
@@ -54,6 +56,12 @@ namespace Architome
             {
                 rarity = Rarity.Poor;
             }
+        }
+
+
+        public virtual string UseString()
+        {
+            return "";
         }
 
         public virtual void Use(UseData data)
@@ -72,6 +80,8 @@ namespace Architome
             return other._id == _id;
         }
 
+        #region Tooltip
+
         public virtual string Description()
         {
             return $"{itemDescription}";
@@ -82,32 +92,6 @@ namespace Architome
             return "";
         }
 
-        public virtual int NewStacks(int currentStacks, int stacksToAdd, out int leftover)
-        {
-            if (infiniteStacks)
-            {
-                leftover = 0;
-                return currentStacks + stacksToAdd;
-            }
-
-            if (currentStacks + stacksToAdd > maxStacks)
-            {
-                leftover = currentStacks + stacksToAdd - maxStacks;
-                return maxStacks;
-
-            }
-
-            leftover = 0;
-
-            return currentStacks + stacksToAdd;
-        }
-
-        public virtual bool ValidStacks(int countCheck)
-        {
-            if (infiniteStacks) return true;
-            return countCheck <= maxStacks;
-        }
-        
         public virtual string Requirements()
         {
             return "";
@@ -142,13 +126,6 @@ namespace Architome
             return result;
         }
 
-        public void SetId(int id, bool forceSet = false)
-        {
-            if (idSet && !forceSet) return;
-            idSet = true;
-            this.id = id;
-        }
-
         public virtual ToolTipData ToolTipData(int amount = 1)
         {
             var name = amount > 1 ? $"{itemName} x{amount}" : itemName;
@@ -167,6 +144,43 @@ namespace Architome
                 value = Value(amount)
             };
         }
+
+        #endregion
+        public virtual int NewStacks(int currentStacks, int stacksToAdd, out int leftover)
+        {
+            if (infiniteStacks)
+            {
+                leftover = 0;
+                return currentStacks + stacksToAdd;
+            }
+
+            if (currentStacks + stacksToAdd > maxStacks)
+            {
+                leftover = currentStacks + stacksToAdd - maxStacks;
+                return maxStacks;
+
+            }
+
+            leftover = 0;
+
+            return currentStacks + stacksToAdd;
+        }
+
+        public virtual bool ValidStacks(int countCheck)
+        {
+            if (infiniteStacks) return true;
+            return countCheck <= maxStacks;
+        }
+        
+        
+        public void SetId(int id, bool forceSet = false)
+        {
+            if (idSet && !forceSet) return;
+            idSet = true;
+            this.id = id;
+        }
+
+        
 
 
         public virtual bool IsCurrency()
@@ -250,5 +264,7 @@ namespace Architome
         public ItemInfo itemInfo;
         public EntityInfo entityUsed;
         public GuildManager guildManager;
+        public List<InventorySlot> slots;
+        public Transform targetParent;
     }
 }

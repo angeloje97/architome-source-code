@@ -214,6 +214,21 @@ namespace Architome
 
         }
 
+        public ItemInfo CreateItemUI(ItemData data, InventorySlot slot, ItemInfo template, bool draggable = true)
+        {
+            var createdItem = Instantiate(template, slot.transform);
+
+            createdItem.ManifestItem(data, true);
+            createdItem.HandleNewSlot(slot);
+            createdItem.ReturnToSlot(3);
+            if (!draggable)
+            {
+                createdItem.SetMovable(false);
+            }
+
+            return createdItem;
+        }
+
         public InventorySlot CreateInventorySlot(Transform parent)
         {
             var inventorySlot = World.active.prefabsUI.inventorySlot;
