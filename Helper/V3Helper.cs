@@ -6,7 +6,7 @@ using System;
 
 namespace Architome
 {
-    public class V3Helper
+    public static class V3Helper
     {
         // Start is called before the first frame update
 
@@ -337,6 +337,8 @@ namespace Architome
 
         }
 
+        
+
         public static (Vector3, Vector3) MinMax(List<Transform> transforms)
         {
             Vector3 min = new();
@@ -418,7 +420,10 @@ namespace Architome
 
         }
 
-        
+        public static Vector3 Multiply(Vector3 a, Vector3 b)
+        {
+            return new Vector3(a.x * b.x, a.y * b.y, a.z * b.z);
+        }
 
         public static Vector3 GroundPosition(Vector3 source, LayerMask groundLayerMask, float heightOffSet = 0f, float hitHeightOffset = 0f)
         {

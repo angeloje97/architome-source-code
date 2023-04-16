@@ -3,22 +3,28 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using UnityEngine.Events;
-public class Activator : MonoBehaviour
+
+namespace Architome
 {
-    // Start is called before the first frame update
+
+    public class Activator : MonoBehaviour
+    {
+        // Start is called before the first frame update
 
 
-    public Action<ActivatorData> OnActivate;
+        public Action<ActivatorData> OnActivate;
 
-    public UnityEvent<ActivatorData> OnActivateUnity;
+        public UnityEvent<ActivatorData> OnActivateUnity;
 
-}
+    }
 
-public class ActivatorData
-{
-    public GameObject gameObject;
-    public Collider collider;
-    public List<GameObject> gameObjects;
-    public List<Collider> colliders;
+    public class ActivatorData
+    {
+        public GameObject gameObject;
+        public Collider collider;
+        public List<GameObject> gameObjects;
+        public List<Collider> colliders;
+
+    }
 
 }

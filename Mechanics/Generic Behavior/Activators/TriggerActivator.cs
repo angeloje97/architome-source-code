@@ -2,29 +2,33 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-public class TriggerActivator : Activator
+namespace Architome
 {
-    public Action<Collider, bool> OnTrigger;
 
-    public void OnTriggerEnter(Collider other)
+    public class TriggerActivator : Activator
     {
+        public Action<Collider, bool> OnTrigger;
 
-        ActivatorData data = new ActivatorData()
+        public void OnTriggerEnter(Collider other)
         {
-            collider = other,
-            gameObject = other.gameObject,
 
-        };
+            ActivatorData data = new ActivatorData()
+            {
+                collider = other,
+                gameObject = other.gameObject,
 
-        OnTrigger?.Invoke(other, true);
-        OnActivate?.Invoke(data);
-        OnActivateUnity?.Invoke(data);
+            };
+
+            OnTrigger?.Invoke(other, true);
+            OnActivate?.Invoke(data);
+            OnActivateUnity?.Invoke(data);
+        }
+
+        public void OnTriggerExit(Collider other)
+        {
+
+            OnTrigger?.Invoke(other, false);
+        }
+
     }
-
-    public void OnTriggerExit(Collider other)
-    {
-
-        OnTrigger?.Invoke(other, false);
-    }
-
 }

@@ -9,9 +9,9 @@ using System.Linq;
 namespace Architome
 {
 
-    public class ArchGeneric
+    public static class ArchGeneric
     {
-
+        public static bool disallowPersistant = false;
         public static T CopyComponent<T>(T original, GameObject target) where T : Component
         {
             var component = target.AddComponent<T>();
@@ -42,6 +42,25 @@ namespace Architome
             return items[randomIndex];
         }
 
+        public static T GetTopMostComponent<T>(this Component behavior) where T: Component
+        {
+            var current = behavior;
+            var component = current.GetComponent<T>();
+
+            while (current.transform.parent)
+            {
+                var parentComponent = current.transform.parent.GetComponent<T>();
+
+                if (parentComponent)
+                {
+                    component = parentComponent;
+                }
+
+                current = current.transform.parent;
+            }
+            return component;
+        }
+
         public static List<T> Shuffle<T>(List<T> items)
         {
             var newList = items.ToList();
@@ -62,6 +81,8 @@ namespace Architome
         }
 
 
+
+
         public static void DestroyOnLoad(GameObject gameObject)
         {
             var tempObject = new GameObject("Destroy on Load");
@@ -72,7 +93,11 @@ namespace Architome
 
         public static async void DontDestroyOnLoad(GameObject gameObject, bool canvasItem = false)
         {
-            return;
+            if (disallowPersistant)
+            {
+                Debug.LogWarning($"Trying to stop {gameObject} from becoming a persistant game object.");
+                return;
+            }
             gameObject.transform.SetParent(null);
 
             if (!canvasItem)

@@ -21,6 +21,7 @@ namespace Architome
         public List<GameObject> items = new();
         public List<Toggle> toggles = new();
 
+        [Range(0f, 1f)]
         public float smoothening = 1f;
 
         public int index;
@@ -31,6 +32,7 @@ namespace Architome
         public Action<NavBar, List<bool>> OnCanNavigateChange { get; set; }
 
         public bool navigationBlocked;
+        public bool changing;
 
         public bool stallNavigation;
 
@@ -166,10 +168,12 @@ namespace Architome
             if (navigationBlocked) return;
             if (previousIndex == index) return;
 
+            while (changing) await Task.Yield();
+
             var activeCanvases = new HashSet<CanvasGroup>();
             var targetCanvases = new HashSet<CanvasGroup>();
 
-            var lerpValue = smoothening != 0 ? 1 / smoothening : 1;
+            var lerpValue = smoothening != 0 ? smoothening : 1;
             for (int i = 0; i < toggles.Count; i++)
             {
                 if(items.Count <= i || items[i] == null)
@@ -214,15 +218,18 @@ namespace Architome
                 return;
             }
 
+            changing = true;
             foreach(var group in activeCanvases)
             {
-                ArchUI.SetCanvas(group, false);
+                await group.SetCanvasAsync(false, lerpValue);
             }
 
             foreach(var group in targetCanvases)
             {
-                ArchUI.SetCanvas(group, true);
+                await group.SetCanvasAsync(true, lerpValue);
             }
+            changing = false;
+
 
         }
 

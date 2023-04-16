@@ -185,6 +185,7 @@ public class ProgressBarsBehavior : MonoBehaviour, IPointerEnterHandler, IPointe
 
         while (canvasGroup != null && canvasGroup.alpha != targetAlpha)
         {
+            if (!Application.isPlaying) return;
             if (!entityInfo.isAlive)
             {
                 canvasGroup.alpha = targetAlpha;

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Architome
@@ -32,10 +33,11 @@ namespace Architome
             slotHandler = GetComponent<ItemSlotHandler>();
         }
 
-        void AddMerch(MerchData merchData)
+        async Task AddMerch(MerchData merchData)
         {
-            //var slot = Instantiate(slotTemplate, slotParent);
             var slot = worldActions.CreateInventorySlot(slotParent);
+            await Task.Delay(0625);
+
             var newItemInfo = worldActions.CreateItemUI(merchData, slot.transform, false);
             newItemInfo.ManifestItem(merchData, true);
             newItemInfo.HandleNewSlot(slot);
@@ -54,12 +56,15 @@ namespace Architome
 
         
 
-        void CreateItems()
+        async void CreateItems()
         {
+            var tasks = new List<Task>();
             foreach(var merch in shop.merchandise)
             {
-                AddMerch(merch);
+                tasks.Add(AddMerch(merch));
             }
+
+            await Task.WhenAll(tasks);
         }
 
 

@@ -11,7 +11,7 @@ namespace Architome
     public static class ArchUI
     {
 
-        public static void SetCanvas(CanvasGroup canvas, bool val, float lerpValue = 1f)
+        public static void SetCanvas(this CanvasGroup canvas, bool val, float lerpValue = 1f)
         {
             if (canvas == null) return;
 
@@ -50,7 +50,7 @@ namespace Architome
             }
         }
 
-        public static async Task SetCanvasAsync(CanvasGroup canvas, bool val, float lerpValue = 1f)
+        public static async Task SetCanvasAsync(this CanvasGroup canvas, bool val, float lerpValue = 1f)
         {
             if (canvas == null) return;
 

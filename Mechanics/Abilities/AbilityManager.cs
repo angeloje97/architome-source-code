@@ -412,34 +412,6 @@ namespace Architome
 
             ability.location = location;
             ability.Cast();
-
-            //for (int i = 0; i < abilities.Count; i++)
-            //{
-            //    if (abilities[i] != ability) continue;
-
-            //    if (entityInfo && !entityInfo.states.Contains(EntityState.MindControlled))
-            //    {
-            //        var playerController = entityInfo.PlayerController();
-
-            //        if (playerController)
-            //        {
-            //            playerController.HandlePlayerTargetting();
-            //        }
-            //    }
-
-
-            //    Cast(i);
-            //}
-
-            //if (abilities.Contains(ability))
-            //{
-            //    Debugger.InConsole(7829, $"{ability}, {abilities.IndexOf(ability)}");
-            //    if (entityInfo && entityInfo.PlayerController())
-            //    {
-            //        entityInfo.PlayerController().HandlePlayerTargetting();
-            //    }
-            //    Cast(abilities.IndexOf(ability));
-            //}
         }
 
         // Update is called once per frame

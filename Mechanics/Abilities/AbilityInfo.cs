@@ -181,7 +181,7 @@ public class AbilityInfo : MonoBehaviour
     public Action<AbilityInfo> OnInterrupt { get; set; }
     public List<AugmentType> augmentAbilities;
 
-    public Action<AbilityInfo, bool> OnActiveChange;
+    public Action<AbilityInfo, bool> OnActiveChange { get; set; }
     public Action<AbilityInfo, int> OnChargesChange;
     public Action<AbilityInfo, ToolTipData> OnAcquireToolTip;
     public Action<AbilityInfo> OnRemoveAbility;
@@ -267,7 +267,6 @@ public class AbilityInfo : MonoBehaviour
 
     void Update()
     {
-        HandleWantsToCast();
         HandleDeadTarget();
         HandleAutoAttack();
     }
@@ -829,29 +828,6 @@ public class AbilityInfo : MonoBehaviour
             await Activate();
         }
     }
-    public bool IsBusy()
-    {
-        if (isCasting) return true;
-
-        var busyList = new List<bool>();
-
-        OnBusyCheck?.Invoke(this, busyList);
-
-
-        foreach (var busy in busyList)
-        {
-            if (busy) return true;
-        }
-
-        return false;
-    }
-
-    public bool IsChanneling()
-    {
-        if (currentChannel == null) return false;
-
-        return currentChannel.active;
-    }
     public void Recast()
     {
         if (!recastProperties.isActive) return;
@@ -886,67 +862,6 @@ public class AbilityInfo : MonoBehaviour
 
         recastProperties.isActive = false;
 
-    }
-    public bool CanCast()
-    {
-        if (!IsReady())
-        {
-            CantCastReason("Not Ready");
-            return false;
-        }
-        if (!AbilityManagerCanCast())
-        {
-            CantCastReason("Ability Manager Can't Cast");
-            return false;
-        }
-        if (!HandleRequiresTargetLocked())
-        {
-            CantCastReason("Incorrect Target");
-            return false;
-        }
-
-        if (!SpawnHasLineOfSight())
-        {
-            CantCastReason("Don't have line of sight");
-            return false;
-        }
-
-        checks = new();
-        reasons = new();
-        OnCanCastCheck?.Invoke(this);
-
-        foreach(var check in checks)
-        {
-            if (!check)
-            {
-                CantCastReason(ArchString.NextLineList(reasons));
-                return false;
-            }
-        }
-
-
-
-        return true;
-
-        bool AbilityManagerCanCast()
-        {
-            if (abilityManager.currentlyCasting == null) return true;
-            if (abilityManager.currentlyCasting && abilityManager.currentlyCasting.isAttack)
-            {
-                abilityManager.currentlyCasting.CancelCast("Canceled auto to allow ability to cast");
-                ActivateWantsToCast("Canceling Auto Attack");
-                abilityManager.currentlyCasting = null;
-                return true;
-            }
-
-            return false;
-
-        }
-
-        void CantCastReason(string reason)
-        {
-            Debugger.InConsole(5329, $"{this} can't cast because {reason}");
-        }
     }
     bool SpawnHasLineOfSight()
     {
@@ -1022,29 +937,6 @@ public class AbilityInfo : MonoBehaviour
 
         return true;
     }
-    bool IsInRange(bool useOffset = false, bool moveToTarget = true)
-    {
-        if (range == -1)
-        {
-            return true;
-        }
-
-        var offset = useOffset ? range * .25f : 0;
-
-        if (abilityType == AbilityType.LockOn && target == null) return false;
-
-        if (V3Helper.Distance(target.transform.position, entityObject.transform.position) > range + offset)
-        {
-            if (moveToTarget)
-            {
-                Debugger.Combat(7561, $"Moving closter to target because out of range");
-                HandleMoveToTarget(target, movement, range -1f);
-            }
-            //ActivateWantsToCast("Target is out of range");
-            return false;
-        }
-        return true;
-    }
     
     async void HandleMoveToTarget(EntityInfo target, Movement movement, float range)
     {
@@ -1064,6 +956,8 @@ public class AbilityInfo : MonoBehaviour
         Cast();
     }
 
+
+    #region Flags
     bool HasLineOfSight(bool moveToTarget = true)
     {
         if (range == -1) return true;
@@ -1090,6 +984,113 @@ public class AbilityInfo : MonoBehaviour
             return false;
         }
         return true;
+    }
+    bool IsInRange(bool useOffset = false, bool moveToTarget = true)
+    {
+        if (range == -1)
+        {
+            return true;
+        }
+
+        var offset = useOffset ? range * .25f : 0;
+
+        if (abilityType == AbilityType.LockOn && target == null) return false;
+
+        if (V3Helper.Distance(target.transform.position, entityObject.transform.position) > range + offset)
+        {
+            if (moveToTarget)
+            {
+                Debugger.Combat(7561, $"Moving closter to target because out of range");
+                HandleMoveToTarget(target, movement, range -1f);
+            }
+            //ActivateWantsToCast("Target is out of range");
+            return false;
+        }
+        return true;
+    }
+    public bool IsBusy()
+    {
+        if (isCasting) return true;
+
+        var busyList = new List<bool>();
+
+        OnBusyCheck?.Invoke(this, busyList);
+
+
+        foreach (var busy in busyList)
+        {
+            if (busy) return true;
+        }
+
+        return false;
+    }
+    public bool CanCast()
+    {
+        if (!IsReady())
+        {
+            CantCastReason("Not Ready");
+            return false;
+        }
+        if (!AbilityManagerCanCast())
+        {
+            CantCastReason("Ability Manager Can't Cast");
+            return false;
+        }
+        if (!HandleRequiresTargetLocked())
+        {
+            CantCastReason("Incorrect Target");
+            return false;
+        }
+
+        if (!SpawnHasLineOfSight())
+        {
+            CantCastReason("Don't have line of sight");
+            return false;
+        }
+
+        checks = new();
+        reasons = new();
+        OnCanCastCheck?.Invoke(this);
+
+        foreach(var check in checks)
+        {
+            if (!check)
+            {
+                CantCastReason(ArchString.NextLineList(reasons));
+                return false;
+            }
+        }
+
+
+
+        return true;
+
+        bool AbilityManagerCanCast()
+        {
+            if (abilityManager.currentlyCasting == null) return true;
+            if (abilityManager.currentlyCasting && abilityManager.currentlyCasting.isAttack)
+            {
+                abilityManager.currentlyCasting.CancelCast("Canceled auto to allow ability to cast");
+                ActivateWantsToCast("Canceling Auto Attack");
+                abilityManager.currentlyCasting = null;
+                return true;
+            }
+
+            return false;
+
+        }
+
+        void CantCastReason(string reason)
+        {
+            Debugger.InConsole(5329, $"{this} can't cast because {reason}");
+        }
+    }
+
+    public bool IsChanneling()
+    {
+        if (currentChannel == null) return false;
+
+        return currentChannel.active;
     }
     public bool CanCastAt(GameObject target)
     {
@@ -1139,6 +1140,116 @@ public class AbilityInfo : MonoBehaviour
 
         return false;
     }
+    public bool IsCorrectTarget(EntityInfo target)
+    {
+        var info = target;
+        if(target == null) { return true; }
+
+        var orChecks = new List<bool>();
+        var andChecks = new List<bool>();
+
+        OnCorrectTargetCheck?.Invoke(this, target, orChecks, andChecks);
+        foreach(var check in orChecks) { if (check) return true; }
+        foreach(var check in andChecks) { if (!check) return false; }
+
+        if (CanHarm(target)) return true;
+        if (CanHeal(target)) return true;
+
+        return false;
+    }
+    public bool IsReady()
+    {
+        if (!active)
+        {
+            NotReadyReason("not active");
+            return false;
+        }
+
+        if (IsBusy())
+        {
+            NotReadyReason("Already casting or already channeling");
+            return false;
+        }
+        if (!HasCorrectWeapon())
+        {
+            return false;
+        }
+
+        var readyList = new List<(string, bool)>();
+
+        OnReadyCheck?.Invoke(this, readyList);
+
+        foreach (var (reason, success) in readyList)
+        {
+            if (!success)
+            {
+                NotReadyReason(reason);
+                return false;
+
+            }
+        }
+
+        return true;
+
+        bool HasCorrectWeapon()
+        {
+            if (!catalystInfo.requiresWeapon) return true;
+            
+            var hasWeapon = abilityManager.HasWeaponType(catalystInfo.weaponType);
+
+            if (hasWeapon == false)
+            {
+                NotReadyReason($"Ability requires {catalystInfo.weaponType}");
+            }
+
+            return hasWeapon;
+        }
+
+        void NotReadyReason(string reason)
+        {
+            Debugger.InConsole(5330, $"{this} can't cast because {reason}");
+        }
+    }
+    public bool CanHarm(EntityInfo target)
+    {
+        var checks = new List<bool>();
+
+        OnCanHarmCheck?.Invoke(this, target, checks);
+
+        foreach(var check in checks)
+        {
+            if (!check) return false;
+        }
+
+        return true;
+    }
+
+    public bool CanHeal(EntityInfo target)
+    {
+        var checks = new List<bool>();
+        OnCanHealCheck?.Invoke(this, target, checks);
+
+        foreach (var check in checks)
+        {
+            if (check) return true;
+        }
+
+        return false;
+    }
+    public bool CanShow()
+    {
+        var checks = new List<bool>();
+
+        OnCanShowCheck?.Invoke(this, checks);
+
+        foreach(var check in checks)
+        {
+            if (!check) return false;
+        }
+
+        return true;
+    }
+    #endregion
     public bool EndCast(bool checkRangeLos)
     {
         if (checkRangeLos)
@@ -1196,113 +1307,8 @@ public class AbilityInfo : MonoBehaviour
 
         canceledCast = true;
     }
-    public void HandleAbilityType()                                 //This is where the magic happens.. IE where the catalyst gets released.
-    {
 
-        if (catalystInfo)
-        {
-            catalystInfo.abilityInfo = this;
-            catalystInfo.isCataling = false;
-        }
-        else
-        {
-            return;
-        }
-
-
-        switch (abilityType)
-        {
-            case AbilityType.SkillShot: FreeCast(); break;
-            case AbilityType.Spawn: Spawn(); break;
-            case AbilityType.LockOn: LockOn(); break;
-            case AbilityType.Use: Use(); break;
-            default: FreeCast(); break;
-        }
-
-        void Spawn()
-        {
-            if (!catalyst)
-            {
-                return;
-            }
-            directionLocked = V3Helper.Direction(location, entityObject.transform.position);
-
-            var heightFromGround = V3Helper.HeightFromGround(entityObject.transform.position, GMHelper.LayerMasks().walkableLayer);
-            var groundPos = V3Helper.GroundPosition(locationLocked, GMHelper.LayerMasks().walkableLayer);
-            locationLocked.y = groundPos.y + heightFromGround;
-
-
-            var newCatalyst = Instantiate(catalystInfo, locationLocked, transform.localRotation);
-
-
-
-            newCatalyst.transform.rotation = V3Helper.LerpLookAt(newCatalyst.transform, locationLocked, 1f);
-
-
-            abilityManager.OnCatalystRelease?.Invoke(this, newCatalyst);
-            OnCatalystRelease?.Invoke(newCatalyst);
-        }
-
-        void FreeCast()
-        {
-            if(!catalyst)
-            {
-                return;
-            }
-            directionLocked = V3Helper.Direction(location, entityObject.transform.position);
-            var newCatalyst = Instantiate(catalystInfo, entityObject.transform.position, transform.localRotation);
-
-
-            var heightFromGround = V3Helper.HeightFromGround(entityObject.transform.position, GMHelper.LayerMasks().walkableLayer);
-            var groundPos = V3Helper.GroundPosition(locationLocked, GMHelper.LayerMasks().walkableLayer);
-            locationLocked.y = groundPos.y + heightFromGround;
-
-          
-
-            abilityManager.OnCatalystRelease?.Invoke(this, newCatalyst);
-            OnCatalystRelease?.Invoke(newCatalyst);
-
-
-        }
-        void LockOn()
-        {
-            if(!catalyst)
-            {
-                return;
-            }
-            var newCatalyst = Instantiate(catalystInfo, entityObject.transform.position, transform.localRotation);
-
-
-            abilityManager.OnCatalystRelease?.Invoke(this, newCatalyst);
-            OnCatalystRelease?.Invoke(newCatalyst);
-        }
-        void Use()
-        {
-            if (!catalyst) { return; }
-            var newCatalyst = Instantiate(catalystInfo, entityObject.transform.position, transform.localRotation);
-
-
-            abilityManager.OnCatalystRelease?.Invoke(this, newCatalyst);
-            OnCatalystRelease?.Invoke(newCatalyst);
-        }
-    }
-    public bool IsCorrectTarget(EntityInfo target)
-    {
-        var info = target;
-        if(target == null) { return true; }
-
-        var orChecks = new List<bool>();
-        var andChecks = new List<bool>();
-
-        OnCorrectTargetCheck?.Invoke(this, target, orChecks, andChecks);
-        foreach(var check in orChecks) { if (check) return true; }
-        foreach(var check in andChecks) { if (!check) return false; }
-
-        if (CanHarm(target)) return true;
-        if (CanHeal(target)) return true;
-
-        return false;
-    }
+    #region WantsToCast
     //public void UseMana()
     //{
     //    if(entityInfo)
@@ -1326,57 +1332,23 @@ public class AbilityInfo : MonoBehaviour
     }
     public void DeactivateWantsToCast(string reason, bool clearTargets = false)
     {
-        if (wantsToCast)
+        if (!wantsToCast) return;
+
+        Debugger.Combat(4389645, $"{reason}");
+        wantsToCast = false;
+        if (abilityManager.currentWantsToCast == this)
         {
+            abilityManager.currentWantsToCast = null;
+        }
+        abilityManager.wantsToCastAbility = wantsToCast;
+        abilityManager.OnWantsToCastChange?.Invoke(this, wantsToCast);
 
-            Debugger.InConsole(4389645, $"{reason}");
-            wantsToCast = false;
-            if (abilityManager.currentWantsToCast == this)
-            {
-                abilityManager.currentWantsToCast = null;
-            }
-            abilityManager.wantsToCastAbility = wantsToCast;
-            abilityManager.OnWantsToCastChange?.Invoke(this, wantsToCast);
-
-            if (clearTargets)
-            {
-                ClearTargets();
-            }
+        if (clearTargets)
+        {
+            ClearTargets();
         }
     }
-    public void HandleWantsToCast()
-    {
-        //if(!wantsToCast)
-        //{
-        //    return;
-        //}
-        
-        //if (coolDown.charges <= 0)
-        //{
-        //    DeactivateWantsToCast("No Charges");
-        //    return;
-        //}
-
-        //if (target == null && abilityType == AbilityType.LockOn)
-        //{
-        //    DeactivateWantsToCast("Target = null", true);
-        //    return;
-        //}
-
-
-        //if (!target.isAlive && !targetsDead) {
-        //    abilityManager.OnDeadTarget?.Invoke(this);
-        //    DeactivateWantsToCast("Target Died", true);
-        //    return; 
-        //}
-        
-
-        //if(IsInRange() && HasLineOfSight())
-        //{
-        //    Cast();
-            
-        //}
-    }
+    #endregion
     public void UpdateAbility()
     {
         if (abilityManager)
@@ -1457,59 +1429,6 @@ public class AbilityInfo : MonoBehaviour
                         + entityInfo.stats.Dexterity * coreContribution.dexterity;
 
         return value;
-    }
-    public bool IsReady()
-    {
-        if (!active)
-        {
-            NotReadyReason("not active");
-            return false;
-        }
-
-        if (IsBusy())
-        {
-            NotReadyReason("Already casting or already channeling");
-            return false;
-        }
-        if (!HasCorrectWeapon())
-        {
-            return false;
-        }
-
-        var readyList = new List<(string, bool)>();
-
-        OnReadyCheck?.Invoke(this, readyList);
-
-        foreach (var (reason, success) in readyList)
-        {
-            if (!success)
-            {
-                NotReadyReason(reason);
-                return false;
-
-            }
-        }
-
-        return true;
-
-        bool HasCorrectWeapon()
-        {
-            if (!catalystInfo.requiresWeapon) return true;
-            
-            var hasWeapon = abilityManager.HasWeaponType(catalystInfo.weaponType);
-
-            if (hasWeapon == false)
-            {
-                NotReadyReason($"Ability requires {catalystInfo.weaponType}");
-            }
-
-            return hasWeapon;
-        }
-
-        void NotReadyReason(string reason)
-        {
-            Debugger.InConsole(5330, $"{this} can't cast because {reason}");
-        }
     }
     public void HandleAutoAttack()
     {
@@ -1749,19 +1668,6 @@ public class AbilityInfo : MonoBehaviour
     }
 
     
-    public bool CanShow()
-    {
-        var checks = new List<bool>();
-
-        OnCanShowCheck?.Invoke(this, checks);
-
-        foreach(var check in checks)
-        {
-            if (!check) return false;
-        }
-
-        return true;
-    }
     public async Task<AbilityInfo> EndActivation()
     {
         while (activated)
@@ -1781,6 +1687,96 @@ public class AbilityInfo : MonoBehaviour
         }
 
         return this;
+    }
+    public void HandleAbilityType()                                 //This is where the magic happens.. IE where the catalyst gets released.
+    {
+
+        if (catalystInfo)
+        {
+            catalystInfo.abilityInfo = this;
+            catalystInfo.isCataling = false;
+        }
+        else
+        {
+            return;
+        }
+
+
+        switch (abilityType)
+        {
+            case AbilityType.SkillShot: FreeCast(); break;
+            case AbilityType.Spawn: Spawn(); break;
+            case AbilityType.LockOn: LockOn(); break;
+            case AbilityType.Use: Use(); break;
+            default: FreeCast(); break;
+        }
+
+        void Spawn()
+        {
+            if (!catalyst)
+            {
+                return;
+            }
+            directionLocked = V3Helper.Direction(location, entityObject.transform.position);
+
+            var heightFromGround = V3Helper.HeightFromGround(entityObject.transform.position, GMHelper.LayerMasks().walkableLayer);
+            var groundPos = V3Helper.GroundPosition(locationLocked, GMHelper.LayerMasks().walkableLayer);
+            locationLocked.y = groundPos.y + heightFromGround;
+
+
+            var newCatalyst = Instantiate(catalystInfo, locationLocked, transform.localRotation);
+
+
+
+            newCatalyst.transform.rotation = V3Helper.LerpLookAt(newCatalyst.transform, locationLocked, 1f);
+
+
+            abilityManager.OnCatalystRelease?.Invoke(this, newCatalyst);
+            OnCatalystRelease?.Invoke(newCatalyst);
+        }
+
+        void FreeCast()
+        {
+            if(!catalyst)
+            {
+                return;
+            }
+            directionLocked = V3Helper.Direction(location, entityObject.transform.position);
+            var newCatalyst = Instantiate(catalystInfo, entityObject.transform.position, transform.localRotation);
+
+
+            var heightFromGround = V3Helper.HeightFromGround(entityObject.transform.position, GMHelper.LayerMasks().walkableLayer);
+            var groundPos = V3Helper.GroundPosition(locationLocked, GMHelper.LayerMasks().walkableLayer);
+            locationLocked.y = groundPos.y + heightFromGround;
+
+          
+
+            abilityManager.OnCatalystRelease?.Invoke(this, newCatalyst);
+            OnCatalystRelease?.Invoke(newCatalyst);
+
+
+        }
+        void LockOn()
+        {
+            if(!catalyst)
+            {
+                return;
+            }
+            var newCatalyst = Instantiate(catalystInfo, entityObject.transform.position, transform.localRotation);
+
+
+            abilityManager.OnCatalystRelease?.Invoke(this, newCatalyst);
+            OnCatalystRelease?.Invoke(newCatalyst);
+        }
+        void Use()
+        {
+            if (!catalyst) { return; }
+            var newCatalyst = Instantiate(catalystInfo, entityObject.transform.position, transform.localRotation);
+
+
+            abilityManager.OnCatalystRelease?.Invoke(this, newCatalyst);
+            OnCatalystRelease?.Invoke(newCatalyst);
+        }
     }
     public bool HasChannel()
     {
@@ -1854,34 +1850,6 @@ public class AbilityInfo : MonoBehaviour
          * This function has been implemented as AugmentTracking.
          */
     }
-
-    public bool CanHarm(EntityInfo target)
-    {
-        var checks = new List<bool>();
-
-        OnCanHarmCheck?.Invoke(this, target, checks);
-
-        foreach(var check in checks)
-        {
-            if (!check) return false;
-        }
-
-        return true;
-    }
-
-    public bool CanHeal(EntityInfo target)
-    {
-        var checks = new List<bool>();
-        OnCanHealCheck?.Invoke(this, target, checks);
-
-        foreach (var check in checks)
-        {
-            if (check) return true;
-        }
-
-        return false;
-    }
-
     public void RemoveSelf()
     {
         OnRemoveAbility?.Invoke(this);

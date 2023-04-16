@@ -296,7 +296,7 @@ namespace Architome
 
                     if (availablePaths.Count == 0)
                     {
-                        Destroy(badRoom);
+                        DestroyRoom(badRoom);
                         return;
                     }
 
@@ -456,103 +456,6 @@ namespace Architome
                 }
             }
         }
-        //void HandleBadSpawnRooms()
-        //{
-        //    if (badSpawnRooms.Count > 0)
-        //    {
-        //        ClearNullRooms();
-        //        ClearNullPaths();
-
-        //        for (int i = 0; i < badSpawnRooms.Count; i++)
-        //        {
-        //            var room = badSpawnRooms[i];
-
-
-        //            foreach (PathInfo path in RoomPaths(room.GetComponent<RoomInfo>()))
-        //            {
-        //                path.isUsed = true;
-        //            }
-
-        //            if (!HandleBadSpawnSkeleton(room)) { Destroy(room); roomsDestroyed++; }
-        //            else if (!HandleBadSpawnAvailable(room)) { Destroy(room); roomsDestroyed++; }
-
-        //            badSpawnRooms.RemoveAt(i);
-        //            i--;
-        //        }
-        //    }
-
-        //    bool HandleBadSpawnSkeleton(GameObject room)
-        //    {
-        //        if (!generatingSkeleton) { return true; }
-        //        var availablePaths = AvailablePaths(roomsInUse[roomsInUse.Count - 2].GetComponent<RoomInfo>());
-        //        ClearIncompatablePaths(room.GetComponent<RoomInfo>(), availablePaths);
-
-        //        if (availablePaths.Count == 0)
-        //        {
-        //            availablePaths = PreviousPaths(roomsInUse.Count - 2);
-
-        //            if (availablePaths.Count == 0)
-        //            {
-        //                return false;
-        //            }
-        //        }
-
-        //        var pathIndexSeed = seedGenerator.Factor2(roomsInUse.Count, availablePaths.Count);
-
-
-        //        var newRoom = await availablePaths[pathIndexSeed].SpawnRoom(room, roomList);
-
-        //        if (room && room.GetComponent<RoomInfo>() && room.GetComponent<RoomInfo>().originPath)
-        //        {
-        //            room.GetComponent<RoomInfo>().originPath.isUsed = false;
-        //        }
-
-        //        foreach (PathInfo path in newRoom.paths)
-        //        {
-        //            if (!path.isEntrance)
-        //            {
-        //                path.isUsed = false;
-        //            }
-        //        }
-
-        //        Destroy(room);
-
-        //        return true;
-
-        //    }
-
-        //    bool HandleBadSpawnAvailable(GameObject room)
-        //    {
-        //        if (!generatingAvailable) { return true; }
-
-        //        var availablePaths = AvailablePaths(room.GetComponent<RoomInfo>().incompatablePaths);
-
-        //        if (availablePaths.Count == 0) { return false; }
-
-        //        //int randomPathIndex = seedGenerator.factors[availablePaths.Count];
-        //        int randomPathIndex = UnityEngine.Random.Range(0, availablePaths.Count);
-
-
-        //        var roomInfo = availablePaths[randomPathIndex].SpawnRoom(room, roomList);
-
-        //        if (room && room.GetComponent<RoomInfo>() && room.GetComponent<RoomInfo>().originPath)
-        //        {
-        //            room.GetComponent<RoomInfo>().originPath.isUsed = false;
-        //        }
-
-        //        foreach (PathInfo path in roomInfo.paths)
-        //        {
-        //            if (!path.isEntrance)
-        //            {
-        //                path.isUsed = false;
-        //            }
-        //        }
-
-        //        Destroy(room);
-
-        //        return true;
-        //    }
-        ////}
         IEnumerator ClearNullsRoutine()
         {
             do
@@ -629,12 +532,15 @@ namespace Architome
                 Destroy(roomsInUse[i]);
             }
 
-            foreach(var room in roomList.GetComponentsInChildren<RoomInfo>())
+            //foreach(var room in roomList.GetComponentsInChildren<RoomInfo>())
+            //{
+            //    if (!Application.isPlaying) break;
+            //    Destroy(room.gameObject);
+            //}
+
+            foreach(Transform child in roomList)
             {
-                if (!Application.isPlaying)
-                {
-                    Destroy(room.gameObject);
-                }
+                Destroy(child.gameObject);
             }
 
             roomsInUse = new();
@@ -781,11 +687,11 @@ namespace Architome
         {
             if (Application.isPlaying)
             {
-                Destroy(room);
+                Destroy(room.gameObject);
             }
             else
             {
-                DestroyImmediate(room);
+                DestroyImmediate(room.gameObject);
             }
         }
 

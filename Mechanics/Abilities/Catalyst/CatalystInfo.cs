@@ -126,9 +126,9 @@ namespace Architome
             public List<Catalyst> catalystsEffects;
             public List<Ability> abilityEffects;
             public CatalystLight light;
-            
 
-            public BodyPart startingBodyPart { get; set; }
+
+            public BodyPart startingBodyPart;
 
             [Header("Transform Effects")]
             public bool collapseOnDeath;
