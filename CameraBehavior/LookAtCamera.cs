@@ -25,6 +25,7 @@ public class LookAtCamera : MonoBehaviour
 
     void MirrorCamera()
     {
+        if (currentCamera == null) return;
         var cameraRotation = currentCamera.transform.rotation;
 
         transform.rotation = cameraRotation;

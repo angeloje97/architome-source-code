@@ -8,32 +8,26 @@ namespace Architome
 {
     public class AbilityIndicator : MonoBehaviour
     {
+        AbilityIndicator parentIndicator;
         public DecalProjector projector;
         public AbilityInfo ability;
 
-        public TransformType transformType;
-        TransformType previousTransformType;
 
         public bool projectorActive;
         bool projectorActiveCheck;
 
         public Vector3 pivotMultiplier;
         public Vector3 currentScale = Vector3.one;
-        Vector3 previousScale;
+        protected Vector3 previousScale;
 
 
-
-        public enum TransformType
-        {
-            Transform,
-            Projector,
-        }
 
         protected virtual void Start()
         {
             projectorActiveCheck = !projectorActive;
 
             GetDependencies();
+            SetToFloor();
             UpdateProjector();
 
 
@@ -54,22 +48,41 @@ namespace Architome
             {
                 ability.OnAbilityStartEnd += OnAbilityStartEnd;
             }
+
+            parentIndicator = GetComponentInParent<AbilityIndicator>();
         }
 
-        protected virtual void OnValidate()
+        #region Validation
+        protected void OnValidate()
         {
 
-            UpdateTransformType();
+            Validate();
+            
+        }
 
-            if(previousScale != currentScale)
+        protected virtual void Validate()
+        {
+            ValidateCurrentScale();
+            ValidateProjectorActive();
+        }
+
+        protected virtual void ValidateCurrentScale()
+        {
+            if (previousScale != currentScale)
             {
                 previousScale = currentScale;
                 SetScale(currentScale);
             }
+        }
+
+        protected virtual void ValidateProjectorActive()
+        {
+            if (projectorActive == projectorActiveCheck) return;
+            projectorActiveCheck = projectorActive;
 
             if (projectorActive)
             {
-                foreach(var indicator in GetComponentsInParent<AbilityIndicator>())
+                foreach (var indicator in GetComponentsInParent<AbilityIndicator>())
                 {
                     if (!indicator.projectorActive)
                     {
@@ -79,7 +92,7 @@ namespace Architome
                 SetProjector(true);
             }
 
-            foreach(var indicator in GetComponentsInChildren<AbilityIndicator>())
+            foreach (var indicator in GetComponentsInChildren<AbilityIndicator>())
             {
                 indicator.projector.enabled = projectorActive;
 
@@ -90,6 +103,8 @@ namespace Architome
 
             }
         }
+
+        #endregion
 
 
         #region Projector
@@ -113,27 +128,8 @@ namespace Architome
             projector.enabled = projectorActive;
         }
 
-        public void UpdateTransformType()
-        {
-            if (projector == null) return;
-            if (previousTransformType == transformType) return;
-            previousTransformType = transformType;
 
-            if(transformType == TransformType.Transform)
-            {
-                transform.localScale = projector.size;
-                projector.size = Vector3.one;
-                projector.scaleMode = DecalScaleMode.InheritFromHierarchy;
-            }
-            else
-            {
-                projector.size = transform.localScale;
-                transform.localScale = Vector3.one;
-                projector.scaleMode = DecalScaleMode.ScaleInvariant;
-            }
-        }
-
-        public void SetScale(Vector3 scale)
+        public virtual void SetScale(Vector3 scale)
         {
             scale.z = 1;
             currentScale = scale;
@@ -142,16 +138,25 @@ namespace Architome
                 previousScale = currentScale;
             }
 
-            if(transformType == TransformType.Transform)
+            if(projector.scaleMode == DecalScaleMode.InheritFromHierarchy)
             {
                 transform.localScale = scale;
             }
             else
             {
                 projector.size = scale;
-                projector.pivot = V3Helper.Multiply(pivotMultiplier, scale);
+                projector.pivot = V3Helper.Multiply(scale, pivotMultiplier);
             }
 
+        }
+
+        public async void SetToFloor()
+        {
+            if (parentIndicator != null) return;
+            await Task.Delay(1000);
+            var groundLayer = LayerMasksData.active.walkableLayer;
+            var groundPosition = V3Helper.GroundPosition(transform.position, groundLayer, 0, 1f);
+            transform.position = new Vector3(transform.position.x, transform.position.y, groundPosition.z);
         }
 
         #endregion
@@ -161,7 +166,6 @@ namespace Architome
         public virtual void OnAbilityStartEnd(AbilityInfo ability, bool isActivated)
         {
             SetProjector(isActivated);
-            SetScale(Vector3.one * ability.range);
         }
 
         #endregion

@@ -146,9 +146,8 @@ namespace Architome
                 equipment.SetPower(info.level, itemLevel, rarityProperty.name);
             }
         }
-        public void Open()
+        public void Open(TaskEventData eventData)
         {
-
             if (!FindEntityThatOpened())
             {
                 return;

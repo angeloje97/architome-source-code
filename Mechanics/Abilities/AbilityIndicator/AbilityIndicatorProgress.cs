@@ -21,9 +21,9 @@ namespace Architome
         float previousProgress;
 
 
-        protected override void OnValidate()
+        protected override void Validate()
         {
-            base.OnValidate();
+            base.Validate();
 
             if(currentProgress != previousProgress)
             {

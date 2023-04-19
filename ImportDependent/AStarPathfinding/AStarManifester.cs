@@ -29,34 +29,13 @@ namespace Architome
 
             var layeredGridGraph = aStarPath.data.layerGridGraph;
             if (layeredGridGraph == null) return;
+            var vectorCluster = new VectorCluster<Transform>(targetBin.GetComponentsInChildren<Transform>().ToList());
+            
 
-            var center = Center();
-            center.y = -50;
-            var size = Size();
-
-
-
-            layeredGridGraph.center = center;
-            layeredGridGraph.SetDimensions((int)(size.x), (int)(size.z), 1);
+            layeredGridGraph.center = vectorCluster.bottom;
+            layeredGridGraph.SetDimensions((int)(vectorCluster.width), (int)(vectorCluster.depth), 1);
 
             aStarPath.Scan();
-
-
-            Vector3 Center()
-            {
-                var trans = targetBin.GetComponentsInChildren<Transform>().ToList();
-
-                return V3Helper.MidPoint(trans);
-            }
-
-            Vector3 Size()
-            {
-                var trans = targetBin.GetComponentsInChildren<Transform>().ToList();
-
-
-
-                return V3Helper.Dimensions(trans);
-            }
         }
 
 

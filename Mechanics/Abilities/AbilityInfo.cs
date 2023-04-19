@@ -1677,7 +1677,6 @@ public class AbilityInfo : MonoBehaviour
 
         return this;
     }
-
     public async Task<AbilityInfo> EndActivation(Action<AbilityInfo> action)
     {
         while (activated)
@@ -1688,6 +1687,8 @@ public class AbilityInfo : MonoBehaviour
 
         return this;
     }
+
+    
     public void HandleAbilityType()                                 //This is where the magic happens.. IE where the catalyst gets released.
     {
 
@@ -1880,5 +1881,17 @@ public class AbilityInfo : MonoBehaviour
 
             return largest;
         }
+    }
+
+    public async void CatalystAction(Action<CatalystInfo> action)
+    {
+        if(catalystInfo == null)
+        {
+            await Task.Delay(0625);
+            if (!Application.isPlaying) return;
+            if (catalystInfo == null) return;
+        }
+        action?.Invoke(catalystInfo);
+
     }
 }
