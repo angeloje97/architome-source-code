@@ -17,7 +17,7 @@ namespace Architome
         public LineOfSight los;
 
         public float currentTime;
-
+        protected bool inRoutine { get; set; }
         public void GetDependencies()
         {
             combat = GetComponentInParent<CombatBehavior>();

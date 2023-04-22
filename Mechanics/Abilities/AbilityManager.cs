@@ -386,7 +386,7 @@ namespace Architome
             return abilities[num];
 
         }
-        public void Cast(AbilityInfo ability, bool usePlayerController = false)
+        public async Task Cast(AbilityInfo ability, bool usePlayerController = false)
         {
             debugger.Log(4352, $"{entityInfo.name} tries casting {ability}");
             if (!entityInfo.isAlive) { return; }
@@ -410,7 +410,7 @@ namespace Architome
             else { ability.target = null; }
 
             ability.location = location;
-            ability.Cast();
+            await ability.Cast();
         }
 
         // Update is called once per frame

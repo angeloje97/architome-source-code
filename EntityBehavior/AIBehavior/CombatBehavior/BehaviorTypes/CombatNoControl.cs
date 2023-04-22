@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
+using System.Threading.Tasks;
 
 namespace Architome
 {
@@ -39,30 +40,32 @@ namespace Architome
             else
             {
                 currentTime = .250f;
+
                 OnCombatRoutine();
             }
         }
 
-        void OnCombatRoutine()
+        async void OnCombatRoutine()
         {
             if (entity.workerState != WorkerState.Idle) return;
             target = combat.GetFocus() ? combat.GetFocus() : combat.target;
-
             if (!abilityManager.IsOpen()) return;
-
             if (target == null) return;
+            if (inRoutine) return;
+            inRoutine = true;
 
-            if (UsingAbility())
-            {
-                return;
-            }
-            else
+            Debugger.Combat(6313, $"{entity} combat routine active");
+
+            await UsingAbility();
+
+            if (target)
             {
                 abilityManager.target = target;
                 abilityManager.Attack();
                 abilityManager.target = null;
             }
 
+            inRoutine = false;
         }
 
         void OnSetFocus(EntityInfo target)
@@ -72,42 +75,32 @@ namespace Architome
         }
 
 
-        bool UsingAbility()
+        async Task UsingAbility()
         {
-            if (AbilityHarm())
-            {
-                return true;
-            }
+            await AbilityHarm();
 
-            if (AbilityAssist())
-            {
-                return true;
-            }
+            await AbilityAssist();
 
-            return false;
         }
 
-        bool AbilityHarm()
+        async Task AbilityHarm()
         {
             foreach (var specialAbility in combat.specialAbilities)
             {
-                //var ability = abilityManager.Ability(specialAbility.abilityIndex);
                 var ability = specialAbility.ability;
 
                 if (ability == null) continue;
-                if (ability.WantsToCast() || ability.isCasting) return true;
                 if (!ability.isHarming) continue;
                 if (!ability.IsReady()) continue;
 
                 //Special Ability Targeting
-                if (TargetsCurrent(specialAbility, ability)) return true;
-                if (TargetsRandom(specialAbility, ability)) return true;
-                if (Use(specialAbility, ability)) return true;
-                if (RandomLocation(specialAbility, ability)) return true;
+                if (await TargetsCurrent(specialAbility, ability)) return;
+                if (await TargetsRandom(specialAbility, ability)) return;
+                if (await Use(specialAbility, ability)) return;
+                if (await RandomLocation(specialAbility, ability)) return;
             }
-            return false;
 
-            bool TargetsRandom(SpecialAbility special, AbilityInfo ability)
+            async Task<bool> TargetsRandom(SpecialAbility special, AbilityInfo ability)
             {
                 if (special.targeting != SpecialTargeting.TargetsRandom) return false;
 
@@ -117,12 +110,12 @@ namespace Architome
 
                 abilityManager.target = randomTarget;
                 abilityManager.location = randomTarget.transform.position;
-                abilityManager.Cast(ability);
+                await abilityManager.Cast(ability);
 
                 return true;
             }
 
-            bool TargetsCurrent(SpecialAbility special, AbilityInfo ability)
+            async Task<bool> TargetsCurrent(SpecialAbility special, AbilityInfo ability)
             {
                 if (special.targeting != SpecialTargeting.TargetsCurrent) return false;
 
@@ -130,22 +123,12 @@ namespace Architome
 
                 abilityManager.location = target.transform.position;
                 abilityManager.target = target;
-                abilityManager.Cast(ability);
+                await abilityManager.Cast(ability);
 
                 return true;
             }
 
-            //bool Use(SpecialAbility special, AbilityInfo ability)
-            //{
-            //    if (ability.abilityType != AbilityType.Use) return false;
-            //    if (special.targeting != SpecialTargeting.Use) return false;
-
-            //    abilityManager.Cast(ability);
-
-            //    return true;
-            //}
-
-            bool RandomLocation(SpecialAbility special, AbilityInfo ability)
+            async Task<bool> RandomLocation(SpecialAbility special, AbilityInfo ability)
             {
                 if (special.targeting != SpecialTargeting.RandomLocation) return false;
 
@@ -154,7 +137,7 @@ namespace Architome
                 var randomZ = Random.Range(-maxDistance, maxDistance);
 
                 abilityManager.location = V3Helper.NearestNodePosition(abilityManager.transform.position + new Vector3(randomX, 0, randomZ));
-                abilityManager.Cast(ability);
+                await abilityManager.Cast(ability);
 
 
                 return true;
@@ -165,7 +148,7 @@ namespace Architome
             
         }
 
-        bool AbilityAssist()
+        async Task<bool> AbilityAssist()
         {
             if (entity.role != Role.Healer) return false;
 
@@ -178,7 +161,7 @@ namespace Architome
                 if (!ability.isHealing || ability.isAssisting) continue;
                 if (!ability.IsReady()) continue;
 
-                if (Use(specialAbility, specialAbility.ability)) return true;
+                if (await Use(specialAbility, specialAbility.ability)) return true;
 
 
             }
@@ -187,12 +170,12 @@ namespace Architome
             return false;
         }
 
-        bool Use(SpecialAbility special, AbilityInfo ability)
+        async Task<bool> Use(SpecialAbility special, AbilityInfo ability)
         {
             if (ability.abilityType != AbilityType.Use) return false;
             if (special.targeting != SpecialTargeting.Use) return false;
 
-            abilityManager.Cast(ability);
+            await abilityManager.Cast(ability);
 
             return true;
         }

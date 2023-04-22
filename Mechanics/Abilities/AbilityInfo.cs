@@ -893,7 +893,7 @@ public class AbilityInfo : MonoBehaviour
 
         return true;
     }
-    bool HandleRequiresTargetLocked()
+    async Task<bool> HandleRequiresTargetLocked()
     {
         if (location.x == 0 && location.z == 0)
         {
@@ -919,8 +919,8 @@ public class AbilityInfo : MonoBehaviour
             if (targetLocked == null) { return false; }
         }
 
-        if (!IsInRange()) return false;
-        if (!HasLineOfSight()) return false;
+        if (!await IsInRange()) return false;
+        if (!await HasLineOfSight()) return false;
 
         return true;
     }
@@ -945,7 +945,7 @@ public class AbilityInfo : MonoBehaviour
 
 
     #region Flags
-    bool HasLineOfSight(bool moveToTarget = true)
+    async Task<bool> HasLineOfSight(bool moveToTarget = true)
     {
         if (range == -1) return true;
         if (!lineOfSight)
@@ -966,13 +966,14 @@ public class AbilityInfo : MonoBehaviour
             if (movement && moveToTarget)
             {
                 Debugger.Combat(7562, $"Moving closer to target because no line of sight");
-                HandleMoveToTargetLOS(target, movement);
+                var result = await movement.MoveToAsyncLOS(target.transform);
+                return result;
             }
             return false;
         }
         return true;
     }
-    bool IsInRange(bool useOffset = false, bool moveToTarget = true)
+    async Task<bool> IsInRange(bool useOffset = false, bool moveToTarget = true)
     {
         if (range == -1)
         {
@@ -988,7 +989,9 @@ public class AbilityInfo : MonoBehaviour
             if (moveToTarget)
             {
                 Debugger.Combat(7561, $"Moving closter to target because out of range");
-                HandleMoveToTarget(target, movement, range -1f);
+
+                var result = await movement.MoveToAsync(target.transform, range - 1f);
+                return result;
             }
             //ActivateWantsToCast("Target is out of range");
             return false;
@@ -1011,19 +1014,19 @@ public class AbilityInfo : MonoBehaviour
 
         return false;
     }
-    public bool CanCast()
+    async Task<bool> CanCast()
     {
         if (!IsReady())
         {
             CantCastReason("Not Ready");
             return false;
         }
-        if (!AbilityManagerCanCast())
+        if (!await AbilityManagerCanCast())
         {
             CantCastReason("Ability Manager Can't Cast");
             return false;
         }
-        if (!HandleRequiresTargetLocked())
+        if (!await HandleRequiresTargetLocked())
         {
             CantCastReason("Incorrect Target");
             return false;
@@ -1052,18 +1055,17 @@ public class AbilityInfo : MonoBehaviour
 
         return true;
 
-        bool AbilityManagerCanCast()
+        async Task<bool> AbilityManagerCanCast()
         {
-            if (abilityManager.currentlyCasting == null) return true;
-            if (abilityManager.currentlyCasting && abilityManager.currentlyCasting.isAttack)
-            {
-                abilityManager.currentlyCasting.CancelCast("Canceled auto to allow ability to cast");
-                ActivateWantsToCast("Canceling Auto Attack");
-                abilityManager.currentlyCasting = null;
-                return true;
-            }
+            var currentAbility = abilityManager.currentlyCasting;
+            if (!currentAbility) return true;
+            if (!currentAbility.isAttack) return false;
 
-            return false;
+            currentAbility.isAutoAttacking = false;
+
+            while (currentAbility.activated) await Task.Yield();
+
+            return true;
 
         }
 
@@ -1442,11 +1444,11 @@ public class AbilityInfo : MonoBehaviour
             }
         }
     }
-    public void Use()
+    public async void Use()
     {
         if(abilityManager)
         {
-            abilityManager.Cast(this, true);
+            await abilityManager.Cast(this, true);
             abilityManager.OnTryCast?.Invoke(this);
         }
     }
@@ -1467,7 +1469,7 @@ public class AbilityInfo : MonoBehaviour
     public async Task<bool> Activate()
     {
         if (activated) return false;
-        if (!CanCast()) return false;
+        if (!await CanCast()) return false;
         DeactivateWantsToCast("From Start Cast");
         activated = true;
 
