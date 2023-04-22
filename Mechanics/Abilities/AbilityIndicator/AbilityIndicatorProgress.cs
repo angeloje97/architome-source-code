@@ -52,9 +52,9 @@ namespace Architome
 
             while (ability.activated)
             {
+                UpdateProgress(ability.progress);
                 await Task.Yield();
 
-                UpdateProgress(ability.progress);
 
             }
             SetProjector(false);

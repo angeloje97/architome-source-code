@@ -53,14 +53,22 @@ namespace Architome
         }
         protected void EnableAugmentAbility()
         {
-            ability.augmentAbilities ??= new();
+            //ability.augmentAbilities ??= new();
 
-            ability.augmentAbilities.Add(this);
+            ability.OnActivateAugmentAbilites += HandleActivateAugmentAbilities;
+
 
             augment.OnRemove += (Augment augment) =>
             {
-                ability.augmentAbilities.Remove(this);
+                ability.OnActivateAugmentAbilites -= HandleActivateAugmentAbilities;
             };
+
+            void HandleActivateAugmentAbilities(AbilityInfo ability, List<Func<Task<bool>>> abilities)
+            {
+                abilities.Add(async () => {
+                    return await Ability();
+                });
+            }
         }
 
         protected void AllowInterruptable()

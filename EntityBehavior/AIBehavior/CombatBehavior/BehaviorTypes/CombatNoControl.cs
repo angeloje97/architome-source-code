@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
 using System.Threading.Tasks;
+using System;
 
 namespace Architome
 {
@@ -23,6 +24,29 @@ namespace Architome
         {
             GetDependencies();
             OnCombatRoutine();
+            TestTask();
+        }
+
+        async void TestTask()
+        {
+            var tasks = new List<Func<Task>>() {
+                async () => {
+                    await TestingTask(1);
+                },
+                async () => {
+                    await TestingTask(2);
+                },
+                async () => {
+                    await TestingTask(3);
+                }
+            };
+            
+
+            foreach(var task in tasks)
+            {
+                await task();
+            }
+
         }
 
         // Update is called once per frame
@@ -99,6 +123,12 @@ namespace Architome
 
         }
 
+        async Task TestingTask(int num)
+        {
+            await Task.Delay(1000);
+            Debugger.InConsole(4832, $"Testing Task {num}");
+        }
+
         async Task AbilityHarm()
         {
             foreach (var specialAbility in combat.specialAbilities)
@@ -149,8 +179,8 @@ namespace Architome
                 if (special.targeting != SpecialTargeting.RandomLocation) return false;
 
                 var maxDistance = ability.catalystInfo.range;
-                var randomX = Random.Range(-maxDistance, maxDistance);
-                var randomZ = Random.Range(-maxDistance, maxDistance);
+                var randomX = UnityEngine.Random.Range(-maxDistance, maxDistance);
+                var randomZ = UnityEngine.Random.Range(-maxDistance, maxDistance);
 
                 abilityManager.location = V3Helper.NearestNodePosition(abilityManager.transform.position + new Vector3(randomX, 0, randomZ));
                 await abilityManager.Cast(ability);

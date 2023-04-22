@@ -179,8 +179,9 @@ public class AbilityInfo : MonoBehaviour
     public Action<AbilityInfo, List<bool>> OnBusyCheck { get; set; }
     public Action<AbilityInfo, EntityInfo, List<bool>, List<bool>> OnCorrectTargetCheck { get; set; }
     public Action<AbilityInfo> OnInterrupt { get; set; }
-    public List<AugmentType> augmentAbilities;
+    public List<Func<Task<bool>>> augmentAbilities { get; set; }
 
+    public Action<AbilityInfo, List<Func<Task<bool>>>> OnActivateAugmentAbilites { get; set; }
     public Action<AbilityInfo, bool> OnActiveChange { get; set; }
     public Action<AbilityInfo, int> OnChargesChange;
     public Action<AbilityInfo, ToolTipData> OnAcquireToolTip;
@@ -1646,13 +1647,22 @@ public class AbilityInfo : MonoBehaviour
 
         async Task AugmentAbilities()
         {
-            if (augmentAbilities == null) return;
+            augmentAbilities = new();
 
-            foreach (var augment in augmentAbilities)
+            OnActivateAugmentAbilites?.Invoke(this, augmentAbilities);
+
+            foreach(var augment in augmentAbilities)
             {
-                var success = await augment.Ability();
+                var success = await augment();
                 if (!success) break;
             }
+
+
+            //foreach (var augment in augmentAbilities)
+            //{
+            //    var success = await augment.Ability();
+            //    if (!success) break;
+            //}
         }
     }
 
