@@ -50,7 +50,7 @@ namespace Architome
                 ability.OnAbilityStartEnd += OnAbilityStartEnd;
             }
 
-            parentIndicator = GetComponentInParent<AbilityIndicator>();
+            parentIndicator = transform.parent.GetComponent<AbilityIndicator>();
         }
 
         #region Validation
@@ -156,8 +156,9 @@ namespace Architome
             if (parentIndicator != null) return;
             await Task.Delay(1000);
             var groundLayer = LayerMasksData.active.walkableLayer;
-            var groundPosition = V3Helper.GroundPosition(transform.position, groundLayer, 0, 1f);
-            transform.position = new Vector3(transform.position.x, transform.position.y, groundPosition.z);
+            var groundPosition = V3Helper.GroundPosition(transform.position, groundLayer, 0, .65f);
+            Debugger.Environment(5978, $"Setting to floor {groundPosition}");
+            transform.position = new Vector3(transform.position.x, groundPosition.y, transform.position.z);
         }
 
         #endregion

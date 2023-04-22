@@ -53,7 +53,6 @@ namespace Architome
         }
         protected void EnableAugmentAbility()
         {
-            //ability.augmentAbilities ??= new();
 
             ability.OnActivateAugmentAbilites += HandleActivateAugmentAbilities;
 
