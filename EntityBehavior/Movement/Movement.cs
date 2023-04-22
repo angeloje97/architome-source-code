@@ -350,10 +350,12 @@ namespace Architome
 
             return true;
         }
-
         async public Task<bool> MoveToAsyncLOS(Transform locationTransform)
         {
             if (!entityInfo.isAlive) return false;
+
+            if (entityInfo.CanSee(locationTransform)) return true;
+
             MoveTo(locationTransform);
 
             isMoving = true;
@@ -372,6 +374,23 @@ namespace Architome
                 if (entityInfo.CanSee(locationTransform)) break;
 
                 await Task.Delay(250);
+            }
+
+            return true;
+        }
+
+        async public Task<bool> MoveToLosRange(Transform locationTransform, float endReachDistance = 0f)
+        {
+            if (!entityInfo.isAlive) return false;
+
+            var success = false;
+
+            while (!success)
+            {
+                var inRange = await MoveToLosRange(locationTransform, endReachDistance);
+                var hasLOS = await MoveToAsyncLOS(locationTransform);
+
+                success = hasLOS && inRange;
             }
 
             return true;

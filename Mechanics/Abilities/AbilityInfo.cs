@@ -808,7 +808,7 @@ public class AbilityInfo : MonoBehaviour
     //    coolDown.globalCoolDownActive = false;
         
     //}
-    async public void Cast()
+    async public Task Cast()
     {
         if (isAttack)
         {
@@ -880,9 +880,6 @@ public class AbilityInfo : MonoBehaviour
 
         if (!lineOfSight) return true;
         if (!requiresLineOfSight) return true;
-        //if (!V3Helper.IsAboveGround(locationLocked, GMHelper.LayerMasks().walkableLayer, 2f))
-        //{
-        //}
 
         
 
@@ -891,16 +888,6 @@ public class AbilityInfo : MonoBehaviour
         {
 
             locationLocked = V3Helper.InterceptionPoint(locationLocked, transform.position, LayerMasksData.active.structureLayerMask, 2f);
-            return true;
-            if (movement)
-            {
-                
-                //movement.MoveTo(locationLocked, 0f);
-            }
-
-            ActivateWantsToCast("Spawner Does not have line of sight.");
-
-            return false;
         }
 
 
@@ -1252,13 +1239,13 @@ public class AbilityInfo : MonoBehaviour
     #endregion
     public bool EndCast(bool checkRangeLos)
     {
-        if (checkRangeLos)
-        {
-            if(!IsInRange(true) || !HasLineOfSight())
-            {
-                return false;
-            }
-        }
+        //if (checkRangeLos)
+        //{
+        //    if(!IsInRange(true) || !HasLineOfSight())
+        //    {
+        //        return false;
+        //    }
+        //}
 
         abilityEvents.OnCastRelease?.Invoke(this);
         HandleResources();

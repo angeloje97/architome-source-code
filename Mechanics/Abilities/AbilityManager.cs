@@ -390,7 +390,6 @@ namespace Architome
         {
             debugger.Log(4352, $"{entityInfo.name} tries casting {ability}");
             if (!entityInfo.isAlive) { return; }
-            //if (!abilities.Contains(ability)) return;
             if (!abilityMap.Contains(ability)) return;
 
             if (!entityInfo.isAlive) { return; }
