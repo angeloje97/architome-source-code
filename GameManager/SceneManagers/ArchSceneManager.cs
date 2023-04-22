@@ -27,7 +27,7 @@ namespace Architome
         public Dictionary<SceneEvent, Action<ArchSceneManager>> eventDict;
 
         public List<Task> tasksBeforeLoad;
-        public List<Task<bool>> tasksBeforeConfirmLoad { get; set; }
+        public List<Func<Task<bool>>> tasksBeforeConfirmLoad { get; set; }
         public List<Task> tasksBeforeActivateScene;
 
         public Action<AsyncOperation> OnLoadStart { get; set; }
@@ -155,7 +155,7 @@ namespace Architome
             eventDict[SceneEvent.BeforeConfirmLoad]?.Invoke(this);
             foreach (var choice in tasksBeforeConfirmLoad)
             {
-                if (!await choice) return;
+                if (!await choice()) return;
             }
 
 

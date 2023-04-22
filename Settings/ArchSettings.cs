@@ -64,7 +64,7 @@ namespace Architome.Settings
         {
             if (!dirty) return;
 
-            sceneManager.tasksBeforeConfirmLoad.Add(ConfirmLeave("Scene Manager"));
+            sceneManager.tasksBeforeConfirmLoad.Add(async () => { return await ConfirmLeave("Scene Manager");});
         }
 
         async void HandleCloseCanvasController(CanvasController controller)

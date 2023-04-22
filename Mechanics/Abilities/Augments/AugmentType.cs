@@ -65,9 +65,7 @@ namespace Architome
 
             void HandleActivateAugmentAbilities(AbilityInfo ability, List<Func<Task<bool>>> abilities)
             {
-                abilities.Add(async () => {
-                    return await Ability();
-                });
+                abilities.Add(Ability);
             }
         }
 

@@ -1656,13 +1656,6 @@ public class AbilityInfo : MonoBehaviour
                 var success = await augment();
                 if (!success) break;
             }
-
-
-            //foreach (var augment in augmentAbilities)
-            //{
-            //    var success = await augment.Ability();
-            //    if (!success) break;
-            //}
         }
     }
 

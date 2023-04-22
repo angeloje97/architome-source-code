@@ -81,7 +81,7 @@ namespace Architome
 
             Debugger.UI(3290, $"Activing {gameObject} prompt");
 
-            sceneManager.tasksBeforeConfirmLoad.Add(CheckCancelQuest());
+            sceneManager.tasksBeforeConfirmLoad.Add(CheckCancelQuest);
 
             async Task<bool> CheckCancelQuest()
             {
