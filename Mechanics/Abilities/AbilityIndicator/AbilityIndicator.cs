@@ -29,6 +29,7 @@ namespace Architome
             GetDependencies();
             SetToFloor();
             UpdateProjector();
+            SetProjector(false);
 
 
         }

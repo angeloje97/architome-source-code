@@ -115,10 +115,6 @@ namespace Architome
 
                 abilityEvents.OnCastRelease += OnCastRelease;
 
-                //if (abilityManager)
-                //{
-                //    abilityManager.OnCastRelease += OnCastRelease;
-                //}
 
                 var playerController = entityInfo.PlayerController();
                 if (playerController)
@@ -251,8 +247,8 @@ namespace Architome
         }
         public void OnBehaviorStateChange(BehaviorState before, BehaviorState after)
         {
-            ClearCombatBehaviors();
-            CreateBehavior();
+            //ClearCombatBehaviors();
+            //CreateBehavior();
             
             //InitCombatActions();
         }

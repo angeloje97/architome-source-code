@@ -29,7 +29,7 @@ public class AIBehavior : EntityProp
     public Events events;
 
     public Action<AIBehaviorType, AIBehaviorType> OnBehaviorChange;
-    public Action<BehaviorState, BehaviorState> OnBehaviorStateChange;
+    public Action<BehaviorState, BehaviorState> OnBehaviorStateChange { get; set; }
     public Action<CombatBehaviorType, CombatBehaviorType> OnCombatBehaviorTypeChange;
 
     public BehaviorStateManager stateManager;

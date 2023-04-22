@@ -18,6 +18,7 @@ namespace Architome
 
         public float currentTime;
         protected bool inRoutine { get; set; }
+        protected bool autoAttacking { get; set; }
         public void GetDependencies()
         {
             combat = GetComponentInParent<CombatBehavior>();
@@ -35,6 +36,20 @@ namespace Architome
                 los = behavior.LineOfSight();
                 threatManager = behavior.ThreatManager();
             }
+
+            if (combat && combat.specialAbilities != null)
+            {
+
+                foreach(var specialAbility in combat.specialAbilities)
+                {
+                    specialAbility.ability.coolDown.OnRecharge += HandleRechargeAbility;
+                }
+            }
+
+        }
+
+        public virtual void HandleRechargeAbility(AbilityInfo ability, AbilityCoolDown coolDown)
+        {
 
         }
 

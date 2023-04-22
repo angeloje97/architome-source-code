@@ -165,29 +165,6 @@ namespace Architome
                 return false;
             }
         }
-
-        //bool IsOpen()
-        //{
-        //    var currentAbility = abilityManager.currentlyCasting;
-
-        //    if (currentAbility)
-        //    {
-        //        if (!currentAbility.isAttack) return false;
-        //    }
-
-        //    var wantsToCastAbility = abilityManager.currentWantsToCast;
-
-        //    if (wantsToCastAbility)
-        //    {
-        //        if (!wantsToCastAbility.isAttack) return false;
-        //    }
-
-
-        //    //if (currentAbility == null) return true;
-        //    //if (currentAbility.isAttack) return true;
-
-        //    return true;
-        //}
         void HandleHarm(EntityInfo target)
         {
             if (abilityManager.attackAbility == null) return;

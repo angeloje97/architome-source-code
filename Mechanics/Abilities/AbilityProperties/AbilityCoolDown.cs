@@ -23,6 +23,8 @@ namespace Architome
 
         EntityInfo entity;
         float currentHaste;
+
+        public Action<AbilityInfo, AbilityCoolDown> OnRecharge { get; set; }
         public void Initiate(AbilityInfo ability)
         {
             this.ability = ability;
@@ -164,6 +166,7 @@ namespace Architome
                 {
                     timer = timePerCharge;
                     charges++;
+                    OnRecharge?.Invoke(ability, this);
                 }
             }
 

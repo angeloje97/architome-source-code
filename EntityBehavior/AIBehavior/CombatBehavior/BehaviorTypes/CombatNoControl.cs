@@ -58,20 +58,36 @@ namespace Architome
 
             await UsingAbility();
 
-            if (target)
-            {
-                abilityManager.target = target;
-                abilityManager.Attack();
-                abilityManager.target = null;
-            }
+            await HandleAttack();
 
             inRoutine = false;
+        }
+
+        async Task HandleAttack()
+        {
+            var attackAbility = abilityManager.attackAbility;
+            autoAttacking = true;
+            abilityManager.target = target;
+            abilityManager.Attack();
+            while (target && attackAbility.isAutoAttacking)
+            {
+                if (!autoAttacking) break;
+                await Task.Delay(250);
+            }
+            autoAttacking = false;
+            abilityManager.target = null;
         }
 
         void OnSetFocus(EntityInfo target)
         {
 
             OnCombatRoutine();
+        }
+
+        public override void HandleRechargeAbility(AbilityInfo ability, AbilityCoolDown coolDown)
+        {
+            if (ability.isAttack) return;
+            autoAttacking = false;
         }
 
 
