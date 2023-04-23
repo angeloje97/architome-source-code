@@ -3,21 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using Architome;
 
-public class Player : MonoBehaviour
+public static class Player
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    public static bool HasLineOfSight(GameObject target)
+    public static bool HasLineOfSight(EntityInfo target)
     {
         if (GMHelper.GameManager() == null) { return false; }
 
@@ -25,7 +14,7 @@ public class Player : MonoBehaviour
 
         foreach (EntityInfo playableEntity in gameManager.playableEntities)
         {
-            if (playableEntity.LineOfSight().HasLineOfSight(target))
+            if (playableEntity.CanSee(target.transform))
             {
                 return true;
             }
@@ -36,11 +25,9 @@ public class Player : MonoBehaviour
 
     public static bool IsPlayer(EntityInfo checkEntity)
     {
-        if (GMHelper.GameManager() &&
-            GMHelper.GameManager().playableEntities.Contains(checkEntity))
-        {
-            return true;
-        }
+        var gameManager = GameManager.active;
+
+        if (gameManager && gameManager.playableEntities.Contains(checkEntity)) return true;
 
         return false;
     }

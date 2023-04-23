@@ -10,7 +10,6 @@ namespace Architome
     public class CombatNoControl : CombatType
     {
         // Start is called before the first frame update
-        EntityInfo target;
         new void GetDependencies()
         {
             base.GetDependencies();
@@ -87,20 +86,7 @@ namespace Architome
             inRoutine = false;
         }
 
-        async Task HandleAttack()
-        {
-            var attackAbility = abilityManager.attackAbility;
-            autoAttacking = true;
-            abilityManager.target = target;
-            abilityManager.Attack();
-            while (target && attackAbility.isAutoAttacking)
-            {
-                if (!autoAttacking) break;
-                await Task.Delay(250);
-            }
-            autoAttacking = false;
-            abilityManager.target = null;
-        }
+        
 
         void OnSetFocus(EntityInfo target)
         {

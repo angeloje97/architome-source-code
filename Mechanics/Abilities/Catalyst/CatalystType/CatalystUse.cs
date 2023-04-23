@@ -43,7 +43,7 @@ public class CatalystUse : MonoBehaviour
         var catalystHit = GetComponent<CatalystHit>();
         var deathCondition = GetComponent<CatalystDeathCondition>();
         catalystHit.HandleTargetHit(abilityInfo.entityInfo);
-        var entities = catalystInfo.EntitiesWithinRadius(0, abilityInfo.requiresLineOfSight);
+        var entities = catalystInfo.EntitiesWithinRadius(catalystInfo.range, abilityInfo.requiresLineOfSight);
 
         Debugger.InConsole(1849, $"{entities.Count}");
         foreach(var i in entities)

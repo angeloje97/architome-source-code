@@ -56,26 +56,28 @@ namespace Architome
         }
 
         // Update is called once per frame
-        void OnCombatRoutine()
+        async void OnCombatRoutine()
         {
             if (combat.tryMoveTimer > 0) { return; }
             if (behavior.behaviorState != BehaviorState.Idle) return;
             if (entity.workerState != WorkerState.Idle) return;
             if (behavior.combatType == CombatBehaviorType.Passive && combat.GetFocus() == null) return;
+            if (inRoutine) return;
+            inRoutine = true;
 
-            if (UsingAbility()) return;
-            if (UsingHealingAbility()) return;
+            await UsingAbility();
+            await UsingHealingAbility();
 
             var focusTarget = combat.GetFocus();
-            var target = focusTarget != null ? focusTarget : combat.target;
+            target = focusTarget != null ? focusTarget : combat.target;
             HandleHarm(target);
             HandleAutoHeal();
 
             abilityManager.target = null;
-
+            inRoutine = false;
         }
 
-        bool UsingAbility()
+        async Task<bool> UsingAbility()
         {
             if (!abilityManager.IsOpen()) return false;
 
@@ -97,8 +99,7 @@ namespace Architome
                     if (!ability.IsCorrectTarget(target)) continue;
 
                     abilityManager.target = target;
-                    //abilityManager.Cast(special.abilityIndex);
-                    abilityManager.Cast(special.ability);
+                    await abilityManager.Cast(special.ability);
                     abilityManager.target = null;
 
                     return true;
@@ -107,7 +108,7 @@ namespace Architome
                 {
                     if (ability.abilityType != AbilityType.Use) continue;
 
-                    abilityManager.Cast(special.ability);
+                    await abilityManager.Cast(special.ability);
                     abilityManager.target = null;
 
                     return true;
@@ -117,7 +118,7 @@ namespace Architome
             return false;
         }
 
-        bool UsingHealingAbility()
+        async Task<bool> UsingHealingAbility()
         {
             if (entity.role != Role.Healer) return false;
 
@@ -131,7 +132,7 @@ namespace Architome
                 if (!ability.isHealing && !ability.isAssisting) continue;
                 if (!ability.IsReady()) continue;
 
-                if (HealLowest(specialAbility, ability)) return true;
+                if (await HealLowest(specialAbility, ability)) return true;
             }
 
 
@@ -139,7 +140,7 @@ namespace Architome
 
             return false;
 
-            bool HealLowest(SpecialHealing healing, AbilityInfo ability)
+            async Task<bool> HealLowest(SpecialHealing healing, AbilityInfo ability)
             {
                 var allies = los.DetectedAllies().OrderBy(entity => entity.health / entity.maxHealth).ToList();
 
@@ -154,7 +155,7 @@ namespace Architome
 
                         abilityManager.target = ally;
                         abilityManager.location = ally.transform.position;
-                        abilityManager.Cast(healing.ability);
+                        await abilityManager.Cast(healing.ability);
                         abilityManager.target = null;
 
                         return true;
@@ -197,7 +198,7 @@ namespace Architome
         bool AttackReactive(EntityInfo target)
         {
             if (behavior.combatType != CombatBehaviorType.Reactive) return false;
-            if (!los.HasLineOfSight(target.gameObject)) return false;
+            if (!entity.CanSee(target.transform)) return false;
             if (!abilityManager.attackAbility.AbilityIsInRange(target.gameObject)) { return false; }
 
             abilityManager.target = target;
@@ -212,7 +213,7 @@ namespace Architome
             var newThreat = threatManager.NearestHighestThreat(abilityManager.attackAbility.range);
             if (newThreat == null) return;
 
-            if (!los.HasLineOfSight(newThreat.gameObject) || !abilityManager.attackAbility.AbilityIsInRange(newThreat.gameObject)) return;
+            if (!abilityManager.attackAbility.AbilityIsInRange(newThreat.gameObject)) return;
 
             abilityManager.target = newThreat;
             abilityManager.Attack();

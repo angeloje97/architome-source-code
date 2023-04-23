@@ -624,7 +624,7 @@ public class ThreatManager : MonoBehaviour
             {
                 target = threat.threatInfo;
 
-                if (!lineOfSight.HasLineOfSight(target.gameObject)) continue;
+                if (!entityInfo.CanSee(target.transform)) continue;
                 furthest = distance;
                 highestThreat = threat.threatValue;
             }

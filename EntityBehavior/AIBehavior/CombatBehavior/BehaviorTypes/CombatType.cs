@@ -16,6 +16,8 @@ namespace Architome
         public ThreatManager threatManager;
         public LineOfSight los;
 
+        protected EntityInfo target;
+
         public float currentTime;
         protected bool inRoutine { get; set; }
         protected bool autoAttacking { get; set; }
@@ -63,7 +65,20 @@ namespace Architome
 
         }
 
-
+        protected virtual async Task HandleAttack()
+        {
+            var attackAbility = abilityManager.attackAbility;
+            autoAttacking = true;
+            abilityManager.target = target;
+            abilityManager.Attack();
+            while (abilityManager.target && abilityManager.target.isAlive && attackAbility.isAutoAttacking)
+            {
+                if (!autoAttacking) break;
+                await Task.Delay(250);
+            }
+            autoAttacking = false;
+            abilityManager.target = null;
+        }
 
     }
 

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using Architome.Enums;
 
 namespace Architome
 {
@@ -45,7 +46,6 @@ namespace Architome
         }
 
 
-
         protected override void ValidateCurrentScale()
         {
             if (currentScale == previousScale) return;
@@ -61,7 +61,8 @@ namespace Architome
         public override void OnAbilityStartEnd(AbilityInfo ability, bool isActivated)
         {
             SetProjector(isActivated);
-            SetScale(Scale(ability.range));
+            var multiplier = ability.abilityType == AbilityType.Use ? 2f : 1f;
+            SetScale(Scale(ability.range * multiplier));
         }
     }
 }
