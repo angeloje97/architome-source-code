@@ -19,7 +19,9 @@ namespace Architome
         public Vector3 pivotMultiplier;
         public Vector3 currentScale = Vector3.one;
         protected Vector3 previousScale;
+        public float decalThickness = 1f;
 
+        public LayerMask groundLayer;
 
 
         protected virtual void Start()
@@ -27,7 +29,6 @@ namespace Architome
             projectorActiveCheck = !projectorActive;
 
             GetDependencies();
-            SetToFloor();
             UpdateProjector();
             SetProjector(false);
 
@@ -51,6 +52,12 @@ namespace Architome
             }
 
             parentIndicator = transform.parent.GetComponent<AbilityIndicator>();
+
+            var layerMasks = LayerMasksData.active;
+            if (layerMasks)
+            {
+                groundLayer = layerMasks.walkableLayer;
+            }
         }
 
         #region Validation
@@ -126,13 +133,18 @@ namespace Architome
         {
             if (projectorActive == projectorActiveCheck && !forceUpdate) return;
             projectorActiveCheck = projectorActive;
+
+            if (projectorActive)
+            {
+                SetToFloor(0);
+            }
             projector.enabled = projectorActive;
         }
 
 
         public virtual void SetScale(Vector3 scale)
         {
-            scale.z = 1;
+            scale.z = decalThickness;
             currentScale = scale;
             if(previousScale != currentScale)
             {
@@ -151,12 +163,16 @@ namespace Architome
 
         }
 
-        public async void SetToFloor()
+        public virtual void SetPosition(Vector3 position)
+        {
+            transform.position = position;
+        }
+
+        public async void SetToFloor(int delay = 2000)
         {
             if (parentIndicator != null) return;
-            await Task.Delay(1000);
-            var groundLayer = LayerMasksData.active.walkableLayer;
-            var groundPosition = V3Helper.GroundPosition(transform.position, groundLayer, 0, .65f);
+            await Task.Delay(delay);
+            var groundPosition = V3Helper.GroundPosition(transform.position, groundLayer, 0, 0f);
             Debugger.Environment(5978, $"Setting to floor {groundPosition}");
             transform.position = new Vector3(transform.position.x, groundPosition.y, transform.position.z);
         }
