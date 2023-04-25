@@ -20,15 +20,7 @@ public class GMHelper : MonoBehaviour
 
     public static GameManager GameManager()
     {
-
         return Architome.GameManager.active;
-        if (GameObject.Find("GameManager") == null) { return null; }
-        if (GameObject.Find("GameManager").GetComponent<GameManager>())
-        {
-            return GameObject.Find("GameManager").GetComponent<GameManager>();
-        }
-
-        return null;
     }
     public static ContainerTargetables TargetManager()
     {

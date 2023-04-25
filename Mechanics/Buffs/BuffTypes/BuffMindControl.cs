@@ -159,7 +159,7 @@ public class BuffMindControl : BuffStateChanger
     }
 
     // Update is called once per frame
-    public new void OnBuffEnd(BuffInfo buffInfo)
+    public void OnBuffEnd(BuffInfo buffInfo)
     {
         if (!applied) return;
         HandleRemoveState(buffInfo);

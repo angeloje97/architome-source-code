@@ -17,6 +17,9 @@ namespace Architome
             if (combat)
             {
                 combat.OnSetFocus += OnSetFocus;
+                OnDestroySelf += (CombatType type) => {
+                    combat.OnSetFocus -= OnSetFocus;
+                };
             }
         }
         void Start()
@@ -90,8 +93,13 @@ namespace Architome
 
         void OnSetFocus(EntityInfo target)
         {
-
+            autoAttacking = false;
             OnCombatRoutine();
+        }
+
+        protected override void HandleNewThreat(ThreatManager.ThreatInfo threatInfo)
+        {
+            autoAttacking = false;
         }
 
         public override void HandleRechargeAbility(AbilityInfo ability, AbilityCoolDown coolDown)
@@ -123,7 +131,6 @@ namespace Architome
 
                 if (ability == null) continue;
                 if (!ability.isHarming) continue;
-                if (!ability.IsReady()) continue;
 
                 //Special Ability Targeting
                 if (await TargetsCurrent(specialAbility, ability)) return;
@@ -137,6 +144,8 @@ namespace Architome
                 if (special.targeting != SpecialTargeting.TargetsRandom) return false;
 
                 var randomTarget = threatManager.RandomTargetBlackList(special.randomTargetBlackList);
+
+                Debugger.Combat(6914, $"Random Target: {randomTarget}");
 
                 if (randomTarget == null) return false;
 

@@ -150,6 +150,15 @@ namespace Architome
 
             timer = timePerCharge - timePerCharge * Haste();
 
+            if(charges > 0)
+            {
+                ability.SetState(AbilityState.Ready);
+            }
+            else
+            {
+                ability.SetState(AbilityState.CoolingDown);
+            }
+
             while (charges < maxCharges)
             {
                 await Task.Yield();
@@ -166,6 +175,9 @@ namespace Architome
                 {
                     timer = timePerCharge;
                     charges++;
+                    if(ability.CurrentState == AbilityState.CoolingDown) {
+                        ability.SetState(AbilityState.Ready);
+                    };
                     OnRecharge?.Invoke(ability, this);
                 }
             }
@@ -174,6 +186,20 @@ namespace Architome
 
             isActive = false;
         }
+
+        public async Task NextAvailableCharge()
+        {
+            while (charges < 1)
+            {
+                await Task.Yield();
+            }
+        }
+
+        public AbilityState CurrentIdleState()
+        {
+            return charges > 0 ? AbilityState.Ready : AbilityState.CoolingDown;
+        }
+
         public void SetCharges(int newCharges)
         {
             this.charges = newCharges;

@@ -21,11 +21,14 @@ namespace Architome
         public float currentTime;
         protected bool inRoutine { get; set; }
         protected bool autoAttacking { get; set; }
+
+        protected Action<CombatType> OnDestroySelf { get; set; }
         public void GetDependencies()
         {
             combat = GetComponentInParent<CombatBehavior>();
             behavior = GetComponentInParent<AIBehavior>();
             entity = GetComponentInParent<EntityInfo>();
+
             
 
             if (entity)
@@ -37,6 +40,15 @@ namespace Architome
             {
                 los = behavior.LineOfSight();
                 threatManager = behavior.ThreatManager();
+
+                if (threatManager)
+                {
+                    threatManager.OnNewThreat += HandleNewThreat;
+
+                    OnDestroySelf += (CombatType type) => {
+                        threatManager.OnNewThreat -= HandleNewThreat;
+                    };
+                }
             }
 
             if (combat && combat.specialAbilities != null)
@@ -45,6 +57,9 @@ namespace Architome
                 foreach(var specialAbility in combat.specialAbilities)
                 {
                     specialAbility.ability.coolDown.OnRecharge += HandleRechargeAbility;
+                    OnDestroySelf += (CombatType type) => {
+                        specialAbility.ability.coolDown.OnRecharge -= HandleRechargeAbility;
+                    };
                 }
             }
 
@@ -57,6 +72,7 @@ namespace Architome
 
         public virtual void DestroySelf()
         {
+            OnDestroySelf?.Invoke(this);
             Destroy(gameObject);
         }
 
@@ -64,6 +80,13 @@ namespace Architome
         {
 
         }
+
+        protected virtual void HandleNewThreat(ThreatManager.ThreatInfo threatInfo)
+        {
+
+        }
+
+
 
         protected virtual async Task HandleAttack()
         {
