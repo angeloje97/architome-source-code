@@ -201,6 +201,8 @@ namespace Architome
         public Action<CatalystHit, EntityInfo, List<bool>> OnCanHealCheck { get; set; }
         public Action<CatalystHit, EntityInfo, List<bool>> OnCanAssistCheck{ get; set; }
 
+        
+
         public Action<CatalystHit, EntityInfo, List<bool>> OnCorrectLockOnCheck { get; set; }
         
 

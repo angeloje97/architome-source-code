@@ -49,6 +49,7 @@ namespace Architome
                         threatManager.OnNewThreat -= HandleNewThreat;
                     };
                 }
+
             }
 
             if (combat && combat.specialAbilities != null)
@@ -61,13 +62,25 @@ namespace Architome
                         specialAbility.ability.coolDown.OnRecharge -= HandleRechargeAbility;
                     };
                 }
+
+                combat.OnAddedSpecialAbility += HandleNewSpecialAbility;
+
+                OnDestroySelf += (CombatType type) => {
+                    combat.OnAddedSpecialAbility -= HandleNewSpecialAbility;
+                };
             }
 
         }
 
         public virtual void HandleRechargeAbility(AbilityInfo ability, AbilityCoolDown coolDown)
         {
+            if (ability.isAttack) return;
+            autoAttacking = false;
+        }
 
+        public virtual void HandleNewSpecialAbility(SpecialAbility special)
+        {
+            autoAttacking = false;
         }
 
         public virtual void DestroySelf()

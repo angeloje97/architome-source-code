@@ -329,6 +329,13 @@ namespace Architome
             return Quaternion.Lerp(obj.rotation, targetRotation, smoothening);
         }
 
+        public static Quaternion LerpLookAt(this Transform obj, Quaternion startRotation, Vector3 targetLocation, float lerpValue)
+        {
+            var targetRotation = Quaternion.LookRotation(targetLocation - obj.position);
+
+            return Quaternion.Lerp(startRotation, targetRotation, lerpValue);
+        }
+
         public static Vector3 Dimensions(List<Transform> transforms)
         {
             var (min, max) = MinMax(transforms);

@@ -97,17 +97,6 @@ namespace Architome
                     combatBehavior.specialAbilities.Remove(phase.phaseAbility);
                 }
             }
-
-            //for (int i = 0; i < combatBehavior.specialAbilities.Count; i++)
-            //{
-            //    var phase = phases.Find(phase => phase.phaseAbility.abilityIndex == combatBehavior.specialAbilities[i].abilityIndex);
-
-            //    if (phase != null)
-            //    {
-            //        combatBehavior.specialAbilities.RemoveAt(i);
-            //        i--;
-            //    }
-            //}
         }
 
         void OnHealthChange(float health, float shield, float maxHealth)

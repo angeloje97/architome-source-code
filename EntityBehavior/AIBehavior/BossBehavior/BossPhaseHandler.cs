@@ -93,7 +93,9 @@ namespace Architome
             void HandleAbility()
             {
                 if (phase.phaseAbility.ability == null) return;
-                behavior.combatBehavior.specialAbilities.Insert(0, phase.phaseAbility);
+                var combatBehavior = behavior.combatBehavior;
+                combatBehavior.specialAbilities.Insert(0, phase.phaseAbility);
+                combatBehavior.OnAddedSpecialAbility?.Invoke(phase.phaseAbility);
             }
         }
     }

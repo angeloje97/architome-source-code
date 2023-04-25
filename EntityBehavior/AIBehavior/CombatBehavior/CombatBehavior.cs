@@ -12,10 +12,23 @@ namespace Architome
     public class SpecialAbility
     {
         public AbilityInfo ability;
-        //public int abilityIndex;
-        //public bool targetsRandom;
         public SpecialTargeting targeting;
         public List<Role> randomTargetBlackList;
+
+        public Action<SpecialAbility, List<bool>> OnIsBlockedCheck;
+
+        public bool IsBlocked()
+        {
+            var checks = new List<bool>();
+            OnIsBlockedCheck?.Invoke(this, checks);
+
+            foreach(var check in checks)
+            {
+                if (check) return true;
+            }
+
+            return false;
+        }
     }
     
     [Serializable]
@@ -68,6 +81,7 @@ namespace Architome
         public Action<EntityInfo, EntityInfo, List<bool>> OnCanFocusCheck { get; set; }
         public  Action<EntityInfo, EntityInfo> OnNewTarget { get; set; }
         public Action<EntityInfo, EntityInfo> OnNewFocusTarget { get; set; }
+        public Action<SpecialAbility> OnAddedSpecialAbility { get; set; }
         public event Action<EntityInfo> OnSetFocus;
 
         //Event Triggers

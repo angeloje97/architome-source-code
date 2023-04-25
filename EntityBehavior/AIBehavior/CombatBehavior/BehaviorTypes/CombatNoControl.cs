@@ -102,12 +102,6 @@ namespace Architome
             autoAttacking = false;
         }
 
-        public override void HandleRechargeAbility(AbilityInfo ability, AbilityCoolDown coolDown)
-        {
-            if (ability.isAttack) return;
-            autoAttacking = false;
-        }
-
 
         async Task UsingAbility()
         {
@@ -129,6 +123,7 @@ namespace Architome
             {
                 var ability = specialAbility.ability;
 
+                if (specialAbility.IsBlocked()) return;
                 if (ability == null) continue;
                 if (!ability.isHarming) continue;
 

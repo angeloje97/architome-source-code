@@ -11,6 +11,7 @@ namespace Architome
         public Vector3 location;
         public float tiltAmount;
         public float minDistance = 3f;
+        public Quaternion startAngle;
         
         void Start()
         {
@@ -58,6 +59,7 @@ namespace Architome
             var angle = transform.eulerAngles;
             angle.x += -tiltAmount;
             transform.eulerAngles = angle;
+            startAngle = transform.rotation;
         }
 
         void HandleNewTarget(GameObject before, GameObject after)
@@ -71,7 +73,8 @@ namespace Architome
             var distancePercent = catalyst.metrics.DistancePercent();
             if (distancePercent <= 0) return;
 
-            transform.rotation = V3Helper.LerpLookAt(transform, location, distancePercent * .125f);
+            distancePercent = Mathf.Clamp(distancePercent, .01f, 1f);
+            transform.rotation = transform.LerpLookAt(startAngle, location, distancePercent);
         }
 
     }

@@ -15,7 +15,7 @@ namespace Architome
 
         public bool useCatalystWidth;
         public float catalystWidth;
-
+        public AnimationCurve curve;
         protected override void GetDependencies()
         {
             base.GetDependencies();
