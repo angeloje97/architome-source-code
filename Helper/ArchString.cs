@@ -7,7 +7,6 @@ namespace Architome
 {
     public static class ArchString 
     {
-        // Start is called before the first frame update
         public static string CamelToTitle(string text)
         {
             var newText = "";
