@@ -14,6 +14,7 @@ namespace Architome
         public Vector3 scalePoportion = Vector3.one;
 
         public bool useCatalystWidth;
+        public bool squaredWidth;
         public float catalystWidth;
         public AnimationCurve curve;
         protected override void GetDependencies()
@@ -40,6 +41,11 @@ namespace Architome
             if (useCatalystWidth)
             {
                 size.x = catalystWidth * scalePoportion.x;
+            }
+
+            if (squaredWidth)
+            {
+                size.y = size.x;
             }
 
             return size;

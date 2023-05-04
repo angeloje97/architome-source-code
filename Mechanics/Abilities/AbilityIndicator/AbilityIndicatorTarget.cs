@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Architome
@@ -10,9 +11,11 @@ namespace Architome
         [Header("Target Properties")]
         public Transform target;
         public Transform transformSource;
+        public Transform anchor;
         public Action<Transform> OnAcquireTarget;
 
         float catalystWidth;
+        public float currentDistance;
 
         protected override void GetDependencies()
         {
@@ -21,7 +24,7 @@ namespace Architome
             catalystWidth = useCatalystWidth ? ability.catalyst.transform.localScale.x : .5f;
         }
 
-        public override void OnAbilityStartEnd(AbilityInfo ability, bool isActivated)
+        public override async void OnAbilityStartEnd(AbilityInfo ability, bool isActivated)
         {
             if (!isActivated) return;
             if (!ability.targetLocked) return;
@@ -31,15 +34,27 @@ namespace Architome
 
             var targetTransform = target.transform;
 
+            SetProjector(true);
+
             while(ability.activated && ability.targetLocked != null)
             {
                 var target2dPosition = targetTransform.transform.position;
+
                 target2dPosition.y = transformSource.position.y;
-                var direction = V3Helper.LerpLookAtWithAxis(transformSource, Vector3.up, target2dPosition, 1);
-                var distance = Vector3.Distance(transformSource.position, target2dPosition);
-                SetScale(new Vector3(catalystWidth, distance, .5f));
-                transform.rotation = direction;
+                anchor.LookAt(target2dPosition);
+
+
+                currentDistance = Vector3.Distance(transformSource.position, target.transform.position);
+                if(currentDistance > ability.range)
+                {
+                    currentDistance = ability.range;
+                }
+                SetScale(Scale(currentDistance));
+
+                await Task.Yield();
             }
+
+            SetProjector(false);
         }
     }
 }
