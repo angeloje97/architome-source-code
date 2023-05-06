@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Architome.Enums;
 
 namespace Architome
 {
@@ -12,7 +13,11 @@ namespace Architome
         public float tiltAmount;
         public float minDistance = 3f;
         public Quaternion startAngle;
-        
+
+        [Range(0, 1)]
+        public float distanceOffset;
+
+        bool usingSkillShotLocation;
         void Start()
         {
             GetDependencies();
@@ -28,6 +33,11 @@ namespace Architome
 
         void UpdateLocation()
         {
+            if (usingSkillShotLocation)
+            {
+                location = catalyst.metrics.targetLocation;
+                return;
+            }
             location = target ? catalyst.target.transform.position : catalyst.location;
         }
         void DisableLockOn()
@@ -47,7 +57,22 @@ namespace Architome
                 UpdateLocation();
             }
 
+            if(catalyst.abilityInfo.abilityType == AbilityType.SkillShot)
+            {
+                usingSkillShotLocation = true;
+                SetGroundPosition();
+            }
             
+        }
+
+        void SetGroundPosition()
+        {
+            var groundLayer = LayerMasksData.active.walkableLayer;
+            var groundPosition = V3Helper.GroundPosition(catalyst.metrics.targetLocation, groundLayer);
+
+            catalyst.metrics.location = groundPosition;
+
+
         }
 
         void TiltCatalyst()
@@ -74,7 +99,7 @@ namespace Architome
             if (distancePercent <= 0) return;
 
             distancePercent = Mathf.Clamp(distancePercent, .01f, 1f);
-            transform.rotation = transform.LerpLookAt(startAngle, location, distancePercent);
+            transform.rotation = transform.LerpLookAt(startAngle, location, distancePercent + distanceOffset);
         }
 
     }

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
+using UnityEngine.Events;
 
 namespace Architome
 {
@@ -15,6 +16,8 @@ namespace Architome
         public float radius, delay;
 
         public Dictionary<CatalystInfo, ActiveCatalysts> activeCatalysts;
+        public UnityEvent<float> OnSetRadius;
+        public UnityEvent<EntityInfo,CatalystInfo> OnEntityInRadius;
         
         [Serializable]
         public class ActiveCatalysts
@@ -33,6 +36,7 @@ namespace Architome
         void Start()
         {
             GetDependencies();
+            OnSetRadius?.Invoke(radius);
 
         }
 
@@ -114,6 +118,7 @@ namespace Architome
             foreach (var entity in entities)
             {
                 if (entity == null) continue;
+                OnEntityInRadius?.Invoke(entity, catalyst);
                 if (target && entity == target) continue;
                 if (!hit.CanHit(entity)) continue;
                 if (!entity.isAlive) continue;

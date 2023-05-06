@@ -430,6 +430,28 @@ namespace Architome
 
             return entities;
         }
+        public void EntitiesWithinRadiusAction(Action<EntityInfo> action, float radius = 0f, bool requiresLineOfSight = true)
+        {
+            if (radius == 0) radius  = range;
+
+            var entitiesCasted = Physics.OverlapSphere(transform.position, radius, entityLayer);
+
+            foreach(var entity in entitiesCasted)
+            {
+                var info = entity.GetComponent<EntityInfo>();
+                if (info == null) continue;
+
+                if (requiresLineOfSight)
+                {
+                    var distance = V3Helper.Distance(transform.position, entity.transform.position);
+                    var direction = V3Helper.Direction(entity.transform.position, transform.position);
+
+                    if (Physics.Raycast(transform.position, direction, distance, structureLayer)) continue;
+                }
+
+                action(entityInfo);
+            }
+        }
 
         public List<EntityInfo> EntitiesWithinRadius(float radius, Predicate<EntityInfo> predicate, bool requiresLOS = true)
         {

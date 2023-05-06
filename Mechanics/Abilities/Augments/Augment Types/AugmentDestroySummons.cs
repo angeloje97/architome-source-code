@@ -30,24 +30,33 @@ namespace Architome
             return $"If this ability hits a unit that the caster summoned, the unit will instantly die.";
         }
 
+        public void HandleAffectedEntity(EntityInfo entity, CatalystInfo catalyst)
+        {
+            if (!entity.isAlive) return;
+            KillSummoned(entity, catalyst);
+        }
+
         void OnCatalystTrigger(CatalystInfo catalyst, Collider other, bool enter)
         {
 
             var info = other.GetComponent<EntityInfo>();
             if (info == null) return;
-            var isSummon = IsSummon(info);
-            if (!isSummon) return;
+            KillSummoned(info, catalyst);
+        }
 
+        void KillSummoned(EntityInfo entity, CatalystInfo catalyst)
+        {
+            var summoned = IsSummon(entity);
+            if (!summoned) return;
             SetCatalyst(catalyst, true);
             var hit = catalyst.GetComponent<CatalystHit>();
 
-            var combatData = new CombatEventData(catalyst, augment.entity, info.maxHealth);
-            info.Damage(combatData);
+            var combatData = new CombatEventData(catalyst, augment.entity, entity.maxHealth);
+            entity.Damage(combatData);
             catalyst.ReduceTicks();
-            catalyst.OnDamage?.Invoke(catalyst, info);
+            catalyst.OnDamage?.Invoke(catalyst, entity);
 
-            hit.AddEnemyHit(info);
-            info.Die();
+            hit.AddEnemyHit(entity);
 
             augment.TriggerAugment(new(this));
         }

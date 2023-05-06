@@ -1,3 +1,4 @@
+using DungeonArchitect.Flow.Domains.Layout.Tooling.Graph2D;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,6 +10,9 @@ namespace Architome
         public AbilityInfo ability;
         public CatalystIndicator indicatorPrefab;
         CatalystManager catalystManager;
+
+        [Header("General Properties")]
+        public float generalRadius;
 
         private void Start()
         {
@@ -27,9 +31,12 @@ namespace Architome
         void HandleCatalystRelease(CatalystInfo catalyst)
         {
             var newIndicator = Instantiate(indicatorPrefab, catalystManager.transform);
-            newIndicator.SetCatalyst(catalyst);
+            newIndicator.SetCatalyst(catalyst, this);
         }
 
-
+        public void SetGeneralRadius(float radius)
+        {
+            generalRadius = radius;
+        }
     }
 }

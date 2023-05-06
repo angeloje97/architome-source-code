@@ -107,10 +107,14 @@ namespace Architome
             autoAttacking = true;
             abilityManager.target = target;
             abilityManager.Attack();
+            float timer = 0f;
             while (abilityManager.target && abilityManager.target.isAlive && attackAbility.isAutoAttacking)
             {
                 if (!autoAttacking) break;
                 await Task.Delay(250);
+                timer += .250f;
+
+                if (timer > 5f) break;
             }
             autoAttacking = false;
             abilityManager.target = null;

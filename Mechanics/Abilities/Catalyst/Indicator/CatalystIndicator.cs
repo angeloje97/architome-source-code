@@ -7,9 +7,9 @@ namespace Architome
 {
     public class CatalystIndicator : AbilityIndicator
     {
+        [Header("Indicator Properties")]
         public CatalystInfo catalyst;
-        
-
+        public CatalystIndicatorEmitter source;
         bool catalystSet = false;
 
         protected override void Start()
@@ -24,12 +24,13 @@ namespace Architome
             HandleDestoyedCatalyst();
         }
 
-        public virtual void SetCatalyst(CatalystInfo catalyst)
+        public virtual void SetCatalyst(CatalystInfo catalyst, CatalystIndicatorEmitter source)
         {
+            this.source = source;
             foreach(var indicator in GetComponentsInChildren<CatalystIndicator>())
             {
                 if (indicator == this) continue;
-                indicator.SetCatalyst(catalyst);
+                indicator.SetCatalyst(catalyst, source);
             }
 
             if (catalystSet) return;
