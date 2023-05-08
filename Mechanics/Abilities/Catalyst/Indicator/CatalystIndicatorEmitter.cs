@@ -31,6 +31,7 @@ namespace Architome
         void HandleCatalystRelease(CatalystInfo catalyst)
         {
             var newIndicator = Instantiate(indicatorPrefab, catalystManager.transform);
+            newIndicator.SetAsMain();
             newIndicator.SetCatalyst(catalyst, this);
         }
 

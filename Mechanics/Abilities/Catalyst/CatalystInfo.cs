@@ -204,6 +204,8 @@ namespace Architome
         
 
         public Action<CatalystHit, EntityInfo, List<bool>> OnCorrectLockOnCheck { get; set; }
+
+        public Action<CatalystInfo> OnResetStartingPosition;
         
 
         private GameObject targetCheck;
@@ -367,6 +369,7 @@ namespace Architome
         {
             OnCatalystTrigger?.Invoke(this, other, false);
         }
+
         void SpawnCatalystAudio()
         {
             var catalystPrefab = CatalystManager.active.CatalystAudioManager();
@@ -611,6 +614,11 @@ namespace Architome
             }
         }
 
+        public void ResetStartingPosition()
+        {
+            metrics.startingLocation = transform.position;
+            OnResetStartingPosition?.Invoke(this);
+        }
 
         public CatalystInfo ReleaseCataling(CatalystInfo cataling, Quaternion rotation)
         {

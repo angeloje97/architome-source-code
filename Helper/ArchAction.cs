@@ -6,16 +6,52 @@ using System.Threading.Tasks;
 
 namespace Architome
 {
-    public struct ArchAction
+    public  struct ArchAction
     {
-        // Start is called before the first frame update
+        static World world;
+        static World World
+        {
+            get
+            {
+                if(world == null)
+                {
+                    world = World.active;
+                }
+
+                return world;
+            }
+        }
         public static async void Delay(Action action, float seconds)
         {
-            
+            //bool active = true;
+            //float startTime = 0f;
+
+            //Action<float> middle = (float deltaTime) => {
+            //    if(startTime < seconds)
+            //    {
+            //        startTime += deltaTime;
+            //        return;
+            //    }
+
+            //    active = false;
+            //};
+
+            //World.OnUpdate += middle;
+
+            //while (active)
+            //{
+            //    await Task.Yield();
+            //}
+
+            //World.OnUpdate -= middle;
+
+            //action();
             int milliSeconds = (int)(seconds * 1000);
             await Task.Delay(milliSeconds);
             if (!Application.isPlaying) return;
             action();
+
+
         }
         public static async Task DelayT(Action action, float seconds)
         {

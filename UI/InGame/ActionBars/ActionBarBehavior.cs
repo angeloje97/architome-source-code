@@ -39,9 +39,13 @@ namespace Architome
         public Action<AbilityInfo, int> OnChargeChange;
         public Action<AbilityInfo, AbilityInfo> OnAbilityChange;
         public Action<AbilityInfo> OnNewAbility;
+        public Action<ActionBarBehavior> OnUseActionBar;
 
         ToolTipElement toolTipHandler;
         public bool blockToolTip { get; set; }
+
+        bool delayed;
+
 
         public void GetDependencies()
         {
@@ -80,6 +84,13 @@ namespace Architome
         {
             if (!isActive) return;
             if (number != actionBarNum) return;
+            OnUseActionBar?.Invoke(this);
+
+            if (delayed) return;
+            delayed = true;
+            ArchAction.Delay(() => {
+                delayed = false;
+            }, .125f);
 
             if (abilityInfo.IsReady())
             {

@@ -73,12 +73,6 @@ namespace Architome
 
         void OnTickChange(CatalystInfo catalyst, int ticks)
         {
-            //SetCatalyst(catalyst, true);
-
-            //HandleNearTargets();
-            //LookForNewTarget();
-
-            //SetCatalyst(catalyst, false);
         }
 
         void OnCatalystHit(CatalystInfo catalyst, EntityInfo entity)
@@ -90,7 +84,7 @@ namespace Architome
 
             catalyst.metrics.ResetStartingPosition();
 
-            if (!LookForNewTarget(entity))
+            if (!LookForNewTarget(entity, catalyst))
             {
                 ReflectCatalyst(catalyst);
             }
@@ -104,7 +98,7 @@ namespace Architome
             SetCatalyst(catalyst, true);
 
 
-            if (!LookForNewTarget(null))
+            if (!LookForNewTarget(null, catalyst))
             {
                 ReflectCatalyst(catalyst);
                 augment.TriggerAugment(new(this));
@@ -138,7 +132,7 @@ namespace Architome
             var info = target.GetComponent<EntityInfo>();
             SetCatalyst(catalyst, true);
 
-            if (LookForNewTarget(info))
+            if (LookForNewTarget(info, catalyst))
             {
                 ReflectCatalyst(catalyst);
             }
@@ -172,11 +166,13 @@ namespace Architome
             }
         }
 
-        public bool LookForNewTarget(EntityInfo targetHit)
+        public bool LookForNewTarget(EntityInfo targetHit, CatalystInfo activeCatalyst)
         {
             if (activeCatalyst.Ticks() == 0) return false;
             if (!seekTargets) return false;
-
+            ArchAction.Yield(() => {
+                activeCatalyst.ResetStartingPosition();
+            });
 
             NPCType priority;
 

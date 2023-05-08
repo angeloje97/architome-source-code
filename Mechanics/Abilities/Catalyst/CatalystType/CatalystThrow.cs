@@ -90,6 +90,7 @@ namespace Architome
         void HandleNewTarget(GameObject before, GameObject after)
         {
             target = after;
+            location = after.transform.position;
             TiltCatalyst();
         }
 

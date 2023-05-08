@@ -26,6 +26,8 @@ namespace Architome
 
         ArchSceneManager sceneManager;
 
+        public Action<float> OnUpdate;
+
 
         [Serializable]
         public class UIPrefabs
@@ -141,6 +143,8 @@ namespace Architome
         void Update()
         {
             deltaTime = time.timeScale * UnityEngine.Time.deltaTime;
+
+            OnUpdate?.Invoke(deltaTime);
         }
         private void OnValidate()
         {

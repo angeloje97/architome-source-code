@@ -12,6 +12,8 @@ namespace Architome
         public CatalystIndicatorEmitter source;
         bool catalystSet = false;
 
+        bool emitterTarget;
+
         protected override void Start()
         {
         }
@@ -20,13 +22,16 @@ namespace Architome
         {
             if (catalyst == null) return;
             var catalystManager = CatalystManager.active;
-            transform.SetParent(catalystManager.transform);
             HandleDestoyedCatalyst();
+        }
+
+        public void SetAsMain()
+        {
+            emitterTarget = true;
         }
 
         public virtual void SetCatalyst(CatalystInfo catalyst, CatalystIndicatorEmitter source)
         {
-            this.source = source;
             foreach(var indicator in GetComponentsInChildren<CatalystIndicator>())
             {
                 if (indicator == this) continue;
@@ -36,6 +41,7 @@ namespace Architome
             if (catalystSet) return;
             catalystSet = true;
             this.catalyst = catalyst;
+            this.source = source;
             GetDependencies();
 
 
@@ -43,6 +49,7 @@ namespace Architome
 
         protected void HandleDestoyedCatalyst()
         {
+            if (!emitterTarget) return;
             catalyst.AddEventAction(Enums.CatalystEvent.OnDestroy, () => {
                 Destroy(gameObject);
             });

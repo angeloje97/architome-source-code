@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Pathfinding.Ionic.Crc;
 
 namespace Architome
 {
@@ -41,6 +42,13 @@ namespace Architome
         public float maxGrowth, growthSpeed, startSpeed;
 
         public float startDistance;
+
+        bool calculatingDistancePercent;
+        public float distancePercent
+        {
+            get;
+            private set;
+        }
 
 
         [Header("Change of Speed")]
@@ -103,19 +111,30 @@ namespace Architome
             currentPosition = catalyst.transform.position;
             currentRange = V3Helper.Distance(startingLocation, catalyst.transform.position);
             liveTime += Time.deltaTime;
-            var targetPosition = target ? target.transform.position : location;
+            var targetPosition = catalyst.requiresLockOnTarget ? target.transform.position : location;
 
             distanceFromTarget = V3Helper.Distance(targetPosition, catalyst.transform.position);
 
+            if (calculatingDistancePercent)
+            {
+                distancePercent = currentRange / V3Helper.Distance(targetLocation, startingLocation);
+            }
         }
 
         public float DistancePercent()
         {
-            var targetLocation = target ? target.transform.position : location;
+            if (!calculatingDistancePercent)
+            {
+                calculatingDistancePercent = true;
+                return 0f;
+            }
 
-            var totalDistance = V3Helper.Distance(targetLocation, startingLocation);
+            return distancePercent;
+            //var targetLocation = catalyst.requiresLockOnTarget ? target.transform.position : location;
 
-            return currentRange / totalDistance;
+            //var totalDistance = V3Helper.Distance(targetLocation, startingLocation);
+
+            //return currentRange / totalDistance;
 
         }
     }
