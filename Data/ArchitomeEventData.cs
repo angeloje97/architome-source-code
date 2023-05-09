@@ -17,6 +17,8 @@ namespace Architome
         public float percentValue { get; set; }
         public bool critical { get; set; }
 
+        public bool lethalDamage { get; set; }
+
         public CombatEventData(CatalystInfo catalyst, EntityInfo source, float value)
         {
             this.catalyst = catalyst;

@@ -215,7 +215,10 @@ namespace Architome
         public Action<AbilityInfo, EntityInfo, List<bool>> OnCanHarmCheck { get; set; }
         public Action<AbilityInfo, EntityInfo, List<bool>> OnCanHealCheck { get; set; }
 
-        [HideInInspector] public List<bool> checks;
+        public float floatCheck { get; set; }
+        public Action<AbilityInfo> OnSplashRadiusCheck { get; set; }
+
+        public List<bool> checks { get; set; }
         [HideInInspector] public List<string> reasons;
         //Augments
         public AugmentChannel currentChannel { get; set; }
@@ -1864,6 +1867,7 @@ namespace Architome
             {
                 RadiusType.Catalyst => catalystInfo.range,
                 RadiusType.Buff => BuffRadius(),
+                RadiusType.Splash => SplashRadius(),
                 RadiusType.Detection => lineOfSight != null ? lineOfSight.radius: 0f,
                 _ => 0f,
             };
@@ -1882,6 +1886,13 @@ namespace Architome
                 }
 
                 return largest;
+            }
+
+            float SplashRadius()
+            {
+                floatCheck = 1f;
+                OnSplashRadiusCheck?.Invoke(this);
+                return floatCheck;
             }
         }
 

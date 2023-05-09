@@ -82,7 +82,7 @@ namespace Architome
 
             HandleNearTargets();
 
-            catalyst.metrics.ResetStartingPosition();
+            catalyst.ResetStartingPosition();
 
             if (!LookForNewTarget(entity, catalyst))
             {

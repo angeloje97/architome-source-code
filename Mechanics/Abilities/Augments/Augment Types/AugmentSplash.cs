@@ -45,6 +45,19 @@ namespace Architome
             await base.GetDependencies();
 
             EnableCatalyst();
+
+            if (ability == null) return;
+            if (augment == null) return;
+
+            Action<AbilityInfo> action = (AbilityInfo abilty) => {
+                ability.floatCheck = radius;
+            };
+
+            ability.OnSplashRadiusCheck += action;
+
+            augment.OnRemove += (Augment augment) => {
+                ability.OnSplashRadiusCheck -= action;
+            };
         }
 
         public override string Description()

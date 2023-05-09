@@ -15,19 +15,12 @@ namespace Architome
         float yPositionTimer;
         float yPos;
 
-
-        protected override void GetDependencies()
+        protected override void Start()
         {
-            base.GetDependencies();
             groundLayer = LayerMasksData.active.walkableLayer;
+            SetProjector(true);
         }
 
-        public override void SetCatalyst(CatalystInfo catalyst, CatalystIndicatorEmitter source)
-        {
-            base.SetCatalyst(catalyst, source);
-            SetProjector(true);
-            
-        }
 
         protected override void Update()
         {

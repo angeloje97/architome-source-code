@@ -579,10 +579,9 @@ namespace Architome
             }
             void HandleDamage()
             {
-                bool lethalDamage = false;
                 if (combatData.value >= health + shield)
                 {
-                    lethalDamage = true;
+                    combatData.lethalDamage = true;
                 }
 
                 if (source)
@@ -1515,7 +1514,7 @@ namespace Architome
         }
         public RoomInfo CurrentRoom()
         {
-            Ray ray = new Ray(transform.position, Vector3.down);
+            var ray = new Ray(transform.position, Vector3.down);
 
             if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, GMHelper.LayerMasks().walkableLayer))
             {

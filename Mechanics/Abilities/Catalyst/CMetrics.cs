@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Pathfinding.Ionic.Crc;
+using Language.Lua;
 
 namespace Architome
 {
@@ -66,10 +67,7 @@ namespace Architome
         }
         public Vector3 targetLocation
         {
-            get
-            {
-                return lockOn ? target.transform.position : location;
-            }
+            get; private set;
         }
 
         void HandleInterval()
@@ -95,10 +93,6 @@ namespace Architome
             }
         }
 
-        public void ResetStartingPosition()
-        {
-            startingLocation = catalyst.transform.position;
-        }
 
         public void Update()
         {
@@ -111,14 +105,25 @@ namespace Architome
             currentPosition = catalyst.transform.position;
             currentRange = V3Helper.Distance(startingLocation, catalyst.transform.position);
             liveTime += Time.deltaTime;
-            var targetPosition = catalyst.requiresLockOnTarget ? target.transform.position : location;
+            targetLocation = catalyst.requiresLockOnTarget ? target ? target.transform.position : location : location;
 
-            distanceFromTarget = V3Helper.Distance(targetPosition, catalyst.transform.position);
+            distanceFromTarget = V3Helper.Distance(targetLocation, catalyst.transform.position);
 
             if (calculatingDistancePercent)
             {
                 distancePercent = currentRange / V3Helper.Distance(targetLocation, startingLocation);
             }
+        }
+
+        public Vector3 TargetPosition()
+        {
+            if(targetLocation == new Vector3())
+            {
+                targetLocation = catalyst.requiresLockOnTarget ? target ? target.transform.position : location : location;
+                
+            }
+
+            return targetLocation;
         }
 
         public float DistancePercent()

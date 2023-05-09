@@ -33,12 +33,7 @@ namespace Architome
 
         void UpdateLocation()
         {
-            if (usingSkillShotLocation)
-            {
-                location = catalyst.metrics.targetLocation;
-                return;
-            }
-            location = target ? catalyst.target.transform.position : catalyst.location;
+            location = catalyst.metrics.TargetPosition();
         }
         void DisableLockOn()
         {

@@ -85,6 +85,7 @@ namespace Architome
                 public CatalystParticleTarget target;
                 public BodyPart bodyPart;
                 public RadiusType manifestRadius;
+                public float radiusProportion = 1f;
                 public Vector3 offsetPosition, offsetScale, offsetRotation;
                 public GameObject particleObj;
                 public AudioClip audioClip;
@@ -102,6 +103,7 @@ namespace Architome
                 public BodyPart bodyPart;
                 public BodyPart bodyPart2;
                 public RadiusType manifestRadius;
+                
                 public CatalystParticleTarget target;
                 public CatalystParticleTarget secondTarget;
                 public bool looksAtTarget;

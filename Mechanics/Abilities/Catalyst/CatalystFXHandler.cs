@@ -209,6 +209,19 @@ namespace Architome
             system.transform.position += effect.offsetPosition;
             system.transform.localScale += effect.offsetScale;
             system.transform.eulerAngles += effect.offsetRotation;
+            
+            HandleParticleRadius(system, effect);
+        }
+
+        void HandleParticleRadius(ParticleSystem particleTransform, CatalystInfo.CatalystEffects.Catalyst effect)
+        {
+            if (ability == null) return;
+            if (effect.manifestRadius == RadiusType.None) return;
+            var radius = ability.Radius(effect.manifestRadius);
+
+
+
+            particleTransform.transform.localScale = effect.radiusProportion * radius * Vector3.one;
         }
 
         public void HandleParticleTransform(CatalystInfo.CatalystEffects.Catalyst effect, GameObject system)
