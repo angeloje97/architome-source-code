@@ -125,7 +125,10 @@ namespace Architome
 
                 if (specialAbility.IsBlocked()) return;
                 if (ability == null) continue;
+                if (!ability.IsReady()) continue;
                 if (!ability.isHarming) continue;
+
+                await ability.EndActivation();
 
                 //Special Ability Targeting
                 if (await TargetsCurrent(specialAbility, ability)) return;

@@ -181,7 +181,7 @@ namespace Architome
                         continue;
                     }
                     var movement = entity.Movement();
-                    movement.MoveTo(portalSpot);
+                   _= movement.MoveToAsync(portalSpot);
                     HandleEntityCombat(entity, movement); 
                 }
             }
@@ -236,7 +236,7 @@ namespace Architome
                 var movement = entitiesInPortal[i].Movement();
                 if (movement == null) continue;
 
-                movement.MoveTo(positions[i]);
+                _= movement.MoveToAsync(positions[i]);
             }
         }
     }

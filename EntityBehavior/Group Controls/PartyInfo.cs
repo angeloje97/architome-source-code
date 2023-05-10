@@ -269,7 +269,7 @@ namespace Architome
                 if (movement)
                 {
                     movement.OnTryMove?.Invoke(movement);
-                    movement.MoveTo(partyFormation.spots[i].transform);
+                    _= movement.MoveToAsync(partyFormation.spots[i].transform);
                 }
             }
         }

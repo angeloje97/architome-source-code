@@ -62,7 +62,14 @@ namespace Architome
                 newCatalyst.OnCanHealCheck += HandleHeal;
                 newCatalyst.OnCanHitCheck += HandleHit;
                 newCatalyst.OnCorrectLockOnCheck += HandleCorrectLockOn;
+                newCatalyst.OnCanTriggerEntity += HandleEntityTrigger;
             };
+
+            void HandleEntityTrigger(CatalystInfo catalyst, EntityInfo entity, List<bool> checks)
+            {
+                if (!restrictions.ignoreEntityTrigger) return;
+                checks.Add(false);
+            }
 
 
             void HandleCorrectLockOn(CatalystHit hit, EntityInfo target, List<bool> checks)

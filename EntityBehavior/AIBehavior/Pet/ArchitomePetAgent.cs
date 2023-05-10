@@ -57,11 +57,11 @@ namespace Architome
             
         }
 
-        void OnCombatChange(bool isInCombat)
+        async void OnCombatChange(bool isInCombat)
         {
             if (isInCombat) return;
 
-            movement.MoveTo(followSpot);
+            await movement.MoveToAsync(followSpot);
         }
 
         void OnEndMove(Movement movement)

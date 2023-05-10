@@ -791,6 +791,22 @@ namespace Architome
             return false;
 
         }
+
+        public bool CanMove()
+        {
+            if (!isAlive) return false;
+
+            checks = new();
+
+            infoEvents.OnCanMoveCheck?.Invoke(this, checks);
+
+            foreach(var check in checks)
+            {
+                if (!check) return false;
+            }
+
+            return true;
+        }
         public void ReactToSocial(SocialEventData eventData)
         {
             if (eventData.target == this)

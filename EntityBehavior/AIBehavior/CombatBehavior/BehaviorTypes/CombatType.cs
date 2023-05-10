@@ -114,7 +114,7 @@ namespace Architome
                 await Task.Delay(250);
                 timer += .250f;
 
-                if (timer > 5f) break;
+                if (timer > 2f) break;
             }
             autoAttacking = false;
             abilityManager.target = null;

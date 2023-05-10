@@ -94,11 +94,11 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void MoveTo(Vector3 location)
+    async void MoveTo(Vector3 location)
     {
         if (movement)
         {
-            movement.MoveTo(location);
+            await movement.MoveToAsync(location);
         }
     }
     public void Cast(int value)

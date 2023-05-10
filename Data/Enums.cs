@@ -276,7 +276,8 @@ namespace Architome.Enums
         Bounce,
         Cataling,
         Buff,
-        Detection
+        Detection,
+        CatalystSize,
     }
 
     public enum AttackTrigger

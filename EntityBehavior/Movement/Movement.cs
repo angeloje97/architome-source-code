@@ -138,60 +138,13 @@ namespace Architome
             previousPosition = transform.position;
 
         }
+
+        #region Event Loop
         void FixedUpdate()
         {
             //GetDependencies();
-            UpdateMetrics();
             HandleEvents();
-        }
-        public void OnTransferScene(string sceneName)
-        {
-            StopMoving(true);
-        }
-        public void OnLifeCheck(bool isAlive)
-        {
-            if (isAlive)
-            {
-                SetValues(isAlive, 1f);
-            }
-            else
-            {
-                SetValues(isAlive);
-            }
-            
-            StopMoving(true);
-        }
-        public void OnStatesChange(List<EntityState> previous, List<EntityState> states)
-        {
-            if (!entityInfo.isAlive) { return; }
-            var immobilizedStates = new List<EntityState>()
-            {
-                EntityState.Stunned,
-                EntityState.Immobalized
-            };
-
-            var intersection = states.Intersect(immobilizedStates).ToList();
-
-            if (intersection.Count > 0)
-            {
-                SetValues(false);
-                return;
-            }
-
-            SetValues(true);
-        }
-        public async void SetValues(bool val, float timer = 0f)
-        {
-            await Task.Delay((int)(timer * 1000));
-            StopMoving();
-            canMove = val;
-            destinationSetter.enabled = val;
-            path.enabled = val;
-            rigidBody.constraints = val ? originalConstraints : RigidbodyConstraints.FreezeAll;
-        }
-        public void RestrictMovements(bool restrict)
-        {
-            rigidBody.constraints = restrict ? RigidbodyConstraints.FreezeAll : originalConstraints;
+            UpdateMetrics();
         }
         void HandleEvents()
         {
@@ -229,26 +182,6 @@ namespace Architome
                 entityInfo.SetTarget(destinationSetter.target);
                 
             }
-        }
-        void OnChangeStats(EntityInfo entity)
-        {
-            UpdateMovementSpeed();
-        }
-
-        void OnSignificantMovementChange(Vector3 newPosition)
-        {
-            StopMoving(true);
-        }
-        void UpdateMovementSpeed()
-        {
-            var baseMovementSpeed = walking ? GMHelper.WorldSettings().baseWalkSpeed : GMHelper.WorldSettings().baseMovementSpeed;
-
-            path.maxSpeed = entityInfo.stats.movementSpeed * baseMovementSpeed;
-        }
-        public void SetWalk(bool val)
-        {
-            walking = val;
-            UpdateMovementSpeed();
         }
         public void UpdateMetrics()
         {
@@ -324,6 +257,76 @@ namespace Architome
             }
 
         }
+        #endregion
+        public void OnTransferScene(string sceneName)
+        {
+            StopMoving(true);
+        }
+        public void OnLifeCheck(bool isAlive)
+        {
+            if (isAlive)
+            {
+                SetValues(isAlive, 1f);
+            }
+            else
+            {
+                SetValues(isAlive);
+            }
+            
+            StopMoving(true);
+        }
+        public void OnStatesChange(List<EntityState> previous, List<EntityState> states)
+        {
+            if (!entityInfo.isAlive) { return; }
+            var immobilizedStates = new List<EntityState>()
+            {
+                EntityState.Stunned,
+                EntityState.Immobalized
+            };
+
+            var intersection = states.Intersect(immobilizedStates).ToList();
+
+            if (intersection.Count > 0)
+            {
+                SetValues(false);
+                return;
+            }
+
+            SetValues(true);
+        }
+        public async void SetValues(bool val, float timer = 0f)
+        {
+            await Task.Delay((int)(timer * 1000));
+            StopMoving();
+            canMove = val;
+            destinationSetter.enabled = val;
+            path.enabled = val;
+            rigidBody.constraints = val ? originalConstraints : RigidbodyConstraints.FreezeAll;
+        }
+        public void RestrictMovements(bool restrict)
+        {
+            rigidBody.constraints = restrict ? RigidbodyConstraints.FreezeAll : originalConstraints;
+        }
+        void OnChangeStats(EntityInfo entity)
+        {
+            UpdateMovementSpeed();
+        }
+
+        void OnSignificantMovementChange(Vector3 newPosition)
+        {
+            StopMoving(true);
+        }
+        void UpdateMovementSpeed()
+        {
+            var baseMovementSpeed = walking ? GMHelper.WorldSettings().baseWalkSpeed : GMHelper.WorldSettings().baseMovementSpeed;
+
+            path.maxSpeed = entityInfo.stats.movementSpeed * baseMovementSpeed;
+        }
+        public void SetWalk(bool val)
+        {
+            walking = val;
+            UpdateMovementSpeed();
+        }
 
 
         public bool HasReachedTarget(float minimumDistance = 1f)
@@ -345,6 +348,23 @@ namespace Architome
                 if (destinationSetter.target != target) return false;
                 if (!entityInfo.isAlive) return false;
 
+                await Task.Yield();
+            }
+
+            return true;
+        }
+
+        async public Task<bool> MoveToAsync(Vector3 location)
+        {
+            MoveTo(location);
+
+            isMoving = true;
+
+            while (isMoving || distanceFromTarget > 2f)
+            {
+                if (!Application.isPlaying) return false;
+                if (this.location.transform.position != location) return false;
+                if (!entityInfo.isAlive) return false;
                 await Task.Yield();
             }
 
@@ -378,7 +398,6 @@ namespace Architome
 
             return true;
         }
-
         async public Task<bool> MoveToLosRange(Transform locationTransform, float endReachDistance = 0f)
         {
             if (!entityInfo.isAlive) return false;
@@ -406,11 +425,11 @@ namespace Architome
 
             return destinationSetter.target;
         }
-        public void MoveTo(Vector3 location)
+        void MoveTo(Vector3 location)
         {
-            if (!entityInfo.isAlive) { return; }
             OnTryMove?.Invoke(this);
             OnTryMoveEvent?.Invoke();
+            if (!entityInfo.CanMove()) return;
             if (!canMove) { return; }
             hasArrivedCheck = false;
             this.location.transform.position = location;
@@ -422,9 +441,12 @@ namespace Architome
             OnChangePath?.Invoke(this);
 
         }
-        public void MoveTo(Transform locationTransform,  float endReachDistance = 0f)
+        void MoveTo(Transform locationTransform,  float endReachDistance = 0f)
         {
-            if (!entityInfo.isAlive) { return; }
+            if (!entityInfo.CanMove())
+            {
+                return;
+            }
             path.endReachedDistance = endReachDistance;
             hasArrivedCheck = !hasArrived;
             isMovingChange = true;
@@ -436,7 +458,7 @@ namespace Architome
             }
 
         }
-        public void MoveTo(Vector3 location, float endReachDistance = 0f)
+        void MoveTo(Vector3 location, float endReachDistance = 0f)
         {
             if(!entityInfo.isAlive) return;
             path.endReachedDistance = endReachDistance;
@@ -451,6 +473,7 @@ namespace Architome
 
 
         }
+
         public void TriggerEvents()
         {
             hasArrivedCheck = !hasArrived;
@@ -555,8 +578,25 @@ namespace Architome
             abilities.OnChannelStart += OnChannelStart;
             abilities.OnChannelEnd += OnChannelEnd;
             abilities.OnTryAttackTarget += OnTryAttackTarget;
+            abilities.OnAbilityStart += OnAbilityStart;
+
+        }
+
+        async void OnAbilityStart(AbilityInfo ability)
+        {
+            if (!ability.cantMoveWhenCasting) return;
+            movement.StopMoving();
+            entity.infoEvents.OnCanMoveCheck += HandleMoveCheck;
+
+            await ability.EndActivation();
+
+            entity.infoEvents.OnCanMoveCheck -= HandleMoveCheck;
 
 
+            void HandleMoveCheck(EntityInfo entity, List<bool> checks)
+            {
+                checks.Add(false);
+            }
         }
 
         void OnTryAttackTarget(AbilityInfo attackAbility, EntityInfo target)
@@ -568,29 +608,29 @@ namespace Architome
                 return;
             }
 
-            if (attackAbility.CanCastAt(target))
-            {
-                var range = attackAbility.range;
-                movement.MoveTo(target.transform, range);
+            //if (attackAbility.CanCastAt(target))
+            //{
+            //    var range = attackAbility.range;
+            //    _= movement.MoveToAsync(target.transform, range);
                 
-            }
+            //}
         }
         async void OnCastStart(AbilityInfo ability)
         {
             if (!ability.cancelCastIfMoved) return;
             var movementTimer = .25f;
+            movement.StopMoving();
+            //while (ability.isCasting)
+            //{
+            //    await Task.Yield();
+            //    movementTimer -= Time.deltaTime;
 
-            while (ability.isCasting)
-            {
-                await Task.Yield();
-                movementTimer -= Time.deltaTime;
-
-                if (movementTimer < 0) break;
-                if (movement.isMoving)
-                {
-                    movement.StopMoving();
-                }
-            }
+            //    if (movementTimer < 0) break;
+            //    if (movement.isMoving)
+            //    {
+            //        movement.StopMoving();
+            //    }
+            //}
         }
         void OnCastEnd(AbilityInfo ability)
         {

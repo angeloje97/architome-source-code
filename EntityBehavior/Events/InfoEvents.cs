@@ -48,6 +48,8 @@ namespace Architome
         public Action<EntityInfo, List<bool>> OnMaleCheck { get; set; }
         public Action<EntityInfo, List<bool>> OnFemaleCheck { get; set; }
 
+        public Action<EntityInfo, List<bool>> OnCanMoveCheck { get; set; }
+
         public bool IsOneTrue(EventType type, object obj)
         {
             flagCheck ??= new();
@@ -79,5 +81,6 @@ namespace Architome
             }
             
         }
+
     }
 }

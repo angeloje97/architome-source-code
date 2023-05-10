@@ -21,7 +21,7 @@ namespace Architome
 
         public override void HandleNewCatlyst(CatalystInfo catalyst)
         {
-            catalyst.OnCatalystTrigger += OnCatalystTrigger;
+            catalyst.OnEntityTrigger += OnEntityTrigger;
             SetCatalyst(catalyst, true);
         }
 
@@ -36,10 +36,9 @@ namespace Architome
             KillSummoned(entity, catalyst);
         }
 
-        void OnCatalystTrigger(CatalystInfo catalyst, Collider other, bool enter)
+        void OnEntityTrigger(CatalystInfo catalyst, EntityInfo info)
         {
 
-            var info = other.GetComponent<EntityInfo>();
             if (info == null) return;
             KillSummoned(info, catalyst);
         }

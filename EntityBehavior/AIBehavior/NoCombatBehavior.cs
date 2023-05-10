@@ -124,15 +124,15 @@ namespace Architome
 
             if (movement)
             {
-                movement.MoveTo(startingPosition);
+                _= movement.MoveToAsync(startingPosition);
             }
         }
 
-        public void HandlePatrol(bool val)
+        public async void HandlePatrol(bool isInCombat)
         {
-            if (val) { return; }
+            if (isInCombat) { return; }
             if (patrolSpot == null) { return; }
-            movement.MoveTo(patrolSpot);
+            await movement.MoveToAsync(patrolSpot);
 
             ManagePatrolDistance();
 
@@ -146,7 +146,7 @@ namespace Architome
                 {
                     if (movement.DistanceFromTarget() != 0f)
                     {
-                        movement.MoveTo(patrolSpot, 0);
+                        await movement.MoveToAsync(patrolSpot);
                         break;
                     }
                     current++;

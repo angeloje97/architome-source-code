@@ -150,7 +150,7 @@ public class BuffMindControl : BuffStateChanger
 
         if (location == new Vector3(0, 0, 0)) return;
 
-        movement.MoveTo(location);
+        _= movement.MoveToAsync(location);
     }
 
     void Start()

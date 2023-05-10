@@ -837,15 +837,18 @@ namespace Architome
             if (isAttack)
             {
                 isAutoAttacking = true;
+
+
                 while (isAutoAttacking)
                 {
-                    await coolDown.NextAvailableCharge();
+                    if (!isAutoAttacking) break;
                     var success = await Activate();
 
                     if (!success)
                     {
                         break; 
                     }
+                    await coolDown.NextAvailableCharge();
 
                 }
             }
@@ -1869,6 +1872,7 @@ namespace Architome
                 RadiusType.Buff => BuffRadius(),
                 RadiusType.Splash => SplashRadius(),
                 RadiusType.Detection => lineOfSight != null ? lineOfSight.radius: 0f,
+                RadiusType.CatalystSize => catalyst.transform.localScale.x,
                 _ => 0f,
             };
 

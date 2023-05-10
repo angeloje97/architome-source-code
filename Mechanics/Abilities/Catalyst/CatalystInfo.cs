@@ -203,6 +203,10 @@ namespace Architome
         public Action<CatalystHit, EntityInfo, List<bool>> OnCanHealCheck { get; set; }
         public Action<CatalystHit, EntityInfo, List<bool>> OnCanAssistCheck{ get; set; }
 
+        public Action<CatalystInfo, Collider, List<bool>> OnCanTrigger { get; set; }
+
+        public Action<CatalystInfo, EntityInfo, List<bool>> OnCanTriggerEntity { get; set; }
+        public Action<CatalystInfo, EntityInfo> OnEntityTrigger { get; set; }
         
 
         public Action<CatalystHit, EntityInfo, List<bool>> OnCorrectLockOnCheck { get; set; }
@@ -365,11 +369,47 @@ namespace Architome
         }
         public void OnTriggerEnter(Collider other)
         {
+            if (!CanTrigger(other)) return;
             OnCatalystTrigger?.Invoke(this, other, true);
+
+            var entity = other.GetComponent<EntityInfo>();
+            if (entity)
+            {
+                if (CanTriggerEntity(entity))
+                {
+                    OnEntityTrigger?.Invoke(this, entity);
+                }
+            }
         }
         public void OnTriggerExit(Collider other)
         {
             OnCatalystTrigger?.Invoke(this, other, false);
+        }
+
+        bool CanTrigger(Collider collider)
+        {
+            var checks = new List<bool>();
+            OnCanTrigger?.Invoke(this, collider, checks);
+            foreach(var check in checks)
+            {
+                if (!check) return false;
+            }
+
+            return true;
+        }
+
+        bool CanTriggerEntity(EntityInfo entity)
+        {
+            var checks = new List<bool>();
+
+            OnCanTriggerEntity?.Invoke(this, entity, checks);
+
+            foreach(var check in checks)
+            {
+                if (!check) return false;
+            }
+
+            return true;
         }
 
         void SpawnCatalystAudio()

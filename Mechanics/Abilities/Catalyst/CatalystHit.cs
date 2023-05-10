@@ -42,6 +42,7 @@ public class CatalystHit : MonoBehaviour
         if (catalystInfo)
         {
             catalystInfo.OnCloseToTarget += OnCloseToTarget;
+            catalystInfo.OnEntityTrigger += OnEntityTrigger;
         }
 
         if (abilityInfo)
@@ -73,15 +74,9 @@ public class CatalystHit : MonoBehaviour
             catalystInfo = GetComponent<CatalystInfo>();
         }
     }
-    public void OnTriggerEnter(Collider other)
-    {
-        //Debugger.InConsole(5123, $"Your projectile hit an object of {other}");
-        //if (!other.CompareTag("Entity") || other.GetComponent<EntityInfo>() == null)
-        //{
-        //    return;
-        //}
 
-        var info = other.GetComponent<EntityInfo>();
+    void OnEntityTrigger(CatalystInfo catalyst, EntityInfo info)
+    {
         if (info == null) return;
 
         if (!CorrectLockOn(info)) { return; }
@@ -95,7 +90,6 @@ public class CatalystHit : MonoBehaviour
         {
             //Debugger.InConsole(1094, $"{targetHit}, {catalystInfo.entityInfo}, {abilityInfo}");
         }
-        
     }
 
     public bool IsDeadTargetable(EntityInfo target)

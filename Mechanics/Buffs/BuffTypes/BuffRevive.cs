@@ -62,7 +62,7 @@ public class BuffRevive : BuffType
 
         hostInfo.Revive(combatData);
         hostInfo.currentRoom = hostInfo.CurrentRoom();
-        hostInfo.Movement().MoveTo(hostInfo.transform.position);
+        hostInfo.Movement().StopMoving(true);
         
     }
     void Start()
