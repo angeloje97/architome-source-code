@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
-namespace Architome
+namespace Architome.Indicator
 {
     public class CatalystIndicator : AbilityIndicator
     {
         [Header("Indicator Properties")]
         public CatalystInfo catalyst;
-        public CatalystIndicatorEmitter source;
+        public CatalystEmitter source;
         bool catalystSet = false;
 
         bool emitterTarget;
@@ -30,7 +30,7 @@ namespace Architome
             emitterTarget = true;
         }
 
-        public virtual void SetCatalyst(CatalystInfo catalyst, CatalystIndicatorEmitter source)
+        public virtual void SetCatalyst(CatalystInfo catalyst, CatalystEmitter source)
         {
             foreach(var indicator in GetComponentsInChildren<CatalystIndicator>())
             {

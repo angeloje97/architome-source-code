@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
 
-namespace Architome
+namespace Architome.Indicator
 {
 
-    public class CatalystIndicatorEmitter : MonoBehaviour
+    public class CatalystEmitter : MonoBehaviour
     {
         public AbilityInfo ability;
         public CatalystIndicator indicatorPrefab;

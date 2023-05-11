@@ -2,9 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Architome
+namespace Architome.Indicator
 {
-    public class CatalystIndicatorTarget : CatalystIndicator
+    public class CatalystTarget : CatalystIndicator
     {
         [Header("Catalyst Target Properties")]
         public bool setTarget;

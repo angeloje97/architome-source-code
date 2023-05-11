@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 using UnityEngine;
 using Architome.Enums;
 
-namespace Architome
+namespace Architome.Indicator
 {
-    public class AbilityIndicatorScaler : AbilityIndicator
+    public class AbilityScaler : AbilityIndicator
     {
         [Header("Scaler Properties")]
         public Vector3 targetVector3 = Vector3.one;

@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SocialPlatforms;
 
-namespace Architome
+namespace Architome.Indicator
 {
-    public class AbilityIndicatorProgress : AbilityIndicator
+    public class AbilityProgress : AbilityIndicator
     {
         [Header("Progress Settings")]
         [Min(1f)]

@@ -2,9 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Architome
+namespace Architome.Indicator
 {
-    public class CatalystIndicatorFill : CatalystIndicator
+    public class CatalystFill : CatalystIndicator
     {
         [Header("Fill Properties")]
         public float currentPercent;

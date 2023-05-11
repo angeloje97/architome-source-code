@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using System.Threading.Tasks;
 
-namespace Architome
+namespace Architome.Indicator
 {
     public class AbilityIndicator : MonoBehaviour
     {

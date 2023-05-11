@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using UnityEngine;
 using Architome.Enums;
 
-namespace Architome
+namespace Architome.Indicator
 {
-    public class AbilityIndicatorTarget : AbilityIndicatorScaler
+    public class AbilityLookTarget : AbilityScaler
     {
         [Header("Target Properties")]
         public Transform target;

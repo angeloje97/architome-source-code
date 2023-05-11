@@ -2,16 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Architome
+namespace Architome.Indicator
 {
-    public class CatalystIndicatorShape : CatalystIndicator
+    public class CatalystShape : CatalystIndicator
     {
         [Header("Shape Properties")]
         public float projectorThickness;
         float radius;
 
 
-        public override void SetCatalyst(CatalystInfo catalyst, CatalystIndicatorEmitter source)
+        public override void SetCatalyst(CatalystInfo catalyst, CatalystEmitter source)
         {
             base.SetCatalyst(catalyst, source);
             radius = source.generalRadius * 2;
