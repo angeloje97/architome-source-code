@@ -955,6 +955,28 @@ namespace Architome
             return true;
         }
 
+        public async Task HandleTargetLocation(Action<Vector3> action)
+        {
+            if (!activated) return;
+            var currentLocation = locationLocked;
+            EntityInfo currentTarget = abilityType == AbilityType.LockOn ? targetLocked : null;
+            while (activated)
+            {
+                currentLocation = locationLocked;
+                UpdateTargetLocation(currentTarget);
+                action?.Invoke(currentLocation);
+
+                await Task.Yield();
+
+            }
+
+            void UpdateTargetLocation(EntityInfo target)
+            {
+                if (target == null) return;
+                currentLocation = target.transform.position;
+            }
+        }
+
 
         #region Flags
         async Task<bool> HasLineOfSight(bool moveToTarget = true)

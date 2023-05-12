@@ -1,21 +1,24 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
-namespace Architome
+namespace Architome.Indicator
 {
-    public class AbilityOnTarget : MonoBehaviour
+    public class AbilityOnTarget : AbilityIndicator
     {
-        // Start is called before the first frame update
-        void Start()
+        [Header("On Target Properties")]
+        public Vector3 targetLocation;
+        public override async void OnAbilityStartEnd(AbilityInfo ability, bool isActivated)
         {
-        
+            if (!isActivated) return;
+
+            await ability.HandleTargetLocation(StayOnTarget);
         }
 
-        // Update is called once per frame
-        void Update()
+        void StayOnTarget(Vector3 target)
         {
-        
+
         }
     }
 }
