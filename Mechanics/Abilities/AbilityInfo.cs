@@ -958,8 +958,8 @@ namespace Architome
         public async Task HandleTargetLocation(Action<Vector3> action)
         {
             if (!activated) return;
-            var currentLocation = locationLocked;
             EntityInfo currentTarget = abilityType == AbilityType.LockOn ? targetLocked : null;
+            Vector3 currentLocation;
             while (activated)
             {
                 currentLocation = locationLocked;
