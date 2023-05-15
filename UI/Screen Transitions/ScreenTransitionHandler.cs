@@ -4,11 +4,20 @@ using UnityEngine;
 using System;
 using Architome.Enums;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Architome
 {
+    public enum TransitionEvents
+    {
+        BeforeTransitionIn,
+        BeforeTransitionOut,
+        AfterTransitionIn,
+        AfterTransitionOut,
+    }
     public class ScreenTransitionHandler : MonoBehaviour
     {
+        public static ScreenTransitionHandler active;
         [Serializable]
         public struct Info
         {
@@ -41,6 +50,11 @@ namespace Architome
 
         [SerializeField] bool waitForMapGeneration;
 
+        Dictionary<TransitionEvents, Action<ScreenTransitionHandler>> transitionEvents;
+
+        public List<Func<Task>> tasksBeforeTransitionIn;
+        public List<Func<Task>> tasksBeforeTransitionOut;
+
         public void OnValidate()
         {
             transitions = GetComponentsInChildren<Transition>().ToList();
@@ -52,6 +66,51 @@ namespace Architome
                 ArchUI.SetCanvas(info.canvasGroup, false);
             }
         }
+
+        private void Awake()
+        {
+            if(active && active != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+            transitionEvents = new();
+            active = this;
+        }
+
+        void InvokeEvent(TransitionEvents transEvent)
+        {
+            if (!transitionEvents.ContainsKey(transEvent))
+            {
+                transitionEvents.Add(transEvent, null);
+            }
+
+            transitionEvents[transEvent]?.Invoke(this);
+        }
+
+        public void AddListener<T>(TransitionEvents eventName, Action<ScreenTransitionHandler> action, T caller) where T: Component
+        {
+            if (!transitionEvents.ContainsKey(eventName))
+            {
+                transitionEvents.Add(eventName, null);
+            }
+
+            transitionEvents[eventName] += MiddleWare;
+
+
+            void MiddleWare(ScreenTransitionHandler handler)
+            {
+                if(caller == null)
+                {
+                    transitionEvents[eventName] -= MiddleWare;
+                    return;
+                }
+
+                action(handler);
+            }
+        }
+
+
         void Start()
         {
             ArchUI.SetCanvas(info.canvasGroup, true);
@@ -60,14 +119,10 @@ namespace Architome
             if (sceneManager)
             {
                 sceneManager.AddListener(SceneEvent.BeforeLoadScene, TasksBeforeLoadScene, this);
-
-                if (gameManager.GameState == GameState.Play)
-                {
-                    sceneManager.AddListener(SceneEvent.OnLoadScene, OnLoadScene, this);
-                }
+                sceneManager.AddListener(SceneEvent.OnLoadScene, OnLoadScene, this);
             }
 
-            HandleMapRoomGenerator();
+            TransitionOut();
         }
 
         void Update()
@@ -83,51 +138,73 @@ namespace Architome
 
             info.activeTransition = trans;
         }
-        void HandleMapRoomGenerator()
+        async Task HandleMapRoomGenerator()
         {
-            if (!waitForMapGeneration)
-            {
-                TransitionOut();
-                return;
-            }
 
             var mapRoomGenerator = MapRoomGenerator.active;
             var mapInfo = MapInfo.active;
 
             if (mapRoomGenerator == null)
             {
-                TransitionOut();
                 return;
             }
-            
 
-            info.activeTransition.SetActive(false);
+
+
+            var loading = true;
 
             mapRoomGenerator.OnAllRoomsHidden += (MapRoomGenerator roomGenerator) =>
             {
                 if (roomGenerator.hideRooms)
                 {
-                    TransitionOut();
+                    //TransitionOut();
+                    loading = false;
                 }
                 else
                 {
-                    ArchAction.Delay(() => TransitionOut(), 1f);
+                    //ArchAction.Delay(() => TransitionOut(), 1f);
+
+                    ArchAction.Delay(() => {
+                        loading = false;
+                    }, 1f);
                 }
-                
+
             };
+
+            while (loading)
+            {
+                await Task.Yield();
+            }
 
         }
 
         public void TasksBeforeLoadScene(ArchSceneManager archSceneManager)
         {
             var tasks = archSceneManager.tasksBeforeLoad;
+            
+            tasks.Add(TransitionIn);
+
+            
+        }
+
+        async Task TransitionIn()
+        {
             var activeTransition = info.activeTransition;
             if (activeTransition == null) return;
 
+            tasksBeforeTransitionIn = new();
 
-            tasks.Add(activeTransition.SceneTransitionIn());
+            InvokeEvent(TransitionEvents.BeforeTransitionIn);
 
-            transform.SetAsLastSibling();
+            foreach (var task in tasksBeforeTransitionIn)
+            {
+                await task();
+            }
+
+            info.canvasGroup.SetCanvas(true);
+            await activeTransition.SceneTransitionIn();
+            
+            InvokeEvent(TransitionEvents.AfterTransitionIn);
         }
 
         async void TransitionOut()
@@ -135,16 +212,28 @@ namespace Architome
             var activeTransition = info.activeTransition;
             if (activeTransition == null) return;
 
-            transform.SetAsLastSibling();
+            await HandleMapRoomGenerator();
+
+            tasksBeforeTransitionOut = new();
+
+            InvokeEvent(TransitionEvents.BeforeTransitionOut);
+
+            foreach(var task in tasksBeforeTransitionOut)
+            {
+                await task();
+            }
+
             await activeTransition.SceneTransitionOut();
+            info.canvasGroup.SetCanvas(false);
+
+            InvokeEvent(TransitionEvents.AfterTransitionOut);
         }
 
         public void OnLoadScene(ArchSceneManager sceneManager)
         {
-
             ArchAction.Delay(() => {
-                if (this == null) return;
-                HandleMapRoomGenerator();
+                TransitionOut();
+            
             }, 2f);
         }
 

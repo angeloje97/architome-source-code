@@ -66,6 +66,11 @@ namespace Architome
         }
         private void Awake()
         {
+            if (active && active != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
             active = this;
 
         }

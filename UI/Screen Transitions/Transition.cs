@@ -14,6 +14,8 @@ namespace Architome
         {
             public Animator animator;
             public ScreenTransitionHandler handler;
+            public CanvasGroup canvasGroup;
+            public int transitionID;
         }
 
         [SerializeField] Info info;
@@ -34,7 +36,6 @@ namespace Architome
 
         public void SetActive(bool active)
         {
-            info.animator.SetBool("IsPlaying", active);
         }
 
         void UpdateHandler()
@@ -93,6 +94,12 @@ namespace Architome
         public void SetTransition(bool active)
         {
             this.active = active;
+            info.canvasGroup.SetCanvas(active);
+        }
+
+        private void Awake()
+        {
+            info.animator.SetInteger("AnimationID", info.transitionID);
         }
 
         async public Task SceneTransitionIn()
@@ -102,7 +109,7 @@ namespace Architome
             
             transitioning = true;
 
-            info.animator.SetBool("IsPlaying", false);
+            info.animator.SetTrigger("TransitionIn");
 
             while (transitioning)
             {
@@ -115,7 +122,7 @@ namespace Architome
             
             transitioning = true;
 
-            info.animator.SetBool("IsPlaying", true);
+            info.animator.SetTrigger("TransitionOut");
 
             while (transitioning)
             {
