@@ -26,7 +26,8 @@ namespace Architome
 
         ArchSceneManager sceneManager;
 
-        public Action<float> OnUpdate;
+        Action<float> OnUpdate { get; set; }
+
 
 
         [Serializable]
@@ -328,6 +329,92 @@ namespace Architome
                 timeScale = newTimeScale;
             }
         }
+
+        #region Static functions
+        public static async Task Delay(float seconds)
+        {
+            var world = active;
+            if(world == null)
+            {
+                await Task.Delay((int)(seconds * 1000));
+                
+                return;
+            }
+
+            var currentTime = 0f;
+            var waiting = true;
+            world.OnUpdate += HandleUpdate;
+
+            while (waiting)
+            {
+                await Task.Yield();
+            };
+
+            world.OnUpdate -= HandleUpdate;
+
+            void HandleUpdate(float deltaTime)
+            {
+                if(currentTime < seconds)
+                {
+                    currentTime += deltaTime;
+                    return;
+                }
+                waiting = false;
+
+            }
+        }
+
+        public static async Task Yield()
+        {
+            var world = active;
+            if(world == null)
+            {
+                await Task.Yield();
+                return;
+            }
+
+            var waiting = true;
+
+            world.OnUpdate += HandleUpdate;
+            while (waiting)
+            {
+                await Task.Yield();
+            }
+            world.OnUpdate -= HandleUpdate;
+
+
+            void HandleUpdate(float deltaTime)
+            {
+                waiting = false;
+            }
+        }
+
+        public static async Task UpdateAction(Predicate<float> action)
+        {
+
+            var world = active;
+            var running = true;
+
+            world.OnUpdate += MiddleWare;
+
+
+            while (running)
+            {
+                await Task.Yield();
+            }
+
+            world.OnUpdate -= MiddleWare;
+
+            void MiddleWare(float deltaTime)
+            {
+                if (!running) return;
+                if (!action(deltaTime))
+                {
+                    running = false;
+                }
+            }
+        }
+        #endregion
     }
 
 }

@@ -93,11 +93,6 @@ namespace Architome
             if (sceneManager)
             {
 
-                //sceneManager.AddListeners(new() {
-                //    (SceneEvent.OnLoadScene, OnLoadScene),
-                //    (SceneEvent.BeforeLoadScene, BeforeLoadScene),
-                //}, this);
-
                 sceneManager.AddListener(SceneEvent.OnLoadScene, OnLoadScene, this);
                 sceneManager.AddListener(SceneEvent.BeforeLoadScene, BeforeLoadScene, this);
 
@@ -201,10 +196,10 @@ namespace Architome
             SetCanvasGroup(false);
             loadingStatus.HandleLoad(false);
 
-            ArchAction.Yield(() => {
+            ArchAction.Delay(() => {
                 if (this == null) return;
                 HandleMapGeneration();
-            });
+            }, 1f);
         }
     }
 }
