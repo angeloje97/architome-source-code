@@ -389,6 +389,39 @@ namespace Architome
             }
         }
 
+        public static async Task ActionInterval(Predicate<float> interval, float timeBetween, bool invokeAtStart = true)
+        {
+            var running = true;
+
+            var currentTime = invokeAtStart ? timeBetween : 0f;
+            var world = active;
+            if (world == null) return;
+
+            world.OnUpdate += HandleInterval;
+
+            while (running)
+            {
+                await Task.Yield();
+            }
+
+            world.OnUpdate -= HandleInterval;
+
+            void HandleInterval(float deltaTime)
+            {
+                if(currentTime < timeBetween)
+                {
+                    currentTime += deltaTime;
+                    return;
+                }
+
+                currentTime = 0f;
+                if (!interval(deltaTime))
+                {
+                    running = false;
+                }
+            }
+        }
+
         public static async Task UpdateAction(Predicate<float> action)
         {
 

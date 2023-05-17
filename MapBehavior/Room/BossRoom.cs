@@ -47,9 +47,10 @@ namespace Architome
         }
 
 
-        public override void OnEntitiesGenerated(MapEntityGenerator generator)
+        public override async void OnEntitiesGenerated(MapEntityGenerator generator)
         {
             base.OnEntitiesGenerated(generator);
+            await World.Delay(2f);
             if (entities.inRoom == null) return;
             
             var bosses = 0f;
@@ -62,7 +63,7 @@ namespace Architome
 
             }
 
-            Debugger.InConsole(45329, $"{bosses} bosses");
+            Debugger.InConsole(45329, $"{bosses} bosses out of {entities.inRoom.Count} entities");
         }
 
         public void OnBossCombatChange(bool isInCombat)

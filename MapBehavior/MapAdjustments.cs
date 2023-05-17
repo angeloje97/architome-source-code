@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using System.Threading.Tasks;
+using Pathfinding;
 
 namespace Architome
 {
@@ -57,6 +58,7 @@ namespace Architome
 
             var layeredGraph = AstarPath.active.data.layerGridGraph;
 
+
             layeredGraph.center = cluster.bottom;
 
             layeredGraph.SetDimensions((int)(size.x), (int)( size.z), 1);
@@ -70,8 +72,24 @@ namespace Architome
             }
 
             Debugger.InConsole(54382, $"A star pathfinding project scan took {timer} seconds");
+        }
+
+        public async void AdjustAroundObject(Transform gameObject)
+        {
+            var astarPath = AstarPath.active;
+            if (astarPath == null) return;
+
+            var colliders = gameObject.GetComponents<Collider>();
+
+            foreach(var coll in colliders)
+            {
+                astarPath.UpdateGraphs(coll.bounds);
+                await Task.Yield();
+            }
+
             
         }
+
 
         void OnEntitiesGenerated(MapEntityGenerator entityGenerator)
         {

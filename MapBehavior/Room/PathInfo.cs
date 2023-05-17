@@ -28,6 +28,7 @@ namespace Architome
         
 
         public MapInfo mapInfo;
+        public MapAdjustments mapAdjustments;
 
         public bool isUsed = false;
         public bool hasAnotherPath = false;
@@ -56,6 +57,8 @@ namespace Architome
             {
                 room = GetComponentInParent<RoomInfo>();
             }
+
+            mapAdjustments = MapAdjustments.active;
         }
         void Start()
         {
@@ -263,6 +266,7 @@ namespace Architome
                 foreach (Transform child in enableOnActive)
                 {
                     child.gameObject.SetActive(isOpen);
+                    mapAdjustments.AdjustAroundObject(child);
                 }
             }
 
@@ -271,8 +275,10 @@ namespace Architome
                 foreach (Transform child in enableOnClose)
                 {
                     child.gameObject.SetActive(!isOpen);
+                    mapAdjustments.AdjustAroundObject(child);
                 }
             }
+
         }
 
         void SetOtherPath()

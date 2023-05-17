@@ -2,6 +2,7 @@ using Microsoft.Win32.SafeHandles;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Architome
@@ -24,6 +25,17 @@ namespace Architome
                 CalculateProperties();
             }
 
+        }
+
+        public VectorCluster(T component, bool calculateImmediately = true)
+        {
+            this.components = component.GetComponentsInChildren<T>().ToList();
+
+
+            if (calculateImmediately)
+            {
+                CalculateProperties();
+            }
         }
 
         public void CalculateProperties()
