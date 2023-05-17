@@ -65,7 +65,6 @@ namespace Architome
             GetDependencies();
         }
 
-        // Update is called once per frame
         void Update()
         {
 
@@ -79,22 +78,6 @@ namespace Architome
         }
 
 
-
-        //public void Close()
-        //{
-        //    if (otherRoom == null) return;
-        //    if (pathBlock == null) return;
-
-        //    pathBlock.SetActive(true);
-        //}
-
-        //public void Open()
-        //{
-        //    if (otherRoom == null) return;
-        //    if (pathBlock == null) return;
-
-        //    pathBlock.SetActive(false);
-        //}
 
 
         async public Task<RoomInfo> SpawnRoom(GameObject room, Transform parent, bool existingRoom = false)
@@ -266,7 +249,6 @@ namespace Architome
                 foreach (Transform child in enableOnActive)
                 {
                     child.gameObject.SetActive(isOpen);
-                    mapAdjustments.AdjustAroundObject(child);
                 }
             }
 
@@ -275,10 +257,10 @@ namespace Architome
                 foreach (Transform child in enableOnClose)
                 {
                     child.gameObject.SetActive(!isOpen);
-                    mapAdjustments.AdjustAroundObject(child);
                 }
             }
 
+            mapAdjustments.AdjustAroundCollider(GetComponentsInChildren<Collider>());
         }
 
         void SetOtherPath()

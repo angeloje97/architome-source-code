@@ -74,12 +74,11 @@ namespace Architome
             Debugger.InConsole(54382, $"A star pathfinding project scan took {timer} seconds");
         }
 
-        public async void AdjustAroundObject(Transform gameObject)
+        public async void AdjustAroundCollider(Collider[] colliders)
         {
             var astarPath = AstarPath.active;
             if (astarPath == null) return;
 
-            var colliders = gameObject.GetComponents<Collider>();
 
             foreach(var coll in colliders)
             {
