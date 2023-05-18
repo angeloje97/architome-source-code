@@ -386,6 +386,11 @@ namespace Architome
             OnCatalystTrigger?.Invoke(this, other, false);
         }
 
+        private void OnDrawGizmosSelected()
+        {
+            Gizmos.DrawWireSphere(metrics.TargetPosition(), .50f);
+        }
+
         bool CanTrigger(Collider collider)
         {
             var checks = new List<bool>();

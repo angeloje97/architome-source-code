@@ -127,10 +127,10 @@ namespace Architome
             if (!update) return;
             update = false;
 
-
             MapTransforms();
             UpdateLayers();
             UpdateSeed();
+            if (activeRoom) activeRoom.UpdatePaths();
         }
 
         void MapTransforms()

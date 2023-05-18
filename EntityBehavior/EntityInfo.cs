@@ -102,6 +102,7 @@ namespace Architome
         public Stats entityStats;
         public Stats stats;
 
+
         [Header("Resources")]
         public float maxHealth;
         public float maxMana;
@@ -118,7 +119,9 @@ namespace Architome
 
         public LayerMask walkableLayer;
 
+        [SerializeField]
         ComponentManager components;
+
 
         #region Events
         public struct PartyEvents
@@ -362,6 +365,8 @@ namespace Architome
                 GetDependencies();
                 StartUp();
             }
+
+            components.properties = GetComponentsInChildren<EntityProp>();
 
             StartCoroutine(HandleRegeneration());
         }
@@ -1613,6 +1618,7 @@ namespace Architome
         public struct ComponentManager
         {
             public Dictionary<Type, object> components;
+            public EntityProp[] properties;
             public List<string> activeComponents;
             public bool showActiveComponents;
             

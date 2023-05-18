@@ -10,7 +10,6 @@ namespace Architome.Indicator
         public bool setTarget;
         public bool setLocation;
 
-
         [SerializeField] Vector3 targetPosition;
         float yPositionTimer;
         float yPos;
@@ -34,31 +33,31 @@ namespace Architome.Indicator
 
         }
 
-        void UpdateYPosition()
+        void UpdateYPosition(bool forceUpdate = false)
         {
-            if(yPositionTimer > 0)
+            if(yPositionTimer > 0 && !forceUpdate)
             {
                 yPositionTimer -= Time.deltaTime;
+                
                 return;
             }
 
             yPositionTimer = 1f;
-            SetToFloor(0);
+
+            var groundPosition = V3Helper.GroundPosition(targetPosition, groundLayer);
+            yPos = groundPosition.y;
         }
 
         Vector3 TargetPosition()
         {
-            if (setLocation)
+            targetPosition = catalyst.metrics.TargetPosition();
+
+            if(yPos == 0f)
             {
-                return catalyst.metrics.targetLocation;
+                UpdateYPosition(true);
             }
 
-            if (setTarget)
-            {
-                return catalyst.target.transform.position;
-            }
-
-            return transform.position;
+            return targetPosition;
         }
     }
 }

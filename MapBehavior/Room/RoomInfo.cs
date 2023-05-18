@@ -286,6 +286,11 @@ namespace Architome
             }
         }
 
+        public void UpdatePaths()
+        {
+            paths = GetComponentsInChildren<PathInfo>().ToList();
+        }
+
         void HandleOnGenerateEntities()
         {
             var entityGenerator = MapEntityGenerator.active;
