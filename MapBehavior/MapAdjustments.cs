@@ -17,6 +17,8 @@ namespace Architome
         public MapEntityGenerator entityGenerator;
 
         public Action<MapAdjustments, float> WhileLoading { get; set; }
+
+        bool updatedAStarPathOnce;
         void GetDependencies()
         {
             entityGenerator = MapEntityGenerator.active;
@@ -71,6 +73,8 @@ namespace Architome
                 timer += Time.deltaTime;
             }
 
+            updatedAStarPathOnce = true;
+
             Debugger.InConsole(54382, $"A star pathfinding project scan took {timer} seconds");
         }
 
@@ -78,6 +82,7 @@ namespace Architome
         {
             var astarPath = AstarPath.active;
             if (astarPath == null) return;
+            if (!updatedAStarPathOnce) return;
 
 
             foreach(var coll in colliders)
