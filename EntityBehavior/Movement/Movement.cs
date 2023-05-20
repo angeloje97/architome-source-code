@@ -52,7 +52,7 @@ namespace Architome
         //Events
         public Action<Movement> OnStartMove;
         public Action<Movement> OnEndMove;
-        public Action<Movement> OnTryMove;
+        public Action<Movement> OnTryMove { get; set; }
         public UnityEvent OnTryMoveEvent;
         public Action<Movement> OnChangePath;
         public Action<Movement, Transform> OnArrival;

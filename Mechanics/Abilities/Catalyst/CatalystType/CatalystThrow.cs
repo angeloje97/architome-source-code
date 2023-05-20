@@ -65,7 +65,7 @@ namespace Architome
             var groundLayer = LayerMasksData.active.walkableLayer;
             var groundPosition = V3Helper.GroundPosition(catalyst.metrics.targetLocation, groundLayer);
 
-            catalyst.metrics.location = groundPosition;
+            catalyst.metrics.SetLocation(groundPosition);
 
 
         }

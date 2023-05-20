@@ -60,6 +60,9 @@ namespace Architome
             var position = targetLocation;
             position.y = position.y + startingHeight;
 
+            var groundPosition = V3Helper.GroundPosition(catalyst.metrics.targetLocation, groundLayer);
+            catalyst.metrics.SetLocation(groundPosition);
+
 
             transform.position = position;
             transform.LookAt(targetLocation);

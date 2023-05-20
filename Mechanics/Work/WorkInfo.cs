@@ -190,7 +190,7 @@ namespace Architome
             {
                 if(entities.Count == 1)
                 {
-                    entity.TaskHandler().StartWork(task);
+                    entity.TaskHandler().AddTask(task, true);
                 }
                 else if(workersSet > 0 && task.MaxWorkersReached())
                 {
@@ -198,7 +198,7 @@ namespace Architome
                 }
                 else if(entity.isAlive)
                 {
-                    entity.TaskHandler().StartWork(task);
+                    entity.TaskHandler().AddTask(task, true);
                     workersSet++;
                 }
 

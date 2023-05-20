@@ -26,7 +26,9 @@ namespace Architome
 
         public bool lockOn;
 
-        public Vector3 location, startingLocation, startDirectionRange, currentPosition;
+        public Vector3 location;
+
+        public Vector3 startingLocation, startDirectionRange, currentPosition;
 
         public float value, startingHeight, currentRange, liveTime, inertia, inertiaFallOff, distanceFromTarget;
 
@@ -135,12 +137,11 @@ namespace Architome
             }
 
             return distancePercent;
-            //var targetLocation = catalyst.requiresLockOnTarget ? target.transform.position : location;
+        }
 
-            //var totalDistance = V3Helper.Distance(targetLocation, startingLocation);
-
-            //return currentRange / totalDistance;
-
+        public void SetLocation(Vector3 newLocation)
+        {
+            location = newLocation;
         }
     }
 }

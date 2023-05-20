@@ -65,6 +65,7 @@ namespace Architome
         public Movement movement;
         public CatalystInfo catalystInfo;
         public LineOfSight lineOfSight;
+        public Transform sourceTransform;
 
         public AbilityType abilityType;
         public AbilityType2 abilityType2;
@@ -249,9 +250,10 @@ namespace Architome
                 lineOfSight = entityInfo.LineOfSight();
 
                 entityObject = entityInfo.gameObject;
-
                 entityInfo.OnChangeNPCType += OnChangeNPCType;
             }
+
+            sourceTransform = entityInfo ? entityInfo.transform : transform;
 
             if(movement)
             {
@@ -1780,7 +1782,7 @@ namespace Architome
                 {
                     return;
                 }
-                var newCatalyst = Instantiate(catalystInfo, entityObject.transform.position, transform.localRotation);
+                var newCatalyst = Instantiate(catalystInfo, sourceTransform.position, transform.localRotation);
 
 
                 abilityManager.OnCatalystRelease?.Invoke(this, newCatalyst);
@@ -1789,7 +1791,7 @@ namespace Architome
             void Use()
             {
                 if (!catalyst) { return; }
-                var newCatalyst = Instantiate(catalystInfo, entityObject.transform.position, transform.localRotation);
+                var newCatalyst = Instantiate(catalystInfo, sourceTransform.position, transform.localRotation);
 
 
                 abilityManager.OnCatalystRelease?.Invoke(this, newCatalyst);

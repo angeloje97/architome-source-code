@@ -79,8 +79,7 @@ namespace Architome
             float progressBlock = 1 - progressPerInvoke;
 
             var success = true;
-
-            var progressMileStone = .75f;
+            
 
             while (timer > 0)
             {
@@ -93,16 +92,7 @@ namespace Architome
 
                 WhileChanneling();
 
-                if(ability.progress < progressMileStone)
-                {
-                    progressMileStone -= .25f;
-                    if (!ability.CanContinue())
-                    {
-                        LogCancel("Ability Can't Continuie");
-                        success = false;
-                        break;
-                    }
-                }
+                
 
                 if (canceledChannel)
                 {
@@ -114,6 +104,13 @@ namespace Architome
 
                 if (progressBlock > ability.progress)
                 {
+                    if (!ability.CanContinue())
+                    {
+                        LogCancel("Ability Can't Continuie");
+                        success = false;
+                        break;
+                    }
+
                     ability.HandleAbilityType();
                     abilityManager.OnChannelInterval?.Invoke(ability, this);
                     augment.TriggerAugment(eventData);
