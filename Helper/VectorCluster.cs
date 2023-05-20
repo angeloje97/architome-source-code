@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Experimental.AI;
 
 namespace Architome
 {
@@ -14,6 +15,7 @@ namespace Architome
         public List<T> components;
         public Vector3 min, max, average;
         public Vector3 dimensions, midPoint, bottom, top, left, right, front, back;
+        public Bounds bounds;
         public float height, width, depth;
         public T heighest, lowest, leftMost, rightMost, frontMost, backMost;
 
@@ -95,6 +97,8 @@ namespace Architome
             right = new Vector3(max.x, midPoint.y, midPoint.z);
             front = new Vector3(midPoint.x, midPoint.y, max.z);
             back = new Vector3(midPoint.x, midPoint.y, min.z);
+
+            bounds = new(midPoint, dimensions);
 
         }
 
