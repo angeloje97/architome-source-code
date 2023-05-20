@@ -159,7 +159,7 @@ namespace Architome
         {
             try
             {
-                if (abilityInfo.targetsDead) { return; }
+                if (abilityInfo.restrictionHandler.restrictions.targetsDead) { return; }
                 if (abilityInfo.abilityType != AbilityType.LockOn) return;
                 if (catalystInfo.target && !catalystInfo.target.GetComponent<EntityInfo>().isAlive)
                 {

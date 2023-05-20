@@ -21,8 +21,8 @@ namespace Architome
 
         public static Dictionary<ALogType, bool> logDict = new()
         {
-            { ALogType.General, true},
-            { ALogType.Combat, false },
+            { ALogType.General, false},
+            { ALogType.Combat, true },
             { ALogType.Environment, false },
             { ALogType.UI, false },
             { ALogType.Social, false },

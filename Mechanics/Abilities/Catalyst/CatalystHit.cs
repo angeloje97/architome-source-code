@@ -92,26 +92,6 @@ public class CatalystHit : MonoBehaviour
         }
     }
 
-    public bool IsDeadTargetable(EntityInfo target)
-    {
-        if(!target.isAlive)
-        {
-            if (abilityInfo && abilityInfo.targetsDead)
-            { 
-                return true; 
-            }
-        }
-        else
-        {
-            if(abilityInfo && !abilityInfo.targetsDead)
-            {
-                return true;
-            }
-        }
-
-        
-        return false;
-    }
 
     public void OnCloseToTarget(CatalystInfo catalyst, GameObject target)
     {
@@ -123,7 +103,6 @@ public class CatalystHit : MonoBehaviour
         var hit = false;
         if (!forceHit)
         {
-            if (!IsDeadTargetable(targetHit)) { return; }
             if (catalystInfo.Ticks() == 0) return;
             if (catalystInfo.isDestroyed) return;
         }
@@ -176,7 +155,6 @@ public class CatalystHit : MonoBehaviour
             }
 
                 
-                //Change these instructions to that of assisting instead of healing
             ApplyBuff(targetHit, BuffTargetType.Assist);
             catalystInfo.OnAssist?.Invoke(catalystInfo, targetHit);
             AddAlliesAssisted(targetHit);
@@ -195,19 +173,6 @@ public class CatalystHit : MonoBehaviour
                 });
                 
             }
-        }
-
-        void HandleDestroySummons()
-        {
-            if (!abilityInfo.destroysSummons) return;
-            if (!IsSummon(targetHit.gameObject)) return;
-
-            var combatData = new CombatEventData(catalystInfo, catalystInfo.entityInfo, targetHit.maxHealth);
-            targetHit.Damage(combatData);
-            catalystInfo.OnDamage?.Invoke(catalystInfo, targetHit);
-            AddEnemyHit(targetHit);
-            catalystInfo.ReduceTicks();
-            targetHit.Die();
         }
     }
 

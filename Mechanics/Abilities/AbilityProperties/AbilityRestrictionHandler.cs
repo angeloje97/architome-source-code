@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using Architome.Enums;
+using Mono.Cecil.Cil;
 
 namespace Architome
 {
@@ -21,7 +22,11 @@ namespace Architome
             HandleDeadTarget();
             HandleCatalyst();
             HandleUIVisibility();
+            HandleCasting();
+
         }
+
+
 
         public string Description()
         {
@@ -35,6 +40,28 @@ namespace Architome
             void HandleCanShow(AbilityInfo ability, List<bool> checks)
             {
                 if (restrictions.hideUI) checks.Add(false);
+            }
+        }
+
+        void HandleCasting()
+        {
+            ability.WhileCasting += (AbilityInfo ability) => {
+                var target = ability.targetLocked;
+                if (!target) return;
+                if(target.isAlive && restrictions.onlyTargetsDead)
+                {
+                    CancelCast();
+                }
+
+                if(!target.isAlive && !restrictions.targetsDead)
+                {
+                    CancelCast();
+                }
+            };
+
+            void CancelCast()
+            {
+                ability.CancelCast();
             }
         }
 
@@ -176,6 +203,7 @@ namespace Architome
 
 
             ability.OnCanCastCheck += HandleCanCastCheck;
+
 
             void HandleCanCastCheck(AbilityInfo ability)
             {

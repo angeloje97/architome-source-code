@@ -80,6 +80,8 @@ namespace Architome
 
             var success = true;
 
+            var progressMileStone = .75f;
+
             while (timer > 0)
             {
                 await Task.Yield();
@@ -91,12 +93,15 @@ namespace Architome
 
                 WhileChanneling();
 
-                if (!ability.CanContinue())
+                if(ability.progress < progressMileStone)
                 {
-                    LogCancel("Ability Can't Continue");
-                    success = false;
-                    break;
-
+                    progressMileStone -= .25f;
+                    if (!ability.CanContinue())
+                    {
+                        LogCancel("Ability Can't Continuie");
+                        success = false;
+                        break;
+                    }
                 }
 
                 if (canceledChannel)

@@ -161,8 +161,7 @@ namespace Architome
         public bool isHealing { get { return restrictionHandler.restrictions.isHealing; } }
         public bool isAssisting { get { return restrictionHandler.restrictions.isAssisting; } }
         public bool isHarming { get { return restrictionHandler.restrictions.isHarming; } }
-        public bool destroysSummons { get; set; }
-        public bool targetsDead;
+        public bool targetsDead { get; set; }
         public bool requiresLockOnTarget;
         public bool requiresLineOfSight;
         public bool canHitSameTarget;
@@ -211,9 +210,10 @@ namespace Architome
         public Action<AbilityInfo, List<Task<bool>>> OnAugmentAbilityStart;
         public Action<AbilityInfo, EntityInfo> OnHandlingTargetLocked { get; set; }
         public Action<AbilityInfo, List<bool>> OnCanShowCheck { get; set; }
-        public Action<AbilityInfo> OnCanCastCheck;
+        public Action<AbilityInfo> OnCanCastCheck { get; set; }
         public Action<AbilityInfo, EntityInfo, List<bool>> OnCanHarmCheck { get; set; }
         public Action<AbilityInfo, EntityInfo, List<bool>> OnCanHealCheck { get; set; }
+        public Action<AbilityInfo, EntityInfo> OnCanCastAtCheck { get; set; }
 
         public float floatCheck { get; set; }
         public Action<AbilityInfo> OnSplashRadiusCheck { get; set; }
@@ -1134,22 +1134,7 @@ namespace Architome
 
         public bool CanCastAt(EntityInfo target)
         {
-            if (!target.isAlive && !targetsDead)
-            {
-                return false;
-            }
-
-            if (entityInfo.CanAttack(target) && isHarming)
-            {
-                return true;
-            }
-
-            if (entityInfo.CanHelp(target) && (isHealing || isAssisting))
-            {
-                return true;
-            }
-
-            return false;
+            return IsCorrectTarget(target);
         }
         public bool AbilityIsInRange(GameObject target)
         {
@@ -1469,14 +1454,10 @@ namespace Architome
 
             if(target)
             {
-                if(target.GetComponent<EntityInfo>())
+                if(!target.isAlive)
                 {
-                    if(!target.GetComponent<EntityInfo>().isAlive && !targetsDead)
-                    {
-                        CancelCast("Target Is Dead");
-                        //CancelChannel();
-                        DeactivateWantsToCast("Target is Dead", true);
-                    }
+                    CancelCast("Cannot Target Dead");
+                    DeactivateWantsToCast("Target is Dead", true);
                 }
             }
         }
@@ -1567,6 +1548,7 @@ namespace Architome
                 var startTime = timer;
 
                 progress = 0;
+                var progressMileStone = .25f;
 
 
                 BeginCast();
@@ -1581,10 +1563,15 @@ namespace Architome
 
                     WhileCastingAbility();
 
-                    if (!CanContinue())
+                    if(progress > progressMileStone)
                     {
-                        success = false;
-                        break;
+                        if (!CanContinue())
+                        {
+                            success = false;
+                            break;
+                        }
+
+                        progressMileStone += .25f;
                     }
                 }
 
@@ -1824,6 +1811,7 @@ namespace Architome
         }
         public bool CanContinue()
         {
+            Debugger.Combat(5915, $"Checking can continue interval for {this}");
             if (canceledCast && isCasting)
             {
                 LogCancel("Canceled Cast");
