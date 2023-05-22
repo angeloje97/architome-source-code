@@ -1761,15 +1761,14 @@ namespace Architome
                 {
                     return;
                 }
-                directionLocked = V3Helper.Direction(location, entityObject.transform.position);
-                var newCatalyst = Instantiate(catalystInfo, entityObject.transform.position, transform.localRotation);
-
-
-                var heightFromGround = V3Helper.HeightFromGround(entityObject.transform.position, GMHelper.LayerMasks().walkableLayer);
+                directionLocked = V3Helper.Direction(location, transform.position);
+                var heightFromGround = V3Helper.HeightFromGround(transform.position, GMHelper.LayerMasks().walkableLayer);
                 var groundPos = V3Helper.GroundPosition(locationLocked, GMHelper.LayerMasks().walkableLayer);
                 locationLocked.y = groundPos.y + heightFromGround;
 
-          
+                var newCatalyst = Instantiate(catalystInfo, transform.position, transform.localRotation);
+
+
 
                 abilityManager.OnCatalystRelease?.Invoke(this, newCatalyst);
                 OnCatalystRelease?.Invoke(newCatalyst);
@@ -1853,12 +1852,6 @@ namespace Architome
         {
             Debugger.Combat(9536, $"{entityInfo} stopped casting {this} because {reason}");
         }
-        //public void ActivateGlobalCoolDown()
-        //{
-        //    if (!coolDown.usesGlobal) return;
-
-        //    abilityManager.OnGlobalCoolDown?.Invoke(this);
-        //}
         public void ClearTargets()
         {
             if (wantsToCast) return;

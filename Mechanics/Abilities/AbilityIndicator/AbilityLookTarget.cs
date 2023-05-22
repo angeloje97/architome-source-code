@@ -15,6 +15,7 @@ namespace Architome.Indicator
         public Transform transformSource;
         public Transform anchor;
         public Action<Transform> OnAcquireTarget;
+        public bool ignoreDistance;
 
         public float currentDistance;
 
@@ -44,44 +45,27 @@ namespace Architome.Indicator
 
             SetProjector(true);
 
-            while(ability.activated)
-            {
-                targetLocation = Location();
-                var target2dPosition = targetLocation;
-
+            await ability.HandleTargetLocation((Vector3 position) => {
+                var target2dPosition = position;
                 target2dPosition.y = transformSource.position.y;
+
                 anchor.LookAt(target2dPosition);
 
+                currentDistance = V3Helper.Distance(transform.position, targetLocation);
 
-                currentDistance = V3Helper.Distance(transformSource.position, targetLocation);
-                if(currentDistance > ability.range)
+                if(currentDistance > ability.range || ignoreDistance)
                 {
                     if(ability.range != -1)
                     {
                         currentDistance = ability.range;
                     }
-
                 }
-                SetScale(Scale(currentDistance));
 
-                await Task.Yield();
-            }
+                SetScale(Scale(currentDistance));
+            });
 
             SetProjector(false);
         }
 
-        public Vector3 Location()
-        {
-
-            if (usesLockOn)
-            {
-                return target.position;
-            }
-            else
-            {
-                return ability.locationLocked;
-            }
-            
-        }
     }
 }

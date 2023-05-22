@@ -76,7 +76,17 @@ namespace Architome
                 {
                     if (restrictions.levelWithCaster)
                     {
-                        newCatalyst.location = new Vector3(newCatalyst.location.x, entity.transform.position.y, newCatalyst.location.z);
+
+
+                        ArchAction.Yield(() => {
+                        
+                            var currentPos = newCatalyst.transform.position;
+                            newCatalyst.metrics.SetLocation(new(newCatalyst.location.x, currentPos.y, newCatalyst.location.z));
+                            var currentAngle = newCatalyst.transform.eulerAngles;
+                            newCatalyst.transform.eulerAngles = new Vector3(0f, currentAngle.y, currentAngle.z);
+                        
+                        });
+                        
                     }
 
                     if (restrictions.removeHitBox)
