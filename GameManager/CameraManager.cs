@@ -1,5 +1,8 @@
+using JetBrains.Annotations;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Architome
@@ -9,8 +12,10 @@ namespace Architome
         // Start is called before the first frame update
         public static CameraManager active;
         public Camera current;
+        Camera previous;
         public static Camera Main { get { return active.current; } }
         public Camera Current { get { return current; } private set { current = value; } }
+
 
 
         List<Camera> entityCameras;
@@ -20,18 +25,55 @@ namespace Architome
 
         public CameraAnchor cameraAnchor;
 
+        public Action<Camera> OnCameraChange;
+        public Action<CameraManager> BeforeCameraChange;
+        public List<Func<Task>> tasksBeforeCameraChange;
+
+
         private void Awake()
         {
             active = this;
         }
 
-        public void SetCurrentCamera(Camera camera)
+        private void Update()
         {
-            Current = camera;
+            if (previous != current)
+            {
+                previous = current;
+
+                if (previous)
+                {
+                    previous.enabled = false;
+                }
+
+
+                if (current)
+                {
+                    current.enabled = true;
+                }
+                OnCameraChange?.Invoke(current);
+            }
         }
 
+        public async void SetCurrentCamera(Camera camera)
+        {
+            tasksBeforeCameraChange = new();
+            BeforeCameraChange?.Invoke(this);
+
+            foreach(var task in tasksBeforeCameraChange)
+            {
+                await task();
+            }
+
+
+            Current = camera;
+
+        }
 
         
+
+
+
 
         void TurnOffCameras()
         {
@@ -53,6 +95,7 @@ namespace Architome
             c.enabled = value;
             c.tag = value ? "MainCamera" : "Untagged";
         }
+
     }
 
 }

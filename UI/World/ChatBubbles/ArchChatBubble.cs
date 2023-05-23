@@ -12,6 +12,7 @@ namespace Architome
         // Start is called before the first frame update
         public Transform target;
         public CameraAnchor cameraAnchor;
+        Camera currentCamera;
 
         [Serializable]
         public struct Info
@@ -28,6 +29,7 @@ namespace Architome
         {
             this.target = target;
             GenerateText(text, time);
+            currentCamera = CameraManager.Main;
             cameraAnchor = CameraManager.active.cameraAnchor;
 
             
@@ -59,7 +61,8 @@ namespace Architome
 
         void FollowTarget()
         {
-            transform.position = CameraManager.active.Current.WorldToScreenPoint(target.position) + info.offset;
+            if (currentCamera == null) return;
+            transform.position = currentCamera.WorldToScreenPoint(target.position) + info.offset;
         }
     }
 
