@@ -1,4 +1,5 @@
 using JetBrains.Annotations;
+using Pathfinding;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -55,7 +56,7 @@ namespace Architome
             }
         }
 
-        public async void SetCurrentCamera(Camera camera)
+        public async Task SetCurrentCamera(Camera camera)
         {
             tasksBeforeCameraChange = new();
             BeforeCameraChange?.Invoke(this);
@@ -70,7 +71,21 @@ namespace Architome
 
         }
 
-        
+        public async void SetTempCamera(Camera camera, Predicate<object> predicate)
+        {
+            var currentCamera = current;
+
+            await SetCurrentCamera(camera);
+
+            await World.ActionInterval((float deltaTime) => {
+                return predicate(null);
+            }, 1f, true);
+
+            await SetCurrentCamera(currentCamera);
+
+        }
+
+
 
 
 

@@ -34,7 +34,7 @@ namespace Architome
             GetDependencies();
             HandleCameraType();
             ArchInput.active.OnScrollWheel += OnScrollWheel;
-            CameraManager.active.SetCurrentCamera(currentCamera);
+            _= CameraManager.active.SetCurrentCamera(currentCamera);
         }
 
         private void OnValidate()
