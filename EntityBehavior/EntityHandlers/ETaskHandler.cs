@@ -177,6 +177,14 @@ namespace Architome
             }
         }
 
+        async public Task FinishTasks()
+        {
+            while (doingTasks)
+            {
+                await Task.Yield();
+            }
+        }
+
         async public Task<bool> StartWorkAsync(TaskInfo task)
         {
             if (task == null) return false;

@@ -12,7 +12,7 @@ namespace Architome
         public Transform bossPosition;
         public Transform bossPatrolSpots;
         public List<GameObject> possibleBosses;
-        public WorkInfo bossStation;
+        public List<WorkInfo> bossStations;
         private void OnValidate()
         {
             for (int i = 0; i < possibleBosses.Count; i++)
@@ -31,11 +31,11 @@ namespace Architome
                 possibleBosses = pool.bossEntities;
             }
 
-            if (bossStation)
+            if (bossStations != null)
             {
-                foreach (var task in bossStation.tasks)
+                foreach (var station in bossStations)
                 {
-                    task.properties.hideFromPlayers = true;
+                    station.HideStationFromPlayers();
                 }
             }
 

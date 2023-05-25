@@ -447,6 +447,15 @@ namespace Architome
                 }
             }
         }
+
+
+        public static async Task UntilMatch(Predicate<object> focus, bool target)
+        {
+            while(focus(null) != target)
+            {
+                await Task.Yield();
+            }
+        }
         #endregion
     }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -14,8 +15,10 @@ namespace Architome
         AbilityManager abilityManager;
 
 
-        bool doingTask;
-        int taskAmount;
+
+        Queue<Func<Task>> tasks;
+        bool taskActive;
+
 
 
         void GetDependenices()
@@ -33,6 +36,7 @@ namespace Architome
         void Start()
         {
             GetDependenices();
+            tasks = new();
         }
 
         // Update is called once per frame
@@ -40,47 +44,58 @@ namespace Architome
         {
 
         }
-
-        async void OnPhase(BossBehavior.Phase phase)
+        
+        TaskInfo BossRoomTask(BossBehavior.Phase phase)
         {
-
-            HandleAbility();
-            HandleSpeech();
-
-
-
-            if (phase.refillsMana)
+            try
             {
-                behavior.entityInfo.GainResource(behavior.entityInfo.maxMana);
+                var bossRoom = behavior.bossRoom;
+                var stations = bossRoom.bossStations;
+                var stationIndex = phase.stationIndex % stations.Count;
+                var station = stations[stationIndex];
+                var taskIndex = phase.taskIndex % station.tasks.Count;
+
+                return station.tasks[taskIndex];
+            }
+            catch
+            {
+                return null;
             }
 
-            await HandlePhaseWork();
+        }
 
+        void OnPhase(BossBehavior.Phase phase)
+        {
+
+            behavior.AddTask(HandlePhase);
+
+            async Task HandlePhase()
+            {
+                HandleAbility();
+                HandleSpeech();
+
+                if (phase.refillsMana)
+                {
+                    behavior.entityInfo.GainResource(behavior.entityInfo.maxMana);
+                }
+
+                await HandlePhaseWork();
+            }
 
             async Task HandlePhaseWork()
             {
                 if (!phase.usesBossStation) return;
-                var bossRoom = behavior.bossRoom;
-                if (bossRoom == null) return;
-                if (bossRoom.bossStation == null) return;
-                if (bossRoom.bossStation.tasks.Count == 0) return;
+
+                var targetTask = BossRoomTask(phase);
+                if (targetTask == null) return;
 
                 await Task.Delay(500);
 
-                taskAmount++;
-
-                if (doingTask) return;
-
-                doingTask = true;
-
                 await abilityManager.CastingEnd();
 
-                while (taskAmount > 0)
-                {
-                    taskAmount--;
-                    await taskHandler.StartWorkAsync(bossRoom.bossStation.tasks[0]);
-                }
-                doingTask = false;
+                taskHandler.AddTask(targetTask);
+
+                await taskHandler.FinishTasks();
             }
 
             void HandleSpeech()

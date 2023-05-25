@@ -1,6 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Jobs;
 
 namespace Architome
 {
@@ -31,7 +34,22 @@ namespace Architome
             if (catalystAudio== null) return null;
 
             return Instantiate(catalystAudio.gameObject, transform);
+            
         }
+
+        public struct MoveCatalystJob : IJobParallelForTransform
+        {
+            public NativeArray<float3> positions;
+            public NativeArray<float3> directions;
+            public NativeArray<float> speeds;
+            public void Execute(int index, TransformAccess transform)
+            {
+                var nextPosition = positions[index] + (directions[index] * speeds[index]);
+                positions[index] = nextPosition;
+
+            }
+        }
+
     }
 
 }

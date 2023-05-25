@@ -210,7 +210,14 @@ namespace Architome
         
 
         // Update is called once per frame
-
+        public void HideStationFromPlayers()
+        {
+            if (tasks == null) return;
+            foreach(var task in tasks)
+            {
+                task.properties.hideFromPlayers = true;
+            }
+        }
 
         public TaskInfo Task(string taskString)
         {

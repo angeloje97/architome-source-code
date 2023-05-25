@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using System;
+using System.Threading.Tasks;
 
 namespace Architome
 {
@@ -17,6 +18,9 @@ namespace Architome
         public List<Phase> phases;
 
         public Action<Phase> OnPhase;
+
+        Queue<Func<Task>> tasks;
+        bool tasksActive;
 
 
         new void GetDependencies()
@@ -38,9 +42,6 @@ namespace Architome
 
                 combatBehavior = transform.parent.GetComponentInChildren<CombatBehavior>();
             }
-
-            
-            
         }
 
         private void Awake()
@@ -50,12 +51,33 @@ namespace Architome
         private void Start()
         {
             GetDependencies();
+            tasks = new();
         }
 
-        // Update is called once per frame
         void Update()
         {
 
+        }
+
+        public async void AddTask(Func<Task> task, bool startImmediately = false)
+        {
+            if (startImmediately) {
+                tasks = new();
+                tasksActive = false;
+            }
+
+            tasks.Enqueue(task);
+
+            if (tasksActive) return;
+            tasksActive = true;
+
+            while(tasks.Count > 0)
+            {
+                var current = tasks.Dequeue();
+                await current();
+            }
+
+            tasksActive = false;
         }
 
         public BossRoom BossRoom()
@@ -121,7 +143,10 @@ namespace Architome
             [Multiline]
             public string activationPhrase;
             public SpecialAbility phaseAbility;
+            [Header("Boss Task Properties")]
             public bool usesBossStation;
+            public int stationIndex;
+            public int taskIndex;
 
             public bool Activated(float percentHealth)
             {
