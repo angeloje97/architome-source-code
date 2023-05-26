@@ -85,7 +85,10 @@ public class CatalystLockOn : MonoBehaviour
         if (catalystInfo.metrics.inertia <= 0) return;
         smoothening = 300f;
 
-        ArchAction.Delay(() => { smoothening = catalystInfo.metrics.inertia; }, .25f);
+        disableLockOn = true;
+        ArchAction.Delay(() => {
+            disableLockOn = false;
+            smoothening = catalystInfo.metrics.inertia; }, .25f);
     }
 
     // Update is called once per frame

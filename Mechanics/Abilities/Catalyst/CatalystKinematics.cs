@@ -12,13 +12,15 @@ namespace Architome
     {
         // Start is called before the first frame update
         CatalystInfo catalyst;
+        public int managerIndex;
 
         [SerializeField] float speed;
         [SerializeField] float acceleration;
         [SerializeField] bool stopped;
         [SerializeField] bool maxSpeed;
 
-        bool disabled;
+        bool disabled { get; set; }
+        bool disableTranslation;
 
         public void DisableKinematics()
         {
@@ -30,7 +32,50 @@ namespace Architome
             this.catalyst = catalyst;
 
             HandleStartKinematics();
+            HandleJobs();
             //HandleCatalystKinematics();
+        }
+
+        async void HandleJobs()
+        {
+            var manager = CatalystManager.active;
+            if (!manager) return;
+
+            disableTranslation = true;
+
+            await Task.Yield();
+
+            if (disabled) return;
+            var trans = catalyst.transform;
+
+            managerIndex = manager.AddCatalyst(catalyst);
+            manager.OnRemoveCatalyst += HandleRemoveCatalyst;
+            manager.BeforeCreateJob += HandleBeforeCreateJob;
+
+            Debugger.Combat(7549, $"Is catalyst destroyed before yielding to jobs? :{catalyst.isDestroyed}");
+            while (!catalyst.isDestroyed)
+            {
+                await Task.Yield();
+            }
+
+
+            manager.OnRemoveCatalyst -= HandleRemoveCatalyst;
+            manager.BeforeCreateJob -= HandleBeforeCreateJob;
+            manager.RemoveCatalyst(catalyst, managerIndex);
+
+            void HandleRemoveCatalyst(CatalystInfo catalyst, int index)
+            {
+                if (managerIndex < index) return;
+                managerIndex--;
+            }
+
+            void HandleBeforeCreateJob(CatalystManager manager)
+            {
+                manager.speeds[managerIndex] = speed;
+                manager.directions[managerIndex] = trans.forward;
+                manager.transforms[managerIndex] = trans;
+            }
+
         }
 
         void HandleStartKinematics()
@@ -88,12 +133,14 @@ namespace Architome
         public void Update()
         {
             if (!catalyst) return;
+            if (disabled) return;
             if (catalyst.isDestroyed) return;
 
             HandleStop();
             HandleAcceleration();
             HandleMaxSpeed();
 
+            if (disableTranslation) return;
             catalyst.transform.Translate(speed * Time.deltaTime * Vector3.forward);
         }
 
