@@ -24,7 +24,7 @@ namespace Architome
             { ALogType.General, false},
             { ALogType.Combat, false },
             { ALogType.Environment, false },
-            { ALogType.UI, false },
+            { ALogType.UI, true },
             { ALogType.Social, false },
             { ALogType.System, false },
             { ALogType.OutSource, false },

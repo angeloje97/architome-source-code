@@ -82,8 +82,13 @@ namespace Architome
 
         public void OnAbilityKey(int number)
         {
-            if (!isActive) return;
             if (number != actionBarNum) return;
+            ActivateAbility();
+        }
+
+        public void ActivateAbility()
+        {
+            if (!isActive) return;
             OnUseActionBar?.Invoke(this);
 
             if (delayed) return;
@@ -100,6 +105,7 @@ namespace Architome
 
             abilityInfo.Recast();
         }
+
         public void HandleActionBars()
         {
             HandleCooldownTimer();

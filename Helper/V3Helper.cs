@@ -401,6 +401,7 @@ namespace Architome
         public static Vector3 NearestNodePosition(Vector3 position)
         {
             return (Vector3) AstarPath.active.GetNearest(position).node.position;
+            
         }
 
         public static Vector3 InterceptionPoint(Vector3 source, Vector3 target, LayerMask interceptionLayerMask, float near = 0f)

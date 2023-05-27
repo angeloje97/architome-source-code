@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using Architome.Enums;
+using Architome.Settings.Keybindings;
 using System.Threading.Tasks;
 
 namespace Architome
@@ -27,6 +28,12 @@ namespace Architome
 
         ArchSceneManager archSceneManager;
 
+        public KeybindSet currentKeybindSet;
+
+        public Dictionary<string, KeyCode> downDict, upDict, holdDict;
+
+        public Dictionary<KeybindSetType, Dictionary<KeybindType, Dictionary<string, Action>>> events;
+
 
         public ArchInputMode Mode { get { return inputMode; } }
 
@@ -41,6 +48,8 @@ namespace Architome
         public Action OnMiddleMouse { get; set; }
 
         public Action OnEscape { get; set; }
+
+
 
 
         void GetDependencies()
@@ -69,15 +78,20 @@ namespace Architome
         }
 
 
+
+
         void Start()
         {
             GetDependencies();
             HandlePauseMenu();
+            
         }
 
         private void Awake()
         {
             active = this;
+            events = new();
+            SetKeybindSet(currentKeybindSet);
         }
 
         void BeforeLoadScene(ArchSceneManager archSceneManager)
@@ -118,6 +132,15 @@ namespace Architome
 
             inputMode = desiredMode;
             blockingInput = false;
+        }
+
+        public void SetKeybindSet(KeybindSet set)
+        {
+            currentKeybindSet = Instantiate(set);
+            currentKeybindSet.UpdateSet();
+            downDict = currentKeybindSet.downDict;
+            upDict = currentKeybindSet.upDict;
+            holdDict = currentKeybindSet.holdDict;
         }
 
         public async void OnContextActiveChange(ContextMenu context, bool isActive)
@@ -187,6 +210,7 @@ namespace Architome
         // Update is called once per frame
         void Update()
         {
+            //HandleKeybindSet();
             if (bindings == null) return;
             HandleCombatInputs();
             HandleGeneral();
@@ -270,6 +294,62 @@ namespace Architome
             }
 
         }
+
+        void HandleKeybindSet()
+        {
+            if (currentKeybindSet == null) return;
+
+            var setType = currentKeybindSet.type;
+
+            foreach(KeyValuePair<string, KeyCode> action in downDict)
+            {
+                if (Input.GetKeyDown(action.Value))
+                {
+                    InvokeEvent(setType, KeybindType.KeyDown, action.Key);
+                }
+            }
+
+            foreach(KeyValuePair<string, KeyCode> action in upDict)
+            {
+                if (Input.GetKeyUp(action.Value))
+                {
+                    InvokeEvent(setType,KeybindType.KeyUp, action.Key);
+
+                }
+            }
+            foreach(KeyValuePair<string, KeyCode> action in holdDict)
+            {
+                if (Input.GetKey(action.Value))
+                {
+                    InvokeEvent(setType, KeybindType.Hold, action.Key);
+
+                }
+            }
+
+        }
+
+        void InvokeEvent(KeybindSetType setName, KeybindType type, string name)
+        {
+            if (!events.ContainsKey(setName)) return;
+            if (!events[setName].ContainsKey(type)) return;
+            if (!events[setName][type].ContainsKey(name)) return;
+            events[setName][type][name]?.Invoke();
+        }
+
+        public Action AddListener(Action action, KeybindSetType setName, KeybindType type, string alias)
+        {
+            if (!events.ContainsKey(setName)) events.Add(setName, new());
+            if (!events[setName].ContainsKey(type)) events[setName].Add(type, new());
+            if (!events[setName][type].ContainsKey(alias)) events[setName][type].Add(alias, null);
+
+            events[setName][type][alias] += action;
+
+            return () => {
+                events[setName][type][alias] -= action;
+            };
+        }
+
+
     }
 
 }

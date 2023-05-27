@@ -186,7 +186,7 @@ namespace Architome.Settings
 
             void HandleConfirm()
             {
-                foreach (var binding in KeyBindings.keyBindsDefault)
+                foreach (var binding in KeyBindings.partyCombatDefault)
                 {
                     if (!mapDict.ContainsKey(binding.Key)) continue;
                     var map = mapDict[binding.Key];

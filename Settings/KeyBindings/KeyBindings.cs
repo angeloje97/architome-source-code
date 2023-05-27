@@ -63,7 +63,7 @@ namespace Architome
         public Action<KeyBindings> OnLoadBindings { get; set; }
 
 
-        public static Dictionary<string, KeyCode> keyBindsDefault = new Dictionary<string, KeyCode>()
+        public static Dictionary<string, KeyCode> partyCombatDefault = new Dictionary<string, KeyCode>()
         {
             ["Ability0"] = KeyCode.Q,
             ["Ability1"] = KeyCode.W,
@@ -87,6 +87,7 @@ namespace Architome
 
             ["NextCamera"] = KeyCode.Tab,
             ["ToggleFreeCam"] = KeyCode.Y,
+            ["ToggleSheath"] = KeyCode.Z,
 
             ["SelectMultiple"] = KeyCode.LeftShift,
             ["SelectObject"] = KeyCode.Mouse0,
@@ -134,14 +135,6 @@ namespace Architome
 
             KeyBindingsSave._current.combatBindings = combatBindings;
             KeyBindingsSave._current.Save();
-        }
-
-        void UpdateCombatBindings()
-        {
-            foreach (var bindingPair in keyBinds)
-            {
-                combatBindings.Add(new(bindingPair.Key, bindingPair.Value.ToString()));
-            }
         }
 
         void HandleLoad()
@@ -265,6 +258,7 @@ namespace Architome
         {
             var combatBindings = new List<String2>();
 
+
             foreach (var bindingPair in keyBinds)
             {
                 combatBindings.Add(new(bindingPair.Key, bindingPair.Value.ToString()));
@@ -317,6 +311,7 @@ namespace Architome
 
             combatBindings = new();
 
+
             foreach (var binding in bindingsSave.combatBindings)
             {
                 if (!keyBinds.ContainsKey(binding.x)) continue;
@@ -326,6 +321,14 @@ namespace Architome
                 KeyCode keyCode = (KeyCode)Enum.Parse(typeof(KeyCode), binding.y);
 
                 keyBinds[binding.x] = keyCode;
+            }
+
+            foreach(KeyValuePair<string, KeyCode> binding in partyCombatDefault)
+            {
+                if (keyBinds.ContainsKey(binding.Key)) continue;
+                Debugger.UI(7469, $"Missing Key: {binding.Key}");
+                combatBindings.Add(new(binding.Key, binding.Value.ToString()));
+                keyBinds.Add(binding.Key, binding.Value);
             }
 
             OnLoadBindings?.Invoke(this);

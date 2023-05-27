@@ -32,7 +32,7 @@ namespace Architome
             this.catalyst = catalyst;
 
             HandleStartKinematics();
-            HandleJobs();
+            //HandleJobs();
             //HandleCatalystKinematics();
         }
 

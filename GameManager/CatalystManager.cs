@@ -98,6 +98,7 @@ namespace Architome
         {
             public NativeArray<Vector3> directions;
             public NativeArray<float> speeds;
+            
 
             public float deltaTime;
             public void Execute(int index, TransformAccess transform)
