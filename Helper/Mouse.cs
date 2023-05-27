@@ -116,7 +116,7 @@ namespace Architome
 
             for (int i = 0; i < results.Count; i++)
             {
-                if (results[i].gameObject.GetComponent<IgnoreRayCast>())
+                if (results[i].gameObject.GetComponentInParent<IgnoreRayCast>())
                 {
                     continue;
                 }

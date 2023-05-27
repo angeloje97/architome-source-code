@@ -28,6 +28,7 @@ namespace Architome
 
         ArchSceneManager archSceneManager;
 
+
         public KeybindSet currentKeybindSet;
 
         public Dictionary<string, KeyCode> downDict, upDict, holdDict;

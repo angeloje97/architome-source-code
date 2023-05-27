@@ -7,6 +7,8 @@ using UnityEngine.EventSystems;
 using TMPro;
 using Architome;
 using Architome.Enums;
+
+[RequireComponent(typeof(TargetableEntity))]
 public class PortraitBehavior : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     // Start is called before the first frame update
@@ -174,6 +176,8 @@ public class PortraitBehavior : MonoBehaviour, IPointerEnterHandler, IPointerExi
 
     public EntityInfo entityInfoCheck;
 
+    TargetableEntity targetableEntity;
+
     public void GetDependencies()
     {
         targetManager = ContainerTargetables.active;
@@ -182,6 +186,8 @@ public class PortraitBehavior : MonoBehaviour, IPointerEnterHandler, IPointerExi
         {
             targetManager.OnNewHoverTarget += OnNewHoverTarget;
         }
+
+        targetableEntity = GetComponent<TargetableEntity>();
 
         
     }
@@ -238,8 +244,69 @@ public class PortraitBehavior : MonoBehaviour, IPointerEnterHandler, IPointerExi
     {
         if(entityInfoCheck != entity)
         {
+            HandleListeners();
             OnEntityChange?.Invoke(entityInfoCheck, entity);
             entityInfoCheck = entity;
+        }
+
+        void HandleListeners()
+        {
+            if (entityInfoCheck)
+            {
+                var combatBehavior = entityInfoCheck.CombatBehavior();
+                var abilityManager = entityInfoCheck.AbilityManager();
+
+                if (combatBehavior)
+                {
+                    combatBehavior.CombatInfo().OnNewTargetedBy -= OnNewTargetedBy;
+                    combatBehavior.CombatInfo().OnTargetedByRemove -= OnTargetedByRemove;
+                    entityInfoCheck.OnExperienceGain -= OnExperienceGain;
+                }
+
+                if (abilityManager)
+                {
+                    abilityManager.OnAbilityStart -= OnAbilityStart;
+                    abilityManager.OnAbilityEnd -= OnAbilityEnd;
+                    abilityManager.WhileCasting -= WhileCasting;
+                }
+            }
+
+            targetableEntity.HandleExit();
+            targetableEntity.SetEntity(entity);
+
+            if (entity)
+            {
+                var combatBehavior = entity.CombatBehavior();
+                
+
+                if (combatBehavior)
+                {
+                    combatBehavior.CombatInfo().OnNewTargetedBy += OnNewTargetedBy;
+                    combatBehavior.CombatInfo().OnTargetedByRemove += OnTargetedByRemove;
+
+                }
+                entity.OnExperienceGain += OnExperienceGain;
+
+                var abilityManager = entity.AbilityManager();
+
+                if (abilityManager)
+                {
+                    abilityManager.OnAbilityStart += OnAbilityStart;
+                    abilityManager.OnAbilityEnd += OnAbilityEnd;
+                    abilityManager.WhileCasting += WhileCasting;
+
+                    if (entity.AbilityManager().currentlyCasting)
+                    {
+                        if (entity.AbilityManager().currentlyCasting.vfx.showCastBar)
+                        {
+                            OnAbilityStart(entity.AbilityManager().currentlyCasting);
+                            return;
+                        }
+                    }
+                }
+
+                SetCastBar(false);
+            }
         }
     }
     void UpdateBars()
@@ -289,13 +356,14 @@ public class PortraitBehavior : MonoBehaviour, IPointerEnterHandler, IPointerExi
     public void OnPointerEnter(PointerEventData eventData)
     {
         if (entity == null) return;
-
+        return;
         entity.infoEvents.OnMouseHover?.Invoke(entity, true, gameObject);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
         if (entity == null) return;
+        return;
         entity.infoEvents.OnMouseHover?.Invoke(entity, false, gameObject);
 
     }
@@ -309,38 +377,12 @@ public class PortraitBehavior : MonoBehaviour, IPointerEnterHandler, IPointerExi
     }
     public void SetEntity(EntityInfo entity)
     {
-        HandleEvents();
-        
-
         this.entity = entity;
         healthUI.SetEntity(entity);
         stateIcon.SetEntity(entity);
         buffUI?.SetEntity(entity);
         UpdateEntity();
         isActive = true;
-
-
-        void HandleEvents()
-        {
-            if (this.entity == null) return;
-
-            var combatBehavior = this.entity.CombatBehavior();
-            var abilityManager = this.entity.AbilityManager();
-
-            if (combatBehavior)
-            {
-                combatBehavior.CombatInfo().OnNewTargetedBy -= OnNewTargetedBy;
-                combatBehavior.CombatInfo().OnTargetedByRemove -= OnTargetedByRemove;
-                this.entity.OnExperienceGain -= OnExperienceGain;
-            }
-
-            if (abilityManager)
-            {
-                abilityManager.OnAbilityStart -= OnAbilityStart;
-                abilityManager.OnAbilityEnd -= OnAbilityEnd;
-                abilityManager.WhileCasting -= WhileCasting;
-            }
-        }
     }
     public void ResetEntity()
     {
@@ -374,46 +416,6 @@ public class PortraitBehavior : MonoBehaviour, IPointerEnterHandler, IPointerExi
         icon.sprite = portraitIcon;
 
         mana = 1;
-
-        HandleEvents();
-
-        void HandleEvents()
-        {
-            var combatBehavior = entity.CombatBehavior();
-
-
-            if (combatBehavior)
-            {
-                combatBehavior.CombatInfo().OnNewTargetedBy += OnNewTargetedBy;
-                combatBehavior.CombatInfo().OnTargetedByRemove += OnTargetedByRemove;
-
-            }
-            entity.OnExperienceGain += OnExperienceGain;
-
-            var abilityManager = entity.AbilityManager();
-
-            if (abilityManager)
-            {
-                abilityManager.OnAbilityStart += OnAbilityStart;
-                abilityManager.OnAbilityEnd += OnAbilityEnd;
-                abilityManager.WhileCasting += WhileCasting;
-
-                if (this.entity.AbilityManager().currentlyCasting)
-                {
-                    if (this.entity.AbilityManager().currentlyCasting.vfx.showCastBar)
-                    {
-                        OnAbilityStart(this.entity.AbilityManager().currentlyCasting);
-                        return;
-                    }
-                }
-            }
-
-            SetCastBar(false);
-
-
-
-            
-        }
     }
     public void OnAbilityStart(AbilityInfo ability)
     {

@@ -2,9 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-using System.Linq;
-using System.IO;
 using System.Threading.Tasks;
+using Architome.Settings.Keybindings;
 
 namespace Architome
 {
@@ -19,6 +18,7 @@ namespace Architome
 
         }
 
+        public List<KeybindSet> availableSets;
 
         public static KeyBindings active;
         public string testKey;
@@ -252,6 +252,23 @@ namespace Architome
         public int SpriteIndex(string keyName)
         {
             return SpriteIndex(keyBinds[keyName]);
+        }
+
+        public int SpriteIndex(string keybindSet, string keyName)
+        {
+            if (availableSets == null) return -1;
+
+            foreach(var set in availableSets)
+            {
+                if(set.name == keybindSet)
+                {
+                    var keyCode = set.KeyCodeFromName(keyName);
+                    if (keyCode == KeyCode.Question) return -1;
+                    return SpriteIndex(keyCode);
+                }
+            }
+
+            return -1;
         }
 
         public void SaveKeyBindings()

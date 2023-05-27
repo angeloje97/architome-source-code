@@ -12,6 +12,7 @@ using UltimateClean;
 namespace Architome
 {
     [Serializable]
+    [RequireComponent(typeof(TargetableEntity))]
     public class EntityInfo : MonoBehaviour
     {
         #region Identity
@@ -443,11 +444,15 @@ namespace Architome
         }
         private void OnMouseEnter()
         {
+            return;
             infoEvents.OnMouseHover?.Invoke(this, true, gameObject);
+
+
         }
 
         private void OnMouseExit()
         {
+            return;
             infoEvents.OnMouseHover?.Invoke(this, false, gameObject);
 
         }
@@ -1427,14 +1432,7 @@ namespace Architome
         }
         public ThreatManager ThreatManager()
         {
-            var threatManager = components.Get<ThreatManager>();
-
-            if (threatManager == null)
-            {
-                threatManager = components.Add(GetComponentInChildren<ThreatManager>());
-            }
-
-            return threatManager;
+            return EntityComponent<ThreatManager>();
 
             //if (AIBehavior() && AIBehavior().ThreatManager())
             //{
@@ -1476,16 +1474,6 @@ namespace Architome
             if (gameObject == null) return null;
 
             return EntityComponent<BuffsManager>();
-
-            //foreach (Transform child in transform)
-            //{
-            //    if (child.GetComponent<BuffsManager>())
-            //    {
-            //        return child.GetComponent<BuffsManager>();
-            //    }
-            //}
-
-            //return null;
         }
         public AudioManager Voice()
         {

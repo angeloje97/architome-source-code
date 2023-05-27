@@ -5,6 +5,7 @@ using Architome;
 using System;
 using System.Threading.Tasks;
 using UnityEngine.EventSystems;
+[RequireComponent(typeof(TargetableEntity))]
 public class ProgressBarsBehavior : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     // Start is called before the first frame update
@@ -67,6 +68,9 @@ public class ProgressBarsBehavior : MonoBehaviour, IPointerEnterHandler, IPointe
             OnCombatChange(entityInfo.isInCombat);
 
             abilityManager = entityInfo.AbilityManager();
+
+            var targetableEntity = GetComponent<TargetableEntity>();
+            targetableEntity.SetEntity(entityInfo);
         }
 
         if(abilityManager)
@@ -134,12 +138,14 @@ public class ProgressBarsBehavior : MonoBehaviour, IPointerEnterHandler, IPointe
     }
     public void OnPointerEnter(PointerEventData eventData)
     {
+        return;
         entityInfo.infoEvents.OnMouseHover?.Invoke(entityInfo, true, gameObject);
 
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
+        return;
         entityInfo.infoEvents.OnMouseHover?.Invoke(entityInfo, false, gameObject);
 
     }

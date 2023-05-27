@@ -30,7 +30,7 @@ public class Targetable : EntityProp
         entityInfo.targetableEvents.OnSelect += OnSelect;
 
 
-        //entityInfo.infoEvents.OnMouseHover += OnMouseHover;
+        entityInfo.infoEvents.OnMouseHover += OnMouseHover;
     }
 
     void Start()
