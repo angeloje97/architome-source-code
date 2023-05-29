@@ -1433,12 +1433,6 @@ namespace Architome
         public ThreatManager ThreatManager()
         {
             return EntityComponent<ThreatManager>();
-
-            //if (AIBehavior() && AIBehavior().ThreatManager())
-            //{
-            //    return AIBehavior().ThreatManager();
-            //}
-            //return null;
         }
         public LineOfSight LineOfSight()
         {

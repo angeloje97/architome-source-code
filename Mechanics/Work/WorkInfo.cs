@@ -33,7 +33,7 @@ namespace Architome
             {
                 clickable = GetComponent<Clickable>();
                 clickable.OnSelectOption += OnSelectAction;
-                SetClickable();
+                UpdateClickable();
             }
 
             workStationsDebugging = workStations;
@@ -149,11 +149,13 @@ namespace Architome
             }
         }
 
-        public void SetClickable()
+        public void UpdateClickable()
         {
-            clickable.ClearOptions();
-
             if(tasks.Count == 0) { return; }
+            var set = tasks.Select(task => task.properties.workString).ToHashSet();
+
+            clickable.RemoveOptions((Clickable.Option option) => set.Contains(option.text));
+
 
             foreach(var task in tasks)
             {
@@ -201,15 +203,11 @@ namespace Architome
                     entity.TaskHandler().AddTask(task, true);
                     workersSet++;
                 }
-
-
-
             }
         }
         
         
 
-        // Update is called once per frame
         public void HideStationFromPlayers()
         {
             if (tasks == null) return;
@@ -218,6 +216,21 @@ namespace Architome
                 task.properties.hideFromPlayers = true;
             }
         }
+
+        public void HideTaskFromPlayer(int taskIndex)
+        {
+            if (taskIndex >= tasks.Count) return;
+            tasks[taskIndex].properties.hideFromPlayers = true;
+            UpdateClickable();
+        }
+
+        public void ShowTaskToPlayer(int taskIndex)
+        {
+            if (taskIndex >= tasks.Count) return;
+            tasks[taskIndex].properties.hideFromPlayers = false;
+            UpdateClickable();
+        }
+
 
         public TaskInfo Task(string taskString)
         {

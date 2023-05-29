@@ -15,7 +15,19 @@ namespace Architome
         public struct Option
         {
             public string text;
-            public UnityEvent OnSelect;
+            public UnityEvent<ChoiceData> OnSelect;
+        }
+
+        public class ChoiceData
+        {
+            public Clickable clickable;
+            public List<EntityInfo> entitiesClickedWith;
+
+            public ChoiceData(Clickable clickable)
+            {
+                this.clickable = clickable;
+                entitiesClickedWith = clickable.clickedEntities;
+            }
         }
 
         public List<Option> options;
@@ -103,7 +115,7 @@ namespace Architome
             
             selectedIndex = options.IndexOf(options.Find(item => item.text == option));
             selectedString = option;
-            options[selectedIndex].OnSelect?.Invoke();
+            options[selectedIndex].OnSelect?.Invoke(new(this));
             OnSelectOption?.Invoke(this);
             
 
@@ -134,7 +146,7 @@ namespace Architome
 
             selectedIndex = choice;
             selectedString = this.options[choice].text;
-            this.options[selectedIndex].OnSelect?.Invoke();
+            this.options[selectedIndex].OnSelect?.Invoke(new(this));
             OnSelectOption?.Invoke(this);
 
             selectedIndex = -1;
@@ -150,6 +162,19 @@ namespace Architome
         public void ClearOptions()
         {
             this.options = new();
+        }
+
+        public void RemoveOptions(Predicate<Option> predicate)
+        {
+            options ??= new();
+            for (int i = 0; i < options.Count; i++)
+            {
+                if (predicate(options[i]))
+                {
+                    options.RemoveAt(i);
+                    i--;
+                }
+            }
         }
 
         public void Click(EntityInfo entity)

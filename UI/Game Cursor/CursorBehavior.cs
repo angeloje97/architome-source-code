@@ -155,8 +155,8 @@ namespace Architome
             {
 
                 var clickable = clickableObjects[0].GetComponent<Clickable>();
-
-                if (clickable && clickable.Interactable)
+                
+                if (clickable && clickable.Interactable && clickable.options.Count > 0)
                 {
                     var portal = clickable.GetComponent<PortalInfo>();
                     if (portal)
@@ -246,24 +246,6 @@ namespace Architome
             }
 
             UpdateCursor();
-
-            //var clickable = after.GetComponent<Clickable>();
-            //if (!clickable.Interactable) return;
-
-            //HandlePortal();
-            //HandleWork();
-
-            //void HandlePortal()
-            //{
-            //    if (!clickable.GetComponent<PortalInfo>()) return;
-            //    SetCursor("Portal");
-            //}
-
-            //void HandleWork()
-            //{
-            //    if (!clickable.GetComponent<WorkInfo>()) return;
-            //    SetCursor("Work");
-            //}
 
         }
 
