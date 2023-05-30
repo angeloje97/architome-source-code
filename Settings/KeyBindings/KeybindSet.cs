@@ -1,3 +1,4 @@
+using Architome.Enums;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -16,9 +17,7 @@ namespace Architome.Settings.Keybindings
     public enum KeybindSetType
     {
         Single,
-        SingleCombat,
         Party,
-        PartyCombat,
     }
 
     [CreateAssetMenu(fileName = "New Keybind Set", menuName = "Architome/Settings/New Keybind Set")]
@@ -27,6 +26,7 @@ namespace Architome.Settings.Keybindings
         [HideInInspector]
         new public string name;
         public KeybindSetType type;
+        public ArchInputMode inputMode;
 
         public List<KeybindData> keybindsData;
 

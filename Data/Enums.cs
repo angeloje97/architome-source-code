@@ -18,7 +18,7 @@ namespace Architome.Enums
     {
         Inactive,
         InGameUI,
-        Combat,
+        Adventure,
         Colony,
     }
 

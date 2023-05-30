@@ -105,7 +105,6 @@ namespace Architome
 
             //Input Manager
             var archInput = ArchInput.active;
-            archInput.OnAlternateAction += OnAlternateAction;
             archInput.OnActionMultiple += OnActionMultiple;
             archInput.OnAction += OnAction;
         }
@@ -204,14 +203,15 @@ namespace Architome
         }
 
         //Player Input
-        void OnAlternateAction(int index)
+        public void OnAlternateAction(int index)
         {
             if (index >= members.Count) return;
             if (partyControl != EntityControlType.PartyControl) return;
 
             members[index].PlayerController().HandleActionButton(true);
         }
-        void OnActionMultiple()
+
+        public void OnActionMultiple()
         {
             if (partyControl != EntityControlType.PartyControl) return;
 
@@ -238,7 +238,7 @@ namespace Architome
             }
         }
 
-        void OnAction()
+        public void OnAction()
         {
             foreach (var entity in members)
             {

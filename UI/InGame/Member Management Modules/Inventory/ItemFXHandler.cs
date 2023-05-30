@@ -97,7 +97,7 @@ namespace Architome
 
                 if (stacks > 1)
                 {
-                    text += $"x{stacks}";
+                    text += $" ({stacks})";
                 }
 
                 var popUp = popUpManager.GeneralPopUp(transform, text, rarityProperty.color, new()

@@ -33,21 +33,25 @@ namespace Architome
             if (archInput)
             {
                 archInput.OnEscape += Cancel;
-                archInput.OnAbilityKey += HandleAbilityKey;
-                archInput.OnAlternateAction += HandleAlternativeAction;
             }
             if (pauseMenu)
             {
                 pauseMenu.OnTryOpenPause += HandleTryOpenPause;
             }
+
+            if (actionBarsInfo)
+            {
+                actionBarsInfo.OnUseActionBar += HandleUseActionBar;
+                actionBarsInfo.OnAlternateAction += HandleAlternativeAction;
+            }
         }
 
-        void HandleAlternativeAction(int actionNum)
+        void HandleUseActionBar(ActionBarBehavior behavior)
         {
             Cancel();
         }
 
-        void HandleAbilityKey(int abilityIndex)
+        void HandleAlternativeAction()
         {
             Cancel();
         }
@@ -80,7 +84,7 @@ namespace Architome
 
             if(abilityType == AbilityType.Use)
             {
-                ability.Cast();
+                _= ability.Cast();
                 return;
             }
 
@@ -132,7 +136,7 @@ namespace Architome
                 var entityInfo = target.GetComponent<EntityInfo>();
 
                 ability.target = entityInfo;
-                ability.Cast();
+                _= ability.Cast();
                 activeAbility = false;
             }
 
@@ -143,7 +147,7 @@ namespace Architome
                 var mouseLocation = playerController.RelativeMouseLocation();
 
                 ability.location = mouseLocation;
-                ability.Cast();
+                _= ability.Cast();
                 activeAbility = false;
             }
         }

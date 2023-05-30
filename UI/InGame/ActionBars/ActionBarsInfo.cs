@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using Architome.Enums;
 using Architome;
+using System;
+
 public class ActionBarsInfo : MonoBehaviour
 {
     public static ActionBarsInfo active;
@@ -15,6 +17,9 @@ public class ActionBarsInfo : MonoBehaviour
 
 
     public AbilityClickHandler currentAbilityClickHandler;
+
+    public Action<ActionBarBehavior> OnUseActionBar;
+    public Action OnAlternateAction;
 
     //Private fields
     [SerializeField]
@@ -110,4 +115,10 @@ public class ActionBarsInfo : MonoBehaviour
 
         }
     }
+
+    public void InvokeAlternateAction()
+    {
+        OnAlternateAction?.Invoke();
+    }
+
 }

@@ -19,6 +19,8 @@ namespace Architome
         public AbilityInfo abilityInfo { get; set; }
         public KeyBindings keyBindings;
 
+        ActionBarsInfo actionBarInfo;
+
         public Color darkenedColor;
         public Color halfDarkenedColor;
 
@@ -51,7 +53,6 @@ namespace Architome
         {
             keyBindings = KeyBindings.active;
 
-            ArchInput.active.OnAbilityKey += OnAbilityKey;
 
             if (keyBindings)
             {
@@ -66,6 +67,8 @@ namespace Architome
             {
                 toolTipHandler.OnCanShowCheck += OnCanShowToolTipCheck;
             }
+
+            actionBarInfo = GetComponentInParent<ActionBarsInfo>();
         }
         void Start()
         {
@@ -80,16 +83,12 @@ namespace Architome
             HandleActionBars();
         }
 
-        public void OnAbilityKey(int number)
-        {
-            if (number != actionBarNum) return;
-            ActivateAbility();
-        }
 
         public void ActivateAbility()
         {
             if (!isActive) return;
             OnUseActionBar?.Invoke(this);
+            actionBarInfo.OnUseActionBar?.Invoke(this);
 
             if (delayed) return;
             delayed = true;

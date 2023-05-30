@@ -25,6 +25,8 @@ namespace Architome
         public Action<float, float> OnAngleChange;
         public KeyBindings keyBindData;
 
+        bool moveCameraTimer;
+
 
         void GetDependencies()
         {
@@ -106,6 +108,26 @@ namespace Architome
                 }
 
 
+            }
+        }
+
+
+        public void EnableMoveCamera()
+        {
+            if (Mouse.IsMouseOverUI()) return;
+
+            anchorYVal += Input.GetAxis("Mouse X") * rotationSpeed;
+
+            if(anchorYVal < 0)
+            {
+                anchorYVal += 360;
+                AngleJump(360);
+            }
+
+            if(anchorYVal > 360)
+            {
+                anchorYVal -= 360;
+                AngleJump(-360);
             }
         }
 

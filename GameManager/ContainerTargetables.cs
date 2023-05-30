@@ -44,7 +44,7 @@ namespace Architome
         public Action<GameObject> OnSelectTarget;
         public Action OnClearSelected { get; set; }
 
-        public Action OnSelectNothing;
+        public Action OnSelectNothing { get; set; }
 
         public Action OnClearFromEscape;
 
@@ -283,7 +283,7 @@ namespace Architome
             ClearSelected();
             OnClearFromEscape?.Invoke();
         }
-        void OnSelect()
+        public void OnSelect()
         {
             ClearSelected();
             SelectEvent(currentHover);
@@ -293,7 +293,7 @@ namespace Architome
                 OnSelectNothing?.Invoke();
             }
         }
-        void OnSelectMultiple()
+        public void OnSelectMultiple()
         {
             SelectEvent(currentHover);
         }

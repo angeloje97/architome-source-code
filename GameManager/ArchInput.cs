@@ -38,9 +38,6 @@ namespace Architome
 
         public ArchInputMode Mode { get { return inputMode; } }
 
-        //Events
-        public Action<int> OnAbilityKey { get; set; }
-        public Action<int> OnAlternateAction { get; set; }
         public Action OnAction { get; set; }
         public Action OnSelect { get; set; }
         public Action OnActionMultiple { get; set; }
@@ -211,9 +208,9 @@ namespace Architome
         // Update is called once per frame
         void Update()
         {
-            //HandleKeybindSet();
+            HandleKeybindSet();
             if (bindings == null) return;
-            HandleCombatInputs();
+            //HandleCombatInputs();
             HandleGeneral();
         }
 
@@ -223,44 +220,22 @@ namespace Architome
             {
                 OnEscape?.Invoke();
             }
+
+            if (Input.mouseScrollDelta.y != 0f)
+            {
+                OnScrollWheel?.Invoke(Input.mouseScrollDelta.y);
+            }
         }
 
         void HandleCombatInputs()
         {
-            if (inputMode != ArchInputMode.Combat) return;
+            if (inputMode != ArchInputMode.Adventure) return;
 
-            HandleAbilities();
-            HandleAlternateActions();
             HandleMouse();
-
-            void HandleAbilities()
-            {
-                for (int i = 0; i < 11; i++)
-                {
-                    if (Input.GetKeyDown(bindings.keyBinds[$"Ability{i}"]))
-                    {
-                        OnAbilityKey?.Invoke(i);
-                    }
-                }
-            }
-
-            void HandleAlternateActions()
-            {
-                for (int i = 0; i < 5; i++)
-                {
-                    if (Input.GetKeyDown(bindings.keyBinds[$"AlternateAction{i}"]))
-                    {
-                        OnAlternateAction?.Invoke(i);
-                    }
-                }
-            }
 
             void HandleMouse()
             {
-                if (Input.mouseScrollDelta.y != 0f)
-                {
-                    OnScrollWheel?.Invoke(Input.mouseScrollDelta.y);
-                }
+                
 
                 if (Input.GetKeyDown(bindings.keyBinds["CameraRotator"]))
                 {
@@ -299,6 +274,7 @@ namespace Architome
         void HandleKeybindSet()
         {
             if (currentKeybindSet == null) return;
+            if (inputMode != currentKeybindSet.inputMode) return;
 
             var setType = currentKeybindSet.type;
 
