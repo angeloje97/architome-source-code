@@ -1,3 +1,4 @@
+using Architome.Settings.Keybindings;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -41,8 +42,8 @@ namespace Architome.Tutorial
                 base.Directions()
             };
 
-            var selectMultipleIndex = keyBindData.SpriteIndex("SelectMultiple");
-            var actionIndex = keyBindData.SpriteIndex("Action");
+            var selectMultipleIndex = keyBindData.SpriteIndex(KeybindSetType.Party, "SelectMultiple");
+            var actionIndex = keyBindData.SpriteIndex(KeybindSetType.Party, "Action");
 
             if (!simple)
             {
@@ -58,7 +59,7 @@ namespace Architome.Tutorial
 
             if (!simple)
             {
-                var actionIndex = keyBindData.SpriteIndex("Action");
+                var actionIndex = keyBindData.SpriteIndex(KeybindSetType.Party, "Action");
                 result.Add($"You can also hold <sprite={actionIndex}> and move you mouse to change the direction of the formation");
             }
             return ArchString.NextLineList(result);

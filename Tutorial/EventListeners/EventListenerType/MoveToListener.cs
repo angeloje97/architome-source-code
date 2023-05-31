@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Architome.Settings.Keybindings;
 
 namespace Architome.Tutorial
 {
@@ -81,8 +82,8 @@ namespace Architome.Tutorial
             var result = new List<string>() {
                 base.Directions()
             };
-            var selectKeyIndex = keyBindData.SpriteIndex("Select");
-            var actionKeyIndex = keyBindData.SpriteIndex("Action");
+            var selectKeyIndex = keyBindData.SpriteIndex(KeybindSetType.Party, "Select");
+            var actionKeyIndex = keyBindData.SpriteIndex(KeybindSetType.Party, "Action");
 
             
 
@@ -106,7 +107,7 @@ namespace Architome.Tutorial
                         memberIndex = i;
                     }
 
-                    var alternateActionIndex = keyBindData.SpriteIndex($"AlternateAction{memberIndex}");
+                    var alternateActionIndex = keyBindData.SpriteIndex(KeybindSetType.Party, $"AlternateAction{memberIndex+1}");
 
                     result.Add($"To use quick move on {sourceInfo}, use <sprite={alternateActionIndex}> since they are member {memberIndex + 1}");
                 }
@@ -123,7 +124,7 @@ namespace Architome.Tutorial
 
             var memberIndex = MemberIndex(sourceInfo);
 
-            var alternateActionIndex = keyBindData.SpriteIndex($"AlternateAction{memberIndex}");
+            var alternateActionIndex = keyBindData.SpriteIndex(KeybindSetType.Party, $"AlternateAction{memberIndex + 1}");
 
             if (!simple)
             {

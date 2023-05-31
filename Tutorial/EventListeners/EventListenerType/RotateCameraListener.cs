@@ -1,4 +1,5 @@
 
+using Architome.Settings.Keybindings;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -41,7 +42,7 @@ namespace Architome.Tutorial
 
         public override string Directions()
         {
-            var rotatorIndex = keyBindData.SpriteIndex("CameraRotator");
+            var rotatorIndex = keyBindData.SpriteIndex(KeybindSetType.Party, "CameraRotator");
 
             var result = new List<string>() {
                 base.Directions(),

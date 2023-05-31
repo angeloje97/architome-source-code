@@ -1,3 +1,4 @@
+using Architome.Settings.Keybindings;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -42,8 +43,8 @@ namespace Architome.Tutorial
             var targetName = target != null ? target.ToString() : "them";
             if (!simple)
             {
-                var multipleIndex = keyBindData.SpriteIndex("SelectMultiple");
-                var action = keyBindData.SpriteIndex("Action");
+                var multipleIndex = keyBindData.SpriteIndex(KeybindSetType.Party, "SelectMultiple");
+                var action = keyBindData.SpriteIndex(KeybindSetType.Party, "Action");
                 result.Add($"To have the entire party focus a target: Hold <sprite={multipleIndex}>, hover over {targetName},  and click on the target with <sprite={action}>");
             }
             else

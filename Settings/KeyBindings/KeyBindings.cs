@@ -254,18 +254,16 @@ namespace Architome
             return SpriteIndex(keyBinds[keyName]);
         }
 
-        public int SpriteIndex(string keybindSet, string keyName)
+        public int SpriteIndex(KeybindSetType keybindSet, string keyName)
         {
             if (availableSets == null) return -1;
 
             foreach(var set in availableSets)
             {
-                if(set.name == keybindSet)
-                {
-                    var keyCode = set.KeyCodeFromName(keyName);
-                    if (keyCode == KeyCode.Question) return -1;
-                    return SpriteIndex(keyCode);
-                }
+                if (set.type != keybindSet && keybindSet != KeybindSetType.Any) continue;
+                var keyCode = set.KeyCodeFromName(keyName);
+                if (keyCode == KeyCode.Question) continue;
+                return SpriteIndex(keyCode);
             }
 
             return -1;

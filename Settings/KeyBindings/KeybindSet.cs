@@ -16,6 +16,7 @@ namespace Architome.Settings.Keybindings
 
     public enum KeybindSetType
     {
+        Any,
         Single,
         Party,
     }
@@ -64,7 +65,7 @@ namespace Architome.Settings.Keybindings
         {
             foreach(var data in keybindsData)
             {
-                if (data.Equals(keybindName))
+                if (data.alias.Equals(keybindName))
                 {
                     return data.keyCode;
                 }

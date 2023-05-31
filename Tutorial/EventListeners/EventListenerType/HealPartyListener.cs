@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
+using Architome.Settings.Keybindings;
 
 namespace Architome.Tutorial
 {
@@ -85,7 +86,7 @@ namespace Architome.Tutorial
                 base.Directions()
             };
 
-            var spriteIndex = keyBindData.SpriteIndex("Action");
+            var spriteIndex = keyBindData.SpriteIndex(KeybindSetType.Party, "Action");
 
             if (!simple)
             {
@@ -108,7 +109,7 @@ namespace Architome.Tutorial
             if (!simple)
             {
                 var memberIndex = MemberIndex(sourceHealer);
-                var memberActionIndex = keyBindData.SpriteIndex($"AlternateAction{memberIndex}");
+                var memberActionIndex = keyBindData.SpriteIndex(KeybindSetType.Party, $"AlternateAction{memberIndex+1}");
                 result.Add($"You can also use quick action (for member {memberIndex + 1} <sprite={memberActionIndex}> ) on an ally to heal them without needing to select the healer.");
 
             }

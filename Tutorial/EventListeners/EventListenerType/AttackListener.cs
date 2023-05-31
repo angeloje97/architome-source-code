@@ -1,3 +1,4 @@
+using Architome.Settings.Keybindings;
 using JetBrains.Annotations;
 using System;
 using System.Collections;
@@ -64,7 +65,7 @@ namespace Architome.Tutorial
 
         public override string Directions()
         {
-            var actionIndex = keyBindData.SpriteIndex("Action");
+            var actionIndex = keyBindData.SpriteIndex(KeybindSetType.Party, "Action");
 
 
             var stringList = new List<string>()
@@ -130,7 +131,7 @@ namespace Architome.Tutorial
 
             
 
-            var memberActionIndex = keyBindData.SpriteIndex($"AlternateAction{memberIndex}");
+            var memberActionIndex = keyBindData.SpriteIndex(KeybindSetType.Party, $"AlternateAction{memberIndex+1}");
 
             if (!simple)
             {

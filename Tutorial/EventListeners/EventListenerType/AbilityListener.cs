@@ -1,4 +1,5 @@
 using Architome.Enums;
+using Architome.Settings.Keybindings;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -83,7 +84,6 @@ namespace Architome.Tutorial
             var result = new List<string>() {
                 base.Directions()
             };
-            var actionBarName = $"Ability{currentActionBarBehavior.actionBarNum}";
 
             var newDirection = $"Use {ability} ";
 
@@ -92,17 +92,19 @@ namespace Architome.Tutorial
                 newDirection += $"on {particularTarget} ";
             }
 
+            var spriteIndex = keyBindData.SpriteIndex(KeybindSetType.Party, currentActionBarBehavior.keybindAlias);
+
 
             if (ability.abilityType == AbilityType.LockOn)
             {
                 newDirection += $"by hovering over an ";
                 newDirection += ability.isHealing ? "ally" : "enemy";
-                newDirection += $" and using the <sprite={keyBindData.SpriteIndex(actionBarName)}> button.";
+                newDirection += $" and using the <sprite={spriteIndex}> button.";
 
             }
             else
             {
-                newDirection += $"by pressing <sprite={keyBindData.SpriteIndex(actionBarName)}>";
+                newDirection += $"by pressing <sprite={spriteIndex}>";
             }
 
             result.Add(newDirection);

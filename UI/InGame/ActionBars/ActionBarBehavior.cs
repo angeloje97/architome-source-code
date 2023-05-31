@@ -8,6 +8,7 @@ using System;
 using Architome;
 using UnityEngine.EventSystems;
 using UltimateClean;
+using Architome.Settings.Keybindings;
 
 namespace Architome
 {
@@ -36,7 +37,7 @@ namespace Architome
         public bool isActive = false;
 
         public int actionBarNum;
-
+        public string keybindAlias;
         //Events
         public Action<AbilityInfo, int> OnChargeChange;
         public Action<AbilityInfo, AbilityInfo> OnAbilityChange;
@@ -266,7 +267,7 @@ namespace Architome
 
         public int SpriteIndex(KeyBindings bindings)
         {
-            return bindings.SpriteIndex($"Ability{actionBarNum}");
+            return bindings.SpriteIndex(KeybindSetType.Party, keybindAlias);
         }
         public void SetActionBar(AbilityInfo abilityInfo)
         {
