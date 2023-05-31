@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Architome
 {
@@ -18,10 +19,11 @@ namespace Architome
         public int maxRecursions;
         int recursions;
 
-        public List<string> variableNames;
-        public List<int> openIndeces;
-        public List<int> closedIndeces;
+        List<string> variableNames;
+        List<int> openIndeces;
+        List<int> closedIndeces;
 
+        public UnityEvent<string> OnGenerateOutput;
 
 
         public void Validate(T obj)
@@ -31,9 +33,9 @@ namespace Architome
             openIndeces = new();
             closedIndeces = new();
 
-
-            
             output = InterperateString(source);
+
+            OnGenerateOutput?.Invoke(output);
         }
 
         string InterperateString(string str, bool fromRecursion = false)
@@ -152,7 +154,7 @@ namespace Architome
             }
         }
 
-        public bool BooleanField(string fieldName)
+        bool BooleanField(string fieldName)
         {
             var value = FieldNameValue(fieldName);
             
@@ -161,7 +163,7 @@ namespace Architome
             return (bool)value;
         }
 
-        public object FieldNameValue(string fieldName)
+        object FieldNameValue(string fieldName)
         {
             bool negation = false;
 
