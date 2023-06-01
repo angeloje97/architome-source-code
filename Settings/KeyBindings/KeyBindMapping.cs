@@ -4,37 +4,49 @@ using UnityEngine;
 using System;
 using System.Linq;
 using UnityEngine.UIElements;
+using Architome.Settings.Keybindings;
+using UnityEngine.UI;
 
 namespace Architome.Settings
 {
     public class KeyBindMapping : ArchSettings
     {
-
         public static KeyBindMapping active;
+
+
         [Serializable]
         public struct Prefabs
         {
-            public GameObject map;
+            public KeyBindMap map;
+            public GameObject setParent;
         }
 
-        [System.Serializable]
+        [Serializable]
         public struct Info
         {
             public Transform mapParent;
+            
+            public Dictionary<KeybindSet, KeybindSet> originalSets;
+            public List<KeybindSet> editableSets;
+            public ScrollRect scrollRect;
+            public int selectedSetIndex;
+
+            public Dictionary<KeybindSet, CanvasGroup> parentKeybindSet;
+            public KeyBindingsSave currentKeybindSave;
         }
+
 
         public Prefabs prefabs;
         public Info info;
         public KeyBindings keyBindings;
+
         public HashSet<KeyCode> blackList = new() {
             KeyCode.Escape,
             KeyCode.Mouse0
         };
 
-        //Combat Bindings
-        public List<String2> combatBindings;
-        public List<KeyBindMap> keyBindMaps;
-        public Dictionary<string, KeyBindMap> mapDict;
+        public Dictionary<KeybindSet, Dictionary<string, KeyBindMap>> keybindSetMaps;
+        List<KeybindSet.KeybindData> currentDataList;
 
         public Action<KeyBindMapping> OnRevertChanges;
         public Action<KeyBindMapping> OnApplyChanges { get; set; }
@@ -45,9 +57,15 @@ namespace Architome.Settings
             GetDependencies();
             HandleDirtyConflicts();
         }
+        private void Awake()
+        {
+            active = this;
+        }
         void GetDependencies()
         {
             keyBindings = KeyBindings.active;
+            info.currentKeybindSave = KeyBindingsSave._current;
+
 
             if (keyBindings == null)
             {
@@ -55,7 +73,6 @@ namespace Architome.Settings
                 return;
             }
 
-            combatBindings = keyBindings.combatBindings.ToList();
 
             ClearMaps();
             SpawnMaps();
@@ -82,10 +99,6 @@ namespace Architome.Settings
             RevertBindings();
         }
 
-        private void Awake()
-        {
-            active = this;
-        }
 
         void ClearMaps()
         {
@@ -97,71 +110,92 @@ namespace Architome.Settings
         void SpawnMaps()
         {
             if (prefabs.map == null) return;
+            if (prefabs.setParent == null) return;
             if (info.mapParent == null) return;
 
-            mapDict = new();
+            keybindSetMaps = new();
+            info.parentKeybindSet = new();
+            info.originalSets = new();
 
-            for (int i = 0; i < combatBindings.Count; i++)
+
+            for(int i = 0; i < info.editableSets.Count; i++)
             {
-                var binding = combatBindings[i];
-                var mapper = Instantiate(prefabs.map, info.mapParent).GetComponent<KeyBindMap>();
+                var clone = info.editableSets[i].Clone();
+                clone.LoadBindingData();
+                clone.UpdateSet();
 
-                if (mapper == null)
+                info.originalSets.Add(clone, info.editableSets[i]);
+                info.editableSets[i] = clone;
+
+
+                keybindSetMaps.Add(clone, new());
+                var setParent = Instantiate(prefabs.setParent, info.mapParent);
+                info.parentKeybindSet.Add(clone, setParent.GetComponent<CanvasGroup>());
+                setParent.name = $"{clone.name} Parent";
+
+
+
+                clone.EditableKeybinds((KeybindSet.KeybindData data, int index) =>
                 {
-                    throw new Exception($"No script of type ${typeof(KeyBindMap)}");
-                }
+                    var mapper = Instantiate(prefabs.map, setParent.transform);
 
-                mapper.SetMap(binding.x, binding.y, i, this );
+                    mapper.SetMap(data.alias, data.keyCode, index, this, clone);
+                    keybindSetMaps[clone].Add(data.alias, mapper);
+                });
 
-                keyBindMaps.Add(mapper);
-                mapDict.Add(mapper.keyName, mapper);
+                CheckConflicts(clone);
             }
-
-            CheckConflicts();
         }
 
-        public void CheckConflicts()
+        public void CheckConflicts(KeybindSet set)
         {
             var keyMapDict = new Dictionary<KeyCode, KeyBindMap>();
-            Debugger.InConsole(43812, $"{keyBindMaps.Count}");
+            
 
-            foreach (var keyBindMap in keyBindMaps)
+            foreach(KeyValuePair<string, KeyBindMap> pair in keybindSetMaps[set])
             {
-                if(keyBindMap.currentBinding == KeyCode.None)
+                var keyBindMap = pair.Value;
+                if (keyBindMap.keyCode == KeyCode.None)
                 {
                     Debugger.InConsole(9450, $"{keyBindMap} has key code none");
                     keyBindMap.SetConflict(true);
                 }
-                else if (keyMapDict.ContainsKey(keyBindMap.currentBinding)) //Conflicting KeyBind
+                else if (keyMapDict.ContainsKey(keyBindMap.keyCode)) //Conflicting KeyBind
                 {
                     keyBindMap.SetConflict(true);
-                    keyMapDict[keyBindMap.currentBinding].SetConflict(true);
+                    keyMapDict[keyBindMap.keyCode].SetConflict(true);
                 }
                 else
                 {
-                    keyMapDict.Add(keyBindMap.currentBinding, keyBindMap);
+                    keyMapDict.Add(keyBindMap.keyCode, keyBindMap);
                     keyBindMap.SetConflict(false);
                 }
             }
         }
 
-        public void UpdateMap(KeyBindMap map)
+        public void UpdateMap(KeybindSet set, KeyBindMap map, bool checkConflicts = true)
         {
-            if (!mapDict.ContainsKey(map.keyName)) return;
+            set.SetBinding(map.keyName, map.keyCode);
 
-            if (combatBindings.Count <= map.index) return;
+            currentDataList = set.tempBindings;
+            Debugger.UI(5431, $"Setting {set}'s {map.keyName} to {map.keyCode}");
+            if (checkConflicts)
+            {
+                CheckConflicts(set);
+            }
 
-            combatBindings[map.index] = new() { x = map.keyName, y = map.keyCodeString };
-
-            CheckConflicts();
             dirty = true;
         }
 
         public bool IsConflicted()
         {
-            foreach (var keyBindMap in keyBindMaps)
+            foreach(var set in info.editableSets)
             {
-                if (keyBindMap.conflicted) return true;
+                var keyBindMaps = keybindSetMaps[set];
+                foreach (KeyValuePair<string, KeyBindMap> pair in keyBindMaps)
+                {
+                    if (pair.Value.conflicted) return true;
+                }
             }
 
             return false;
@@ -169,6 +203,8 @@ namespace Architome.Settings
 
         async public void ResetToDefault()
         {
+            var currentSet = info.editableSets[info.selectedSetIndex];
+            var originalSet = info.originalSets[currentSet];
 
             var choice = await PromptHandler.active.GeneralPrompt(new()
             {
@@ -186,16 +222,16 @@ namespace Architome.Settings
 
             void HandleConfirm()
             {
-                foreach (var binding in KeyBindings.partyCombatDefault)
-                {
-                    if (!mapDict.ContainsKey(binding.Key)) continue;
-                    var map = mapDict[binding.Key];
-
+                var editableBindingData = currentSet.EditableKeybinds((KeybindSet.KeybindData data, int index) => {
+                    
+                    var map = keybindSetMaps[currentSet][data.alias];
+                    map.keyCode = data.keyCode;
                     ArchAction.Yield(() => { map.SetConflict(false); });
 
-                    map.SetKeyString(binding.Value.ToString());
-                    UpdateMap(map);
-                }
+                    UpdateMap(currentSet, map, false);
+
+
+                });
 
                 ArchAction.Yield(() => ApplyBindings());
                 dirty = false;
@@ -204,22 +240,25 @@ namespace Architome.Settings
 
         }
 
+        public void ChangeSet(int index)
+        {
+            info.selectedSetIndex = index;
+
+        }
+
         public void RevertBindings()
         {
-            combatBindings = keyBindings.combatBindings.ToList();
+            var editableSet = info.editableSets[info.selectedSetIndex];
+
+            editableSet.EditableKeybinds((KeybindSet.KeybindData data, int index) => {
+                var map = keybindSetMaps[editableSet][data.alias];
+                map.SetKeyString(data.keyCode);
+            });
+
             OnRevertChanges?.Invoke(this);
 
-            
-            foreach (var binding in combatBindings)
-            {
-                if (!mapDict.ContainsKey(binding.x)) continue;
-                var map = mapDict[binding.x];
-                mapDict[binding.x].SetKeyString(binding.y);
-                //combatBindings[map.index] = new() { x = map.keyName, y = map.keyCodeString };
 
-            }
-
-            CheckConflicts();
+            CheckConflicts(editableSet);
 
             dirty = false;
         }
@@ -253,11 +292,9 @@ namespace Architome.Settings
 
             void Apply()
             {
-                keyBindings.combatBindings = combatBindings.ToList();
-
-                keyBindings.MapBindings();
-                keyBindings.SaveKeyBindings();
-                keyBindings.LoadKeyBindings();
+                var currentSet = info.editableSets[info.selectedSetIndex];
+                
+                currentSet.ApplyEdits();
 
 
                 OnApplyChanges?.Invoke(this);

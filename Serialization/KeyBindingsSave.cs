@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using Architome.Settings.Keybindings;
+using System.Linq;
 
 namespace Architome
 {
@@ -24,6 +26,9 @@ namespace Architome
 
         public List<String2> combatBindings;
 
+        public Dictionary<string, SerializedKeybindSet> keybindSetDatas;
+        public List<SerializedKeybindSet> keybindSetList;
+
         public void Save()
         {
             SerializationManager.SaveConfig("KeyBindings", this);
@@ -37,9 +42,45 @@ namespace Architome
             var bindings = (KeyBindingsSave)obj;
 
             CopyValues(bindings);
-
+            UpdateKeybindSetList();
             return bindings;
+        }
 
+        void UpdateKeybindSetList()
+        {
+            if (keybindSetDatas != null)
+            {
+                keybindSetList = keybindSetDatas.Select((KeyValuePair<string, SerializedKeybindSet> pair) =>
+                {
+                    return pair.Value;
+                }).ToList();
+
+            }
+
+        }
+
+        public void SaveSet(KeybindSet set)
+        {
+            keybindSetDatas ??= new();
+            if (!keybindSetDatas.ContainsKey(set.name))
+            {
+                keybindSetDatas.Add(set.name, new(set));
+            }
+            else
+            {
+                keybindSetDatas[set.name] = new(set);
+
+            }
+            UpdateKeybindSetList();
+
+            Save();
+        }
+
+        public SerializedKeybindSet SerializedSet(KeybindSet set)
+        {
+            if (keybindSetDatas == null) keybindSetDatas = new();
+            if (!keybindSetDatas.ContainsKey(set.name)) return new(set);
+            return keybindSetDatas[set.name];
         }
 
         void CopyValues(KeyBindingsSave bindings)

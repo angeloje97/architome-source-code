@@ -8,16 +8,16 @@ using UnityEngine.Events;
 namespace Architome
 {
     [Serializable]
-    public struct FieldMarkUp<T>
+    public class FieldMarkUp : MonoBehaviour
     {
-        public T sourceObj;
+        public Component sourceObj;
+        public int maxRecursions;
+        int recursions;
         [TextArea(5, 10)]
         public string source;
         [TextArea(5, 10)]
         public string output;
 
-        public int maxRecursions;
-        int recursions;
 
         List<string> variableNames;
         List<int> openIndeces;
@@ -25,10 +25,13 @@ namespace Architome
 
         public UnityEvent<string> OnGenerateOutput;
 
-
-        public void Validate(T obj)
+        private void OnValidate()
         {
-            sourceObj = obj;
+            UpdateOutput();
+        }
+        public void UpdateOutput()
+        {
+            if (sourceObj == null) return;
             variableNames = new();
             openIndeces = new();
             closedIndeces = new();
@@ -173,7 +176,7 @@ namespace Architome
                 fieldName = fieldName[1..];
             }
 
-            var field = typeof(T).GetField(fieldName);
+            var field = sourceObj.GetType().GetField(fieldName);
             if(field != null)
             {
                 var value = field.GetValue(sourceObj);

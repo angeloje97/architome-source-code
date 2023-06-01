@@ -4,6 +4,7 @@ using UnityEngine;
 using System;
 using System.Threading.Tasks;
 using TMPro;
+using Architome.Settings.Keybindings;
 
 namespace Architome.Settings
 {
@@ -11,6 +12,8 @@ namespace Architome.Settings
     {
         // Start is called before the first frame update
         public KeyBindMapping mapper;
+        public KeybindSet sourceSet;
+        
 
         [Serializable]
         public struct Info
@@ -24,37 +27,29 @@ namespace Architome.Settings
         public Info info;
 
         public string keyName;
-        public string keyCodeString;
+        public string originalName;
+        public KeyCode keyCode;
         public int index;
         public bool conflicted;
 
-        public KeyCode currentBinding;
 
         public Action<KeyBindMap> OnSetBinding;
 
-        public void SetMap(string name, string keyCode, int index, KeyBindMapping mapper)
+        public void SetMap(string name, KeyCode keyCode, int index, KeyBindMapping mapper, KeybindSet set)
         {
             info.keyNameDisplay.text = $"{ArchString.CamelToTitle(name)}";
-            info.keyButtonDisplay.text = keyCode;
+            info.keyButtonDisplay.text = keyCode.ToString();
             keyName = name;
-            keyCodeString = keyCode;
+            this.keyCode = keyCode;
             this.index = index;
             this.mapper = mapper;
-
-            DetermineKeyBind();
+            sourceSet = set;
         }
 
-
-        public void DetermineKeyBind()
+        public void SetKeyString(KeyCode keyCode)
         {
-            currentBinding = (KeyCode)Enum.Parse(typeof(KeyCode), keyCodeString);
-        }
-
-        public void SetKeyString(string keyString)
-        {
-            keyCodeString = keyString;
-            info.keyButtonDisplay.text = keyString;
-            DetermineKeyBind();
+            this.keyCode = keyCode;
+            info.keyButtonDisplay.text = keyCode.ToString();
         }
 
         public void SetConflict(bool conflicted)
@@ -82,20 +77,21 @@ namespace Architome.Settings
 
             if (mapper.blackList.Contains(newKey))
             {
-                currentBinding = KeyCode.None;
+                keyCode = KeyCode.None;
                 
             }
             else
             {
-                currentBinding = newKey;
+                keyCode = newKey;
             }
 
-            if (info.keyButtonDisplay.text == currentBinding.ToString()) return;
+            var keyString = keyCode.ToString();
+            if (info.keyButtonDisplay.text == keyString) return;
 
-            info.keyButtonDisplay.text = currentBinding.ToString();
-            keyCodeString = currentBinding.ToString();
+            info.keyButtonDisplay.text = keyString;
+            
 
-            mapper.UpdateMap(this);
+            mapper.UpdateMap(sourceSet, this);
             OnSetBinding?.Invoke(this);
         }
 

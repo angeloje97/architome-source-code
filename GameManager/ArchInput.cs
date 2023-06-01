@@ -134,7 +134,8 @@ namespace Architome
 
         public void SetKeybindSet(KeybindSet set)
         {
-            currentKeybindSet = Instantiate(set);
+            currentKeybindSet = set.Clone();
+            currentKeybindSet.LoadBindingData();
             currentKeybindSet.UpdateSet();
             downDict = currentKeybindSet.downDict;
             upDict = currentKeybindSet.upDict;
