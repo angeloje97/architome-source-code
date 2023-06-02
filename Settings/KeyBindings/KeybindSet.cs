@@ -133,6 +133,7 @@ namespace Architome.Settings.Keybindings
 
         public void SetBinding(string alias, KeyCode newBinding)
         {
+            if (!cloned) return;
             if (keybindIndeces == null) return;
             Debugger.UI(6195, $"Keybind indeces exists: {keybindIndeces.Count} {keybindIndeces[alias]}");
             tempBindings[keybindIndeces[alias]].SetKeyCode(newBinding);

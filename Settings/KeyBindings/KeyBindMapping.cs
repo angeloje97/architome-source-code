@@ -26,26 +26,26 @@ namespace Architome.Settings
         {
             public Transform mapParent;
             
-            public Dictionary<KeybindSet, KeybindSet> originalSets;
             public List<KeybindSet> editableSets;
             public ScrollRect scrollRect;
             public int selectedSetIndex;
 
-            public Dictionary<KeybindSet, CanvasGroup> parentKeybindSet;
             public KeyBindingsSave currentKeybindSave;
         }
 
 
         public Prefabs prefabs;
         public Info info;
-        public KeyBindings keyBindings;
 
-        public HashSet<KeyCode> blackList = new() {
+        public readonly HashSet<KeyCode> blackList = new() {
             KeyCode.Escape,
             KeyCode.Mouse0
         };
 
-        public Dictionary<KeybindSet, Dictionary<string, KeyBindMap>> keybindSetMaps;
+        Dictionary<KeybindSet, CanvasGroup> parentKeybindSet;
+        Dictionary<KeybindSet, KeybindSet> originalSets;
+        Dictionary<KeybindSet, Dictionary<string, KeyBindMap>> keybindSetMaps;
+
         List<KeybindSet.KeybindData> currentDataList;
 
         public Action<KeyBindMapping> OnRevertChanges;
@@ -63,16 +63,7 @@ namespace Architome.Settings
         }
         void GetDependencies()
         {
-            keyBindings = KeyBindings.active;
             info.currentKeybindSave = KeyBindingsSave._current;
-
-
-            if (keyBindings == null)
-            {
-                this.enabled = false;
-                return;
-            }
-
 
             ClearMaps();
             SpawnMaps();
@@ -84,8 +75,6 @@ namespace Architome.Settings
                 mainMenuUI.OnEscapeIsFree += HandleEscapeIsFree;
             }
         }
-
-
         void HandleEscapeIsFree(MainMenuUI mainMenu, List<bool> checks)
         {
             if (pickingKey)
@@ -93,13 +82,6 @@ namespace Architome.Settings
                 checks.Add(false);
             }
         }
-
-        public override void HandleLeaveDirty()
-        {
-            RevertBindings();
-        }
-
-
         void ClearMaps()
         {
             foreach (Transform child in info.mapParent)
@@ -113,10 +95,12 @@ namespace Architome.Settings
             if (prefabs.setParent == null) return;
             if (info.mapParent == null) return;
 
-            keybindSetMaps = new();
-            info.parentKeybindSet = new();
-            info.originalSets = new();
 
+
+            keybindSetMaps = new();
+            parentKeybindSet = new();
+            originalSets = new();
+            var selectedIndex = info.selectedSetIndex;
 
             for(int i = 0; i < info.editableSets.Count; i++)
             {
@@ -124,29 +108,30 @@ namespace Architome.Settings
                 clone.LoadBindingData();
                 clone.UpdateSet();
 
-                info.originalSets.Add(clone, info.editableSets[i]);
+                originalSets.Add(clone, info.editableSets[i]);
                 info.editableSets[i] = clone;
-
-
                 keybindSetMaps.Add(clone, new());
+                
+
                 var setParent = Instantiate(prefabs.setParent, info.mapParent);
-                info.parentKeybindSet.Add(clone, setParent.GetComponent<CanvasGroup>());
+                var parentCanvas = setParent.GetComponent<CanvasGroup>();
+
+                parentCanvas.SetCanvas(info.selectedSetIndex == i);
+                parentKeybindSet.Add(clone, parentCanvas);
                 setParent.name = $"{clone.name} Parent";
-
-
 
                 clone.EditableKeybinds((KeybindSet.KeybindData data, int index) =>
                 {
                     var mapper = Instantiate(prefabs.map, setParent.transform);
-
                     mapper.SetMap(data.alias, data.keyCode, index, this, clone);
                     keybindSetMaps[clone].Add(data.alias, mapper);
                 });
 
                 CheckConflicts(clone);
             }
-        }
 
+            ChangeSet(info.selectedSetIndex);
+        }
         public void CheckConflicts(KeybindSet set)
         {
             var keyMapDict = new Dictionary<KeyCode, KeyBindMap>();
@@ -172,7 +157,6 @@ namespace Architome.Settings
                 }
             }
         }
-
         public void UpdateMap(KeybindSet set, KeyBindMap map, bool checkConflicts = true)
         {
             set.SetBinding(map.keyName, map.keyCode);
@@ -186,7 +170,6 @@ namespace Architome.Settings
 
             dirty = true;
         }
-
         public bool IsConflicted()
         {
             foreach(var set in info.editableSets)
@@ -200,11 +183,10 @@ namespace Architome.Settings
 
             return false;
         }
-
         async public void ResetToDefault()
         {
             var currentSet = info.editableSets[info.selectedSetIndex];
-            var originalSet = info.originalSets[currentSet];
+            var originalSet = originalSets[currentSet];
 
             var choice = await PromptHandler.active.GeneralPrompt(new()
             {
@@ -239,13 +221,20 @@ namespace Architome.Settings
             }
 
         }
-
         public void ChangeSet(int index)
         {
+            var currentIndex = info.selectedSetIndex;
+            if (currentIndex == index) return;
+
+            var currentCanvas = parentKeybindSet[info.editableSets[currentIndex]];
+            currentCanvas.SetCanvas(false);
             info.selectedSetIndex = index;
+            var newCanvas = parentKeybindSet[info.editableSets[index]];
+
+            info.scrollRect.content = newCanvas.GetComponent<RectTransform>();
+            newCanvas.SetCanvas(true);
 
         }
-
         public void RevertBindings()
         {
             var editableSet = info.editableSets[info.selectedSetIndex];
@@ -262,12 +251,6 @@ namespace Architome.Settings
 
             dirty = false;
         }
-
-        public override void HandleChooseApply()
-        {
-            ApplyBindings(true);
-        }
-
         async public void ApplyBindings(bool ignoreConflictions = false)
         {
             if (!ignoreConflictions)
@@ -305,6 +288,15 @@ namespace Architome.Settings
             
         }
 
-
+        #region Settings overrides
+        public override void HandleLeaveDirty()
+        {
+            RevertBindings();
+        }
+        public override void HandleChooseApply()
+        {
+            ApplyBindings(true);
+        }
+        #endregion
     }
 }
