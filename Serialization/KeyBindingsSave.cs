@@ -114,7 +114,7 @@ namespace Architome
             { KeyCode.Greater, 80 },
             { KeyCode.Slash, 81 },
             { KeyCode.Home, 82 },
-            { KeyCode.BackQuote, 83 },
+            { KeyCode.Quote, 83 },
             { KeyCode.Insert, 84 },
             { KeyCode.LeftShift, 85 },
             { KeyCode.RightShift, 85 },

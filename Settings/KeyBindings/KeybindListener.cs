@@ -17,10 +17,14 @@ namespace Architome.Settings.Keybindings
         void Start()
         {
             GetDependencies();
+        }
+
+        private void OnEnable()
+        {
             AddListeners();
         }
 
-        private void OnDestroy()
+        private void OnDisable()
         {
             RemoveListeners();
         }

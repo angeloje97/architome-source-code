@@ -25,10 +25,29 @@ namespace Architome
 
         public UnityEvent<string> OnGenerateOutput;
 
+        [Header("Behavior")]
+        public bool continiousUpdate;
+        public float updateInterval;
+
+        float updateTime;
+
         private void OnValidate()
         {
             UpdateOutput();
         }
+
+        private void Update()
+        {
+            if (!continiousUpdate) return;
+            if(updateTime > 0)
+            {
+                updateTime -= Time.deltaTime;
+                return;
+            }
+            updateTime = updateInterval;
+            UpdateOutput();
+        }
+
         public void UpdateOutput()
         {
             if (sourceObj == null) return;
