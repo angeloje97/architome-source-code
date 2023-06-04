@@ -14,13 +14,16 @@ namespace Architome.Settings.Keybindings
 
         List<ListenerEvent> blockedEvents;
 
+        public bool listening;
+
         void Start()
         {
             GetDependencies();
         }
 
-        private void OnEnable()
+        private async void OnEnable()
         {
+            while (archInput == null) await Task.Yield();
             AddListeners();
         }
 
@@ -45,22 +48,27 @@ namespace Architome.Settings.Keybindings
 
         void AddListeners()
         {
+            if (listening) return;
+
             listenerInfo ??= new();
             if (archInput == null) return;
             foreach(var listener in listenerInfo)
             {
                 listener.AddListener(archInput);
             }
+            listening = true;
         }
 
         void RemoveListeners()
         {
+            if (!listening) return;
             listenerInfo ??= new();
 
             foreach(var listener in listenerInfo)
             {
                 listener.RemoveListener();
             }
+            listening = true;
         }
 
         public void BlockListener(int index)

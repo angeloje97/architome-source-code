@@ -11,8 +11,6 @@ namespace Architome
     public class ArchInput : MonoBehaviour
     {
         public static ArchInput active;
-        // Start is called before the first frame update
-        KeyBindings bindings;
         [SerializeField]
         ArchInputMode inputMode;
         ArchInputMode desiredMode;
@@ -52,7 +50,6 @@ namespace Architome
 
         void GetDependencies()
         {
-            bindings = KeyBindings.active;
             gui = IGGUIInfo.active;
             var contextMenu = ContextMenu.current;
             archSceneManager = ArchSceneManager.active;
@@ -210,7 +207,6 @@ namespace Architome
         void Update()
         {
             HandleKeybindSet();
-            if (bindings == null) return;
             //HandleCombatInputs();
             HandleGeneral();
         }
@@ -226,50 +222,6 @@ namespace Architome
             {
                 OnScrollWheel?.Invoke(Input.mouseScrollDelta.y);
             }
-        }
-
-        void HandleCombatInputs()
-        {
-            if (inputMode != ArchInputMode.Adventure) return;
-
-            HandleMouse();
-
-            void HandleMouse()
-            {
-                
-
-                if (Input.GetKeyDown(bindings.keyBinds["CameraRotator"]))
-                {
-                    OnMiddleMouse?.Invoke();
-                }
-
-                if (Input.GetKey(bindings.keyBinds["SelectMultiple"]))
-                {
-                    if (Input.GetKeyDown(bindings.keyBinds["Action"]))
-                    {
-                        OnActionMultiple?.Invoke();
-                    }
-
-                    if (Input.GetKeyDown(bindings.keyBinds["Select"]))
-                    {
-                        OnSelectMultiple?.Invoke();
-                    }
-                    return;
-                }
-
-                if (Input.GetKeyDown(bindings.keyBinds["Action"]))
-                {
-                    OnAction?.Invoke();
-                }
-
-                if (Input.GetKeyDown(bindings.keyBinds["Select"]))
-                {
-                    OnSelect?.Invoke();
-                }
-
-
-            }
-
         }
 
         void HandleKeybindSet()

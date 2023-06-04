@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Threading.Tasks;
+using UnityEngine.SceneManagement;
 
 namespace Architome
 {
@@ -27,6 +28,7 @@ namespace Architome
         {
             if (!Input.GetKeyDown(KeyCode.Mouse0)) return;
             singleClicks++;
+
 
             if (clicked)
             {
