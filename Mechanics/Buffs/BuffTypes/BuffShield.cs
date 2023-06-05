@@ -1,34 +1,87 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace Architome
 {
+    public static class ShieldExtension
+    {
+        public static void UpdateShield(this EntityInfo entity)
+        {
+            var total = 0f;
+
+            var floats = new List<Func<float>>();
+
+            entity.combatEvents.OnUpdateShield?.Invoke(entity, floats);
+
+            foreach(var num in floats)
+            {
+                total += num();
+            }
+
+            entity.shield = total;
+        }
+
+        public static void UpdateHealthAbsorbShield(this EntityInfo entity)
+        {
+            var total = 0f;
+            var floats = new List<Func<float>>();
+
+            entity.combatEvents.OnUpdateHealAbsorbShield?.Invoke(entity, floats);
+
+            foreach(var num in floats)
+            {
+                total += num();
+            }
+
+            entity.healAbsorbShield = total;
+        }
+    }
+
     public class BuffShield : BuffType
     {
-        // Start is called before the first frame update
+        
 
-        public float shieldAmount { get { return value; } private set { this.value = value; } }
         public bool applied;
         new void GetDependencies()
         {
             base.GetDependencies();
             if (buffInfo)
             {
-                buffInfo.OnBuffEnd += OnBuffEnd;
 
-                shieldAmount = value;
+
+                var entity = buffInfo.hostInfo;
+
+                if (entity)
+                {
+                    entity.combatEvents.OnUpdateShield += HandleUpdateShield;
+                    entity.combatEvents.BeforeDamageTaken += HandleBeforeDamageTaken;
+                }
+
+                buffInfo.OnBuffEnd += (BuffInfo buff) => {
+                    value = 0f;
+                    entity.combatEvents.OnUpdateShield -= HandleUpdateShield;
+                    entity.combatEvents.BeforeDamageTaken -= HandleBeforeDamageTaken;
+                    entity.UpdateShield();
+                };
 
                 ApplyBuff();
             }
         }
+
+        void HandleUpdateShield(EntityInfo entity, List<Func<float>> funcs)
+        {
+            funcs.Add(() => value);
+        }
+
 
 
         public override string Description()
         {
             string result = "";
 
-            result += $"Absorbs the next {ArchString.FloatToSimple(shieldAmount)} damage.";
+            result += $"Absorbs the next {ArchString.FloatToSimple(value)} damage.";
 
             return result;
         }
@@ -55,40 +108,24 @@ namespace Architome
         {
         }
 
-        public void OnBuffEnd(BuffInfo buff)
+        void HandleBeforeDamageTaken(CombatEventData eventData)
         {
-            shieldAmount = 0;
-            buffInfo.hostInfo.UpdateShield();
-        }
+            if (eventData.value == 0) return;
 
-        public virtual float DamageShield(CombatEventData eventData)
-        {
-            var value = eventData.value;
-            
-            var nextValue = shieldAmount > value ? 0 : value - shieldAmount;
 
-            if (value > shieldAmount)
+            if(value >= eventData.value)
             {
-                value = shieldAmount;
+                value -= eventData.value;
+                eventData.value = 0f;
             }
-
-            shieldAmount -= value;
-
-            if (buffInfo.hostInfo != buffInfo.sourceInfo)
+            else
             {
-                buffInfo.sourceInfo.OnDamagePreventedFromShields?.Invoke(new CombatEventData(buffInfo, value) { target = buffInfo.hostInfo});
-            }
-
-            if (shieldAmount <= 0)
-            {
+                eventData.value -= value;
+                value = 0f;
                 buffInfo.Deplete();
             }
 
-            buffInfo.hostInfo.UpdateShield();
-
-            eventData.value = nextValue;
-
-            return nextValue;
+            eventData.target.UpdateShield();
         }
     }
 

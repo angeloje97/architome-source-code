@@ -115,7 +115,7 @@ namespace Architome
         {
             if (!buff.GetComponent<BuffShield>()) return;
             await Task.Delay(125);
-            var shieldValue = buff.GetComponent<BuffShield>().shieldAmount;
+            var shieldValue = buff.GetComponent<BuffShield>().value;
 
             buff.OnBuffEnd += OnBuffEnd;
 

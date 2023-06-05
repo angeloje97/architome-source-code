@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,8 +8,6 @@ namespace Architome
     public class BuffHealAbsorption : BuffType
     {
 
-        [Header("Heal Absorption Properties")]
-        public float absorptionValue;
 
         private void Start()
         {
@@ -22,29 +21,37 @@ namespace Architome
             var info = buffInfo.sourceInfo;
 
             info.combatEvents.BeforeHealingTaken += BeforeHostHealingTaken;
+            info.combatEvents.OnUpdateHealAbsorbShield += HandleUpdateAbsorbShield;
 
+            info.UpdateHealthAbsorbShield();
             buffInfo.OnBuffEnd += (BuffInfo buff) => {
                 info.combatEvents.BeforeHealingTaken -= BeforeHostHealingTaken;
+                info.combatEvents.OnUpdateHealAbsorbShield -= HandleUpdateAbsorbShield;
+                info.UpdateHealthAbsorbShield();
             };
 
-            absorptionValue = value;
+        }
+
+        void HandleUpdateAbsorbShield(EntityInfo entity, List<Func<float>> nums)
+        {
+            nums.Add(() => value);
         }
 
         void BeforeHostHealingTaken(CombatEventData eventData)
         {
-            if (absorptionValue > eventData.value)
+            if (value >= eventData.value)
             {
-                absorptionValue -= eventData.value;
+                value -= eventData.value;
                 eventData.value = 0f;
-                return;
             }
-            else if (absorptionValue < eventData.value)
+            else if (value < eventData.value)
             {
-                eventData.value -= absorptionValue;
-                absorptionValue = 0f;
+                eventData.value -= value;
+                value = 0f;
+                buffInfo.Deplete();
             }
 
-            buffInfo.Cleanse();
+            eventData.target.UpdateHealthAbsorbShield();
         }
 
         public override string GeneralDescription()
@@ -54,7 +61,6 @@ namespace Architome
 
         public override string Description()
         {
-            var value = absorptionValue > 0f ? absorptionValue : this.value;
 
             return $"Prevents the unit from taking any healing for the next {value} health";
         }

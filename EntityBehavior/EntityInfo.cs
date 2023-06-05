@@ -108,6 +108,7 @@ namespace Architome
         public float maxHealth;
         public float maxMana;
         public float shield;
+        public float healAbsorbShield;
         public float health;
         public float mana;
 
@@ -201,10 +202,67 @@ namespace Architome
         private NPCType npcTypeCheck;
         #endregion
 
+        private void Awake()
+        {
+            abilityEvents ??= new();
+            infoEvents.Initiate(this);
+        }
+        void Start()
+        {
+            EntityStart();
+            HandleFalling();
+            HandleRarityEvents();
+        }
+        void Update()
+        {
+            HandleEventTriggers();
+        }
+        public void OnDestroy()
+        {
+            infoEvents.OnDestroy?.Invoke(this);
+            if (GMHelper.TargetManager())
+            {
+                if (GMHelper.TargetManager().selectedTargets.Contains(gameObject))
+                {
+                    GMHelper.TargetManager().selectedTargets.Remove(gameObject);
+                }
+            }
+        }
+        private void OnMouseEnter()
+        {
+            return;
+            infoEvents.OnMouseHover?.Invoke(this, true, gameObject);
 
 
-        //Private Variables
-        //Methods
+        }
+        private void OnMouseExit()
+        {
+            return;
+            infoEvents.OnMouseHover?.Invoke(this, false, gameObject);
+
+        }
+        public void OnTriggerEnter(Collider other)
+        {
+            OnTriggerEvent?.Invoke(this, other, true);
+            OnPhysicsEvent?.Invoke(this, other.gameObject, true);
+        }
+        public void OnTriggerExit(Collider other)
+        {
+
+            OnPhysicsEvent?.Invoke(this, other.gameObject, false);
+            OnTriggerEvent?.Invoke(this, other, false);
+        }
+        public void OnCollisionEnter(Collision collision)
+        {
+            OnPhysicsEvent?.Invoke(this, collision.gameObject, true);
+            OnCollisionEvent?.Invoke(this, collision, true);
+        }
+        public void OnCollisionExit(Collision collision)
+        {
+
+            OnPhysicsEvent?.Invoke(this, collision.gameObject, false);
+            OnCollisionEvent?.Invoke(this, collision, true);
+        }
         public void GetDependencies()
         {
 
@@ -272,7 +330,6 @@ namespace Architome
 
             UpdateHealthRegen();
         }
-
         public void UpdateHealthRegen()
         {
             if (rarity != EntityRarity.Player)
@@ -284,7 +341,6 @@ namespace Architome
                 healthRegenPercent = .01f;
             }
         }
-
         async void HandleFalling()
         {
             var height = transform.position.y;
@@ -308,13 +364,11 @@ namespace Architome
                 await Task.Delay(1000);
             }
         }
-
         public void UpdateObjectives(object sender)
         {
             objectives = new();
             infoEvents.OnUpdateObjectives?.Invoke(objectives);
         }
-
         void UpdateResources(bool val)
         {
             if (role == Role.Tank && rarity == EntityRarity.Player)
@@ -335,30 +389,12 @@ namespace Architome
                 mana = maxMana;
             }
         }
-
-        private void Awake()
-        {
-            abilityEvents ??= new();
-            infoEvents.Initiate(this);
-        }
-        void Start()
-        {
-            EntityStart();
-            HandleFalling();
-            HandleRarityEvents();
-        }
-        void Update()
-        {
-            HandleEventTriggers();
-        }
-
         void HandleRarityEvents()
         {
             infoEvents.OnRarityChange += (EntityRarity before, EntityRarity after) => {
                 ArchAction.Yield(() => UpdateHealthRegen());
             };
         }
-
         public virtual void EntityStart()
         {
             if (!properties.created)
@@ -371,7 +407,6 @@ namespace Architome
 
             StartCoroutine(HandleRegeneration());
         }
-
         public void GainExperience(object sender, float amount)
         {
             OnExperienceGainOutside?.Invoke(sender, amount);
@@ -425,58 +460,11 @@ namespace Architome
                 npcTypeCheck = npcType;
             }
         }
-        public void OnDestroy()
-        {
-            infoEvents.OnDestroy?.Invoke(this);
-            if (GMHelper.TargetManager())
-            {
-                if (GMHelper.TargetManager().selectedTargets.Contains(gameObject))
-                {
-                    GMHelper.TargetManager().selectedTargets.Remove(gameObject);
-                }
-            }
-        }
         public string ObjectivesDescription()
         {
             if (objectives == null) objectives = new();
             //infoEvents.OnObjectiveCheck?.Invoke(objectives);
             return ArchString.NextLineList(objectives);
-        }
-        private void OnMouseEnter()
-        {
-            return;
-            infoEvents.OnMouseHover?.Invoke(this, true, gameObject);
-
-
-        }
-
-        private void OnMouseExit()
-        {
-            return;
-            infoEvents.OnMouseHover?.Invoke(this, false, gameObject);
-
-        }
-        public void OnTriggerEnter(Collider other)
-        {
-            OnTriggerEvent?.Invoke(this, other, true);
-            OnPhysicsEvent?.Invoke(this, other.gameObject, true);
-        }
-        public void OnTriggerExit(Collider other)
-        {
-
-            OnPhysicsEvent?.Invoke(this, other.gameObject, false);
-            OnTriggerEvent?.Invoke(this, other, false);
-        }
-        public void OnCollisionEnter(Collision collision)
-        {
-            OnPhysicsEvent?.Invoke(this, collision.gameObject, true);
-            OnCollisionEvent?.Invoke(this, collision, true);
-        }
-        public void OnCollisionExit(Collision collision)
-        {
-
-            OnPhysicsEvent?.Invoke(this, collision.gameObject, false);
-            OnCollisionEvent?.Invoke(this, collision, true);
         }
         public void SetEntityStats()
         {
@@ -562,12 +550,10 @@ namespace Architome
                     var reduction = ReductionPercent(stats.armor);
 
                     combatData.value -= combatData.value * reduction;
-                    //combatData.value -= stats.armor;
                 }
                 else if (damageType == DamageType.Magical)
                 {
                     var reduction = ReductionPercent(stats.magicResist);
-                    //combatData.value -= stats.magicResist;
                     combatData.value -= combatData.value * reduction;
                 }
 
@@ -601,33 +587,11 @@ namespace Architome
                 combatEvents.BeforeDamageTaken?.Invoke(combatData);
 
 
-                DamageShield();
                 DamageHealth();
 
                 if (source != null) source.OnDamageDone?.Invoke(combatData);
                 OnDamageTaken?.Invoke(combatData);
 
-                void DamageShield()
-                {
-                    
-                    if (Buffs() == null) { return; }
-                    var buffs = Buffs().GetComponentsInChildren<BuffShield>().ToList();
-
-                    if(buffs.Count == 0) { return; }
-
-                    foreach (var buff in buffs)
-                    {
-                        if (buff.shieldAmount == 0) continue;
-                        if (combatData.value <= 0)
-                        {
-                            combatData.value = 0;
-                            break;
-                        }
-
-                        buff.DamageShield(combatData);
-
-                    }
-                }
                 void DamageHealth()
                 {
                     if (health - combatData.value <= 0)
@@ -839,22 +803,7 @@ namespace Architome
                 mana -= value;
             }
         }
-        public void UpdateShield()
-        {
-            float totalShield = 0;
-            if (Buffs())
-            {
-                foreach (BuffInfo buff in Buffs().Buffs())
-                {
-                    if (buff.GetComponent<BuffShield>())
-                    {
-                        totalShield += buff.GetComponent<BuffShield>().shieldAmount;
-                    }
-                }
-            }
 
-            shield = totalShield;
-        }
         public void GainResource(float value)
         {
             

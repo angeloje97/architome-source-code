@@ -26,14 +26,13 @@ namespace Architome
         public Action<EntityInfo, List<bool>> OnCanHelpCheck { get; set; }
         public Action<List<bool>> OnCanBeAttackedCheck { get; set; }
         public Action<List<bool>> OnCanBeHelpedCheck { get; set; }
-
         public Action<CombatEventData> OnKillPlayer { get; set; }
-
         public Action<ThreatManager.ThreatInfo> OnFirstThreatWithPlayer { get; set; }
-
         public Action<EntityState> OnAddImmuneState { get; set; }
         public Action<EntityState> OnRemoveImmuneState { get; set; }
 
+        public Action<EntityInfo, List<Func<float>>> OnUpdateShield;
+        public Action<EntityInfo, List<Func<float>>> OnUpdateHealAbsorbShield;
 
     }
 }

@@ -164,16 +164,15 @@ namespace Architome
             }
         }
 
-        public void CreateTask(TaskInfo task)
+        public int CreateTask(TaskInfo task)
         {
             task.properties.station = this;
 
+            var index = tasks.Count;
             tasks.Add(task);
 
-
-            
             clickable.AddOption(task.properties.workString);
-            
+            return index;   
         }
 
         public void OnSelectAction(Clickable eventData)
@@ -206,8 +205,6 @@ namespace Architome
             }
         }
         
-        
-
         public void HideStationFromPlayers()
         {
             if (tasks == null) return;
