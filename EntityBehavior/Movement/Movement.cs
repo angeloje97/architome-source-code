@@ -76,10 +76,6 @@ namespace Architome
                 originalConstraints = rigidBody.constraints;
 
 
-                //if (rvoController == null)
-                //{
-                //    rvoController = entityInfo.gameObject.AddComponent<RVOController>();
-                //}
 
                 if (entityInfo.AIDestinationSetter())
                 {

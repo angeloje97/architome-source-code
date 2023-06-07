@@ -36,6 +36,7 @@ namespace Architome
             public bool hideFromPlayers;
 
             [Header("Progression Rules")]
+            public bool noCompletion;
             public bool resetOnCancel;
             public bool fallsOnNoWorkers;
             public float percentPerSecond;
@@ -89,6 +90,7 @@ namespace Architome
             public UnityEvent<TaskEventData> WhileBeingWorkedOn;
             public UnityEvent<TaskEventData> OnLingeringStart;
             public UnityEvent<TaskEventData> OnLingeringEnd;
+            public UnityEvent<TaskEventData> OnMaxProgress;
 
             [Header("Simple Events")]
             public UnityEvent<float> OnWorkProgressChange;
@@ -199,6 +201,7 @@ namespace Architome
         public async Task<bool> WhileWorking()
         {
             var success = false;
+            var fullProgress = false;
 
             while(states.isBeingWorkedOn)
             {
@@ -225,6 +228,13 @@ namespace Architome
                 }
                 else if(properties.workDone >= properties.workAmount)
                 {
+                    if (!fullProgress)
+                    {
+                        fullProgress = true;
+                        completionEvents.OnMaxProgress?.Invoke(new(this));
+                    }
+
+                    if (properties.noCompletion) return;
                     states.isBeingWorkedOn = false;
                     success = true;
                 }
@@ -256,6 +266,7 @@ namespace Architome
             }
 
             HandleFallsOnNoWorkers();
+
 
             async void HandleFallsOnNoWorkers()
             {

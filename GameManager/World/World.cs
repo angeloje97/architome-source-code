@@ -9,12 +9,18 @@ using Architome.Enums;
 
 namespace Architome
 {
+
+    //public class Time
+    //{
+    //    public static float deltaTime { get; set; }
+    //}
     public class World : MonoBehaviour
     {
 
         public static World active;
 
         public static float deltaTime { get; private set; }
+
 
         public ArchitomeID database;
         // Start is called before the first frame update

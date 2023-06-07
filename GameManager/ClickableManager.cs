@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.Linq;
+using Architome.Enums;
 
 namespace Architome
 {
@@ -18,11 +19,6 @@ namespace Architome
 
         GameObject clickableHoverCheck;
 
-        void Start()
-        {
-            ArchInput.active.OnActionMultiple += OnActionMultiple;
-            ArchInput.active.OnAction += OnAction;
-        }
 
         private void Awake()
         {
@@ -56,6 +52,7 @@ namespace Architome
 
             foreach (var member in partyEntites)
             {
+                if (member.workerState != WorkerState.Idle && member.workerState != WorkerState.Lingering) continue;
                 entityInfos.Add(member.GetComponent<EntityInfo>());
             }
 
@@ -69,6 +66,9 @@ namespace Architome
             if (currentClickableHover == null) return;
 
             var entityInfos = new List<EntityInfo>();
+
+            var selectedTargets = ContainerTargetables.active.selectedTargets;
+            if (selectedTargets == null || selectedTargets.Count == 0) return;
 
             foreach (var selected in ContainerTargetables.active.selectedTargets)
             {
@@ -84,7 +84,15 @@ namespace Architome
             clickable.ClickMultiple(entityInfos);
         }
 
+        public void OnActionSingle()
+        {
+            var singleController = SingleController.active;
+            if(singleController == null) return;
+            var entity = singleController.CurrentEntity;
+            var clickable = currentClickableHover.GetComponent<Clickable>();
 
+            clickable.Click(entity);
+        }
 
         public void HandleClickable(Clickable clicked)
         {
