@@ -68,6 +68,15 @@ namespace Architome
             UpdateTasks();
         }
 
+        void Update()
+        {
+            if (tasks == null) return;
+            foreach (var task in tasks)
+            {
+                task.Update();
+            }
+        }
+
         void UpdateTasks()
         {
             if (!updateTasks) return;
@@ -78,13 +87,11 @@ namespace Architome
             foreach (var task in tasks)
             {
                 task.properties.station = this;
+                task.OnValidate();
             }
         }
 
-        void Update()
-        {
-
-        }
+        
 
         void HandleTaskComplete(TaskEventData eventData)
         {

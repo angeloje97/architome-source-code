@@ -32,9 +32,13 @@ namespace Architome
             public bool canRepeat;
             public bool autoRepeat;
             public bool allowLinger;
-            public bool resetOnCancel;
             public bool damageCancelsTask;
             public bool hideFromPlayers;
+
+            [Header("Progression Rules")]
+            public bool resetOnCancel;
+            public bool fallsOnNoWorkers;
+            public float percentPerSecond;
         }
 
         [Serializable]
@@ -82,8 +86,12 @@ namespace Architome
         {
             public UnityEvent<TaskEventData> OnCompleted;
             public UnityEvent<TaskEventData> OnFailed;
+            public UnityEvent<TaskEventData> WhileBeingWorkedOn;
             public UnityEvent<TaskEventData> OnLingeringStart;
             public UnityEvent<TaskEventData> OnLingeringEnd;
+
+            [Header("Simple Events")]
+            public UnityEvent<float> OnWorkProgressChange;
         }
 
         public TaskProperties properties;
@@ -102,14 +110,23 @@ namespace Architome
 
         public void OnValidate()
         {
-            //effects.workingSound = properties.workingSound;
-            //effects.completionSound = properties.completionSound;
-            //effects.taskAnimationID = properties.taskAnimationID;
-            //effects.lingeringAnimationID = properties.lingeringAnimationID;
+        }
+
+        public void Update()
+        {
+            properties.deltaWork = properties.workDone - previousWorkDone;
+            if(previousWorkDone != properties.workDone)
+            {
+
+                completionEvents.OnWorkProgressChange?.Invoke(properties.workDone / properties.workAmount);
+
+                previousWorkDone = properties.workDone;
+            }
+
         }
 
         //Private variables
-        float previousWorkDone;
+        float previousWorkDone { get; set; }
 
         public List<EntityInfo> CurrentWorkers
         {
@@ -160,14 +177,18 @@ namespace Architome
             properties.station.taskEvents.OnEndTask?.Invoke(new TaskEventData(this));
 
 
-            properties.deltaWork = 0;
+
             
 
             if (success)
             {
                 HandleComplete();
                 await Task.Delay(125);
-                properties.workDone = 0;
+                if (properties.canRepeat)
+                {
+                    properties.workDone = 0;
+
+                }
             }
             else
             {
@@ -182,10 +203,14 @@ namespace Architome
             while(states.isBeingWorkedOn)
             {
                 await Task.Yield();
-
                 HandleWork();
                 HandleWorkerEvents();
                 HandleWorkerCount();
+
+
+
+                completionEvents.WhileBeingWorkedOn?.Invoke(new(this));
+
             }
 
             return success;
@@ -194,11 +219,8 @@ namespace Architome
             {
                 if(properties.workDone < properties.workAmount)
                 {
-                    properties.workDone += Time.deltaTime * workers.working.Count;
+                    properties.workDone += World.deltaTime * workers.working.Count;
 
-                    properties.deltaWork = properties.workDone - previousWorkDone;
-
-                    previousWorkDone = properties.workDone;
                     
                 }
                 else if(properties.workDone >= properties.workAmount)
@@ -231,6 +253,27 @@ namespace Architome
             if(properties.resetOnCancel)
             {
                 properties.workDone = 0;
+            }
+
+            HandleFallsOnNoWorkers();
+
+            async void HandleFallsOnNoWorkers()
+            {
+                if (!properties.fallsOnNoWorkers) return;
+
+                while (!states.isBeingWorkedOn)
+                {
+                    await Task.Yield();
+                    if (properties.workDone <= 0)
+                    {
+                        properties.workDone = 0f;
+                        return;
+                    }
+
+                    var valueFromPercent = properties.workAmount * properties.percentPerSecond;
+                    properties.workDone -= World.deltaTime * valueFromPercent;
+
+                }
             }
         }
 
@@ -488,6 +531,11 @@ namespace Architome
             this.task = task;
             workInfo = task.properties.station;
 
+        }
+
+        public float WorkPercent()
+        {
+            return task.properties.workDone / task.properties.workAmount;
         }
 
         public bool TaskComplete { 
