@@ -20,6 +20,13 @@ namespace Architome
             {
                 this.entity = entity;
             }
+
+            entity = GetComponentInParent<EntityInfo>();
+
+            if(entity && this.entity == null)
+            {
+                this.entity = entity;
+            }
         }
 
         public void SetEntity(EntityInfo entity)

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Animations;
 using UnityEngine;
 
 namespace Architome
@@ -9,6 +10,7 @@ namespace Architome
         public static SingleController active;
 
         Movement movement;
+        PlayerController controller;
 
         private void Awake()
         {
@@ -34,6 +36,20 @@ namespace Architome
         void GetDependencies()
         {
             controllableEntity = GetComponentInChildren<EntityInfo>();
+            var gameManager = GameManager.active;
+
+            if (controllableEntity)
+            {
+                gameManager.AddPlayableCharacter(controllableEntity);
+
+                movement = controllableEntity.Movement();
+                controller = controllableEntity.PlayerController();
+            }
+        }
+
+        public void OnAction()
+        {
+            controller.HandleActionButton(true);
         }
     }
 }

@@ -84,15 +84,15 @@ namespace Architome
             clickable.ClickMultiple(entityInfos);
         }
 
-        public void OnActionSingle()
-        {
-            var singleController = SingleController.active;
-            if(singleController == null) return;
-            var entity = singleController.CurrentEntity;
-            var clickable = currentClickableHover.GetComponent<Clickable>();
+        //public void OnActionSingle()
+        //{
+        //    var singleController = SingleController.active;
+        //    if(singleController == null) return;
+        //    var entity = singleController.CurrentEntity;
+        //    var clickable = currentClickableHover.GetComponent<Clickable>();
 
-            clickable.Click(entity);
-        }
+        //    clickable.Click(entity);
+        //}
 
         public void HandleClickable(Clickable clicked)
         {

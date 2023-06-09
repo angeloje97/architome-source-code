@@ -33,7 +33,6 @@ public class PlayerController : MonoBehaviour
             behavior = entityInfo.AIBehavior();
 
             entityInfo.sceneEvents.OnTransferScene += OnTransferScene;
-            entityInfo.partyEvents.OnSelectedAction += OnPartyAction;
         }
 
         var layerMasksData = LayerMasksData.active;
@@ -48,34 +47,20 @@ public class PlayerController : MonoBehaviour
         {
             keyBindings = GMHelper.KeyBindings();
         }
-
-        //if (ArchInput.active)
-        //{
-        //    ArchInput.active.OnAction += OnAction;
-        //}
-
     }
     void Start()
     {
         GetDependencies();
     }
-    // Update is called once per frame
     void Update()
     {
         
-        //HandleEntityControl();
-        //HandlePartyControl();
     }
     
     public void OnTransferScene(string sceneName)
     {
         targetManager = ContainerTargetables.active;
         keyBindings = GMHelper.KeyBindings();
-    }
-
-    void OnPartyAction(PartyInfo party)
-    {
-        OnAction();
     }
 
     public void OnAction()
@@ -202,15 +187,17 @@ public class PlayerController : MonoBehaviour
         {
             if (!isFromPartyControl) return;
             currentObject.GetComponent<Clickable>().Click(entityInfo);
+            return;
         }
-        else if (targetManager.currentHover)
+
+        var currentTarget = targetManager.CurrentTarget();
+        if (currentTarget)
         {
-            var targetInfo = targetManager.currentHover.GetComponent<EntityInfo>();
-            abilityManager.target = targetInfo;
+            abilityManager.target = currentTarget;
             Attack();
             if (entityInfo.AIBehavior().behaviorType == AIBehaviorType.HalfPlayerControl)
             {
-                entityInfo.CombatBehavior().SetFocus(targetInfo);
+                entityInfo.CombatBehavior().SetFocus(currentTarget);
 
             }
         }

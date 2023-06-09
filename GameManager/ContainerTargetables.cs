@@ -276,6 +276,24 @@ namespace Architome
                 return true;
             }
         }
+        
+        public EntityInfo CurrentTarget(bool useSelectedTargets = false)
+        {
+            if (currentHover) return currentHover.GetComponent<EntityInfo>();
+            if(selectedTargets.Count > 0 && useSelectedTargets)
+            {
+                return selectedTargets[^1].GetComponent<EntityInfo>();
+            }
+            var mouseOver = Mouse.CurrentHover(targetLayer);
+
+            if (mouseOver)
+            {
+                Hover(mouseOver);
+                return mouseOver.GetComponent<EntityInfo>();
+            }
+
+            return null;
+        }
 
         void OnEscape()
         {

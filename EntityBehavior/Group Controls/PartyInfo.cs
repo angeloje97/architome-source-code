@@ -244,6 +244,10 @@ namespace Architome
             {
                 if (!targetManager.selectedTargets.Contains(entity.gameObject)) continue;
                 entity.partyEvents.OnSelectedAction?.Invoke(this);
+                var controller = entity.PlayerController();
+                if (controller == null) continue;
+                controller.HandleActionButton(true);
+                
             }
         }
 
