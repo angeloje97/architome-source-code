@@ -90,10 +90,15 @@ namespace Architome
             public UnityEvent<TaskEventData> WhileBeingWorkedOn;
             public UnityEvent<TaskEventData> OnLingeringStart;
             public UnityEvent<TaskEventData> OnLingeringEnd;
-            public UnityEvent<TaskEventData> OnMaxProgress;
+        }
 
-            [Header("Simple Events")]
-            public UnityEvent<float> OnWorkProgressChange;
+        [Serializable]
+        struct TaskProgressEvents
+        {
+            public UnityEvent<float> OnProgressChange;
+            public UnityEvent<TaskEventData> OnMaxProgress;
+            public UnityEvent<TaskEventData> OnProgressDepleted;
+
         }
 
         public TaskProperties properties;
@@ -107,6 +112,8 @@ namespace Architome
         [SerializeField]
         TaskCompletionEvent completionEvents;
 
+        [SerializeField]
+        TaskProgressEvents progressEvents;
         [HideInInspector] public List<(bool, string)> checks;
         
 
@@ -120,7 +127,7 @@ namespace Architome
             if(previousWorkDone != properties.workDone)
             {
 
-                completionEvents.OnWorkProgressChange?.Invoke(properties.workDone / properties.workAmount);
+                progressEvents.OnProgressChange?.Invoke(properties.workDone / properties.workAmount);
 
                 previousWorkDone = properties.workDone;
             }
@@ -231,7 +238,7 @@ namespace Architome
                     if (!fullProgress)
                     {
                         fullProgress = true;
-                        completionEvents.OnMaxProgress?.Invoke(new(this));
+                        progressEvents.OnMaxProgress?.Invoke(new(this));
                     }
 
                     if (properties.noCompletion) return;
@@ -278,6 +285,8 @@ namespace Architome
                     if (properties.workDone <= 0)
                     {
                         properties.workDone = 0f;
+
+                        progressEvents.OnProgressDepleted?.Invoke(new(this));
                         return;
                     }
 
@@ -285,6 +294,7 @@ namespace Architome
                     properties.workDone -= World.deltaTime * valueFromPercent;
 
                 }
+
             }
         }
 

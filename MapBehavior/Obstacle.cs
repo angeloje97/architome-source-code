@@ -1,8 +1,9 @@
+using Pathfinding;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace Architome
 {
@@ -12,8 +13,14 @@ namespace Architome
         MapAdjustments adjustments;
         Vector3 currentPosition;
         Vector3 currentPositionCheck;
+        Vector3 lastPositionBeforeDisabled;
+        [SerializeField] float updateInterval = 1f;
+        [SerializeField] float currentTime;
 
-        float updateIntervals;
+        bool isDisabled;
+        bool isDestroyed;
+
+
 
         void GetDependencies()
         {
@@ -28,37 +35,84 @@ namespace Architome
 
         private void OnDestroy()
         {
-            foreach(var collider in colliders)
-            {
-                collider.enabled = false;
-            }
+            isDestroyed = true;
+            transform.Translate(Vector3.down * 1000);
             UpdateObstacle();
+        }
+
+        private void OnEnable()
+        {
+            isDisabled = false;
+            transform.position = lastPositionBeforeDisabled;
+            UpdateObstacle();
+        }
+
+        private async void OnDisable()
+        {
+            if (isDisabled)
+            {
+                gameObject.SetActive(false);
+                return;
+            }
+
+            await Task.Yield();
+
+            if (isDestroyed) return;
+            if (this == null) return;
+            gameObject.SetActive(true);
+
+
+            lastPositionBeforeDisabled = currentPosition;
+            var farPosition = transform.position;
+            farPosition.y -= 1000;
+            transform.position = farPosition;
+            currentPosition = transform.position;
+            UpdateObstacle();
+
+            await Task.Yield();
+            isDisabled = true;
+            gameObject.SetActive(false);
         }
 
         private void Update()
         {
-            if(updateIntervals > 0f)
+            if(currentTime > 0f)
             {
-                updateIntervals -= Time.deltaTime;
+                currentTime -= Time.deltaTime;
                 return;
             }
 
-            updateIntervals = 1f;
+            currentTime = updateInterval;
 
             currentPosition = transform.position;
 
             if(currentPosition != currentPositionCheck)
             {
-                currentPositionCheck = currentPosition;
                 UpdateObstacle();
             }
         }
 
-        void UpdateObstacle()
+        
+
+        void UpdateObstacle(float sizeMultiplier = 1f)
         {
-            currentPositionCheck = currentPosition;
             if (adjustments == null) return;
-            adjustments.AdjustAroundCollider(colliders);
+            var bounds = new List<Bounds>();
+            //await adjustments.AdjustAroundCollider(colliders);
+            foreach(var collider in colliders)
+            {
+                bounds.Add(collider.bounds);
+                var previousBounds = collider.bounds;
+                previousBounds.center = currentPositionCheck;
+                previousBounds.size *= sizeMultiplier;
+                bounds.Add(previousBounds);
+            };
+
+
+            adjustments.AdjustAroundBounds(bounds);
+
+
+            currentPositionCheck = currentPosition;
         }
     }
 }

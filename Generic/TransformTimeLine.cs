@@ -74,6 +74,11 @@ namespace Architome
 
         #region Run Time
 
+        private void Start()
+        {
+            firstFrame.SetTransform(transform);
+        }
+
         public void Lerp(float lerpValue)
         {
             var transformFrame = new TransformFrame();

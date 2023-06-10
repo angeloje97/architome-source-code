@@ -78,7 +78,7 @@ namespace Architome
             Debugger.InConsole(54382, $"A star pathfinding project scan took {timer} seconds");
         }
 
-        public async void AdjustAroundCollider(Collider[] colliders)
+        public async Task AdjustAroundCollider(Collider[] colliders)
         {
             var astarPath = AstarPath.active;
             if (astarPath == null) return;
@@ -90,8 +90,29 @@ namespace Architome
                 astarPath.UpdateGraphs(coll.bounds);
                 await Task.Yield();
             }
+        }
 
-            
+        public void AdjustAroundBounds(List<Bounds> bounds) 
+        {
+            var astarPath = AstarPath.active;
+            if (astarPath == null) return;
+            if (!updatedAStarPathOnce) return;
+
+            foreach(var bound in bounds)
+            {
+                astarPath.UpdateGraphs(bound);
+            }
+        }
+
+        public void AdjustAroundVectorCluster<T>(VectorCluster<T> cluster) where T: Component
+        {
+            var astarPath = AstarPath.active;
+            if (astarPath == null) return;
+            if (!updatedAStarPathOnce) return;
+
+            Bounds bound = new();
+
+            astarPath.UpdateGraphs(bound);
         }
 
 
