@@ -37,7 +37,7 @@ namespace Architome
         {
             isDestroyed = true;
             transform.Translate(Vector3.down * 1000);
-            UpdateObstacle();
+            UpdateObstacle(3f, 3);
         }
 
         private void OnEnable()
@@ -94,7 +94,7 @@ namespace Architome
 
         
 
-        void UpdateObstacle(float sizeMultiplier = 1f)
+        void UpdateObstacle(float sizeMultiplier = 1f, int iterations = 1)
         {
             if (adjustments == null) return;
             var bounds = new List<Bounds>();
@@ -109,7 +109,7 @@ namespace Architome
             };
 
 
-            adjustments.AdjustAroundBounds(bounds);
+            adjustments.AdjustAroundBounds(bounds, iterations);
 
 
             currentPositionCheck = currentPosition;

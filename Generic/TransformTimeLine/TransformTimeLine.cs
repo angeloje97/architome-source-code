@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Architome
 {
@@ -47,7 +48,9 @@ namespace Architome
         [SerializeField] TransformFrame firstFrame;
         [SerializeField] TransformFrame secondFrame;
 
-
+        [Header("Actions")]
+        public UnityEvent OnMaxLerp;
+        public UnityEvent OnNoLerp;
 
         #region Validation Region
         private void OnValidate()
@@ -72,15 +75,41 @@ namespace Architome
         }
         #endregion
 
+        float lerpValue;
+        float lerpCheck;
+
         #region Run Time
 
-        private void Start()
+        protected virtual void Start()
         {
             firstFrame.SetTransform(transform);
         }
 
-        public void Lerp(float lerpValue)
+        private void Update()
         {
+            HandleEvents();
+        }
+
+        void HandleEvents()
+        {
+            if (lerpCheck != lerpValue)
+            {
+                if (lerpCheck == 1f)
+                {
+                    OnMaxLerp?.Invoke();
+                }
+
+                if (lerpCheck == 0f)
+                {
+                    OnNoLerp?.Invoke();
+                }
+                lerpCheck = lerpValue;
+            }
+        }
+
+        public virtual void  Lerp(float lerpValue)
+        {
+            this.lerpValue = Mathf.Clamp(lerpValue, 0f, 1f);
             var transformFrame = new TransformFrame();
             transformFrame.LerpTransformFrame(firstFrame, secondFrame, lerpValue);
             transformFrame.SetTransform(transform);

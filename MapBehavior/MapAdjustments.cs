@@ -92,16 +92,24 @@ namespace Architome
             }
         }
 
-        public void AdjustAroundBounds(List<Bounds> bounds) 
+        public async void AdjustAroundBounds(List<Bounds> bounds, int iterations = 1) 
         {
             var astarPath = AstarPath.active;
             if (astarPath == null) return;
             if (!updatedAStarPathOnce) return;
+            var count = 0;
 
-            foreach(var bound in bounds)
+            while(count < iterations)
             {
-                astarPath.UpdateGraphs(bound);
+                count++;
+                foreach (var bound in bounds)
+                {
+                    astarPath.UpdateGraphs(bound);
+                }
+                await Task.Delay(625);
             }
+
+            
         }
 
         public void AdjustAroundVectorCluster<T>(VectorCluster<T> cluster) where T: Component
