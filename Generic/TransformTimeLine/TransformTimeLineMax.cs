@@ -10,6 +10,7 @@ namespace Architome
     {
         public List<float> values;
         Dictionary<Component, int> sourceIndex;
+        int maxIndex = -1;
 
         public Component currentComponent;
 
@@ -24,19 +25,41 @@ namespace Architome
         {
             if (currentComponent == null) return;
             var source = currentComponent;
+            int index;
 
             if (!sourceIndex.ContainsKey(source))
             {
                 var newIndex = values.Count;
                 sourceIndex.Add(source, newIndex);
                 values.Add(value);
+                index = newIndex;
             }
             else
             {
+                index = sourceIndex[source];
                 values[sourceIndex[source]] = value;
             }
 
-            base.Lerp(MaxValue());
+            values[index] = value;
+
+            UpdateMaxIndex();
+
+            base.Lerp(values[maxIndex]);
+
+            void UpdateMaxIndex()
+            {
+                if (maxIndex == -1)
+                {
+                    maxIndex = index;
+                }
+                else
+                {
+                    if (value > values[maxIndex])
+                    {
+                        maxIndex = index;
+                    }
+                }
+            }
         }
 
 
@@ -48,20 +71,6 @@ namespace Architome
             }
         }
         
-
-        float MaxValue()
-        {
-            var max = 0f;
-            foreach(var value in values)
-            {
-                if(value > max)
-                {
-                    max = value;
-                }
-            }
-
-            return max;
-        }
 
     }
 }
