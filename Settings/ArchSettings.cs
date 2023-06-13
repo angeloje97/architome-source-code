@@ -112,7 +112,7 @@ namespace Architome.Settings
 
         }
 
-        async Task<bool> ConfirmLeave(string sender)
+        protected async Task<bool> ConfirmLeave(string sender)
         {
             Debugger.UI(2338, $"Sender for confirm leave prompt is {sender}");
             var promptHandler = PromptHandler.active;

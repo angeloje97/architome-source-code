@@ -6,6 +6,7 @@ using System.Linq;
 using UnityEngine.UIElements;
 using Architome.Settings.Keybindings;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Architome.Settings
 {
@@ -25,9 +26,10 @@ namespace Architome.Settings
         public struct Info
         {
             public Transform mapParent;
+            public ScrollRect scrollRect;
+            public TMP_Dropdown dropDown;
             
             public List<KeybindSet> editableSets;
-            public ScrollRect scrollRect;
             public int selectedSetIndex;
 
             public KeyBindingsSave currentKeybindSave;
@@ -60,6 +62,24 @@ namespace Architome.Settings
         private void Awake()
         {
             active = this;
+        }
+        private void OnValidate()
+        {
+            ValidateDropDown();
+            void ValidateDropDown()
+            {
+                if (info.dropDown == null) return;
+
+                var options = new List<TMP_Dropdown.OptionData>();
+                
+                foreach(var set in info.editableSets)
+                {
+                    options.Add(new() { text = set.name });
+                }
+
+                info.dropDown.options = options;
+
+            }
         }
         void GetDependencies()
         {
@@ -221,10 +241,25 @@ namespace Architome.Settings
             }
 
         }
-        public void ChangeSet(int index)
+        public async void ChangeSet(int index)
         {
+
             var currentIndex = info.selectedSetIndex;
             if (currentIndex == index) return;
+
+            if (dirty)
+            {
+                var confirmLeave = await ConfirmLeave("Keybind Mapping");
+
+                if (!confirmLeave)
+                {
+                    info.dropDown.SetValueWithoutNotify(currentIndex);
+                    info.selectedSetIndex = currentIndex;
+                    return;
+                }
+            }
+
+
 
             var currentCanvas = parentKeybindSet[info.editableSets[currentIndex]];
             currentCanvas.SetCanvas(false);
