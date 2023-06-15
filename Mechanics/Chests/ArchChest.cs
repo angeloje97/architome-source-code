@@ -133,22 +133,6 @@ namespace Architome
                 chanceMultiplier = chestRarityProperty.valueMultiplier });
 
             SetItems(itemsFromPool);
-
-            foreach (var itemData in info.items)
-            {
-                if (itemData.item == null) continue;
-                if (!Item.Equipable(itemData.item)) continue;
-
-                var equipment = (Equipment)itemData.item;
-
-                var rarityProperty = world.RarityRoll(info.rarity);
-
-                var itemLevel = (int) (info.level * rarityProperty.valueMultiplier);
-
-                if (itemLevel <= 0) itemLevel = 1;
-
-                equipment.SetPower(info.level, itemLevel, rarityProperty.name);
-            }
         }
         public void Open(TaskEventData eventData)
         {
@@ -177,6 +161,7 @@ namespace Architome
             if (world == null) return;
             foreach (var item in info.items)
             {
+                if (item.item == null) continue;
                 world.DropItem(item, transform.position + new Vector3(0, 1.5F, 0), true, true);
 
                 await Task.Delay(333);
@@ -283,6 +268,25 @@ namespace Architome
             while(info.items.Count < info.maxItems)
             {
                 info.items.Add(new());
+            }
+
+            var world = World.active;
+            if (!world) return;
+
+            foreach (var itemData in info.items)
+            {
+                if (itemData.item == null) continue;
+                if (!Item.Equipable(itemData.item)) continue;
+
+                var equipment = (Equipment)itemData.item;
+
+                var rarityProperty = world.RarityRoll(info.rarity);
+
+                var itemLevel = (int)(info.level * rarityProperty.valueMultiplier);
+
+                if (itemLevel <= 0) itemLevel = 1;
+
+                equipment.SetPower(info.level, itemLevel, rarityProperty.name);
             }
         }
 

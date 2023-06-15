@@ -719,14 +719,6 @@ namespace Architome
         public Transform Target()
         {
             return target;
-            //var movement = Movement();
-
-            //if (movement != null)
-            //{
-            //    return movement.Target();
-            //}
-
-            //return null;
         }
 
         public bool SetTarget(Transform target)

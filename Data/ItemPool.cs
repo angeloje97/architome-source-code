@@ -49,6 +49,7 @@ namespace Architome
 
             }
         }
+
         [System.Serializable]
         public class RequestData
         {
@@ -60,6 +61,13 @@ namespace Architome
             public bool uniqueItems;
             public List<PossibleItem> possibleItems;
             public List<PossibleItem> guaranteedItems;
+
+
+            public void CleanSelf()
+            {
+                possibleItems = null;
+                guaranteedItems = null;
+            }
         }
 
         #endregion
