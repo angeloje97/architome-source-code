@@ -75,7 +75,6 @@ namespace Architome
             HandleItemSlotHandler();
 
             ArchAction.Yield(() => sizeFitter.AdjustToSize());
-            //sizeFitter.AdjustToSize();
 
             void CreateItemSlots()
             {

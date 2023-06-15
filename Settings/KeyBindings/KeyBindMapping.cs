@@ -259,12 +259,12 @@ namespace Architome.Settings
                 }
             }
 
-
-
             var currentCanvas = parentKeybindSet[info.editableSets[currentIndex]];
             currentCanvas.SetCanvas(false);
             info.selectedSetIndex = index;
+            info.dropDown.SetValueWithoutNotify(index);
             var newCanvas = parentKeybindSet[info.editableSets[index]];
+
 
             info.scrollRect.content = newCanvas.GetComponent<RectTransform>();
             newCanvas.SetCanvas(true);

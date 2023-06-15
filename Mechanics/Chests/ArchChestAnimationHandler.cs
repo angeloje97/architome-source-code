@@ -60,6 +60,11 @@ namespace Architome
         {
             info.animator.SetBool("IsOpen", false);
         }
+
+        public void SetOpen(bool value)
+        {
+            info.animator.SetBool("IsOpen", value);
+        }
     }
 
 }

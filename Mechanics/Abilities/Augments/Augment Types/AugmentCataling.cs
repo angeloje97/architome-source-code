@@ -67,12 +67,12 @@ namespace Architome
 
             if (augment)
             {
-                return $"Releases {releasePerInterval} {catalingType} {catalingName} every {interval} seconds with a {ArchString.FloatToSimple(value, 0)} value";
+                return $"Releases {releasePerInterval} {catalingType} {catalingName} every {interval} seconds with {ArchString.FloatToSimple(value, 0)} power.";
 
             }
             else
             {
-                return $"Releases {releasePerInterval} {catalingType} {catalingName} every {interval} seconds with a {valueContribution * 100}% ability value";
+                return $"Releases {releasePerInterval} {catalingType} {catalingName} every {interval} seconds with {valueContribution * 100}% power of its ability's value";
             }
 
         }

@@ -67,7 +67,7 @@ public class BuffMindControl : BuffStateChanger
         
         var descriptions = new List<string>() {
             base.Description(),
-            $" Will change the target's threat type to the same as the source's threat type."
+            $"Will change the target's threat type to the same as the source's threat type."
         };
 
 

@@ -10,7 +10,6 @@ namespace Architome
 {
     public class Clickable : MonoBehaviour
     {
-        // Start is called before the first frame update
         [Serializable]
         public struct Option
         {
@@ -31,6 +30,7 @@ namespace Architome
         }
 
         public List<Option> options;
+        [SerializeField] CursorBehavior.CursorType mouseOverCursor;
 
         bool inactive;
 
@@ -158,12 +158,10 @@ namespace Architome
         {
             this.options.Add(new() { text = option });
         }
-
         public void ClearOptions()
         {
             this.options = new();
         }
-
         public void RemoveOptions(Predicate<Option> predicate)
         {
             options ??= new();
@@ -176,7 +174,6 @@ namespace Architome
                 }
             }
         }
-
         public void Click(EntityInfo entity)
         {
             if (options.Count == 0) return;
@@ -184,14 +181,21 @@ namespace Architome
             clickedEntities.Add(entity);
             HandleOptions();
         }
-
         public void ClickMultiple(List<EntityInfo> entities)
         {
             if (options.Count == 0) return;
             clickedEntities = entities;
             HandleOptions();
         }
+
+
+
         public bool Interactable { get { return options.Count > 0; } }
+
+        public Texture2D MouseOverTexture()
+        {
+            return mouseOverCursor.cursorTexture;
+        }
     }
 
 }

@@ -103,6 +103,13 @@ namespace Architome
             Cursor.SetCursor(texture, hotSpot, CursorMode.Auto);
         }
 
+        public void SetCursor(Texture2D texture)
+        {
+            Vector2 hotSpot = new(texture.width / 4f, texture.height / 4f);
+
+            Cursor.SetCursor(texture, hotSpot, CursorMode.Auto);
+        }
+
         
 
         private void Awake()
@@ -159,6 +166,14 @@ namespace Architome
                 if (clickable && clickable.Interactable && clickable.options.Count > 0)
                 {
                     var portal = clickable.GetComponent<PortalInfo>();
+                    var presetTexture = clickable.MouseOverTexture();
+
+                    if (presetTexture)
+                    {
+                        SetCursor(presetTexture);
+                        return;
+                    }
+
                     if (portal)
                     {
                         SetCursor("Portal");

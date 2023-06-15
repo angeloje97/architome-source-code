@@ -137,13 +137,9 @@ namespace Architome
         //Private variables
         float previousWorkDone { get; set; }
 
-        public List<EntityInfo> CurrentWorkers
-        {
-            get
-            {
-                return workers.working;
-            }
-        }
+
+        public List<EntityInfo> CurrentWorkers => workers.working;
+        public List<EntityInfo> CurrentLingering => workers.lingering;
 
 
         public TaskInfo(WorkInfo station)

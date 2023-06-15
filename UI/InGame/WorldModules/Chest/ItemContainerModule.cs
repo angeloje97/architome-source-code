@@ -4,14 +4,16 @@ using UnityEngine;
 using System;
 using UnityEngine.UI;
 using TMPro;
+using System.Threading.Tasks;
 
 namespace Architome
 {
     [RequireComponent(typeof(ItemSlotHandler))]
-    public class ChestModule : MonoBehaviour
+    public class ItemContainerModule : MonoBehaviour
     {
-        ArchChest chest;
+        ItemContainer itemContainer;
         ModuleInfo module;
+        WorldModuleCore moduleCore;
 
         [Serializable]
         struct Info
@@ -25,22 +27,21 @@ namespace Architome
         [SerializeField] Info info;
 
         public List<InventorySlot> slots;
+        [SerializeField] List<ItemData> itemDatas;
+
+        bool active;
 
         
-        public void SetChest(ArchChest chest)
+        public void SetItemContainer(ItemContainer itemContainer)
         {
-            this.chest = chest;
-
-            this.chest.events.OnClose += OnClose;
-
-            WorldModuleCore.active.OnChestOpen += OnAnotherChestOpen;
-
             module = GetComponent<ModuleInfo>();
             module.SetActive(false, false);
+            this.itemContainer = itemContainer;
 
-            module.OnActiveChange += OnActiveChange;
+            module.OnActiveChange += HandleActiveChange;
 
             GetDependencies();
+            active = true;
 
             ArchAction.Yield(() => module.SetActive(true, true));
         }
@@ -65,7 +66,7 @@ namespace Architome
 
             slots = new();
 
-            for (int i = 0; i < chest.info.maxChestSlots; i++)
+            for (int i = 0; i < itemContainer.maxCapacity; i++)
             {
                 var newSlot = Instantiate(module.prefabs.inventorySlot, info.slotParent).GetComponent<InventorySlot>();
                 newSlot.interactable = false;
@@ -79,7 +80,7 @@ namespace Architome
             if (slots == null) return;
             if (module.prefabs.item == null) return;
 
-            foreach (var itemData in chest.info.items)
+            foreach (var itemData in itemContainer.items)
             {
                 if (itemData.item == null) continue;
                 var slot = FirstAvailableSlot();
@@ -94,8 +95,6 @@ namespace Architome
                 ArchAction.Yield(() => newItem.ReturnToSlot());
             }
         }
-
-
         public InventorySlot FirstAvailableSlot()
         {
             foreach (var slot in slots)
@@ -106,8 +105,6 @@ namespace Architome
 
             return null;
         }
-
-
         public void OnChangeItem(ItemEventData eventData)
         {
 
@@ -123,14 +120,14 @@ namespace Architome
 
             if (info == null)
             {
-                chest.info.items[index].item = null;
-                chest.info.items[index].amount = 0;
+                itemContainer.items[index].item = null;
+                itemContainer.items[index].amount = 0;
                 return;
             }
 
 
-            chest.info.items[index].item = info.item;
-            chest.info.items[index].amount = info.currentStacks;
+            itemContainer.items[index].item = info.item;
+            itemContainer.items[index].amount = info.currentStacks;
 
             void HandlePreviousItem()
             {
@@ -147,16 +144,16 @@ namespace Architome
 
         public void OnItemAction(ItemInfo info)
         {
-            var entity = chest.info.entityOpened;
+            //var entity = chest.info.entityOpened;
 
-            var inventory = entity.GetComponentInChildren<Inventory>();
+            //var inventory = entity.GetComponentInChildren<Inventory>();
 
-            if (inventory == null) return;
+            //if (inventory == null) return;
 
 
-            var success = inventory.LootItem(info);
+            //var success = inventory.LootItem(info);
 
-            var index = inventory.FirstAvailableSlotIndex();
+            //var index = inventory.FirstAvailableSlotIndex();
 
             //inventory.inventoryItems[index].item = info.item;
             //inventory.inventoryItems[index].amount = info.currentStacks;
@@ -170,29 +167,30 @@ namespace Architome
             //Destroy(info.gameObject);
         }
 
-        public void OnClose(ArchChest chest)
+        public async Task UntilClose()
         {
+            while (active)
+            {
+                await Task.Yield();
+            }
+        }
+
+        void HandleActiveChange(bool isActive)
+        {
+            if (isActive) return;
+            Close();
+        }
+
+        public void Close()
+        {
+            if (!active) return;
+            active = false;
             module.SetActive(false, true);
-
-            this.chest.events.OnClose -= OnClose;
-            WorldModuleCore.active.OnChestOpen -= OnAnotherChestOpen;
-
             ArchAction.Delay(() => {
                 Destroy(gameObject);
             }, 1f);
         }
-        
-        void OnActiveChange(bool isActive)
-        {
-            if (isActive) return;
 
-            chest.GetComponent<WorkInfo>().RemoveAllLingers();
-        }
-
-        void OnAnotherChestOpen(ArchChest chest)
-        {
-            OnClose(this.chest);
-        }
     }
 
 }

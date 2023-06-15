@@ -10,14 +10,14 @@ using Architome.Enums;
 
 namespace Architome
 {
+    public enum InteractionType
+    {
+        DropItems,
+        ShowModule,
+    }
     [RequireComponent(typeof(WorkInfo))]
     public class ArchChest : MonoBehaviour
     {
-        public enum InteractionType
-        {
-            DropItems,
-            ShowModule,
-        }
 
         public InteractionType interactionType;
 
@@ -101,7 +101,9 @@ namespace Architome
 
 
             if (info.itemPool == null) return;
-            info.items = info.itemPool.ItemsFromRarity(info.rarity, new() {
+
+
+            var itemsFromPool = info.itemPool.ItemsFromRarity(info.rarity, new() {
                 minItems = info.minItems,
                 maxItems = info.maxItems,
                 useMinMax = true,
@@ -109,6 +111,8 @@ namespace Architome
                 chanceMultiplier = 3,
                 uniqueItems = true,
             });
+
+            SetItems(itemsFromPool);
         }
 
         void CreateItemsFromItemPool()
@@ -120,15 +124,15 @@ namespace Architome
 
             var chestRarityProperty = world.RarityProperty(info.rarity);
 
-            info.items = info.itemPool.ItemsFromRarity(info.rarity, new() {
+            var itemsFromPool = info.itemPool.ItemsFromRarity(info.rarity, new() {
                 minItems = info.minItems,
                 maxItems = info.maxItems,
                 useMinMax = true,
                 replaceNull = true,
                 uniqueItems = true,
                 chanceMultiplier = chestRarityProperty.valueMultiplier });
-            //info.items = info.itemPool.ItemsFromRarity(info.maxChestSlots, info.rarity, chestRarityProperty.valueMultiplier);
 
+            SetItems(itemsFromPool);
 
             foreach (var itemData in info.items)
             {
@@ -148,10 +152,7 @@ namespace Architome
         }
         public void Open(TaskEventData eventData)
         {
-            if (!FindEntityThatOpened())
-            {
-                return;
-            }
+            info.entityOpened = eventData.task.CurrentWorkers[0];
 
             events.OnOpen?.Invoke(this);
             isOpen = true;
@@ -167,8 +168,6 @@ namespace Architome
             {
                 DropItems();
             }
-
-            //WorldModuleCore.active.HandleChest(this);
 
         }
 
@@ -194,18 +193,6 @@ namespace Architome
             currentModule.OnActiveChange -= OnModuleChange;
         }
 
-        bool FindEntityThatOpened()
-        {
-            
-            var entity = Entity.EntitiesWithinRange(transform.position, 5f).Find(entity => entity.Movement() && entity.Movement().Target() == transform);
-
-            Debugger.InConsole(34589, $"{entity} opened {this}");
-            if (entity == null) return false;
-
-            info.entityOpened = entity;
-
-            return true;
-        }
 
         async void ChestRoutine()
         {
@@ -263,29 +250,40 @@ namespace Architome
             {
                 eventData.newItem.OnItemAction += OnItemAction;
             }
-
-            //if (!slots.Contains(eventData.itemSlot)) return;
-
-            //int index = slots.IndexOf(eventData.itemSlot);
-
-            //if (eventData.newItem == null)
-            //{
-            //    info.items[index].item = null;
-            //    info.items[index].amount = 0;
-            //}
-            //else
-            //{
-            //    info.items[index].item = eventData.newItem.item;
-            //    info.items[index].amount = eventData.newItem.currentStacks;
-            //}
         }
 
-        void OnItemAction(ItemInfo item)
+        async void OnItemAction(ItemInfo item)
         {
             var entity = info.entityOpened;
             if (entity == null) return;
 
-            entity.LootItem(item);
+            var contextMenu = ContextMenu.current;
+
+            if (contextMenu == null) return;
+
+            await contextMenu.UserChoice(new() {
+                title = $"{item}",
+                options = new()
+                {
+                    new("Loot Item", HandleLootItem)
+                }
+            });
+
+            void HandleLootItem()
+            {
+                entity.LootItem(item);
+            }
+
+        }
+
+        public void SetItems(List<ItemData> items)
+        {
+            info.items = items;
+
+            while(info.items.Count < info.maxItems)
+            {
+                info.items.Add(new());
+            }
         }
 
         public void Close()

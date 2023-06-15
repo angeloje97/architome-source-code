@@ -10,7 +10,7 @@ namespace Architome
         public static WorldModuleCore active { get; private set; }
 
 
-        public Action<ArchChest> OnChestOpen;
+        public Action<ItemContainer> OnOpenContainer;
 
         public List<ModuleInfo> activeModules;
 
@@ -18,7 +18,7 @@ namespace Architome
         [Serializable]
         public struct Prefabs
         {
-            public GameObject chestModule;
+            public GameObject containerModule;
         }
 
         [SerializeField] Prefabs prefabs;
@@ -50,17 +50,30 @@ namespace Architome
         }
 
 
-        public void HandleChest(ArchChest chest)
+        public async void HandleItemContainer(ItemContainer container)
         {
-            return;
-            OnChestOpen?.Invoke(chest);
-            if (prefabs.chestModule == null) return;
+            if (prefabs.containerModule == null) return;
+            OnOpenContainer?.Invoke(container);
 
-            var chestModule = CreateModule(prefabs.chestModule, new Vector3(Screen.width / 2, Screen.height / 2, 0)).GetComponent<ChestModule>();
+            var containerModule = CreateModule(prefabs.containerModule, new Vector3(Screen.width / 2, Screen.height / 2, 0)).GetComponent<ItemContainerModule>();
 
-            chestModule.SetChest(chest);
+            container.OnForceClose += OnForceClose;
+
+            container.OnOpenContainer?.Invoke(container);
+            container.events.OnOpenContainer?.Invoke(container);
+
+            containerModule.SetItemContainer(container);
+            await containerModule.UntilClose();
 
 
+            container.OnForceClose -= OnForceClose;
+            container.OnCloseContainer?.Invoke(container);
+            container.events.OnCloseContainer?.Invoke(container);
+
+            void OnForceClose(ItemContainer itemContainer)
+            {
+                containerModule.Close();
+            }
         }
     }
 
