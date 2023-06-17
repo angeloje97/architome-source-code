@@ -26,11 +26,10 @@ namespace Architome
             active = this;
         }
 
-        public Quest AddQuest(GameObject questObject)
+        public Quest AddQuest(Quest questPrefab)
         {
-            if (!questObject.GetComponent<Quest>()) return null;
 
-            var newQuest = Instantiate(questObject, transform).GetComponent<Quest>();
+            var newQuest = Instantiate(questPrefab, transform);
 
             UpdateQuest();
 

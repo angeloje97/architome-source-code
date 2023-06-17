@@ -50,11 +50,6 @@ namespace Architome
             if (sceneManager)
             {
 
-                //sceneManager.AddListeners(new() {
-                //    (SceneEvent.BeforeLoadScene, BeforeLoadScene),
-                //    (SceneEvent.BeforeConfirmLoad, BeforeConfirmLoad)
-                //}, this);
-
                 sceneManager.AddListener(SceneEvent.BeforeLoadScene, BeforeLoadScene, this);
                 sceneManager.AddListener(SceneEvent.BeforeConfirmLoad, BeforeConfirmLoad, this);
             }
@@ -122,7 +117,8 @@ namespace Architome
         async public void OnEntitiesGenerated(MapEntityGenerator generator)
         {
             if(questPrefab == null) { return; }
-            var dungeonQuest = QuestManager.active.AddQuest(questPrefab);
+            var quest = questPrefab.GetComponent<Quest>();
+            var dungeonQuest = QuestManager.active.AddQuest(quest);
 
             await Task.Delay(1000);
 
