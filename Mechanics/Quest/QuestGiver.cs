@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Architome.Enums;
 using UnityEngine;
 
 namespace Architome
@@ -10,26 +11,38 @@ namespace Architome
     public class QuestGiver : MonoBehaviour
     {
         [Header("Quest Info")]
-        public Quest questPrefab;
+        public List<Quest> questPrefabs;
+        public List<Quest> instantiatedQuests;
 
-        [Header("State")]
-        bool started;
 
         public Action<QuestGiver, Quest> beforeActivateQuest;
 
-        public void StartQuest()
+        private void Start()
         {
-            if (started) return;
-            var questManager = QuestManager.active;
-            if (!questManager) return;
+            InstantiateQuests();
+        }
 
+        void InstantiateQuests()
+        {
+            instantiatedQuests = new();
+            var manager = QuestManager.active;
+            foreach(var quest in questPrefabs)
+            {
+                instantiatedQuests.Add(manager.AddQuest(quest));
+            }
+        }
 
-            var createdQuest = questManager.AddQuest(questPrefab);
-            beforeActivateQuest?.Invoke(this, createdQuest);
+        public void StartQuest(int index)
+        {
+            if (index < 0 || index >= instantiatedQuests.Count) return;
+            var quest = instantiatedQuests[index];
 
-            createdQuest.Activate();
-            started = true;
+            if (quest.info.state != QuestState.Available) return;
+        }
 
+        public List<Quest> AvailableQuests()
+        {
+            return instantiatedQuests.FindAll(quest => quest.info.state == QuestState.Available);
         }
     }
 }

@@ -12,7 +12,7 @@ namespace Architome
     {
         public static DungeonQuestGenerator active { get; set; }
         MapInfo map;
-        public GameObject questPrefab;
+        public Quest questPrefab;
         public bool generateForcesKilled;
         public bool generateBossKilled;
 
