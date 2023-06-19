@@ -38,6 +38,8 @@ namespace Architome
             var quest = instantiatedQuests[index];
 
             if (quest.info.state != QuestState.Available) return;
+
+            quest.Activate();
         }
 
         public List<Quest> AvailableQuests()

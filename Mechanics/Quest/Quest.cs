@@ -160,7 +160,6 @@ namespace Architome
 
             OnCompleted?.Invoke(this);
             OnQuestEnd?.Invoke(this);
-            questManager.OnQuestEnd?.Invoke(this);
             
         }
         public void ForceFail()
@@ -181,9 +180,14 @@ namespace Architome
             if (info.state != QuestState.Failed) return;
 
             OnQuestFail?.Invoke(this);
+            EndQuest();
+
+        }
+
+        void EndQuest()
+        {
             OnQuestEnd?.Invoke(this);
             questManager.OnQuestEnd?.Invoke(this);
-
         }
         public bool AllObjectivesComplete()
         {

@@ -16,7 +16,6 @@ namespace Architome
         {
             moduleInfo = GetComponentInParent<ModuleListInfo>();
             questManager = QuestManager.active;
-            questManager.OnNewQuest += OnNewQuest;
             questManager.OnQuestActive += OnQuestActive;
         }
         void Start()
@@ -52,11 +51,6 @@ namespace Architome
             newQuest.SetQuest(quest);
 
             //UpdateCanvas();
-        }
-
-        public void OnNewQuest(Quest quest)
-        {
-            
         }
     }
 }
