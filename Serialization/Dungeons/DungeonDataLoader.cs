@@ -20,7 +20,7 @@ namespace Architome
 
                 level.levelName = rooms.levelName;
                 level.levelSeed = rooms.seed;
-                var maps = GMHelper.GameManager().data;
+                var maps = DataMap.active;
 
                 if (maps == null) return levels;
 
@@ -90,7 +90,7 @@ namespace Architome
         {
             if (data == null || dungeon == null) return null;
 
-            var maps = GMHelper.GameManager().data;
+            var maps = DataMap.active._maps;
 
             if (maps == null) return null;
 

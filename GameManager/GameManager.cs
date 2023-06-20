@@ -14,7 +14,6 @@ namespace Architome
         static bool applicationStart = false;
         public static GameManager active;
 
-        public DataMap data;
 
 
         [SerializeField] GameState gameState;
@@ -53,7 +52,6 @@ namespace Architome
 
 
 
-            data.SetData();
 
             active = this;
             playableEntities = new List<EntityInfo>();
