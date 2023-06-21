@@ -9,9 +9,9 @@ namespace Architome
 {
     public class QuestNotification : MonoBehaviour
     {
-        public Queue<Func<Task>> animationQueue;
-
         public Action OnQuestStart, OnQuestCompleted, OnQuestFailed;
+
+        TaskQueueHandler taskHandler;
 
         [Serializable]
         public struct Info {
@@ -25,8 +25,9 @@ namespace Architome
         bool animationPlaying;
         void Start()
         {
-            animationQueue = new();
+            taskHandler = new();
             GetDependencies();
+            taskHandler = new();
         }
 
 
@@ -53,24 +54,11 @@ namespace Architome
                 quest.OnQuestFail += PlayFailed;
             }
         }
-        async void AddFunction(Func<Task> newTask)
-        {
-            animationQueue.Enqueue(newTask);
-
-            if (busy) return;
-            busy = true;
-            while (animationQueue.Count > 0)
-            {
-                var task = animationQueue.Dequeue();
-                await task();
-            }
-            busy = false;
-        }
 
         void PlayFailed(Quest quest)
         {
 
-            AddFunction(async () => {
+            taskHandler.AddTask(async () => {
                 OnQuestFailed?.Invoke();
                 await PlayNotification(quest.questName, "Failed");
 
@@ -79,7 +67,7 @@ namespace Architome
 
         void PlayCompleted(Quest quest)
         {
-            AddFunction(async () => {
+            taskHandler.AddTask(async () => {
                 OnQuestCompleted?.Invoke();
                 await PlayNotification(quest.questName, "Completed");
             });
@@ -87,7 +75,7 @@ namespace Architome
 
         void PlayStarted(Quest quest)
         {
-            AddFunction(async () => {
+            taskHandler.AddTask(async () => {
                 OnQuestStart?.Invoke();
                 await PlayNotification(quest.questName, "Started");
             });
