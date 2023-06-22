@@ -1,12 +1,15 @@
 using DungeonArchitect.Flow.Domains.Layout.Tasks;
+using Language.Lua;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace Architome
 {
     public static class ArchString 
     {
+        public static Dictionary<string, Regex> stringPatterns;
         public static string CamelToTitle(string text)
         {
             var newText = "";
@@ -125,6 +128,22 @@ namespace Architome
             }
 
             return result;
+        }
+
+        static Regex StringRegex(string pattern)
+        {
+            stringPatterns ??= new();
+            if (!stringPatterns.ContainsKey(pattern))
+            {
+                stringPatterns.Add(pattern, new Regex(pattern));
+            }
+
+            return stringPatterns[pattern];
+        }
+
+        public static string Replace(string input, string pattern, string output)
+        {
+            return StringRegex(pattern).Replace(input, output);
         }
 
         public static string NextLine(string line)

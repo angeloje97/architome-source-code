@@ -16,6 +16,8 @@ namespace Architome
 
         public Vector2 offSet, min;
         public Vector2 max = new(float.PositiveInfinity, float.PositiveInfinity);
+        public float offsetXPerItem;
+        public float offsetYPerItem;
 
         public Action<GameObject> OnAdjustSize;
 
@@ -38,8 +40,8 @@ namespace Architome
             var height = V3Helper.Height(targetHeights) + offSet.y;
             var width = V3Helper.Width(targetWidths) + offSet.x;
 
-            height += V3Helper.ChildrenHeight(targetHeightParents);
-            width += V3Helper.ChildrenWidth(targetWidthParents);
+            height += V3Helper.ChildrenHeight(targetHeightParents, offsetYPerItem);
+            width += V3Helper.ChildrenWidth(targetWidthParents, offsetXPerItem);
 
 
 

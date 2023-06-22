@@ -177,7 +177,7 @@ namespace Architome
             return width;
         }
 
-        public static float ChildrenHeight(List<Transform> transGroup)
+        public static float ChildrenHeight(List<Transform> transGroup, float offsetPerItem)
         {
 
             if (transGroup == null) return 0f;
@@ -190,6 +190,7 @@ namespace Architome
                     var rect = child.GetComponent<RectTransform>();
                     if (rect == null) continue;
                     height += rect.rect.height;
+                    height += offsetPerItem;
                 }
             }
 
@@ -197,7 +198,7 @@ namespace Architome
             return height;
         }
 
-        public static float ChildrenWidth(List<Transform> transGroup)
+        public static float ChildrenWidth(List<Transform> transGroup, float offsetPerItem)
         {
             if (transGroup == null) return 0f;
 
@@ -211,6 +212,7 @@ namespace Architome
                     var rect = child.GetComponent<RectTransform>();
                     if (rect == null) continue;
                     width += rect.rect.width;
+                    width += offsetPerItem;
                 }
             }
 

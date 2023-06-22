@@ -13,6 +13,8 @@ namespace Architome.Settings
         // Start is called before the first frame update
         public KeyBindMapping mapper;
         public KeybindSet sourceSet;
+
+        public static bool reading;
         
 
         [Serializable]
@@ -38,9 +40,8 @@ namespace Architome.Settings
         public void SetMap(string name, KeyCode keyCode, int index, KeyBindMapping mapper, KeybindSet set)
         {
             info.keyNameDisplay.text = $"{ArchString.CamelToTitle(name)}";
-            info.keyButtonDisplay.text = keyCode.ToString();
+            SetKeyString(keyCode);
             keyName = name;
-            this.keyCode = keyCode;
             this.index = index;
             this.mapper = mapper;
             sourceSet = set;
@@ -49,7 +50,7 @@ namespace Architome.Settings
         public void SetKeyString(KeyCode keyCode)
         {
             this.keyCode = keyCode;
-            info.keyButtonDisplay.text = keyCode.ToString();
+            info.keyButtonDisplay.text = ArchString.Replace(keyCode.ToString(), "(Alpha|ALPHA)", "");
         }
 
         public void SetConflict(bool conflicted)
@@ -62,9 +63,11 @@ namespace Architome.Settings
 
         async public void ReadMap()
         {
+            if (reading) return;
             info.keyButtonDisplay.text = "_";
 
             mapper.pickingKey = true;
+            reading = true;
             var newKey = await ArchAction.NewKey();
 
             while (Input.GetKey(newKey))
@@ -85,7 +88,7 @@ namespace Architome.Settings
                 keyCode = newKey;
             }
 
-            var keyString = keyCode.ToString();
+            var keyString = ArchString.Replace(keyCode.ToString(), "(Alpha|ALPHA)", "");
             if (info.keyButtonDisplay.text == keyString) return;
 
             info.keyButtonDisplay.text = keyString;
@@ -93,6 +96,7 @@ namespace Architome.Settings
 
             mapper.UpdateMap(sourceSet, this);
             OnSetBinding?.Invoke(this);
+            reading = false;
         }
 
 

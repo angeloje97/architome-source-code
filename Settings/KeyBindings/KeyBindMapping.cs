@@ -140,17 +140,25 @@ namespace Architome.Settings
                 parentKeybindSet.Add(clone, parentCanvas);
                 setParent.name = $"{clone.name} Parent";
 
+                ArchAction.Delay(() => {
+                    var sizeFitter = setParent.GetComponent<SizeFitter>();
+                    sizeFitter.AdjustToSize();
+                }, .50f);
+
                 clone.EditableKeybinds((KeybindSet.KeybindData data, int index) =>
                 {
                     var mapper = Instantiate(prefabs.map, setParent.transform);
                     mapper.SetMap(data.alias, data.keyCode, index, this, clone);
                     keybindSetMaps[clone].Add(data.alias, mapper);
                 });
+                
 
                 CheckConflicts(clone);
             }
 
-            ChangeSet(info.selectedSetIndex);
+            var temp = info.selectedSetIndex;
+            info.selectedSetIndex = -1;
+            ChangeSet(temp);
         }
         public void CheckConflicts(KeybindSet set)
         {
@@ -247,26 +255,30 @@ namespace Architome.Settings
             var currentIndex = info.selectedSetIndex;
             if (currentIndex == index) return;
 
-            if (dirty)
+            if(currentIndex >= 0)
             {
-                var confirmLeave = await ConfirmLeave("Keybind Mapping");
-
-                if (!confirmLeave)
+                if (dirty)
                 {
-                    info.dropDown.SetValueWithoutNotify(currentIndex);
-                    info.selectedSetIndex = currentIndex;
-                    return;
+                    var confirmLeave = await ConfirmLeave("Keybind Mapping");
+
+                    if (!confirmLeave)
+                    {
+                        info.dropDown.SetValueWithoutNotify(currentIndex);
+                        info.selectedSetIndex = currentIndex;
+                        return;
+                    }
                 }
+
+                var currentCanvas = parentKeybindSet[info.editableSets[currentIndex]];
+                currentCanvas.SetCanvas(false);
             }
-
-            var currentCanvas = parentKeybindSet[info.editableSets[currentIndex]];
-            currentCanvas.SetCanvas(false);
             info.selectedSetIndex = index;
-            info.dropDown.SetValueWithoutNotify(index);
+            info.dropDown.value = index;
+            
             var newCanvas = parentKeybindSet[info.editableSets[index]];
-
-
             info.scrollRect.content = newCanvas.GetComponent<RectTransform>();
+
+
             newCanvas.SetCanvas(true);
 
         }
