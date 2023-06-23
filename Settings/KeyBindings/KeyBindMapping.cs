@@ -300,6 +300,22 @@ namespace Architome.Settings
         }
         async public void ApplyBindings(bool ignoreConflictions = false)
         {
+            if (!dirty)
+            {
+                var choice2 = await PromptHandler.active.GeneralPrompt(new()
+                {
+                    title = "KeyBindings",
+                    question = "There are no changes to be applied",
+                    options = new()
+                        {
+                            new("Okay") {isEscape = true }
+                        },
+                    blocksScreen = true,
+                });
+
+                return;
+            }
+            
             if (!ignoreConflictions)
             {
                 if (IsConflicted())

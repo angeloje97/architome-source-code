@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
-
+using System.Runtime.CompilerServices;
 
 namespace Architome
 {
@@ -441,6 +441,8 @@ namespace Architome
             {
                 await Task.Yield();
             }
+
+            if (world == null) return;
 
             world.OnUpdate -= MiddleWare;
 

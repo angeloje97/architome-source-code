@@ -125,21 +125,6 @@ namespace Architome
             
         }
 
-        async Task<PromptChoiceData> UserChoice(PromptInfo prompt)
-        {
-
-            while (!prompt.optionEnded)
-            {
-                await Task.Yield();
-
-                if (!prompt) break;
-                if (!prompt.isActive) break;
-            }
-
-
-            
-            return prompt.choiceData;
-        }
 
         async public Task<PromptChoiceData> GeneralPrompt(PromptInfoData promptData)
         {
@@ -154,9 +139,20 @@ namespace Architome
             prompt.SetPrompt(promptData);
 
 
-            return await UserChoice(prompt);
+            return await prompt.UserChoice();
         }
 
+        public PromptInfo SequentialPrompt(PromptInfoData initialData)
+        {
+            if (prefabs.generalPrompt == null) return null;
+            var prompt = ActivatePrompt(prefabs.generalPrompt, new(0, 270, 0));
+
+            initialData.autoClose = false;
+            prompt.SetPrompt(initialData);
+
+            return prompt;
+        }
+        
         async public Task<PromptChoiceData> SliderPrompt(PromptInfoData promptData)
         {
             if (!prefabs.sliderPrompt)
@@ -170,7 +166,7 @@ namespace Architome
 
             prompt.SetPrompt(promptData);
 
-            return await UserChoice(prompt);
+            return await prompt.UserChoice();
         }
 
         async public Task<PromptChoiceData> InputPrompt(PromptInfoData promptData)
@@ -181,10 +177,7 @@ namespace Architome
 
             prompt.SetPrompt(promptData);
 
-
-            
-
-            return await UserChoice(prompt);
+            return await prompt.UserChoice();
         }
 
         public async Task<PromptChoiceData> MessagePrompt(PromptInfoData promptData)
@@ -194,8 +187,7 @@ namespace Architome
 
             prompt.SetPrompt(promptData);
 
-            return await UserChoice(prompt);
-
+            return await prompt.UserChoice();
 
         }
     }

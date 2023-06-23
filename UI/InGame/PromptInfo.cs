@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine.UI;
 using UnityEngine.Events;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace Architome
 {
@@ -67,7 +68,7 @@ namespace Architome
         public PromptPrefabs promptPrefabs;
 
 
-        public void EndOptions()
+        public void ClosePrompt()
         {
             if (optionEnded) return;
             optionEnded = true;
@@ -145,7 +146,7 @@ namespace Architome
 
         }
 
-        public void SetPrompt(PromptInfoData promptData)
+        public void SetPrompt(PromptInfoData promptData, bool adjustSize = true)
         {
             this.promptData = promptData;
             choiceData = new();
@@ -169,7 +170,7 @@ namespace Architome
             HandleOptions();
             HandleInputField();
 
-            UpdateSize();
+            if(adjustSize) UpdateSize();
 
             
         }
@@ -255,9 +256,13 @@ namespace Architome
                 Debugger.UI(2337, $"Option {i +1} is {option.text}");
 
                 option.HandlePrompt(this);
-                option.OnClose += (optionData) => {
-                    ArchAction.Yield(EndOptions);
-                };
+                if (promptData.autoClose)
+                {
+                    option.OnClose += (optionData) => {
+
+                        ArchAction.Yield(ClosePrompt);
+                    };
+                }
 
             }
         }
@@ -330,6 +335,18 @@ namespace Architome
 
         }
 
+        public async Task<PromptChoiceData> UserChoice()
+        {
+            await World.UpdateAction((float time) => {
+                if (optionEnded) return false;
+                if (this == null) return false;
+                if (!isActive) return false;
+                return true;
+            });
+
+            return choiceData;
+        }
+
         public void UpdateSlider()
         {
             if (sliderInfo.enable == false) return;
@@ -352,7 +369,7 @@ namespace Architome
         public List<OptionData> options { get; set; }
         public bool blocksScreen { get; set; }
         public bool forcePick;
-
+        public bool autoClose = true;
         public Action<PromptInfo> OnStart;
 
         //Slider
@@ -508,7 +525,6 @@ namespace Architome
                 ClosePrompt();
             }
         }
-
 
         public void ClosePrompt()
         {

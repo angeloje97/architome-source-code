@@ -80,18 +80,13 @@ namespace Architome.Settings
 
             if (mapper.blackList.Contains(newKey))
             {
-                keyCode = KeyCode.None;
+                SetKeyString(KeyCode.None);
                 
             }
             else
             {
-                keyCode = newKey;
+                SetKeyString(newKey);
             }
-
-            var keyString = ArchString.Replace(keyCode.ToString(), "(Alpha|ALPHA)", "");
-            if (info.keyButtonDisplay.text == keyString) return;
-
-            info.keyButtonDisplay.text = keyString;
             
 
             mapper.UpdateMap(sourceSet, this);

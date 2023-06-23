@@ -151,7 +151,7 @@ namespace Architome
             {
                 if (!prompt.isActive) continue;
                 changed = true;
-                prompt.EndOptions();
+                prompt.ClosePrompt();
             }
 
             return changed;
