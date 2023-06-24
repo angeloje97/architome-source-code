@@ -8,7 +8,7 @@ namespace Architome
     {
         // Start is called before the first frame update
         public EntityInfo entityInfo;
-        public void GetDependencies()
+        public virtual void GetDependencies()
         {
             entityInfo = GetComponentInParent<EntityInfo>();
 
