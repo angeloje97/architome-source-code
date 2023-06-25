@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using UnityEngine.UI;
 using System.Runtime.Serialization;
 using System.Runtime.CompilerServices;
+using UnityEngine.UIElements;
 
 namespace Architome
 {
@@ -13,6 +14,8 @@ namespace Architome
     {
         // Start is called before the first frame update
         public static PromptHandler active { get; private set; }
+
+        PromptInfo currentPrompt;
 
         [Serializable]
         public struct Prefabs
@@ -51,7 +54,11 @@ namespace Architome
 
             transform.SetAsLastSibling();
 
-            return newPrompt.GetComponent<PromptInfo>();
+            var promptInfo = newPrompt.GetComponent<PromptInfo>();
+
+            currentPrompt = promptInfo;
+
+            return promptInfo;
         }
         public void GetDependencies()
         {
@@ -125,6 +132,15 @@ namespace Architome
             
         }
 
+        public async Task FinishCurrentPrompt()
+        {
+            while (true)
+            {
+                if (currentPrompt == null) return;
+                if (currentPrompt.destroyed) return;
+                await Task.Yield();
+            }
+        }
 
         async public Task<PromptChoiceData> GeneralPrompt(PromptInfoData promptData)
         {
@@ -134,6 +150,8 @@ namespace Architome
                 return null;
             }
 
+            await FinishCurrentPrompt();
+
             var prompt = ActivatePrompt(prefabs.generalPrompt, new(0, 270, 0));
 
             prompt.SetPrompt(promptData);
@@ -142,15 +160,33 @@ namespace Architome
             return await prompt.UserChoice();
         }
 
-        public PromptInfo SequentialPrompt(PromptInfoData initialData)
+        public async Task<PromptInfo> SequentialPrompt(PromptInfoData initialData)
         {
             if (prefabs.generalPrompt == null) return null;
+            await FinishCurrentPrompt();
+
             var prompt = ActivatePrompt(prefabs.generalPrompt, new(0, 270, 0));
 
             initialData.autoClose = false;
             prompt.SetPrompt(initialData);
 
+            HandleNonClosingPrompt();
+
             return prompt;
+
+
+            async void HandleNonClosingPrompt()
+            {
+                
+                while(prompt != null)
+                {
+                    await prompt.UserChoice();
+                    await Task.Delay(250);
+                    if (prompt.optionEnded) break;
+                }
+
+                prompt.ClosePrompt();
+            }
         }
         
         async public Task<PromptChoiceData> SliderPrompt(PromptInfoData promptData)
@@ -159,6 +195,8 @@ namespace Architome
             {
                 return null;
             }
+            await FinishCurrentPrompt();
+
 
             var prompt = ActivatePrompt(prefabs.sliderPrompt, new Vector3(0, 270, 0));
 
@@ -173,6 +211,9 @@ namespace Architome
         {
             if (prefabs.inputPrompt == null) return null;
 
+            await FinishCurrentPrompt();
+
+
             var prompt = ActivatePrompt(prefabs.inputPrompt, new Vector3(0, 270, 0));
 
             prompt.SetPrompt(promptData);
@@ -183,6 +224,9 @@ namespace Architome
         public async Task<PromptChoiceData> MessagePrompt(PromptInfoData promptData)
         {
             if (prefabs.messagePrompt == null) return null;
+
+            await FinishCurrentPrompt();
+
             var prompt = ActivatePrompt(prefabs.messagePrompt, new Vector3(0, 270, 0));
 
             prompt.SetPrompt(promptData);

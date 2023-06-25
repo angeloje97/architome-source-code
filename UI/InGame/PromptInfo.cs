@@ -18,6 +18,8 @@ namespace Architome
         public string userInput;
         public bool optionEnded { get; set; }
         public int amount;
+        public bool destroyed { get; private set; }
+
         //public List<ArchButton> buttonOptions;
         //public List<string> choices;
         public Action<PromptInfo> OnPickChoice { get; set; }
@@ -70,8 +72,7 @@ namespace Architome
 
         public void ClosePrompt()
         {
-            if (optionEnded) return;
-            optionEnded = true;
+            if (destroyed) return;
             PlaySound(false);
             SetActive(false);
             OnEndOptions?.Invoke(this);
@@ -79,6 +80,7 @@ namespace Architome
                 if (this == null) return;
                 Destroy(gameObject); 
             }, 1f);
+            destroyed = true;
         }
         void Start()
         {
@@ -141,7 +143,7 @@ namespace Architome
         public void PickOption(OptionData option)
         {
             choiceData.optionPicked = option;
-
+            optionEnded = true;
             OnPickChoice?.Invoke(this);
 
         }
@@ -150,6 +152,8 @@ namespace Architome
         {
             this.promptData = promptData;
             choiceData = new();
+            optionEnded = false;
+
 
             info.title.text = promptData.title;
             info.question.text = promptData.question;
@@ -157,7 +161,6 @@ namespace Architome
             info.screenBlocker.SetActive(promptData.blocksScreen);
             forceActive = promptData.forcePick;
 
-            HandleSlider();
 
             if (this.promptData.icon)
             {
@@ -167,6 +170,7 @@ namespace Architome
 
             this.promptData.OnStart?.Invoke(this);
 
+            HandleSlider();
             HandleOptions();
             HandleInputField();
 
@@ -265,8 +269,23 @@ namespace Architome
                 }
 
             }
+
         }
 
+        public void RemoveOptions()
+        {
+            if (promptData == null || promptData.options == null) return;
+            
+            foreach(var option in promptData.options)
+            {
+                var button = option.button;
+                if (button)
+                {
+                    Destroy(button.gameObject);
+                }
+            }
+            promptData.options = null;
+        }
         public void UpdateInputField(TMP_InputField input)
         {
             promptData.IsValidInput ??= DefaultPredicate;
@@ -314,7 +333,6 @@ namespace Architome
                 return inputText.Length > 0 && inputText.Length < maxInputLength;
             }
         }
-
         void HandleInputField()
         {
             if (!input.enable) return;
@@ -334,11 +352,11 @@ namespace Architome
 
 
         }
-
         public async Task<PromptChoiceData> UserChoice()
         {
             await World.UpdateAction((float time) => {
                 if (optionEnded) return false;
+                if (destroyed) return false;
                 if (this == null) return false;
                 if (!isActive) return false;
                 return true;
@@ -411,7 +429,7 @@ namespace Architome
         public int autoPickTimer { get; set; }
         public int timer;
 
-        ArchButton button;
+        public ArchButton button { get; private set;  }
 
         public Action<OptionData> OnChoose { get; set; }
         public Action<OptionData> OnClose { get; set; }
