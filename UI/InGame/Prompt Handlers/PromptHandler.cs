@@ -25,6 +25,7 @@ namespace Architome
             public GameObject inputPrompt;
             public GameObject messagePrompt;
             public GameObject sliderPrompt;
+            public PromptInfo dialoguePrompt;
         }
 
         public Sprite allDeathIcon;

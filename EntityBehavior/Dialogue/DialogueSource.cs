@@ -7,13 +7,15 @@ using UnityEngine.Events;
 namespace Architome
 {
     [Serializable]
-    public class DialogueData {
+    public class DialogueEventData {
         public EntityInfo source, listener;
+        public DialogueData data;
     }
 
     public class DialogueSource : EntityProp
     {
 
+        public DialogueData initialDialogue;
         ArchDialogueManager dialogueManager;
         [Header("Dialogue Source Properties")]
         [SerializeField] float minDistance = 5f;
@@ -53,10 +55,11 @@ namespace Architome
 
             if (!success) return;
 
-            var dialogueData = new DialogueData()
+            var dialogueEventData = new DialogueEventData()
             {
                 listener = entity,
                 source = entityInfo,
+                data = initialDialogue,
             };
 
             OnGetSource?.Invoke(entityInfo.transform);
@@ -64,7 +67,7 @@ namespace Architome
             OnStartConverstation?.Invoke();
 
 
-            //dialogueManager.StartDialogue(dialogueData);
+            dialogueManager.StartDialogue(dialogueEventData);
         }
     }
 }

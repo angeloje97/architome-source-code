@@ -9,7 +9,7 @@ namespace Architome
     public class ArchDialogueManager : MonoBehaviour
     {
         public struct Events {
-            public Action<DialogueData> OnDialogueStart, OnDialogueEnd;
+            public Action<DialogueEventData> OnDialogueStart, OnDialogueEnd;
         }
 
         public static ArchDialogueManager active;
@@ -31,7 +31,7 @@ namespace Architome
 
         public UnityEvent OnStartDialogue;
         
-        public void StartDialogue(DialogueData data)
+        public void StartDialogue(DialogueEventData data)
         {
             events.OnDialogueStart?.Invoke(data);
             OnStartDialogue?.Invoke();
