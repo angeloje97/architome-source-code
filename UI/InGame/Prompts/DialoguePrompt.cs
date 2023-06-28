@@ -7,10 +7,8 @@ namespace Architome
     public class DialoguePrompt : MonoBehaviour
     {
         PromptInfo prompt;
-        void Start()
-        {
-            GetDependencies();
-        }
+
+        DialogueDataSet currentSet;
 
         // Update is called once per frame
         void Update()
@@ -26,6 +24,24 @@ namespace Architome
         public void EndDialogue()
         {
             prompt.ClosePrompt();
+        }
+
+        public void StartDialoguePrompt(DialogueEventData eventData)
+        {
+            GetDependencies();
+
+            SetDialogueDataSet(eventData.dataSet);
+
+            prompt.SetPrompt(new()
+            {
+                autoClose = false,
+                title = eventData.sourceEntity.ToString(),
+            }, false);
+        }
+
+        public void SetDialogueDataSet(DialogueDataSet set)
+        {
+            currentSet = set;
         }
     }
 }

@@ -8,14 +8,15 @@ namespace Architome
 {
     [Serializable]
     public class DialogueEventData {
-        public EntityInfo source, listener;
-        public DialogueData data;
+        public EntityInfo sourceEntity, listener;
+        public DialogueSource source;
+        public DialogueDataSet dataSet;
     }
 
     public class DialogueSource : EntityProp
     {
 
-        public DialogueData initialDialogue;
+        public DialogueDataSet initialDataSet;
         ArchDialogueManager dialogueManager;
         [Header("Dialogue Source Properties")]
         [SerializeField] float minDistance = 5f;
@@ -58,8 +59,9 @@ namespace Architome
             var dialogueEventData = new DialogueEventData()
             {
                 listener = entity,
-                source = entityInfo,
-                data = initialDialogue,
+                source = this,
+                sourceEntity = entityInfo,
+                dataSet = initialDataSet,
             };
 
             OnGetSource?.Invoke(entityInfo.transform);

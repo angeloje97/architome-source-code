@@ -7,6 +7,14 @@ using UnityEngine.Events;
 namespace Architome
 {
     [Serializable]
+    public class DialogueDataSet
+    {
+        public List<DialogueData> data;
+
+
+    }
+
+    [Serializable]
     public class DialogueData
     {
         [TextArea(5, 10)]

@@ -31,10 +31,14 @@ namespace Architome
 
         public UnityEvent OnStartDialogue;
         
-        public void StartDialogue(DialogueEventData data)
+        public async void StartDialogue(DialogueEventData data)
         {
             events.OnDialogueStart?.Invoke(data);
             OnStartDialogue?.Invoke();
+            var promptHandler = PromptHandler.active;
+
+            var dialoguePrompt = await promptHandler.DialoguePrompt();
+            dialoguePrompt.StartDialoguePrompt(data);
         }
 
     }

@@ -171,23 +171,25 @@ namespace Architome
             initialData.autoClose = false;
             prompt.SetPrompt(initialData);
 
-            HandleNonClosingPrompt();
+            HandleNonClosingPrompt(prompt);
 
             return prompt;
 
 
-            async void HandleNonClosingPrompt()
-            {
-                
-                while(prompt != null)
-                {
-                    await prompt.UserChoice();
-                    await Task.Delay(250);
-                    if (prompt.optionEnded) break;
-                }
+            
+        }
 
-                prompt.ClosePrompt();
-            }
+        public async Task<DialoguePrompt> DialoguePrompt()
+        {
+            if (prefabs.dialoguePrompt == null) return null;
+            await FinishCurrentPrompt();
+
+            var prompt = ActivatePrompt(prefabs.dialoguePrompt.gameObject, new(0, 270, 0));
+
+
+            ArchAction.Delay(() => HandleNonClosingPrompt(prompt), .5f);
+            var dialoguePrompt = prompt.GetComponent<DialoguePrompt>();
+            return dialoguePrompt;
         }
         
         async public Task<PromptChoiceData> SliderPrompt(PromptInfoData promptData)
@@ -234,6 +236,19 @@ namespace Architome
 
             return await prompt.UserChoice();
 
+        }
+
+        async void HandleNonClosingPrompt(PromptInfo prompt)
+        {
+
+            while (prompt != null)
+            {
+                await prompt.UserChoice();
+                await Task.Delay(250);
+                if (prompt.optionEnded) break;
+            }
+
+            prompt.ClosePrompt();
         }
     }
 
