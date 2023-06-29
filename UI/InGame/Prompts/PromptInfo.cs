@@ -274,17 +274,13 @@ namespace Architome
 
         public void RemoveOptions()
         {
-            if (promptData == null || promptData.options == null) return;
-            
-            foreach(var option in promptData.options)
+            if (info.choicesParents == null) return;
+
+            var buttons = info.choicesParents.GetComponentsInChildren<ArchButton>();
+            foreach(var button in buttons)
             {
-                var button = option.button;
-                if (button)
-                {
-                    Destroy(button.gameObject);
-                }
+                Destroy(button.gameObject);
             }
-            promptData.options = null;
         }
         public void UpdateInputField(TMP_InputField input)
         {

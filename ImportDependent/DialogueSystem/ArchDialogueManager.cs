@@ -38,7 +38,7 @@ namespace Architome
             var promptHandler = PromptHandler.active;
 
             var dialoguePrompt = await promptHandler.DialoguePrompt();
-            dialoguePrompt.StartDialoguePrompt(data);
+            dialoguePrompt.SetDialogueDataSet(data);
         }
 
     }
