@@ -184,7 +184,7 @@ namespace Architome
             if (prefabs.dialoguePrompt == null) return null;
             await FinishCurrentPrompt();
 
-            var prompt = ActivatePrompt(prefabs.dialoguePrompt.gameObject, new(0, 270, 0));
+            var prompt = ActivatePrompt(prefabs.dialoguePrompt.gameObject);
 
 
             ArchAction.Delay(() => HandleNonClosingPrompt(prompt), .5f);
@@ -240,7 +240,7 @@ namespace Architome
 
         async void HandleNonClosingPrompt(PromptInfo prompt)
         {
-
+            if (prompt.promptData.handleClose) return;
             while (prompt != null)
             {
                 await prompt.UserChoice();

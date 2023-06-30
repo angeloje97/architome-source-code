@@ -385,7 +385,7 @@ namespace Architome
         public bool forcePick;
         public bool autoClose = true;
         public Action<PromptInfo> OnStart;
-
+        public bool handleClose { get; set; }
         //Slider
         public int amountMin;
         public int amountMax;

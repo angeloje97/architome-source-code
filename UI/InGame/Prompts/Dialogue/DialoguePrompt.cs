@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,6 +11,7 @@ namespace Architome
         PromptInfoData promptData;
         DialogueDataSet currentSet;
 
+        [Serializable]
         public struct Prefabs 
         {
             public Transform entryParents;
@@ -43,22 +45,24 @@ namespace Architome
             promptData = new()
             {
                 autoClose = false,
+                handleClose = true,
                 title = sourceEntity.ToString(),
                 icon = sourceEntity.PortraitIcon()
             };
 
 
-
             SetEntries(eventData.dataSet.entries);
-            HandleData(currentSet.currentDialogueData, eventData);
+            HandleData(eventData);
         }
 
-        public void HandleData(int dataIndex, DialogueEventData eventData)
+        public void HandleData(DialogueEventData eventData)
         {
-            var dialogueData = currentSet.data[dataIndex];
+            var currentIndex = currentSet.currentDialogueData;
+            var dialogueData = currentSet.data[currentIndex];
 
             var text = dialogueData.text;
             var options = new List<OptionData>();
+            AddEntry(new(eventData.sourceEntity.ToString(), dialogueData.text));
 
             foreach(var option in dialogueData.dialogueOptions)
             {
@@ -68,9 +72,9 @@ namespace Architome
                         EndDialogue();
                         return;
                     }
-                    var nextTarget = option.nextTarget != -1 ? option.nextTarget : dataIndex + 1;
+                    currentSet.currentDialogueData = option.nextTarget != -1 ? option.nextTarget : currentIndex + 1;
                     AddEntry(new(eventData.listener.ToString(), option.text, true));
-                    HandleData(dataIndex, eventData);
+                    HandleData(eventData);
                 }));
             }
 
@@ -90,6 +94,7 @@ namespace Architome
 
             if (addToSet)
             {
+                currentSet.entries ??= new();
                 currentSet.entries.Add(entry);
             }
         }
@@ -107,6 +112,7 @@ namespace Architome
         {
             ClearEntries();
 
+            if (entries == null) return;
             foreach(var entry in entries)
             {
                 AddEntry(entry, false);

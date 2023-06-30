@@ -300,43 +300,6 @@ namespace Architome.Settings
         }
         async public void ApplyBindings(bool ignoreConflictions = false)
         {
-
-
-            var promptData = new PromptInfoData()
-            {
-                title = "Testing Prompt",
-                question = "Hello there. Would you like to continue?",
-                options = new List<OptionData>() {
-                    new("Yes"),
-                    new("No"),
-                },
-                blocksScreen = true,
-            };
-
-
-            var seqPrompt = await PromptHandler.active.SequentialPrompt(promptData);
-
-            var response = await seqPrompt.UserChoice();
-
-
-            if (response.optionPicked.text.Equals("Yes"))
-            {
-                promptData.question = "You have clicked continue";
-                seqPrompt.RemoveOptions();
-                promptData.options = new()
-                {
-                    new("Continue"),
-                };
-
-                seqPrompt.SetPrompt(promptData, false);
-
-                response = await seqPrompt.UserChoice();
-            }
-
-            //seqPrompt.ClosePrompt();
-            //return;
-
-
             if (!dirty)
             {
                 var choice2 = await PromptHandler.active.GeneralPrompt(new()
