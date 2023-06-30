@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Architome
@@ -33,6 +34,8 @@ namespace Architome
 
         public void EndDialogue()
         {
+            currentSet.entries = new();
+            currentSet.currentDialogueData = 0;
             prompt.ClosePrompt();
         }
 
@@ -46,51 +49,54 @@ namespace Architome
             {
                 autoClose = false,
                 handleClose = true,
+                blocksScreen = true,
                 title = sourceEntity.ToString(),
                 icon = sourceEntity.PortraitIcon()
             };
+
+            prompt.SetPrompt(promptData, false);
 
 
             SetEntries(eventData.dataSet.entries);
             HandleData(eventData);
         }
 
-        public void HandleData(DialogueEventData eventData)
+        public async void HandleData(DialogueEventData eventData)
         {
             var currentIndex = currentSet.currentDialogueData;
             var dialogueData = currentSet.data[currentIndex];
 
             var text = dialogueData.text;
             var options = new List<OptionData>();
-            AddEntry(new(eventData.sourceEntity.ToString(), dialogueData.text));
+            await AddEntry(new(eventData.sourceEntity.ToString(), dialogueData.text));
 
             foreach(var option in dialogueData.dialogueOptions)
             {
-                options.Add(new(option.text, (OptionData promptOptionData) => {
+                options.Add(new(option.text, async (OptionData promptOptionData) => {
                     if (option.endsDialogue)
                     {
                         EndDialogue();
                         return;
                     }
+                    prompt.RemoveOptions();
                     currentSet.currentDialogueData = option.nextTarget != -1 ? option.nextTarget : currentIndex + 1;
-                    AddEntry(new(eventData.listener.ToString(), option.text, true));
+                    await AddEntry(new(eventData.listener.ToString(), option.text, true));
                     HandleData(eventData);
                 }));
             }
 
 
             promptData.options = options;
-            prompt.RemoveOptions();
 
             prompt.SetPrompt(promptData, false);
         }
 
-        public void AddEntry(DialogueEntry entry, bool addToSet = true)
+        public async Task AddEntry(DialogueEntry entry, bool addToSet = true)
         {
             var entryPrefab = entry.fromPlayer ? prefabs.playerEntry : prefabs.npcEntry;
 
             var newEntry = Instantiate(entryPrefab, prefabs.entryParents);
-            newEntry.SetEntry(entry);
+            await newEntry.SetEntry(entry);
 
             if (addToSet)
             {
@@ -108,15 +114,18 @@ namespace Architome
             }
         }
 
-        public void SetEntries(List<DialogueEntry> entries)
+        public async void SetEntries(List<DialogueEntry> entries)
         {
             ClearEntries();
 
             if (entries == null) return;
+            var tasks = new List<Task>();
             foreach(var entry in entries)
             {
-                AddEntry(entry, false);
+                tasks.Add(AddEntry(entry, false));
             }
+
+            await Task.WhenAll(tasks);
         }
 
         
