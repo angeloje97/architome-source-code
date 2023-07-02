@@ -68,7 +68,7 @@ namespace Architome
 
             var text = dialogueData.text;
             var options = new List<OptionData>();
-            await AddEntry(new(eventData.sourceEntity.ToString(), dialogueData.text));
+            await AddEntry(new(eventData.sourceEntity.ToString(), dialogueData.text), crawlText: true);
 
             foreach(var option in dialogueData.dialogueOptions)
             {
@@ -91,11 +91,12 @@ namespace Architome
             prompt.SetPrompt(promptData, false);
         }
 
-        public async Task AddEntry(DialogueEntry entry, bool addToSet = true)
+        public async Task AddEntry(DialogueEntry entry, bool addToSet = true, bool crawlText = false)
         {
             var entryPrefab = entry.fromPlayer ? prefabs.playerEntry : prefabs.npcEntry;
 
             var newEntry = Instantiate(entryPrefab, prefabs.entryParents);
+            newEntry.crawlText = crawlText;
             await newEntry.SetEntry(entry);
 
             if (addToSet)
@@ -122,7 +123,7 @@ namespace Architome
             var tasks = new List<Task>();
             foreach(var entry in entries)
             {
-                tasks.Add(AddEntry(entry, false));
+                tasks.Add(AddEntry(entry, false, false));
             }
 
             await Task.WhenAll(tasks);

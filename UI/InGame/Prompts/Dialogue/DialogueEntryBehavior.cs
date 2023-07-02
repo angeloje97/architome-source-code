@@ -19,6 +19,8 @@ namespace Architome
 
         [SerializeField] Info info;
 
+        public bool crawlText { get; set; }
+
         public async Task SetEntry(DialogueEntry entry)
         {
             info.name.text = entry.speaker;
@@ -45,7 +47,7 @@ namespace Architome
             gameObject.SetActive(true);
             info.canvasGroup.SetCanvas(true);
 
-            if (!entry.fromPlayer)
+            if (crawlText)
             {
                 await CrawlText(entry.text);
             }
@@ -54,22 +56,46 @@ namespace Architome
         public async Task CrawlText(string targetText)
         {
             var current = "";
+            bool crawling = true;
+            _= World.UpdateAction(ContinueCrawl);
 
             for(int i  = 0; i < targetText.Length; i++)
             {
                 current += targetText[i];
                 info.content.text = current;
                 
-                for(int j = 0; j < 3; j++)
+                for(int j = 0; j < 2; j++)
                 {
+                    if (!crawling) break;
                     await Task.Yield();
                 }
 
+
+
                 if (targetText[i].Equals('.'))
                 {
-                    await Task.Delay(500);
+                    var delay = .25f;
+
+                    while(delay > 0f)
+                    {
+                        if (!crawling) break;
+                        await Task.Yield();
+                        delay -= Time.deltaTime;
+                    }
+
+                }
+            }
+
+            info.content.text = targetText;
+
+            bool ContinueCrawl(float time)
+            {
+                if (Input.GetKeyDown(KeyCode.Mouse0))
+                {
+                    crawling = false;
                 }
 
+                return crawling;
             }
         }
     }
