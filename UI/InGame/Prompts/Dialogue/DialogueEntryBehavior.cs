@@ -63,6 +63,7 @@ namespace Architome
             {
                 current += targetText[i];
                 info.content.text = current;
+                if (!crawling) break;
                 
                 for(int j = 0; j < 2; j++)
                 {

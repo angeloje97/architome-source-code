@@ -34,7 +34,7 @@ namespace Architome
         public Dictionary<KeybindSetType, Dictionary<KeybindType, Dictionary<string, Action>>> events;
 
 
-        public ArchInputMode Mode { get { return inputMode; } }
+        public ArchInputMode Mode => inputMode;
 
         public Action OnAction { get; set; }
         public Action OnSelect { get; set; }
@@ -44,7 +44,6 @@ namespace Architome
         public Action OnMiddleMouse { get; set; }
 
         public Action OnEscape { get; set; }
-
 
 
 
@@ -79,7 +78,7 @@ namespace Architome
         {
             GetDependencies();
             HandlePauseMenu();
-            
+            SetInput(inputMode);
         }
 
         private void Awake()
@@ -113,11 +112,28 @@ namespace Architome
             haltingInput = false;
         }
 
+        public async void SetTempInput(ArchInputMode tempInput, Predicate<object> condition)
+        {
+            inputMode = tempInput;
+
+            while (condition(null))
+            {
+                await Task.Yield();
+            }
+
+            inputMode = desiredMode;
+        }
+
+        public void SetInput(ArchInputMode newInputMode)
+        {
+            desiredMode = newInputMode;
+            inputMode = newInputMode;
+        }
+
         async void HandleBlocking()
         {
             if (blockingInput) return;
             blockingInput = true;
-            desiredMode = inputMode;
             inputMode = ArchInputMode.Inactive;
 
             while (contextActive || haltingInput || moduleActive || pauseMenuActive)

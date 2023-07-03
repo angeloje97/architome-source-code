@@ -1,3 +1,4 @@
+using Architome.Enums;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -14,6 +15,9 @@ namespace Architome
 
         public static ArchDialogueManager active;
 
+        ArchInput archInput;
+
+        TaskQueueHandler taskQueue;
 
         private void Awake()
         {
@@ -27,18 +31,37 @@ namespace Architome
             ArchGeneric.DontDestroyOnLoad(gameObject, true);
         }
 
+
+
         public Events events;
 
         public UnityEvent OnStartDialogue;
         
-        public async void StartDialogue(DialogueEventData data)
+        private void Start()
         {
-            events.OnDialogueStart?.Invoke(data);
-            OnStartDialogue?.Invoke();
-            var promptHandler = PromptHandler.active;
+            if (active != this) return;
+            archInput = ArchInput.active;
+            taskQueue = new();
+        }
+        public void StartDialogue(DialogueEventData data)
+        {
 
-            var dialoguePrompt = await promptHandler.DialoguePrompt();
-            dialoguePrompt.SetDialogueDataSet(data);
+            taskQueue.AddTask(async () => {
+                var active = true;
+
+                archInput.SetTempInput(ArchInputMode.InGameUI, (object obj) => {
+                    return active;
+                });
+                events.OnDialogueStart?.Invoke(data);
+                OnStartDialogue?.Invoke();
+                var promptHandler = PromptHandler.active;
+
+                var dialoguePrompt = await promptHandler.DialoguePrompt();
+                dialoguePrompt.SetDialogueDataSet(data);
+
+                await dialoguePrompt.DialogueToEnd();
+                active = false;
+            });
         }
 
     }

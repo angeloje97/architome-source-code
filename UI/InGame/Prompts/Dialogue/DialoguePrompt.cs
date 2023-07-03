@@ -21,6 +21,8 @@ namespace Architome
 
         public Prefabs prefabs;
 
+        bool active;
+
 
         void Update()
         {
@@ -36,7 +38,13 @@ namespace Architome
         {
             currentSet.entries = new();
             currentSet.currentDialogueData = 0;
+            active = false;
             prompt.ClosePrompt();
+        }
+
+        public async Task DialogueToEnd()
+        {
+            while (active) await Task.Yield();
         }
 
         public void SetDialogueDataSet(DialogueEventData eventData)
@@ -49,14 +57,13 @@ namespace Architome
             {
                 autoClose = false,
                 handleClose = true,
-                blocksScreen = true,
                 title = sourceEntity.ToString(),
                 icon = sourceEntity.PortraitIcon()
             };
 
             prompt.SetPrompt(promptData, false);
 
-
+            active = true;
             SetEntries(eventData.dataSet.entries);
             HandleData(eventData);
         }

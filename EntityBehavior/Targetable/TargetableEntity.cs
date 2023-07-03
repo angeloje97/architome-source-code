@@ -1,3 +1,4 @@
+using Architome.Enums;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,6 +12,12 @@ namespace Architome
 
         bool hovering;
         bool triggeredEvent;
+        ArchInput archInput;
+
+        readonly static HashSet<ArchInputMode> modes = new HashSet<ArchInputMode>() {
+            ArchInputMode.Adventure,
+            ArchInputMode.Colony,
+        };
 
         void Start()
         {
@@ -27,6 +34,8 @@ namespace Architome
             {
                 this.entity = entity;
             }
+
+            archInput = ArchInput.active;
         }
 
         public void SetEntity(EntityInfo entity)
@@ -36,6 +45,7 @@ namespace Architome
 
         void HandleEnter()
         {
+            if (!modes.Contains(archInput.Mode)) return;
             hovering = true;
             if (entity == null) return;
             if (Mouse.IsMouseOverUI()) return;
@@ -46,6 +56,7 @@ namespace Architome
 
         public void HandleExit()
         {
+            if (!hovering) return;
             hovering = false;
             if (entity == null) return;
             if (!triggeredEvent) return;
