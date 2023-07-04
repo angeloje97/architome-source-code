@@ -103,12 +103,16 @@ namespace Architome
 
             transform.position = groundPos;
 
-            while (transform.position != originalPosition && !catalyst.isDestroyed)
-            {
+            await World.UpdateAction((float deltaTime) => {
                 transform.position = Vector3.Lerp(transform.position, originalPosition, .0625f);
-                await Task.Yield();
 
-            }
+                if(Vector3.Distance(transform.position, originalPosition) <= .0125f)
+                {
+                    transform.position = originalPosition;
+                }
+
+                return transform.position != originalPosition && !catalyst.isDestroyed;
+            });
         }
         async void HandleGrow()
         {
@@ -121,15 +125,17 @@ namespace Architome
 
             transform.localScale = new();
 
-            while (transform.localScale != originalScale)
-            {
-                await Task.Yield();
-                if (catalyst.isDestroyed) return;
-
-                if (gameObject == null) break;
+            await World.UpdateAction((float deltaTime) => {
+                if (transform.localScale == originalScale) return false;
+                if (catalyst.isDestroyed) return false;
+                if (gameObject == null) return false;
 
                 transform.localScale = Vector3.Lerp(transform.localScale, originalScale, .0625f);
-            }
+
+
+
+                return true;
+            });
         }
         async void HandleCollapse()
         {

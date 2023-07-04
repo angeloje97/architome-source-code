@@ -137,11 +137,12 @@ namespace Architome
             if (catalyst.isDestroyed) return;
 
             HandleStop();
-            HandleAcceleration();
             HandleMaxSpeed();
-
             if (disableTranslation) return;
+
+            HandleAcceleration(true);
             catalyst.transform.Translate(speed * Time.deltaTime * Vector3.forward);
+            HandleAcceleration(true);
         }
 
 
@@ -196,9 +197,17 @@ namespace Architome
             }
         }
 
-        void HandleAcceleration()
+        void HandleAcceleration(bool isHalf = false)
         {
-            speed += Time.deltaTime * acceleration;
+            if (isHalf)
+            {
+                speed += Time.deltaTime * acceleration * .5f;
+            }
+            else
+            {
+                speed += Time.deltaTime * acceleration;
+
+            }
 
             if (speed > catalyst.speed)
             {
