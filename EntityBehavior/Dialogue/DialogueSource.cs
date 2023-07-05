@@ -15,7 +15,12 @@ namespace Architome
 
     public class DialogueSource : EntityProp
     {
-
+        [Serializable]
+        struct OptionEvent
+        {
+            public string name;
+            public UnityEvent<DialogueEventData> OnTriggerEvent;
+        }
         public DialogueDataSet initialDataSet;
         ArchDialogueManager dialogueManager;
         [Header("Dialogue Source Properties")]
@@ -26,6 +31,9 @@ namespace Architome
         public UnityEvent<Transform> OnGetListener;
         public UnityEvent<Transform> OnGetSource;
 
+        [SerializeField] List<OptionEvent> optionEvents;
+        Dictionary<string, UnityEvent<DialogueEventData>> optionEventsMap;
+        
         void Start()
         {
             GetDependencies();
@@ -41,6 +49,15 @@ namespace Architome
         {
             base.GetDependencies();
             dialogueManager = ArchDialogueManager.active;
+
+            optionEventsMap = new();
+            if(optionEvents != null)
+            {
+                foreach(var optionEvent in optionEvents)
+                {
+                    optionEventsMap.Add(optionEvent.name, optionEvent.OnTriggerEvent);
+                }
+            }
         }
 
         public async void StartDialogue(Clickable.ChoiceData choiceData)
@@ -70,6 +87,22 @@ namespace Architome
 
 
             dialogueManager.StartDialogue(dialogueEventData);
+        }
+
+        public void InvokeOption(string triggerString, DialogueEventData eventData)
+        {
+            if (!optionEventsMap.ContainsKey(triggerString)) return;
+            optionEventsMap[triggerString]?.Invoke(eventData);
+        }
+
+        public void FollowListener(DialogueEventData eventData)
+        {
+            var source = eventData.sourceEntity;
+            var listener = eventData.listener;
+
+            var movement = source.Movement();
+
+            _= movement.MoveToAsync(listener.transform, 5f);
         }
     }
 }

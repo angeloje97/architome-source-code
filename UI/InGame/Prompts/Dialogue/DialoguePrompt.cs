@@ -80,6 +80,8 @@ namespace Architome
             foreach(var option in dialogueData.dialogueOptions)
             {
                 options.Add(new(option.text, async (OptionData promptOptionData) => {
+
+                    eventData.source.InvokeOption(option.triggerString, eventData);
                     if (option.endsDialogue)
                     {
                         EndDialogue();

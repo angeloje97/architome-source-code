@@ -28,6 +28,7 @@ namespace Architome
     {
         [TextArea(3,6)]
         public string text;
+        public string triggerString;
         public int nextTarget = -1;
         public bool endsDialogue;
     }
