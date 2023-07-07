@@ -12,6 +12,8 @@ namespace Architome.History
 
         public EntityHistory entityHistory;
         public QuestHistory questHistory;
+        public DialogueHistory dialogueHistory;
+
         public SaveHistory()
         {
 
@@ -23,9 +25,11 @@ namespace Architome.History
 
             entityHistory ??= new();
             questHistory ??= new();
+            dialogueHistory ??= new();
 
             entityHistory.SetActiveSingleTon();
             questHistory.SetActiveSingleTon();
+            dialogueHistory.SetActiveSingleTon();
         }
     }
 }
