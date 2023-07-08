@@ -28,15 +28,55 @@ namespace Architome
 
 
         public UnityEvent OnStartConverstation;
-        public UnityEvent<Transform> OnGetListener;
-        public UnityEvent<Transform> OnGetSource;
+        public UnityEvent OnDialogueDisabled;
 
         [SerializeField] List<OptionEvent> optionEvents;
         Dictionary<string, UnityEvent<DialogueEventData>> optionEventsMap;
-        
+        bool disabledCheck;
         void Start()
         {
             GetDependencies();
+
+            ArchAction.Delay(() => {
+                disabledCheck = !initialDataSet.disabled;
+                HandleDisabled();
+            }, 1f);
+        }
+
+        [SerializeField] bool validate;
+        
+        private void OnValidate()
+        {
+            if (!validate) return;
+            validate = false;
+            var datas = initialDataSet.data;
+
+            for(int i = 0; i < datas.Count; i++)
+            {
+                var data = datas[i];
+
+                data.name = $"({i}) {data.text}";
+
+                var options = data.dialogueOptions;
+
+                for(int j = 0; j < options.Count; j++)
+                {
+                    var option = options[j];
+                    var nextTarget = option.nextTarget;
+                    var targetString = nextTarget.ToString();
+
+                    switch (nextTarget)
+                    {
+                        case -1:
+                            targetString = "Next";
+                            break;
+                        case -2:
+                            targetString = "Stay";
+                            break;
+                    }
+                    option.name = $"({targetString}) {option.text}";
+                }
+            }
         }
 
         // Update is called once per frame
@@ -80,9 +120,6 @@ namespace Architome
                 sourceEntity = entityInfo,
                 dataSet = initialDataSet,
             };
-
-            OnGetSource?.Invoke(entityInfo.transform);
-            OnGetListener?.Invoke(entity.transform);
             OnStartConverstation?.Invoke();
 
 
@@ -103,6 +140,19 @@ namespace Architome
             var movement = source.Movement();
 
             _= movement.MoveToAsync(listener.transform, 5f);
+        }
+
+        public void HandleDisabled()
+        {
+            if(disabledCheck != initialDataSet.disabled)
+            {
+                disabledCheck = initialDataSet.disabled;
+
+                if (initialDataSet.disabled)
+                {
+                    OnDialogueDisabled?.Invoke();
+                }
+            }
         }
     }
 }

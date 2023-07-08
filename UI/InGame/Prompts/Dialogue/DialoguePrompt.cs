@@ -36,8 +36,6 @@ namespace Architome
 
         public void EndDialogue()
         {
-            currentSet.entries = new();
-            currentSet.currentDialogueData = 0;
             active = false;
             prompt.ClosePrompt();
         }
@@ -64,7 +62,12 @@ namespace Architome
             prompt.SetPrompt(promptData, false);
 
             active = true;
-            SetEntries(eventData.dataSet.entries);
+            if (currentSet.clearAtStart)
+            {
+                currentSet.entries = new();
+            }
+
+            SetEntries(currentSet.entries);
             HandleData(eventData);
         }
 
@@ -82,14 +85,28 @@ namespace Architome
                 options.Add(new(option.text, async (OptionData promptOptionData) => {
 
                     eventData.source.InvokeOption(option.triggerString, eventData);
-                    if (option.endsDialogue)
+
+                    if(option.nextTarget != -2)
                     {
+                        currentSet.currentDialogueData = option.nextTarget != -1 ? option.nextTarget : currentIndex + 1;
+                    }
+
+
+                    if(currentSet.currentDialogueData >= currentSet.data.Count)
+                    {
+                        currentSet.disabled = true;
+                    }
+
+                    await AddEntry(new(eventData.listener.ToString(), option.text, true));
+
+                    if (option.endsDialogue || currentSet.disabled)
+                    {
+                        eventData.source.HandleDisabled();
                         EndDialogue();
                         return;
                     }
                     prompt.RemoveOptions();
-                    currentSet.currentDialogueData = option.nextTarget != -1 ? option.nextTarget : currentIndex + 1;
-                    await AddEntry(new(eventData.listener.ToString(), option.text, true));
+                    
                     HandleData(eventData);
                 }));
             }

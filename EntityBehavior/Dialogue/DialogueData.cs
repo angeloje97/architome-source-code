@@ -12,11 +12,14 @@ namespace Architome
         public int currentDialogueData;
         public List<DialogueData> data;
         public List<DialogueEntry> entries;
+        public bool disabled;
+        public bool clearAtStart;
     }
 
     [Serializable]
     public class DialogueData
     {
+        [HideInInspector] public string name;
         [TextArea(5, 10)]
         public string text;
 
@@ -26,6 +29,7 @@ namespace Architome
     [Serializable]
     public class DialogueOption
     {
+        [HideInInspector] public string name;
         [TextArea(3,6)]
         public string text;
         public string triggerString;

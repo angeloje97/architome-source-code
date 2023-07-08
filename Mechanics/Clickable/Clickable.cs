@@ -158,6 +158,11 @@ namespace Architome
         {
             this.options.Add(new() { text = option });
         }
+        public void RemoveOption(int index)
+        {
+            if (index < 0 || index >= options.Count) return;
+            options.RemoveAt(index);
+        }
         public void ClearOptions()
         {
             this.options = new();
