@@ -7,9 +7,12 @@ using UnityEngine;
 
 namespace Architome
 {
+
+
     public class QuestNotification : MonoBehaviour
     {
         public Action OnQuestStart, OnQuestCompleted, OnQuestFailed;
+
 
         TaskQueueHandler taskHandler;
 
@@ -21,13 +24,12 @@ namespace Architome
 
         public Info info;
 
-        bool busy;
         bool animationPlaying;
         void Start()
         {
             taskHandler = new();
             GetDependencies();
-            taskHandler = new();
+            HandleSceneTransition();
         }
 
 
@@ -53,6 +55,22 @@ namespace Architome
                 quest.OnCompleted += PlayCompleted;
                 quest.OnQuestFail += PlayFailed;
             }
+        }
+
+        void HandleSceneTransition()
+        {
+            var sceneManager = ArchSceneManager.active;
+            if (sceneManager == null) return;
+
+            sceneManager.AddListener(SceneEvent.BeforeConfirmLoad, () => {
+                if (taskHandler.busy)
+                {
+                    sceneManager.tasksBeforeConfirmLoad.Add(async () => {
+                        await taskHandler.UntilTasksFinished();
+                        return true;
+                    });
+                }
+            }, this);
         }
 
         void PlayFailed(Quest quest)

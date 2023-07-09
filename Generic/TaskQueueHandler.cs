@@ -10,7 +10,7 @@ namespace Architome
     {
         Queue<Func<Task>> currentTasks;
         Task activeTask;
-        bool busy;
+        public bool busy { get; private set; }
 
         public TaskQueueHandler()
         {
@@ -33,6 +33,14 @@ namespace Architome
             }
 
             busy = false;
+        }
+
+        public async Task UntilTasksFinished()
+        {
+            while (busy)
+            {
+                await Task.Yield();
+            }
         }
 
         public void AddTaskImmediate(Func<Task> task)

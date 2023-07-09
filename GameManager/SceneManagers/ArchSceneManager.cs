@@ -28,7 +28,7 @@ namespace Architome
 
         public List<Func<Task>> tasksBeforeLoad { get; set; }
         public List<Func<Task<bool>>> tasksBeforeConfirmLoad { get; set; }
-        public List<Task> tasksBeforeActivateScene;
+        public List<Task> tasksBeforeActivateScene { get; set; }
 
         public Action<AsyncOperation> OnLoadStart { get; set; }
         public Action<AsyncOperation> WhileLoading { get; set; }

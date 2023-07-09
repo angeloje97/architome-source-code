@@ -1,21 +1,37 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Architome
 {
     public class QuestNotificationSFX : MonoBehaviour
     {
-        // Start is called before the first frame update
+        public AudioClip completed, failed, started;
+
+        QuestNotification notification;
+        AudioManager audioManager;
         void Start()
         {
-        
+            GetDependencies();
         }
 
-        // Update is called once per frame
-        void Update()
+        void GetDependencies()
         {
-        
+            notification = GetComponent<QuestNotification>();
+            audioManager = GetComponent<AudioManager>();
+
+            if (notification && audioManager)
+            {
+                notification.OnQuestCompleted += () => {
+                    audioManager.PlayAudioClip(completed);
+                };
+
+                notification.OnQuestFailed += () => {
+                    audioManager.PlayAudioClip(failed);
+                };
+
+                notification.OnQuestStart += () => {
+                    audioManager.PlayAudioClip(started);
+                };
+            }
         }
     }
 }
