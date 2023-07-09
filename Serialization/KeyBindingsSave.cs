@@ -205,5 +205,10 @@ namespace Architome
                 field.SetValue(this, field.GetValue(bindings));
             }
         }
+
+        public static KeyCode TempKeyCode(KeyCode tempKeyCode)
+        {
+            return tempKeyCode;
+        }
     }
 }

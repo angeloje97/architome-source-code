@@ -111,6 +111,8 @@ namespace Architome.Settings.Keybindings
             type = serializedData.type;
             inputMode = serializedData.inputMode;
             keybindsData = serializedData.keybindsData.ToList();
+
+            
         }
 
         public void ApplyEdits()

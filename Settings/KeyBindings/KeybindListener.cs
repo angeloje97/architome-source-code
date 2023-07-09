@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -52,12 +53,31 @@ namespace Architome.Settings.Keybindings
 
             listenerInfo ??= new();
             if (archInput == null) return;
+
+            var keyBindings = KeyBindings.active;
+            
             foreach(var listener in listenerInfo)
             {
                 listener.AddListener(archInput);
+
+                HandleKeyName(listener);
+
+                keyBindings.AddListener(BindingEvents.OnSave, (KeybindSet set) => {
+                    HandleKeyName(listener);
+                }, this);
             }
             listening = true;
+
+            void HandleKeyName(ListenerEvent listener)
+            {
+                if (listener.setTypes.Count <= 0) return;
+
+                var keyName = keyBindings.KeyCodeFromSetName(listener.setTypes[0], listener.bindingName).ToString();
+
+                listener.OnObtainKeyName?.Invoke(keyName);
+            }
         }
+
 
         void RemoveListeners()
         {

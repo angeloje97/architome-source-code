@@ -55,10 +55,6 @@ namespace Architome
             keyBindings = KeyBindings.active;
 
 
-            if (keyBindings)
-            {
-                keyBindings.OnLoadBindings += OnLoadBindings;
-            }
 
             OnAbilityChange += HandleAbilityChange;
 
@@ -242,11 +238,13 @@ namespace Architome
                 charges.gameObject.SetActive(true);
             }
 
-            if (keyBindText)
-            {
-                keyBindText.text = keyBindings.keyBinds[$"Ability{actionBarNum}"].ToString().ToUpper();
-                keyBindText.gameObject.SetActive(val);
-            }
+            keyBindText.gameObject.SetActive(val);
+
+            //if (keyBindText)
+            //{
+            //    keyBindText.text = keyBindings.keyBinds[$"Ability{actionBarNum}"].ToString().ToUpper();
+            //    keyBindText.gameObject.SetActive(val);
+            //}
         }
         public void DisplayAbilityActive(bool val)
         {
@@ -254,15 +252,6 @@ namespace Architome
             {
                 iconMain.gameObject.SetActive(val);
             }
-        }
-
-        public void OnLoadBindings(KeyBindings bindings)
-        {
-            SetKeyBindText();
-        }
-        public void SetKeyBindText()
-        {
-            keyBindText.text = keyBindings.keyBinds[$"Ability{actionBarNum}"].ToString().ToUpper();
         }
 
         public int SpriteIndex(KeyBindings bindings)

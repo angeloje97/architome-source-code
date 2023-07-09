@@ -26,13 +26,15 @@ namespace Architome
 
         ArchSceneManager archSceneManager;
 
-
+        public List<KeybindSet> availableSets;
         public KeybindSet currentKeybindSet;
 
         public Dictionary<string, KeyCode> downDict, upDict, holdDict;
 
         public Dictionary<KeybindSetType, Dictionary<KeybindType, Dictionary<string, Action>>> events;
+        public Dictionary<KeybindSetType, List<KeybindSet>> sets;
 
+        KeyBindings keyBindings;
 
         public ArchInputMode Mode => inputMode;
 
@@ -52,7 +54,7 @@ namespace Architome
             gui = IGGUIInfo.active;
             var contextMenu = ContextMenu.current;
             archSceneManager = ArchSceneManager.active;
-
+            keyBindings = KeyBindings.active;
 
             if (archSceneManager)
             {
@@ -68,6 +70,13 @@ namespace Architome
             if (contextMenu)
             {
                 contextMenu.OnContextActiveChange += OnContextActiveChange;
+            }
+
+            if (keyBindings)
+            {
+                keyBindings.AddListener(BindingEvents.OnSave, (KeybindSet set) => {
+                    SetKeybindSet(currentKeybindSet);
+                }, this);
             }
         }
 
@@ -87,6 +96,7 @@ namespace Architome
             events = new();
             SetKeybindSet(currentKeybindSet);
         }
+
 
         void BeforeLoadScene(ArchSceneManager archSceneManager)
         {
@@ -153,6 +163,11 @@ namespace Architome
             downDict = currentKeybindSet.downDict;
             upDict = currentKeybindSet.upDict;
             holdDict = currentKeybindSet.holdDict;
+
+            if (keyBindings)
+            {
+                keyBindings.InvokeEvent(BindingEvents.OnLoad, currentKeybindSet);
+            }
         }
 
         public async void OnContextActiveChange(ContextMenu context, bool isActive)

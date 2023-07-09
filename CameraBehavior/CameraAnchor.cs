@@ -89,8 +89,8 @@ namespace Architome
         async void OnMiddleMouse()
         {
             if (Mouse.IsMouseOverUI()) return;
-            var keyCode = keyBindData.keyBinds["CameraRotator"];
-            while (!Input.GetKeyUp(keyCode))
+            var tempKeyCode = ArchInput.active.currentKeybindSet.KeyCodeFromName("CameraRotator");
+            while (!Input.GetKeyUp(tempKeyCode))
             {
                 await Task.Yield();
                 anchorYVal += Input.GetAxis("Mouse X") * rotationSpeed;

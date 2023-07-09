@@ -133,8 +133,9 @@ namespace Architome
             OnHoldingChange?.Invoke(true);
             yield return new WaitForSeconds(.125f);
 
-
-            if (Input.GetKey(keyBindings.keyBinds[actionRelease]))
+            var keyCode = ArchInput.active.currentKeybindSet.KeyCodeFromName("Action");
+            
+            if (Input.GetKey(keyCode))
             {
                 isHolding = true;
             }
@@ -153,7 +154,9 @@ namespace Architome
             await Task.Delay(125);
             isHolding = true;
 
-            while (Input.GetKey(keyBindings.keyBinds[actionRelease]))
+            var keyCode = ArchInput.active.currentKeybindSet.KeyCodeFromName("Action");
+
+            while (Input.GetKey(keyCode))
             {
                 await Task.Yield();
                 HandleRotation();

@@ -50,6 +50,8 @@ namespace Architome.Settings
 
         List<KeybindSet.KeybindData> currentDataList;
 
+        KeyBindings keyBindings;
+
         public Action<KeyBindMapping> OnRevertChanges;
         public Action<KeyBindMapping> OnApplyChanges { get; set; }
 
@@ -84,6 +86,7 @@ namespace Architome.Settings
         void GetDependencies()
         {
             info.currentKeybindSave = KeyBindingsSave._current;
+            keyBindings = KeyBindings.active;
 
             ClearMaps();
             SpawnMaps();
@@ -345,8 +348,14 @@ namespace Architome.Settings
             {
                 var currentSet = info.editableSets[info.selectedSetIndex];
                 
+
+
                 currentSet.ApplyEdits();
 
+                if (keyBindings)
+                {
+                    keyBindings.InvokeEvent(BindingEvents.OnSave, currentSet);
+                }
 
                 OnApplyChanges?.Invoke(this);
 

@@ -324,8 +324,9 @@ namespace Architome
 
             Hold(target);
             bool isHovering = true;
-
-            while (Input.GetKey(keyBindings.keyBinds["Select"]))
+            //var keyCode = KeyBindingsSave.TempKeyCode(KeyCode.Mouse0);
+            var keyCode = ArchInput.active.currentKeybindSet.KeyCodeFromName("Select");
+            while (Input.GetKey(keyCode))
             {
                 await Task.Yield();
                 if (currentHover != currentHold)

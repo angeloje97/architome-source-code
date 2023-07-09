@@ -138,9 +138,11 @@ namespace Architome
             var exitKeyDowns = new List<KeyCode>() { KeyCode.Mouse1 };
 
 
+            var currentKeyBindSet = ArchInput.active.currentKeybindSet;
             foreach (var action in alternateActionsName)
             {
-                exitKeyUps.Add(keyBindData.keyBinds[action]);
+                exitKeyUps.Add(currentKeyBindSet.KeyCodeFromName(action));
+                
             }
 
             await KeyBindings.LetGoKeys(exitKeyDowns);
