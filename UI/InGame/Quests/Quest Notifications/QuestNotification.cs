@@ -15,6 +15,7 @@ namespace Architome
 
 
         TaskQueueHandler taskHandler;
+        ArchSceneManager sceneManager;
 
         [Serializable]
         public struct Info {
@@ -23,7 +24,6 @@ namespace Architome
         }
 
         public Info info;
-
         bool animationPlaying;
         void Start()
         {
@@ -31,11 +31,10 @@ namespace Architome
             GetDependencies();
             HandleSceneTransition();
         }
-
-
         void GetDependencies()
         {
             var questManager = QuestManager.active;
+            sceneManager = ArchSceneManager.active;
             if (questManager)
             {
                 questManager.OnNewQuest += HandleQuest;
@@ -56,23 +55,18 @@ namespace Architome
                 quest.OnQuestFail += PlayFailed;
             }
         }
-
         void HandleSceneTransition()
         {
-            var sceneManager = ArchSceneManager.active;
             if (sceneManager == null) return;
 
             sceneManager.AddListener(SceneEvent.BeforeConfirmLoad, () => {
                 if (taskHandler.busy)
                 {
-                    sceneManager.tasksBeforeConfirmLoad.Add(async () => {
-                        await taskHandler.UntilTasksFinished();
-                        return true;
-                    });
+                    sceneManager.tasksBeforeLoadPriority.Add(taskHandler.UntilTasksFinished());
                 }
             }, this);
-        }
 
+        }
         void PlayFailed(Quest quest)
         {
 
@@ -82,7 +76,6 @@ namespace Architome
 
             });
         }
-
         void PlayCompleted(Quest quest)
         {
             taskHandler.AddTask(async () => {
@@ -90,7 +83,6 @@ namespace Architome
                 await PlayNotification(quest.questName, "Completed");
             });
         }
-
         void PlayStarted(Quest quest)
         {
             taskHandler.AddTask(async () => {
@@ -98,9 +90,10 @@ namespace Architome
                 await PlayNotification(quest.questName, "Started");
             });
         }
-
         public async Task PlayNotification(string title, string status)
         {
+            await WaitLoading();
+
             info.title.text = title;
             info.status.text = status;
             animationPlaying = true;
@@ -108,6 +101,12 @@ namespace Architome
             while (animationPlaying) await Task.Yield();
         }
 
+        public async Task WaitLoading()
+        {
+            if (sceneManager == null) return;
+
+            while (sceneManager.isLoading) await Task.Yield();
+        }
         public void StopAnimation()
         {
             animationPlaying = false;

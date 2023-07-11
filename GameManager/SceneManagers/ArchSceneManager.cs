@@ -27,9 +27,9 @@ namespace Architome
         public Dictionary<SceneEvent, Action<ArchSceneManager>> eventDict;
 
         public List<Func<Task>> tasksBeforeLoad { get; set; }
+        public List<Task> tasksBeforeLoadPriority { get; set; }
         public List<Func<Task<bool>>> tasksBeforeConfirmLoad { get; set; }
         public List<Task> tasksBeforeActivateScene { get; set; }
-
         public Action<AsyncOperation> OnLoadStart { get; set; }
         public Action<AsyncOperation> WhileLoading { get; set; }
         public Action<AsyncOperation> OnLoadEnd { get; set; }
@@ -163,7 +163,11 @@ namespace Architome
 
 
             tasksBeforeLoad = new();
+            tasksBeforeLoadPriority = new();
             eventDict[SceneEvent.BeforeLoadScene]?.Invoke(this);
+
+            await Task.WhenAll(tasksBeforeLoadPriority);
+
 
             foreach(var task in tasksBeforeLoad)
             {
