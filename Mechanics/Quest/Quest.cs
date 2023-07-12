@@ -159,8 +159,7 @@ namespace Architome
             Debugger.Environment(2945, $"{questName} Completed");
 
             OnCompleted?.Invoke(this);
-            OnQuestEnd?.Invoke(this);
-            
+            EndQuest();
         }
         public void ForceFail()
         {

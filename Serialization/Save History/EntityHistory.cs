@@ -16,7 +16,7 @@ namespace Architome.History
 
         public Dictionary<int, int> playerKills;
         public Dictionary<int, int> guildMemberDeaths;
-        
+
 
         int EntityId(EntityInfo entity)
         {

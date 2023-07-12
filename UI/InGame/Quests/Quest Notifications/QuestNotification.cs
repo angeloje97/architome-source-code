@@ -21,6 +21,7 @@ namespace Architome
         public struct Info {
             public Animator animator;
             public TextMeshProUGUI title, status;
+            public CanvasGroup canvasGroup;
         }
 
         public Info info;
@@ -35,6 +36,7 @@ namespace Architome
         {
             var questManager = QuestManager.active;
             sceneManager = ArchSceneManager.active;
+            info.canvasGroup.SetCanvas(false);
             if (questManager)
             {
                 questManager.OnNewQuest += HandleQuest;
@@ -72,7 +74,7 @@ namespace Architome
 
             taskHandler.AddTask(async () => {
                 OnQuestFailed?.Invoke();
-                await PlayNotification(quest.questName, "Failed");
+                await PlayNotification(quest.questName, "Quest Failed");
 
             });
         }
@@ -80,14 +82,14 @@ namespace Architome
         {
             taskHandler.AddTask(async () => {
                 OnQuestCompleted?.Invoke();
-                await PlayNotification(quest.questName, "Completed");
+                await PlayNotification(quest.questName, "Quest Completed");
             });
         }
         void PlayStarted(Quest quest)
         {
             taskHandler.AddTask(async () => {
                 OnQuestStart?.Invoke();
-                await PlayNotification(quest.questName, "Started");
+                await PlayNotification(quest.questName, "Quest Started");
             });
         }
         public async Task PlayNotification(string title, string status)
@@ -97,8 +99,11 @@ namespace Architome
             info.title.text = title;
             info.status.text = status;
             animationPlaying = true;
+            info.canvasGroup.SetCanvas(true);
             info.animator.SetTrigger("PlayNotification");
             while (animationPlaying) await Task.Yield();
+            await Task.Delay(2000);
+            await info.canvasGroup.SetCanvasAsync(false, .0625f);
         }
 
         public async Task WaitLoading()
@@ -106,6 +111,8 @@ namespace Architome
             if (sceneManager == null) return;
 
             while (sceneManager.isLoading) await Task.Yield();
+
+            await Task.Delay(2000);
         }
         public void StopAnimation()
         {

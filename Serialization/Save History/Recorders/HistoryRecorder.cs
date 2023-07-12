@@ -1,4 +1,5 @@
 using Architome.History;
+using PixelCrushers.DialogueSystem;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,10 +8,8 @@ namespace Architome
 {
     public class HistoryRecorder : MonoBehaviour
     {
-        MapEntityGenerator entityGenerator;
         EntityHistory entityHistory;
         QuestHistory questHistory;
-        DungeonQuestGenerator questGenerator;
         ArchSceneManager sceneManager;
 
         SaveSystem currentSaveSystem;
@@ -23,8 +22,8 @@ namespace Architome
         void Start()
         {
             GetDependencies();
-            HandleEntityGenerator();
-            HandleQuestGenerator();
+            HandleQuests();
+            HandleEntityDeathHandler();
         }
 
         // Update is called once per frame
@@ -39,14 +38,6 @@ namespace Architome
             currentEnemyKills = new();
             currentPlayerDeaths = new();
             questsCompleted = new();
-
-            if (sceneManager)
-            {
-                sceneManager.AddListener(SceneEvent.OnLoadScene, () => {
-                    HandleEntityGenerator();
-                    HandleQuestGenerator();
-                }, this);
-            }
 
             currentSaveSystem = SaveSystem.active;
 
@@ -92,55 +83,69 @@ namespace Architome
                 {
                     questHistory.CompleteQuest(pair.Key);
                 }
-                
+
             }
         }
 
-        void HandleEntityGenerator()
+        void HandleEntityDeathHandler()
         {
-            entityGenerator = MapEntityGenerator.active;
+            var entityDeathHandler = EntityDeathHandler.active;
+            if (entityDeathHandler == null) return;
 
-            if (entityGenerator == null) return;
 
+            entityDeathHandler.OnEntityDeath += (CombatEventData eventData) =>
+            {
+                var target = eventData.target;
+                if (target.IsPlayer())
+                {
+                    AddDeath(currentPlayerDeaths, target);
+                    return;
+                }
 
-            entityGenerator.OnGenerateEntity += (MapEntityGenerator generator, EntityInfo entity) => {
-                var id = entity._id;
-                entity.OnDeath += (CombatEventData combatData) => {
-                    if (!combatData.source.IsPlayer()) return;
+                var source = eventData.source;
 
-                    Debugger.System(6141, $"Added {entity} to the list of kills");
-                    if (!currentEnemyKills.ContainsKey(id))
-                    {
-                        currentEnemyKills.Add(id, 1);
-                    }
-                    else
-                    {
-                        currentEnemyKills[id]++;
-                    }
-                }; 
+                if (source.IsPlayer())
+                {
+                    AddDeath(currentEnemyKills, target);
+                }
             };
+
+            void AddDeath(Dictionary<int, int> records, EntityInfo entity)
+            {
+                var id = entity._id;
+
+                if (!records.ContainsKey(id))
+                {
+                    records.Add(id, 1);
+                }
+                else
+                {
+                    records[id] += 1;
+                }
+            }
         }
 
-        void HandleQuestGenerator()
+        void HandleQuests()
         {
-            questGenerator = DungeonQuestGenerator.active;
-            questHistory = QuestHistory.active;
+            var questManager = QuestManager.active;
 
-            if (questGenerator == null || questHistory == null) return;
+            if (questManager == null) return;
 
-            questGenerator.OnGenerateQuest += (Quest quest) => {
-                quest.OnCompleted += (Quest quest) => {
-                    if (!questsCompleted.ContainsKey(quest))
-                    {
-                        questsCompleted.Add(quest, true);
-                    }
-                    else
-                    {
-                        questsCompleted[quest] = true;
-                    }
-                };
+            questManager.OnQuestEnd += (Quest quest) => {
+                if(quest.info.state == Enums.QuestState.Completed)
+                {
+                    CompleteQuest(quest);
+                }
             };
 
+            void CompleteQuest(Quest quest)
+            {
+                if (!questsCompleted.ContainsKey(quest))
+                {
+                    questsCompleted.Add(quest, true);
+                }
+                else { questsCompleted[quest] = true; }
+            }
         }
     }
 }
