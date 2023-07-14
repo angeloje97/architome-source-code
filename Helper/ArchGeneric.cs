@@ -137,55 +137,6 @@ namespace Architome
             return rollChance < roll;
         }
 
-        public static async Task Smooth(Action<float> action, float totalTime, float endAccel = 0.25f, float startDeccel = .75f)
-        {
-            float lerpValue = 0f;
-            float speed = 0f;
-
-            float accelTime = totalTime * endAccel;
-            float deccelTime = totalTime - (totalTime * (1 - startDeccel));
-
-            
-
-            float accel = (2 * endAccel) / (accelTime * accelTime);
-            float deccel = (2 * (1 - startDeccel)) / (deccelTime * deccelTime);
-
-            await HandleValue();
-            HandleAcceleration();
-
-            
-            async Task HandleValue()
-            {
-                while (lerpValue < 1)
-                {
-                    lerpValue = Mathf.Clamp(lerpValue + (speed * Time.deltaTime), 0f, 1f);
-
-                    action(lerpValue);
-                    await Task.Yield();
-                }
-            }
-
-            async void HandleAcceleration()
-            {
-                while(lerpValue < endAccel)
-                {
-                    speed += accel * Time.deltaTime;
-                    await Task.Yield();
-                }
-
-                while(lerpValue < startDeccel)
-                {
-                    await Task.Yield();
-                }
-
-                while(lerpValue < 1)
-                {
-                    speed -= deccel * Time.deltaTime;
-                    await Task.Yield();
-                }
-            }
-
-        }
     }
 
 }

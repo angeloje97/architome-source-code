@@ -73,7 +73,7 @@ namespace Architome.Settings.Keybindings
                 if (listener.setTypes.Count <= 0) return;
 
                 var keyName = keyBindings.KeyCodeFromSetName(listener.setTypes[0], listener.bindingName).ToString();
-
+                keyName = ArchString.Replace(keyName, "(Alpha|ALPHA)", "");
                 listener.OnObtainKeyName?.Invoke(keyName);
             }
         }

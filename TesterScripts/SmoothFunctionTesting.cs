@@ -9,20 +9,19 @@ namespace Architome
     {
         public bool saveStart;
         public bool saveEnd;
+        public bool test;
 
         public Vector3 startPosition;
         public Vector3 endPosition;
         public float time;
-        public float endAccel;
-        public float startDeccel;
-        public float delay;
 
-        async void Start()
+        bool testing;
+
+        float timeElapsed;
+
+        private void Start()
         {
-            await Task.Delay((int)(1000 * delay));
-            await ArchGeneric.Smooth((float lerpValue) => {
-                transform.position = Vector3.Lerp(startPosition, endPosition, lerpValue);
-            }, time, endAccel, startDeccel);
+            transform.position = startPosition;
         }
 
         private void OnValidate()
@@ -43,7 +42,25 @@ namespace Architome
         // Update is called once per frame
         void Update()
         {
-        
+            if (test)
+            {
+                test = false;
+                Test();
+            }
+        }
+
+        async void Test()
+        {
+            if (testing) return;
+            testing = true;
+
+            timeElapsed = 0f;
+            await ArchCurve.Smooth((float lerpValue) => {
+                transform.position = Vector3.Lerp(startPosition, endPosition, lerpValue);
+                timeElapsed += Time.deltaTime;
+            }, CurveType.EaseInOut, time);
+
+            testing = false;
         }
     }
 }
