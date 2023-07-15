@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using Architome.Enums;
 using Architome.History;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -11,14 +13,33 @@ namespace Architome
         public LogicType authenticationLogic;
         public List<string> validQuests;
         
-        List<bool> values;
-
+        Dictionary<string, bool> values;
         public override void OnAuthenticationStart()
         {
             base.OnAuthenticationStart();
             UpdateValues();
 
             OnStartAuthentication?.Invoke(Validated());
+            HandleQuestManager();
+        }
+
+        void HandleQuestManager()
+        {
+            var questManager = QuestManager.active;
+
+            questManager.events.AddListener(QuestEvents.OnEnd, (Quest quest) => {
+                if (quest.info.state != QuestState.Completed) return;
+                if (!values.ContainsKey(quest.ToString())) return;
+                values[quest.ToString()] = true;
+
+                var validated = Validated();
+                if(validated != authenticated)
+                {
+                    authenticated = validated;
+                    OnAuthenticationChange?.Invoke(validated);
+                }
+
+            }, this);
         }
 
         void UpdateValues()
@@ -30,13 +51,16 @@ namespace Architome
 
             foreach(var quest in validQuests)
             {
-                values.Add(questHistory.IsComplete(quest));
+                values.Add(quest ,questHistory.IsComplete(quest));
             }
         }
 
         bool Validated()
         {
-            return new ArchLogic(values).Valid(authenticationLogic);
+            var valuesList = values
+                .Select((KeyValuePair<string, bool> pairs) => { return pairs.Value; })
+                .ToList();
+            return new ArchLogic(valuesList).Valid(authenticationLogic);
         }
     }
 }

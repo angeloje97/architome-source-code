@@ -9,6 +9,9 @@ namespace Architome
     {
         public UnityEvent<bool> OnStartAuthentication;
         public UnityEvent<bool> OnDestroyAuthentication;
+        public UnityEvent<bool> OnAuthenticationChange;
+
+        protected bool authenticated;
 
         public virtual void Start()
         {

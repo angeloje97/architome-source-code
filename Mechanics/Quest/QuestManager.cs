@@ -6,16 +6,19 @@ using UnityEngine;
 
 namespace Architome
 {
+    public enum QuestEvents 
+    {
+        OnNew,
+        OnEnd,
+        OnActive,
+    }
     public class QuestManager : MonoBehaviour
     {
-        // Start is called before the first frame update
+        public ArchEventHandler<QuestEvents, Quest> events;
 
         public static QuestManager active;
         public List<Quest> quests;
-        public Action<Quest> OnNewQuest;
 
-        public Action<Quest> OnQuestEnd { get; set; }
-        public Action<Quest> OnQuestActive { get; set; }
 
         private void Start()
         {
@@ -24,6 +27,7 @@ namespace Architome
         public void Awake()
         {
             active = this;
+            events = new(this);
         }
 
         public Quest AddQuest(Quest questPrefab)
@@ -33,8 +37,7 @@ namespace Architome
 
             UpdateQuest();
 
-
-            OnNewQuest?.Invoke(newQuest);
+            events.InvokeEvent(QuestEvents.OnNew, newQuest);
             return newQuest;
 
         }
@@ -56,9 +59,6 @@ namespace Architome
         {
             quests = GetComponentsInChildren<Quest>().ToList();
         }
-
-        
-
 
     }
 

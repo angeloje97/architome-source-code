@@ -16,7 +16,7 @@ namespace Architome
         {
             moduleInfo = GetComponentInParent<ModuleListInfo>();
             questManager = QuestManager.active;
-            questManager.OnQuestActive += OnQuestActive;
+            questManager.events.AddListener(QuestEvents.OnActive, OnQuestActive, this);
         }
         void Start()
         {

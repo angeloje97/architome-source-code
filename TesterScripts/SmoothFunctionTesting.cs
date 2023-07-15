@@ -15,6 +15,8 @@ namespace Architome
         public Vector3 endPosition;
         public float time;
 
+        public CurveType curveType;
+
         bool testing;
 
         float timeElapsed;
@@ -58,7 +60,8 @@ namespace Architome
             await ArchCurve.Smooth((float lerpValue) => {
                 transform.position = Vector3.Lerp(startPosition, endPosition, lerpValue);
                 timeElapsed += Time.deltaTime;
-            }, CurveType.EaseInOut, time);
+            }, curveType, time);
+
 
             testing = false;
         }

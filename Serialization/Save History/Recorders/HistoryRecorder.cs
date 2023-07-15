@@ -131,12 +131,13 @@ namespace Architome
 
             if (questManager == null) return;
 
-            questManager.OnQuestEnd += (Quest quest) => {
-                if(quest.info.state == Enums.QuestState.Completed)
+            questManager.events.AddListener(QuestEvents.OnEnd, (Quest quest) =>
+            {
+                if (quest.info.state == Enums.QuestState.Completed)
                 {
                     CompleteQuest(quest);
                 }
-            };
+            }, this);
 
             void CompleteQuest(Quest quest)
             {
