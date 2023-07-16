@@ -53,7 +53,29 @@ namespace Architome
             }
         }
 
-        public void InvokeEvent(T eventType, E eventData)
+        public Action AddListener(T eventType, Action action, Component listener)
+        {
+            return AddListener(eventType, (E e) => {
+                action();
+            }, listener);
+        }
+
+        public Action AddListeners(List<(T, Action<E>)> values, Component listener)
+        {
+            Action unsubscribe = () => { };
+
+            foreach (var value in values)
+            {
+                var type = value.Item1;
+                var action = value.Item2;
+
+                unsubscribe += AddListener(type, action, listener);
+            }
+
+            return unsubscribe;
+        }
+
+        public void Invoke(T eventType, E eventData)
         {
             if (source == null) return;
             if (!eventDict.ContainsKey(eventType)) return;

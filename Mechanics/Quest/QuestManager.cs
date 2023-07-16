@@ -37,7 +37,7 @@ namespace Architome
 
             UpdateQuest();
 
-            events.InvokeEvent(QuestEvents.OnNew, newQuest);
+            events.Invoke(QuestEvents.OnNew, newQuest);
             return newQuest;
 
         }
