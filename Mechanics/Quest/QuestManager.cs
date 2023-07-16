@@ -14,7 +14,7 @@ namespace Architome
     }
     public class QuestManager : MonoBehaviour
     {
-        public ArchEventHandler<QuestEvents, Quest> events;
+        ArchEventHandler<QuestEvents, Quest> events;
 
         public static QuestManager active;
         public List<Quest> quests;
@@ -28,6 +28,16 @@ namespace Architome
         {
             active = this;
             events = new(this);
+        }
+
+        public Action AddListener(QuestEvents eventType, Action<Quest> action, Component listener)
+        {
+            return events.AddListener(eventType, action, listener);
+        }
+
+        public void InvokeEvent(QuestEvents eventType, Quest quest)
+        {
+            events.Invoke(eventType, quest);
         }
 
         public Quest AddQuest(Quest questPrefab)

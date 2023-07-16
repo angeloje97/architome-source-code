@@ -46,7 +46,7 @@ namespace Architome
 
             if (questManager)
             {
-                questManager.events.AddListener(QuestEvents.OnEnd, OnQuestEnd, this);
+                questManager.AddListener(QuestEvents.OnEnd, OnQuestEnd, this);
             }
 
             if (saveSystem)

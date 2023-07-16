@@ -39,7 +39,7 @@ namespace Architome
             info.canvasGroup.SetCanvas(false);
             if (questManager)
             {
-                questManager.events.AddListener(QuestEvents.OnNew, HandleQuest, this);
+                questManager.AddListener(QuestEvents.OnNew, HandleQuest, this);
                 if (questManager.quests != null)
                 {
                     foreach(var quest in questManager.quests)

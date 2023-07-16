@@ -27,7 +27,7 @@ namespace Architome
         {
             var questManager = QuestManager.active;
 
-            questManager.events.AddListener(QuestEvents.OnEnd, (Quest quest) => {
+            questManager.AddListener(QuestEvents.OnEnd, (Quest quest) => {
                 if (quest.info.state != QuestState.Completed) return;
                 if (!values.ContainsKey(quest.ToString())) return;
                 values[quest.ToString()] = true;

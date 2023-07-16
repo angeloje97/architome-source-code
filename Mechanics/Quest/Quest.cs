@@ -104,7 +104,7 @@ namespace Architome
             }
 
             OnActive?.Invoke(this);
-            questManager.events.Invoke(QuestEvents.OnActive, this);
+            questManager.InvokeEvent(QuestEvents.OnActive, this);
 
             return true;
         }
@@ -186,7 +186,7 @@ namespace Architome
         void EndQuest()
         {
             OnQuestEnd?.Invoke(this);
-            questManager.events.Invoke(QuestEvents.OnEnd, this);
+            questManager.InvokeEvent(QuestEvents.OnEnd, this);
         }
         public bool AllObjectivesComplete()
         {
