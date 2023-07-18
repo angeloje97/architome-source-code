@@ -21,8 +21,7 @@ namespace Architome
         public List<GameObject> items = new();
         public List<Toggle> toggles = new();
 
-        [Range(0f, 1f)]
-        public float smoothening = 1f;
+        public float transitionTime;
 
         public int index;
         public int previousIndex { get; set; }
@@ -173,7 +172,6 @@ namespace Architome
             var activeCanvases = new HashSet<CanvasGroup>();
             var targetCanvases = new HashSet<CanvasGroup>();
 
-            var lerpValue = smoothening != 0 ? smoothening : 1;
             for (int i = 0; i < toggles.Count; i++)
             {
                 if(items.Count <= i || items[i] == null)
@@ -221,12 +219,12 @@ namespace Architome
             changing = true;
             foreach(var group in activeCanvases)
             {
-                await group.SetCanvasAsync(false, lerpValue);
+                await group.SetCanvasAsync(false, transitionTime);
             }
 
             foreach(var group in targetCanvases)
             {
-                await group.SetCanvasAsync(true, lerpValue);
+                await group.SetCanvasAsync(true, transitionTime);
             }
             changing = false;
 

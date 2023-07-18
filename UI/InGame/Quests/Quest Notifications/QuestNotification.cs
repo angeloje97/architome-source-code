@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TMPro;
+using UnityEditor;
 using UnityEngine;
 
 namespace Architome
@@ -26,6 +27,7 @@ namespace Architome
 
         public Info info;
         bool animationPlaying;
+        bool closeEarly;
         void Start()
         {
             taskHandler = new();
@@ -101,9 +103,26 @@ namespace Architome
             animationPlaying = true;
             info.canvasGroup.SetCanvas(true);
             info.animator.SetTrigger("PlayNotification");
-            while (animationPlaying) await Task.Yield();
-            await Task.Delay(2000);
-            await info.canvasGroup.SetCanvasAsync(false, .0625f);
+            while (animationPlaying && !closeEarly) await Task.Yield();
+            animationPlaying = false;
+            var timer = 2f;
+
+            while (timer > 0)
+            {
+                timer -= Time.deltaTime;
+                if (closeEarly) break;
+                await Task.Yield();
+            }
+
+            closeEarly = false;
+
+            await info.canvasGroup.SetCanvasAsync(false, .25f);
+        }
+
+        public void CloseEarly()
+        {
+            if (!animationPlaying) return;
+            closeEarly = true;
         }
 
         public async Task WaitLoading()

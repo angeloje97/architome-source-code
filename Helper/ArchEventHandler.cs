@@ -35,8 +35,7 @@ namespace Architome
             {
                 if(listener == null)
                 {
-                    eventDict[eventType] -= MiddleWare;
-                    unsubscribed = true;
+                    Unsubscribe();
                     return;
                 }
 

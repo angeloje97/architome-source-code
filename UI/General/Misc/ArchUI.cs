@@ -50,40 +50,23 @@ namespace Architome
             }
         }
 
-        public static async Task SetCanvasAsync(this CanvasGroup canvas, bool val, float lerpValue = 1f)
+        public static async Task SetCanvasAsync(this CanvasGroup canvas, bool val, float totalTime)
         {
             if (canvas == null) return;
 
             var targetAlpha = val ? 1f : 0f;
+            var startingAlpha = canvas.alpha;
 
-            await UpdateCanvas();
+
+            await ArchCurve.Smooth((float lerpValue) => {
+            canvas.alpha = Mathf.Lerp(startingAlpha, targetAlpha, lerpValue);
+            }, CurveType.EaseInOut, totalTime);
 
             canvas.interactable = val;
             canvas.blocksRaycasts = val;
 
 
 
-            async Task UpdateCanvas()
-            {
-                if (lerpValue < 1)
-                {
-                    while (canvas != null && canvas.alpha != targetAlpha)
-                    {
-                        canvas.alpha = Mathf.Lerp(canvas.alpha, targetAlpha, lerpValue);
-                        var difference = Mathf.Abs(canvas.alpha - targetAlpha);
-
-                        if(difference <= .01)
-                        {
-                            canvas.alpha = targetAlpha;
-                        }
-                        await Task.Yield();
-                    }
-                }
-                else
-                {
-                    canvas.alpha = targetAlpha;
-                }
-            }
         }
 
         public static async Task FixLayoutGroups(GameObject target, bool controlCanvas = false, float delay = 0f) // Needs multiple iterations for some reason
