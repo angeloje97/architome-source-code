@@ -107,16 +107,22 @@ namespace Architome
             animationPlaying = false;
             var timer = 2f;
 
+            float fadeTimer = .25f;
+
             while (timer > 0)
             {
                 timer -= Time.deltaTime;
-                if (closeEarly) break;
+                if (closeEarly)
+                {
+                    fadeTimer = .0625f;
+                    break;
+                }
                 await Task.Yield();
             }
 
             closeEarly = false;
 
-            await info.canvasGroup.SetCanvasAsync(false, .25f);
+            await info.canvasGroup.SetCanvasAsync(false, fadeTimer);
         }
 
         public void CloseEarly()

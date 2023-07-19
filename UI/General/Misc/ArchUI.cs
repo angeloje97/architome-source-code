@@ -11,42 +11,28 @@ namespace Architome
     public static class ArchUI
     {
 
-        public static void SetCanvas(this CanvasGroup canvas, bool val, float lerpValue = 1f)
+        public static async void SetCanvas(this CanvasGroup canvas, bool val, float totalTime = 0f)
         {
             if (canvas == null) return;
 
             var targetAlpha = val ? 1f : 0f;
+            var startingAlpha = canvas.alpha;
 
-            UpdateCanvas();
+            await ArchCurve.Smooth((float lerpValue) => {
+                canvas.alpha = Mathf.Lerp(startingAlpha, targetAlpha, lerpValue);
+            }, CurveType.EaseInOut, totalTime);
 
+
+            canvas.alpha = targetAlpha;
             canvas.interactable = val;
             canvas.blocksRaycasts = val;
-
-
-
-            async void UpdateCanvas()
-            {
-                if (lerpValue < 1)
-                {
-                    while (canvas != null && canvas.alpha != targetAlpha)
-                    {
-                        canvas.alpha = Mathf.Lerp(canvas.alpha, targetAlpha, lerpValue);
-                        if (Mathf.Abs(canvas.alpha - targetAlpha) < .03125) canvas.alpha = targetAlpha;
-                        await Task.Yield();
-                    }
-                }
-                else
-                {
-                    canvas.alpha = targetAlpha;
-                }
-            }
         }
 
-        public static void SetCanvases(List<CanvasGroup> canvasGroups, bool val, float lerpValue = 1f)
+        public static void SetCanvases(List<CanvasGroup> canvasGroups, bool val, float totalTime = 0f)
         {
             foreach (var canvas in canvasGroups)
             {
-                SetCanvas(canvas, val, lerpValue);
+                SetCanvas(canvas, val, totalTime);
             }
         }
 
@@ -59,7 +45,7 @@ namespace Architome
 
 
             await ArchCurve.Smooth((float lerpValue) => {
-            canvas.alpha = Mathf.Lerp(startingAlpha, targetAlpha, lerpValue);
+                canvas.alpha = Mathf.Lerp(startingAlpha, targetAlpha, lerpValue);
             }, CurveType.EaseInOut, totalTime);
 
             canvas.interactable = val;

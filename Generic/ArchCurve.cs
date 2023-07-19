@@ -81,6 +81,11 @@ namespace Architome
                 action(1f);
                 return;
             }
+            
+            if(totalTime <= 0)
+            {
+                action(1f);
+            }
 
 
             var time = 0f;
