@@ -9,7 +9,7 @@ namespace Architome
     {
         static Dictionary<Type, GameObject> singleTons;
 
-        public static void HandleSingleton(Type type, GameObject instance, bool persistantGameObject = false, bool canvasItem = false)
+        public static void HandleSingleton(Type type, GameObject instance, bool persistantGameObject = false, bool canvasItem = false, Action onSuccess = null)
         {
             singleTons ??= new();
 
@@ -26,6 +26,7 @@ namespace Architome
             {
                 ArchGeneric.DontDestroyOnLoad(instance, canvasItem);
             }
+            onSuccess?.Invoke();
         }
     }
 }

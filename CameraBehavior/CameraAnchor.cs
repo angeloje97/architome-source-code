@@ -14,7 +14,9 @@ namespace Architome
         public CameraTarget targetType;
         public CameraAnchor check { get; set; }
 
-        public GameObject target;
+        public Transform target;
+
+        Transform targetCheck;
 
         public Vector3 anchorRotation;
         public float anchorYVal;
@@ -23,6 +25,7 @@ namespace Architome
         public float rotationSpeed = 5;
 
         public Action<float, float> OnAngleChange;
+        public Action<Transform, Transform> OnTargetChange;
         public KeyBindings keyBindData;
 
         bool moveCameraTimer;
@@ -39,7 +42,9 @@ namespace Architome
 
             if (targetType == CameraTarget.PartyCenter)
             {
-                gameManager.OnNewPlayableParty += OnNewPlayableParty;
+                gameManager.OnNewPlayableParty += (PartyInfo party, int partyIndex) => {
+                    SetTarget(party.center.transform);
+                };
             }
 
             check = GetComponentInChildren<CameraAnchor>();
@@ -71,6 +76,13 @@ namespace Architome
                     OnAngleChange?.Invoke(anchorYCheck, anchorYVal);
                     anchorYCheck = anchorYVal;
                 }
+
+
+                if(targetCheck != target)
+                {
+                    OnTargetChange?.Invoke(targetCheck, target);
+                    targetCheck = target;
+                }
             }
         }
 
@@ -79,11 +91,6 @@ namespace Architome
         {
             FollowTarget();
             HandleRotation();
-        }
-
-        public void OnNewPlayableParty(PartyInfo party, int index)
-        {
-            target = party.center;
         }
 
         async void OnMiddleMouse()
@@ -174,7 +181,7 @@ namespace Architome
 
         public void SetTarget(Transform target, bool instantTransform = false)
         {
-            this.target = target.gameObject;
+            this.target = target;
 
             if (instantTransform)
             {

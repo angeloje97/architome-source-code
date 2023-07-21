@@ -53,16 +53,13 @@ namespace Architome
 
         private void Awake()
         {
-            if (active)
-            {
-                Destroy(gameObject);
-                return;
-            }
-            active = this;
-            ArchGeneric.DontDestroyOnLoad(gameObject);
 
-            CreateDictionary();
-            DetermineScene();
+            SingletonManger.HandleSingleton(GetType(), gameObject, true, onSuccess: () => {
+                active = this;
+                CreateDictionary();
+                DetermineScene();
+            });
+
         }
 
         void DetermineScene()
