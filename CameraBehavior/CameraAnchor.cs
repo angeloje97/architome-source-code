@@ -16,8 +16,6 @@ namespace Architome
 
         public Transform target;
 
-        Transform targetCheck;
-
         public Vector3 anchorRotation;
         public float anchorYVal;
 
@@ -67,10 +65,9 @@ namespace Architome
         async void HandleEvents()
         {
             float anchorYCheck = anchorYVal;
-            while (this)
-            {
-                await Task.Yield();
+            var targetCheck = target;
 
+            await World.UpdateAction((float deltaTime) => {
                 if (anchorYCheck != anchorYVal)
                 {
                     OnAngleChange?.Invoke(anchorYCheck, anchorYVal);
@@ -78,12 +75,14 @@ namespace Architome
                 }
 
 
-                if(targetCheck != target)
+                if (targetCheck != target)
                 {
                     OnTargetChange?.Invoke(targetCheck, target);
                     targetCheck = target;
                 }
-            }
+
+                return true;
+            });
         }
 
         // Update is called once per frame

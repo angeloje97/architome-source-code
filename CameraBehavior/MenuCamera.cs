@@ -9,7 +9,7 @@ namespace Architome
     {
         MainMenuUI menuUI;
 
-        public float smoothening;
+        public float travelTime = .25f;
 
         Transform target;
 
@@ -17,53 +17,39 @@ namespace Architome
 
         public bool _isMoving { get { return isMoving; } }
 
+        [SerializeField] List<Transform> targetTransforms;
+        [SerializeField] Transform defaultTransform;
+
         public void GetDependencies()
         {
             menuUI = MainMenuUI.active;
 
-            if (menuUI)
-            {
-                menuUI.OnOpenMenu += OnOpenMenu;
-            }
         }
 
         void Start()
         {
             GetDependencies();
+            SetTarget(0);
         }
 
 
-        async void OnOpenMenu(MenuModule module)
+        public async void SetTarget(int targetIndex)
         {
-            var target = module.cameraPosition;
+            if (defaultTransform == null) return;
+            var validIndex = targetTransforms != null && targetIndex >= 0 && targetIndex < targetTransforms.Count;
 
+            var currentTarget = !validIndex ? defaultTransform : targetTransforms[targetIndex];
+            target = currentTarget;
 
-            if (target != null)
-            {
-                this.target = target;
-            }
-            else
-            {
-                this.target = menuUI.defaultCameraPosition;
-            }
+            var startposition = transform.position;
+            var startRotation = transform.rotation;
 
+            await ArchCurve.Smooth((float lerpValue) => {
+                if (target != currentTarget) return;
+                transform.SetPositionAndRotation(Vector3.Lerp(startposition, target.position, lerpValue),
+                    Quaternion.Lerp(startRotation, target.rotation, lerpValue));
 
-            if (isMoving) return;
-            isMoving = true;
-
-
-
-            while (transform.position != this.target.transform.position &&
-                transform.rotation != this.target.transform.rotation)
-            {
-                transform.SetPositionAndRotation(Vector3.Lerp(transform.position, this.target.transform.position, 1 / smoothening), 
-                                                Quaternion.Lerp(transform.rotation, this.target.transform.rotation, 1 / smoothening));
-
-                await Task.Yield();
-            }
-
-            isMoving = false;
-
+            }, CurveType.EaseInOut, travelTime);
         }
 
     }

@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
 using System.Threading.Tasks;
+using UnityEngine.Events;
 
 namespace Architome
 {
@@ -25,9 +26,11 @@ namespace Architome
 
         public int index;
         public int previousIndex { get; set; }
+        int currentIndexCheck;
         public bool update;
 
-        public Action<NavBar> OnChangeNavigation;
+        public Action<NavBar> OnChangeNavigation { get; set; }
+        public UnityEvent<int> OnChangeNavigationU;
         public Action<NavBar, List<bool>> OnCanNavigateChange { get; set; }
 
         public bool navigationBlocked;
@@ -217,6 +220,7 @@ namespace Architome
             }
 
             changing = true;
+            OnChangeNavigationU?.Invoke(index);
             foreach(var group in activeCanvases)
             {
                 await group.SetCanvasAsync(false, transitionTime);
