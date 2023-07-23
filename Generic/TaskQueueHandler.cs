@@ -1,3 +1,4 @@
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -6,36 +7,62 @@ using UnityEngine;
 
 namespace Architome
 {
+    public enum TaskType
+    {
+        Parallel,
+        Sequential
+    }
     public class TaskQueueHandler
     {
         Queue<Func<Task>> currentTasks;
+        List<Task> currentTasksList;
         Task activeTask;
         public bool busy { get; private set; }
 
-        public TaskQueueHandler()
+        TaskType type;
+
+        public TaskQueueHandler(TaskType type)
         {
             currentTasks = new();
+            currentTasksList = new();
         }
 
-        public async void AddTask(Func<Task> task)
+        public void AddTask(Func<Task> task)
         {
-            currentTasks.Enqueue(task);
-            if (busy) return;
-            busy = true;
+            HandleSequential();
+            HandleParallel();
 
-            while(currentTasks.Count > 0)
+            async void HandleSequential()
             {
-                var nextTask = currentTasks.Dequeue();
+                if (type != TaskType.Sequential) return;
+                currentTasks.Enqueue(task);
+                if (busy) return;
+                busy = true;
+                while (currentTasks.Count > 0)
+                {
+                    var nextTask = currentTasks.Dequeue();
 
-                activeTask = nextTask();
+                    activeTask = nextTask();
 
-                await activeTask;
+                    await activeTask;
+                }
+
+                busy = false;
             }
 
-            busy = false;
+            async void HandleParallel()
+            {
+                if (type != TaskType.Parallel) return;
+                currentTasksList.Add(task());
+                if (busy) return;
+                busy = true;
+
+                await Task.WhenAll(currentTasksList);
+
+                busy = false;
+
+            }
         }
-
-
 
         public async Task UntilTasksFinished()
         {

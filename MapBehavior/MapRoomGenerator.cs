@@ -74,7 +74,7 @@ namespace Architome
 
         void GetDependencies()
         {
-            taskHandler = new();
+            taskHandler = new(TaskType.Parallel);
             mapInfo = GetComponentInParent<MapInfo>();
 
             
@@ -488,18 +488,20 @@ namespace Architome
                 return;
             }
 
-            taskHandler.AddTask(async () => {
+            taskHandler.AddTask(async () =>
+            {
                 var generatedRoom = false;
-                OnRoomsGenerated += (MapRoomGenerator generator) => {
+                OnRoomsGenerated += (MapRoomGenerator generator) =>
+                {
                     generatedRoom = true;
                 };
 
                 while (!generatedRoom) await Task.Yield();
             });
 
+
             if (entityGenerator)
             {
-                
                 taskHandler.AddTask(async () =>
                 {
                     var generatedEntities = false;

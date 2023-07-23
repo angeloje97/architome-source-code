@@ -30,7 +30,7 @@ namespace Architome
         bool closeEarly;
         void Start()
         {
-            taskHandler = new();
+            taskHandler = new(TaskType.Sequential);
             GetDependencies();
             HandleSceneTransition();
         }

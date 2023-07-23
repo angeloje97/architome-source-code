@@ -41,7 +41,7 @@ namespace Architome
         {
             if (active != this) return;
             archInput = ArchInput.active;
-            taskQueue = new();
+            taskQueue = new(TaskType.Sequential);
         }
         public void StartDialogue(DialogueEventData data)
         {
