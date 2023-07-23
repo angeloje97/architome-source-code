@@ -88,6 +88,8 @@ namespace Architome
         public bool spawnedByGenerator = false;
         //events
 
+        bool changingVisibility;
+
         public struct Events
         {
             public Action<RoomInfo, bool> OnShowRoom;
@@ -267,14 +269,20 @@ namespace Architome
             allRenderers = GetComponentsInChildren<Renderer>();
 
         }
-        public void ShowRoom(bool val, Vector3 point = new Vector3(), bool forceShow = false)
+        public async void ShowRoom(bool val, Vector3 point = new Vector3(), bool forceShow = false)
         {
             if (!forceShow)
             {
-                if (val != entities.playerInRoom.Count > 0) return;
+                //if (val != entities.playerInRoom.Count > 0) return;
+                if (entities.PlayerIsInRoom() != val) return;
             }
 
-            ShowRoomAsyncPoint(val, point, percentReveal);
+            await ShowRoomAsyncPoint(val, point, percentReveal);
+        }
+
+        public async Task VisibilityChanges()
+        {
+            while (changingVisibility) await Task.Yield();
         }
 
         public void SetPaths(bool open)
@@ -312,7 +320,7 @@ namespace Architome
             percentReveal = generator.roomRevealPercent;
         }
 
-        public async void ShowRoomAsyncPoint(bool val, Vector3 pointPosition, float percent = .025f)
+        public async Task ShowRoomAsyncPoint(bool val, Vector3 pointPosition, float percent = .025f)
         {
             if (isRevealed == val) return;
             var orderedRenders = new List<Renderer>();
@@ -321,6 +329,7 @@ namespace Architome
 
             GetAllRenderers();
             isRevealed = val;
+            changingVisibility = true;
             events.OnShowRoom?.Invoke(this, val);
             if (val)
             {
@@ -368,6 +377,8 @@ namespace Architome
             {
                 SetLights(val);
             }
+
+            changingVisibility = false;
 
 
             void SetLights(bool val)

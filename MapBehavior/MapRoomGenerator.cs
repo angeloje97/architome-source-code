@@ -51,7 +51,7 @@ namespace Architome
         //public float fixTimeFrame;
 
         //Events
-        public Action<MapRoomGenerator> OnRoomsGenerated;
+        public Action<MapRoomGenerator> OnRoomsGenerated { get; set; }
         public Action<MapRoomGenerator> OnAllRoomsHidden;
         public Action<MapRoomGenerator, RoomInfo> OnSpawnRoom;
         public Action<MapRoomGenerator> BeforeEndGeneration { get; set; }
@@ -61,24 +61,31 @@ namespace Architome
         public int roomsToGenerate;
 
         VectorCluster<Transform> roomGeneratorVectorCluster;
+        TaskQueueHandler taskHandler;
+
+        void Start()
+        {
+            GetDependencies();
+            HandleHideRooms();
+            HandleCoreDungeons();
+            GenerateRooms();
+            
+        }
 
         void GetDependencies()
         {
-            if (GetComponentInParent<MapInfo>())
-            {
-                mapInfo = GetComponentInParent<MapInfo>();
-                if (mapInfo.GetComponentInChildren<MapEntityGenerator>())
-                {
-                    entityGenerator = mapInfo.GetComponentInChildren<MapEntityGenerator>();
+            taskHandler = new();
+            mapInfo = GetComponentInParent<MapInfo>();
 
-                    entityGenerator.OnEntitiesGenerated += OnEntitiesGenerated;
-                }
+            
+            if (mapInfo)
+            {
+                entityGenerator = mapInfo.GetComponentInChildren<MapEntityGenerator>();
             }
 
-            if (GetComponentInParent<SeedGenerator>())
-            {
-                seedGenerator = GetComponentInParent<SeedGenerator>();
-            }
+
+
+            seedGenerator = GetComponentInParent<SeedGenerator>();
 
 
             if (startingRoom)
@@ -168,12 +175,7 @@ namespace Architome
 
 
         }
-        void Start()
-        {
-            GetDependencies();
-            HandleCoreDungeons();
-            GenerateRooms();
-        }
+        
 
         public Transform RoomAnchor()
         {
@@ -478,42 +480,72 @@ namespace Architome
             //}
 
         }
-        void HandleHideRooms()
+        async void HandleHideRooms()
         {
             if (!hideRooms)
             {
                 OnAllRoomsHidden?.Invoke(this);
                 return;
             }
+
+            taskHandler.AddTask(async () => {
+                var generatedRoom = false;
+                OnRoomsGenerated += (MapRoomGenerator generator) => {
+                    generatedRoom = true;
+                };
+
+                while (!generatedRoom) await Task.Yield();
+            });
+
+            if (entityGenerator)
+            {
+                
+                taskHandler.AddTask(async () =>
+                {
+                    var generatedEntities = false;
+                    entityGenerator.OnEntitiesGenerated += (MapEntityGenerator generator) =>
+                    {
+                        generatedEntities = true;
+                    };
+
+                    while (!generatedEntities) await Task.Yield();
+                });
+
+            }
+
+            await taskHandler.UntilTasksFinished();
+
             if (!roomsHidden)
             {
                 if (availableRooms.Count == 0 && badSpawnRooms.Count == 0)
                 {
-                    StartCoroutine(HideRooms());
+                    await HideRooms();
+                    await Task.Delay(1000);
                     roomsHidden = true;
+                    OnAllRoomsHidden?.Invoke(this);
                 }
             }
-
-            IEnumerator HideRooms()
+            async Task HideRooms()
             {
-                yield return new WaitForSeconds(hideDelay);
                 ClearNullRooms();
-                yield return new WaitForSeconds(.125f);
-                foreach (GameObject room in roomsInUse)
+                var tasks = new List<Task>();
+                foreach (var room in roomsInUse)
                 {
-                    var roomInfo = room.GetComponent<RoomInfo>();
-                    if (roomInfo == null) continue;
-                    if (roomInfo.ignoreHideOnStart) continue;
-                    if (roomInfo.entities.PlayerIsInRoom()) continue;
+                    var info = room.GetComponent<RoomInfo>();
+                    if (info == null) continue;
+                    if (info.ignoreHideOnStart) continue;
+                    if (info.entities.PlayerIsInRoom()) continue;
 
-                    roomInfo.ShowRoom(false);
-
+                    tasks.Add(info.VisibilityChanges());
+                    info.ShowRoom(false);
                 }
 
-                yield return new WaitForSeconds(2f);
-                OnAllRoomsHidden?.Invoke(this);
+                await Task.WhenAll(tasks);
             }
         }
+
+        
+
         void HandleCheckPaths()
         {
             ClearNullPaths();
@@ -699,11 +731,6 @@ namespace Architome
         public bool CanGenerate()
         {
             return Application.isPlaying;
-        }
-        //Event Handlers
-        public void OnEntitiesGenerated(MapEntityGenerator entityGenerator)
-        {
-            HandleHideRooms();
         }
 
     }

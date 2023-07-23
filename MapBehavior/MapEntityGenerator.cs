@@ -24,7 +24,7 @@ public class MapEntityGenerator : MonoBehaviour
     public int targetYield;
 
     //Events
-    public Action<MapEntityGenerator> OnEntitiesGenerated;
+    public Action<MapEntityGenerator> OnEntitiesGenerated { get; set; }
     public Action<MapEntityGenerator, EntityInfo> OnGenerateEntity { get; set; }
 
     LayerMask strucutreLayerMask, groundLayerMask;
