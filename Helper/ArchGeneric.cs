@@ -12,6 +12,7 @@ namespace Architome
     public static class ArchGeneric
     {
         public static bool disallowPersistant = false;
+
         public static T CopyComponent<T>(T original, GameObject target) where T : Component
         {
             var component = target.AddComponent<T>();
@@ -87,6 +88,42 @@ namespace Architome
             UnityEngine.Object.Destroy(tempObject);
         }
 
+        public static void IterateSafe<T>(List<T> items, Action<T, int> action)
+        {
+            for(int i = 0; i < items.Count; i++)
+            {
+                var item = items[i];
+
+                if(item == null)
+                {
+                    items.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+
+                action(item, i);
+            }
+        }
+
+        public static List<T> ClearNulls<T>(this List<T> items)
+        {
+            var newList = new List<T>();
+
+            for(int i = 0; i < items.Count; i++)
+            {
+                if (items[i] == null)
+                {
+                    items.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+
+                newList.Add(items[i]);
+            }
+
+            return newList;
+        }
+
         public static async void DontDestroyOnLoad(GameObject gameObject, bool canvasItem = false)
         {
             if (disallowPersistant)
@@ -113,8 +150,6 @@ namespace Architome
 
             gameObject.transform.SetParent(persistantCanvas.transform);
         }
-
-
         public static string StateDescription(EntityState state)
         {
             var stateDescription = new Dictionary<EntityState, string>() {
@@ -129,6 +164,8 @@ namespace Architome
 
             return stateDescription[state];
         }
+
+        
 
         public static bool RollSuccess(float roll = 50f)
         {

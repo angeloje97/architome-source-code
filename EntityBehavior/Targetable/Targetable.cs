@@ -17,6 +17,7 @@ public class Targetable : EntityProp
 
     public List<GameObject> hoverTargets;
 
+    bool ignoreDead;
     public new void GetDependencies()
     {
         base.GetDependencies();
@@ -28,9 +29,12 @@ public class Targetable : EntityProp
         entityInfo.targetableEvents.OnHold += OnHold;
         entityInfo.targetableEvents.OnHover += OnHover;
         entityInfo.targetableEvents.OnSelect += OnSelect;
-
-
         entityInfo.infoEvents.OnMouseHover += OnMouseHover;
+
+        if (!Entity.IsPlayer(entityInfo))
+        {
+            ignoreDead = true;
+        }
     }
 
     void Start()
@@ -41,9 +45,11 @@ public class Targetable : EntityProp
 
     void OnMouseHover(EntityInfo entity, bool isHovering, GameObject source)
     {
-        if (hoverTargets == null) hoverTargets = new();
+        hoverTargets ??= new();
 
-        if (isHovering)
+        var canTarget = entityInfo.isAlive || (!entityInfo.isAlive && !ignoreDead);
+
+        if (isHovering && canTarget)
         {
             if (!hoverTargets.Contains(source))
             {

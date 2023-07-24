@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Architome
@@ -8,9 +10,10 @@ namespace Architome
     public class ArchEventHandler<T, E>  where T: Enum
     {
         Component source;
-
         Dictionary<T, Action<E>> eventDict;
 
+        List<Func<Task>> tasksToFinish;
+        bool doingTasks;
         public ArchEventHandler(Component source)
         {
             this.source = source;
@@ -52,10 +55,19 @@ namespace Architome
             }
         }
 
+
         public Action AddListener(T eventType, Action action, Component listener)
         {
             return AddListener(eventType, (E e) => {
                 action();
+            }, listener);
+        }
+
+        public Action AddListener(T eventType, Action<E, List<Func<Task>>> action, Component listener)
+        {
+            return AddListener(eventType, (E data) =>
+            {
+                action(data, tasksToFinish);
             }, listener);
         }
 
@@ -74,12 +86,14 @@ namespace Architome
             return unsubscribe;
         }
 
-        public void Invoke(T eventType, E eventData)
+        public List<Func<Task>> Invoke(T eventType, E eventData)
         {
-            if (source == null) return;
-            if (!eventDict.ContainsKey(eventType)) return;
+            tasksToFinish = new();
+            if (source == null) return tasksToFinish.ToList();
+            if (!eventDict.ContainsKey(eventType)) tasksToFinish.ToList();
             eventDict[eventType]?.Invoke(eventData);
 
+            return tasksToFinish.ToList();
         }
 
     }

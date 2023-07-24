@@ -38,8 +38,7 @@ namespace Architome
 
         public static List<EntityInfo> EntitiesFromRoom(RoomInfo room)
         {
-            room.entities.ClearNullEntities();
-            return room.entities.inRoom;
+            return room.entities.EntitiesInRoom;
         }
 
         public static RoomInfo Room(Vector3 point)

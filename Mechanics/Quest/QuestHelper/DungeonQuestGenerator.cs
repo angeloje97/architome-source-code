@@ -49,8 +49,6 @@ namespace Architome
 
             if (sceneManager)
             {
-
-                sceneManager.AddListener(SceneEvent.BeforeLoadScene, BeforeLoadScene, this);
                 sceneManager.AddListener(SceneEvent.BeforeConfirmLoad, BeforeConfirmLoad, this);
             }
         }
@@ -63,10 +61,6 @@ namespace Architome
         void Update()
         {
 
-        }
-
-        void BeforeLoadScene(ArchSceneManager manager)
-        {
         }
 
         void BeforeConfirmLoad(ArchSceneManager sceneManager)
@@ -114,13 +108,12 @@ namespace Architome
             return dungeons[index].levelName;
         }
 
-        async public void OnEntitiesGenerated(MapEntityGenerator generator)
+        public void OnEntitiesGenerated(MapEntityGenerator generator)
         {
             if(questPrefab == null) { return; }
             var quest = questPrefab.GetComponent<Quest>();
             var dungeonQuest = QuestManager.active.AddQuest(quest);
 
-            await Task.Delay(1000);
 
             dungeonQuest.SetSource(this, "Dungeon Quest");
 
@@ -148,12 +141,10 @@ namespace Architome
             dungeonQuest.rewards.experience = experience;
             dungeonQuest.questName = QuestName();
 
-            ArchAction.Yield(() => { 
+            sceneManager.AddListener(SceneEvent.OnRevealScene, () => {
                 dungeonQuest.Activate();
                 OnGenerateQuest?.Invoke(dungeonQuest);
-            });
-
-
+            }, this);
 
             void HandleGenerateForces()
             {
@@ -195,7 +186,6 @@ namespace Architome
                 activeObjectives = true;
 
             }
-
             void HandleTimer()
             {
                 var timerObjective = objectives.AddComponent<ObjectiveTimer>();
@@ -205,7 +195,6 @@ namespace Architome
                 timerObjective.enableMemberDeaths = true;
                 timerObjective.deathTimerPenalty = 15f;
             }
-
             void HandleGenerateBoss()
             {
                 if (!generateBossKilled) { return; }
@@ -224,10 +213,6 @@ namespace Architome
 
                 if (count > 0) activeObjectives = true;
             }
-
-            
-
-
         }
     }
 }

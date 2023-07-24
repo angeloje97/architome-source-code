@@ -52,7 +52,7 @@ namespace Architome
 
         //Events
         public Action<MapRoomGenerator> OnRoomsGenerated { get; set; }
-        public Action<MapRoomGenerator> OnAllRoomsHidden;
+        public Action<MapRoomGenerator> OnAllRoomsHidden { get; set; }
         public Action<MapRoomGenerator, RoomInfo> OnSpawnRoom;
         public Action<MapRoomGenerator> BeforeEndGeneration { get; set; }
         public Action<MapRoomGenerator> AfterEndGeneration;
@@ -522,7 +522,6 @@ namespace Architome
                 if (availableRooms.Count == 0 && badSpawnRooms.Count == 0)
                 {
                     await HideRooms();
-                    await Task.Delay(1000);
                     roomsHidden = true;
                     OnAllRoomsHidden?.Invoke(this);
                 }
@@ -538,8 +537,8 @@ namespace Architome
                     if (info.ignoreHideOnStart) continue;
                     if (info.entities.PlayerIsInRoom()) continue;
 
-                    tasks.Add(info.VisibilityChanges());
                     info.ShowRoom(false);
+                    tasks.Add(info.VisibilityChanges());
                 }
 
                 await Task.WhenAll(tasks);

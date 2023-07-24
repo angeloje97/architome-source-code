@@ -6,6 +6,7 @@ using System.Linq;
 using System;
 using System.Threading.Tasks;
 using Architome.Enums;
+using PixelCrushers.DialogueSystem.UnityGUI;
 
 namespace Architome
 {
@@ -106,8 +107,8 @@ namespace Architome
         public struct Entities
         {
             public RoomInfo room;
-            public List<EntityInfo> inRoom;
-            public List<EntityInfo> playerInRoom;
+            [SerializeField] List<EntityInfo> inRoom;
+            [SerializeField] List<EntityInfo> playerInRoom;
             public bool playerDiscovered;
 
             public Action<EntityInfo> OnEntityEnter;
@@ -116,14 +117,21 @@ namespace Architome
             public Action<EntityInfo> OnPlayerExit;
             public Action<EntityInfo> OnPlayerDiscover;
 
-            public List<EntityInfo> HostilesInRoom 
+            public List<EntityInfo> HostilesInRoom
             { get { return inRoom.Where(entity => entity.npcType == Enums.NPCType.Hostile && entity.isAlive).ToList(); } }
 
-
+            public List<EntityInfo> EntitiesInRoom
+            {
+                get
+                {
+                    return inRoom.ClearNulls();
+                }
+            }
 
             public void ClearNullEntities()
             {
-                inRoom = inRoom.Where(entity => entity != null).ToList();
+                inRoom = inRoom.ClearNulls();
+                playerInRoom = playerInRoom.ClearNulls();
             }
 
             public void HandleEntityEnter(EntityInfo entity)
@@ -147,7 +155,6 @@ namespace Architome
                     room.ShowRoom(true, entity.transform.position);
                 }
             }
-
             public void HandleEntityExit(EntityInfo entity)
             {
                 if (!inRoom.Contains(entity)) return;
@@ -168,19 +175,24 @@ namespace Architome
 
                 
             }
-
             public bool PlayerIsInRoom()
             {
-                foreach (var entity in inRoom)
+
+                for(int i = 0; i < inRoom.Count; i++)
                 {
-                    if (!Entity.IsPlayer(entity.gameObject)) continue;
+                    if (inRoom[i] == null)
+                    {
+                        inRoom.RemoveAt(i);
+                        i--;
+                        continue;
+                    }
+
+                    if (!Entity.IsPlayer(inRoom[i])) continue;
                     return true;
                 }
 
-
                 return playerInRoom.Count > 0;
             }
-
             public void Initiate(MapEntityGenerator generator)
             {
                 for (int i = 0; i < inRoom.Count; i++)

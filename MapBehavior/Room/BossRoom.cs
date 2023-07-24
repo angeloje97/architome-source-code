@@ -51,10 +51,13 @@ namespace Architome
         {
             base.OnEntitiesGenerated(generator);
             await World.Delay(2f);
-            if (entities.inRoom == null) return;
+            var entitiesInRoom = entities.EntitiesInRoom;
+            if (entitiesInRoom == null) return;
             
             var bosses = 0f;
-            foreach (var entity in entities.inRoom)
+
+
+            foreach (var entity in entitiesInRoom)
             {
                 if (entity.rarity != EntityRarity.Boss) continue;
                 bosses++;
@@ -63,7 +66,6 @@ namespace Architome
 
             }
 
-            Debugger.InConsole(45329, $"{bosses} bosses out of {entities.inRoom.Count} entities");
         }
 
         public void OnBossCombatChange(bool isInCombat)

@@ -51,7 +51,8 @@ namespace Architome
 
         ArchSceneManager sceneManager;
 
-        public bool loading;
+        public bool loading { get; set; }
+        public bool loadingBarActive { get; set; }
 
         [Header("Inspector Properties")]
         [SerializeField] bool enableCanvasGroup;
@@ -95,10 +96,21 @@ namespace Architome
 
                 sceneManager.AddListener(SceneEvent.OnLoadScene, OnLoadScene, this);
                 sceneManager.AddListener(SceneEvent.BeforeLoadScene, BeforeLoadScene, this);
-
+                sceneManager.AddListener(SceneEvent.BeforeRevealScene, BeforeRevealScene, this);
             }
+        }
 
+        void BeforeRevealScene(ArchSceneManager sceneManager, List<Func<Task>> funcs)
+        {
+            funcs.Add(async () => {
+                while (loadingBarActive) await Task.Yield();
+            });
+        }
 
+        public void SetLoadingBar(string text, float fillAmount)
+        {
+            loadingBar.progressBar.fillAmount = fillAmount;
+            loadingBar.status.text = text;
         }
 
 
@@ -115,22 +127,18 @@ namespace Architome
             SetCanvasGroup(true);
             loadingStatus.HandleLoad(false);
             var loadingBarActive = true;
-            
+            this.loadingBarActive = true;
 
             entityGenerator.OnEntitiesGenerated += (MapEntityGenerator generator) => {
                 loadingBarActive = false;
-                var text = $"Generated Entities";
-                loadingBar.progressBar.fillAmount = 1;
-                loadingBar.status.text = text;
+                SetLoadingBar($"Generated Entities", 1);
             };
 
             entityGenerator.OnGenerateEntity += (MapEntityGenerator generator, EntityInfo entity) => {
                 float current = generator.entitiesSpawned;
                 float goal = generator.expectedEntities;
                 var text = $"Generating Entities ({(int) ((current/goal)*100)}%)";
-                loadingBar.progressBar.fillAmount = .666f + ((current/goal) * .333f);
-                loadingBar.status.text = text;
-
+                SetLoadingBar(text, .666f + ((current / goal) * .333f));
             };
 
             var roomGenerator = MapRoomGenerator.active;
@@ -139,10 +147,8 @@ namespace Architome
                 float current = roomGenerator.roomsGenerated;
                 var text = $"Generating rooms ({(int) ((current/goal)*100)}%)";
 
-
                 Debugger.UI(8415, $"{current} / {goal}");
-                loadingBar.progressBar.fillAmount = (current / goal) * .33f;
-                loadingBar.status.text = text;
+                SetLoadingBar(text, (current / goal) * .33f);
             };
 
             var mapAdjustMent = MapAdjustments.active;
@@ -150,6 +156,7 @@ namespace Architome
             mapAdjustMent.WhileLoading += (MapAdjustments adjustment, float progress) => {
                 loadingBar.status.text = $"Adjusting Pathfinding Graph ({(int) (progress*100)}%)";
                 loadingBar.progressBar.fillAmount = .333f + (progress * .333f);
+                SetLoadingBar($"Adjusting PathfindingGraph ({(int)(progress * 100)}%", .333f + (progress * .333f));
             };
                         
 
@@ -158,10 +165,11 @@ namespace Architome
                 await Task.Yield();
             }
 
-
-            await Task.Delay(1000);
+            await Task.Delay(500);
             SetLoadingBar(false);
             SetCanvasGroup(false);
+            await Task.Delay(500);
+            this.loadingBarActive = false;
 
         }
         void SetCanvasGroup(bool active)
@@ -200,6 +208,11 @@ namespace Architome
                 if (this == null) return;
                 HandleMapGeneration();
             }, 1f);
+        }
+
+        public async Task FinishLoadingBar()
+        {
+            while (loadingBarActive) await Task.Yield();
         }
     }
 }

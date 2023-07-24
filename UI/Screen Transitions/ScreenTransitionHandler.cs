@@ -119,10 +119,10 @@ namespace Architome
             if (sceneManager)
             {
                 sceneManager.AddListener(SceneEvent.BeforeLoadScene, TasksBeforeLoadScene, this);
-                sceneManager.AddListener(SceneEvent.OnLoadScene, OnLoadScene, this);
+                sceneManager.AddListener(SceneEvent.OnRevealScene, TransitionOut, this);
             }
 
-            TransitionOut();
+            //TransitionOut();
         }
 
         void Update()
@@ -138,53 +138,12 @@ namespace Architome
 
             info.activeTransition = trans;
         }
-        async Task HandleMapRoomGenerator()
-        {
-
-            var mapRoomGenerator = MapRoomGenerator.active;
-            var mapInfo = MapInfo.active;
-
-            if (mapRoomGenerator == null)
-            {
-                return;
-            }
-
-
-
-            var loading = true;
-
-            mapRoomGenerator.OnAllRoomsHidden += (MapRoomGenerator roomGenerator) =>
-            {
-                if (roomGenerator.hideRooms)
-                {
-                    //TransitionOut();
-                    loading = false;
-                }
-                else
-                {
-                    //ArchAction.Delay(() => TransitionOut(), 1f);
-
-                    ArchAction.Delay(() => {
-                        loading = false;
-                    }, 1f);
-                }
-
-            };
-
-            while (loading)
-            {
-                await Task.Yield();
-            }
-
-        }
 
         public void TasksBeforeLoadScene(ArchSceneManager archSceneManager)
         {
             var tasks = archSceneManager.tasksBeforeLoad;
             
             tasks.Add(TransitionIn);
-
-            
         }
 
         async Task TransitionIn()
@@ -212,7 +171,6 @@ namespace Architome
             var activeTransition = info.activeTransition;
             if (activeTransition == null) return;
 
-            await HandleMapRoomGenerator();
 
             tasksBeforeTransitionOut = new();
 
@@ -227,14 +185,6 @@ namespace Architome
             info.canvasGroup.SetCanvas(false);
 
             InvokeEvent(TransitionEvents.AfterTransitionOut);
-        }
-
-        public void OnLoadScene(ArchSceneManager sceneManager)
-        {
-            ArchAction.Delay(() => {
-                TransitionOut();
-            
-            }, 2f);
         }
 
         

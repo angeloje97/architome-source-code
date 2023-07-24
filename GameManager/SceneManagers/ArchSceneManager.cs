@@ -15,6 +15,8 @@ namespace Architome
         BeforeConfirmLoad,
         OnLoadScene,
         OnLoadSceneLate,
+        BeforeRevealScene,
+        OnRevealScene,
     }
     public class ArchSceneManager : MonoBehaviour
     {
@@ -67,6 +69,12 @@ namespace Architome
             sceneToLoad = CurrentScene();
         }
 
+        private async void Start()
+        {
+            await Task.Delay(1000);
+            await TasksBeforeRevealScene();
+        }
+
         void CreateDictionary()
         {
             events = new(this);
@@ -89,6 +97,10 @@ namespace Architome
             events.AddListener(trigger, action, caller);
         }
 
+        public void AddListener(SceneEvent trigger, Action<ArchSceneManager, List<Func<Task>>> action, Component caller)
+        {
+            events.AddListener(trigger, action, caller);
+        }
 
         async public void LoadScene(ArchScene archScene, int index = -1, bool async = true)
         {
@@ -96,9 +108,9 @@ namespace Architome
 
             var sceneName = index == -1 ? sceneToLoad.main : sceneToLoad.subScenes[index];
 
+
+
             tasksBeforeConfirmLoad = new();
-
-
             events.Invoke(SceneEvent.BeforeConfirmLoad, this);
             foreach (var choice in tasksBeforeConfirmLoad)
             {
@@ -154,6 +166,18 @@ namespace Architome
             await Task.Delay(2500);
             isLoading = false;
             events.Invoke(SceneEvent.OnLoadSceneLate, this);
+
+            await TasksBeforeRevealScene();
+        }
+
+        public async Task TasksBeforeRevealScene()
+        {
+            var tasks = events.Invoke(SceneEvent.BeforeRevealScene, this);
+
+            Debugger.System(6901, $"Tasks after invoking event {tasks.Count}");
+
+            foreach (var task in tasks) await task();
+            events.Invoke(SceneEvent.OnRevealScene, this);
         }
 
         public bool IsScene(ArchScene scene)
