@@ -90,7 +90,7 @@ namespace Architome
         {
             tasksToFinish = new();
             if (source == null) return tasksToFinish.ToList();
-            if (!eventDict.ContainsKey(eventType)) tasksToFinish.ToList();
+            if (!eventDict.ContainsKey(eventType)) return tasksToFinish.ToList();
             eventDict[eventType]?.Invoke(eventData);
 
             return tasksToFinish.ToList();

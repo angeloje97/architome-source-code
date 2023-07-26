@@ -29,7 +29,7 @@ public class Targetable : EntityProp
         entityInfo.targetableEvents.OnHold += OnHold;
         entityInfo.targetableEvents.OnHover += OnHover;
         entityInfo.targetableEvents.OnSelect += OnSelect;
-        entityInfo.infoEvents.OnMouseHover += OnMouseHover;
+        //entityInfo.infoEvents.OnMouseHover += OnMouseHover;
 
         if (!Entity.IsPlayer(entityInfo))
         {

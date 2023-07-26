@@ -98,16 +98,14 @@ namespace Architome
                 return proceeding;
             }
         }
-
         public string QuestName()
         {
             var dungeons = Core.currentDungeon;
-            if (dungeons == null) return "Generated Dungeon Quest";
+            if (dungeons == null) return "Bonus Dungeon Quest";
             var index = Core.dungeonIndex;
             if (index < 0 || index >= dungeons.Count) return "Generated Dungeon Quest";
-            return dungeons[index].levelName;
+            return $"{dungeons[index].levelName} (Bonus)";
         }
-
         public void OnEntitiesGenerated(MapEntityGenerator generator)
         {
             if(questPrefab == null) { return; }
@@ -149,8 +147,6 @@ namespace Architome
             void HandleGenerateForces()
             {
                 if (!generateForcesKilled) return;
-                //var enemyForces = entities.Where(entity => entity.rarity != EntityRarity.Boss).ToList();
-                //if (enemyForces.Count == 0) return;
 
                 var killEntities = objectives.AddComponent<ObjectiveKillEnemyForces>();
                 var count = 0;

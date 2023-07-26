@@ -15,7 +15,11 @@ namespace Architome
 
             if (singleTons.ContainsKey(type))
             {
-                UnityEngine.Object.Destroy(instance);
+                if(instance != singleTons[type])
+                {
+                    UnityEngine.Object.Destroy(instance);
+                }
+
                 return;
             }
 

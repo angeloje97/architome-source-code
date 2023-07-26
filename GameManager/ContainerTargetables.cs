@@ -155,9 +155,9 @@ namespace Architome
 
             if (input.Mode == ArchInputMode.Inactive) return;
 
-            //hoverObject = Mouse.CurrentHover(targetLayer);
-            //HandleUserMouseOvers();
-            //HandleNullMouseOver();
+            hoverObject = Mouse.CurrentHover(targetLayer);
+            HandleUserMouseOvers();
+            HandleNullMouseOver();
 
         }
         public void HandleEvents()

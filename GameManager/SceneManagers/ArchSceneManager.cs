@@ -92,9 +92,9 @@ namespace Architome
             
         }
 
-        public void AddListener<T>(SceneEvent trigger, Action action, T caller) where T : Component
+        public Action AddListener<T>(SceneEvent trigger, Action action, T caller) where T : Component
         {
-            events.AddListener(trigger, action, caller);
+            return events.AddListener(trigger, action, caller);
         }
 
         public void AddListener(SceneEvent trigger, Action<ArchSceneManager, List<Func<Task>>> action, Component caller)

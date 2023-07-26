@@ -20,6 +20,7 @@ namespace Architome
         [SerializeField] Prefabs prefabs;
 
         public List<GameObject> items = new();
+        public List<CanvasGroup> canvases = new();
         public List<Toggle> toggles = new();
 
         public float transitionTime;
@@ -52,6 +53,18 @@ namespace Architome
             toggles = GetComponentsInChildren<Toggle>().ToList();
             UpdateFromIndex();
             ForceUpdate(index);
+            UpdateCanvases();
+        }
+
+        void UpdateCanvases()
+        {
+            canvases = new();
+
+            foreach(var item in items)
+            {
+                var canvas = item.GetComponent<CanvasGroup>();
+                canvases.Add(canvas);
+            }
         }
 
         public void AddToggle(string toggleName, GameObject toggleTarget)

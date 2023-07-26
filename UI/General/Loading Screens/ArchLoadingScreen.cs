@@ -156,7 +156,7 @@ namespace Architome
             mapAdjustMent.WhileLoading += (MapAdjustments adjustment, float progress) => {
                 loadingBar.status.text = $"Adjusting Pathfinding Graph ({(int) (progress*100)}%)";
                 loadingBar.progressBar.fillAmount = .333f + (progress * .333f);
-                SetLoadingBar($"Adjusting PathfindingGraph ({(int)(progress * 100)}%", .333f + (progress * .333f));
+                SetLoadingBar($"Adjusting PathfindingGraph ({(int)(progress * 100)}%)", .333f + (progress * .333f));
             };
                         
 

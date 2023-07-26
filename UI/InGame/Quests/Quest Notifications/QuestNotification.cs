@@ -63,7 +63,7 @@ namespace Architome
         {
             if (sceneManager == null) return;
 
-            sceneManager.AddListener(SceneEvent.BeforeConfirmLoad, () => {
+            sceneManager.AddListener(SceneEvent.BeforeLoadScene, () => {
                 if (taskHandler.busy)
                 {
                     sceneManager.tasksBeforeLoadPriority.Add(taskHandler.UntilTasksFinished());
@@ -98,9 +98,9 @@ namespace Architome
         {
             await WaitLoading();
 
+            animationPlaying = true;
             info.title.text = title;
             info.status.text = status;
-            animationPlaying = true;
             info.canvasGroup.SetCanvas(true);
             info.animator.SetTrigger("PlayNotification");
             while (animationPlaying && !closeEarly) await Task.Yield();
@@ -134,10 +134,16 @@ namespace Architome
         public async Task WaitLoading()
         {
             if (sceneManager == null) return;
+            if (sceneManager.isLoading)
+            {
+                var ready = false;
+                var endAction = sceneManager.AddListener(SceneEvent.OnRevealScene, () => {
+                    ready = true;
+                }, this);
 
-            while (sceneManager.isLoading) await Task.Yield();
-
-            await Task.Delay(2000);
+                while (!ready) await Task.Yield();
+                endAction();
+            }
         }
         public void StopAnimation()
         {
