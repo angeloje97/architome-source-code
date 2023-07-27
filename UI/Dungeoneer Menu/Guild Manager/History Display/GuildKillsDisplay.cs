@@ -34,9 +34,5 @@ namespace Architome
                 currentLogs.Add("No History");
             }
         }
-        void Update()
-        {
-        
-        }
     }
 }

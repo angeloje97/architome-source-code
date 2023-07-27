@@ -1,21 +1,35 @@
+using Architome.History;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace Architome
 {
-    public class GuildQuestsDisplay : MonoBehaviour
+    public class GuildQuestsDisplay : GuildHistoryDisplay
     {
-        // Start is called before the first frame update
-        void Start()
+        QuestHistory questHistory;
+        protected override void GetDependencies()
         {
-        
+            base.GetDependencies();
+
+            questHistory = QuestHistory.active;
+
+            GatherData();
         }
 
-        // Update is called once per frame
-        void Update()
-        {
         
+        void GatherData()
+        {
+            if (questHistory == null) return;
+            var completedQuests = questHistory.completedQuests;
+            currentLogs = new();
+            if (completedQuests == null) return;
+
+            foreach(KeyValuePair<string, bool> item in completedQuests)
+            {
+                var completedText = item.Value ? "Completed" : "Incomeplete";
+                currentLogs.Add($"{item.Key}: {completedText}");
+            }
         }
     }
 }
