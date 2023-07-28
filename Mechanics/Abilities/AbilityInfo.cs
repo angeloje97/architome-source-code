@@ -944,6 +944,8 @@ namespace Architome
                 return false;
             }
 
+            if (targetLocked == target) return false;
+
             if (target)
             {
                 targetLocked = target;
@@ -1053,7 +1055,15 @@ namespace Architome
         }
         async Task<bool> CanCast()
         {
-            SetState(AbilityState.CheckingCast);
+            if (currentState != AbilityState.Ready)
+            {
+                if(target == targetLocked)
+                {
+                    return false;
+                }
+
+                CancelCast();
+            }
             if (!IsReady())
             {
                 CantCastReason("Not Ready");
