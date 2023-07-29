@@ -944,14 +944,13 @@ namespace Architome
                 return false;
             }
 
-            if (targetLocked == target) return false;
-
             if (target)
             {
                 targetLocked = target;
                 if (!IsCorrectTarget(targetLocked)) { return false; }
                 if (targetLocked == null) { return false; }
             }
+
 
             if (!await IsInRange()) return false;
             if (!await HasLineOfSight()) return false;
@@ -1055,20 +1054,12 @@ namespace Architome
         }
         async Task<bool> CanCast()
         {
-            if (currentState != AbilityState.Ready)
-            {
-                if(target == targetLocked)
-                {
-                    return false;
-                }
-
-                CancelCast();
-            }
             if (!IsReady())
             {
                 CantCastReason("Not Ready");
                 return false;
             }
+
             if (!await AbilityManagerCanCast())
             {
                 CantCastReason("Ability Manager Can't Cast");
@@ -1274,19 +1265,11 @@ namespace Architome
         #endregion
         public bool EndCast(bool checkRangeLos)
         {
-            //if (checkRangeLos)
-            //{
-            //    if(!IsInRange(true) || !HasLineOfSight())
-            //    {
-            //        return false;
-            //    }
-            //}
-
             abilityEvents.OnCastRelease?.Invoke(this);
             HandleResources();
-            HandleAbilityType();
-            HandleFullHealth();
             HandleCastMovementSpeed();
+            HandleFullHealth();
+            HandleAbilityType();
             SetRecast();
 
             return true;
@@ -1497,8 +1480,8 @@ namespace Architome
         }
         public async Task<bool> Activate()
         {
-            if (activated) return false;
             if (!await CanCast()) return false;
+            if (activated) return false;
             DeactivateWantsToCast("From Start Cast");
             activated = true;
 
@@ -1716,8 +1699,6 @@ namespace Architome
 
             return this;
         }
-
-    
         public void HandleAbilityType()                                 //This is where the magic happens.. IE where the catalyst gets released.
         {
 

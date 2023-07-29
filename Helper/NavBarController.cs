@@ -69,7 +69,7 @@ namespace Architome
                 {
                     var newNode = new NavBarTreeNode() {
                         navBar = currentNavBar,
-                        name = currentNavBar.ToString(),
+                        name = targetTransform.ToString(),
                     };
                     currentNode.treeNodes.Add(newNode);
                     FindActiveChildren(newNode);

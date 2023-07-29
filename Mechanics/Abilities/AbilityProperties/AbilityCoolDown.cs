@@ -136,6 +136,13 @@ namespace Architome
 
             HandleCooldownTimer();
         }
+
+        public bool CanSpend(int amount = 1)
+        {
+            if (globalCoolDownActive) return false;
+            return charges >= amount;
+        }
+
         float Haste()
         {
             return currentHaste;

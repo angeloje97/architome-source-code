@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using Architome.Enums;
+
 namespace Architome
 {
     public class ContextMenu : MonoBehaviour
@@ -26,7 +28,7 @@ namespace Architome
         public HorizontalOrVerticalLayoutGroup layoutGroup;
 
         public Info info;
-        
+
         public int pickedOption;
         public bool isChoosing;
         public float startingWidth;
@@ -35,6 +37,9 @@ namespace Architome
         KeyBindings keyBindData;
         bool exitKeysActive;
         bool isChoosingCheck;
+        ArchInput archInput;
+
+        ArchInput inputManager => archInput ??= ArchInput.active;
 
 
         public Action<ContextMenu, bool> OnContextActiveChange;
@@ -49,6 +54,7 @@ namespace Architome
             keyBindData = KeyBindings.active;
 
             startingWidth = rectTransform.rect.width;
+
         }
 
         private void Awake()
@@ -115,6 +121,11 @@ namespace Architome
             {
                 CancelOptions();
             }
+        }
+
+        void HandleArchInput()
+        {
+            inputManager.SetTempInput(ArchInputMode.InGameUI, (object obj) => isChoosing);
         }
 
         public async Task ExitKeys()
@@ -202,6 +213,7 @@ namespace Architome
             pickedOption = option;
         }
 
+
         async public Task<ContextMenuResponse> UserChoice(ContextMenuData contextData)
         {
             transform.SetAsLastSibling();
@@ -228,6 +240,7 @@ namespace Architome
 
             isChoosing = true;
 
+            HandleArchInput();
             await HandleInput();
 
             isChoosing = false;
