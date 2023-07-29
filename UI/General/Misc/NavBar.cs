@@ -119,12 +119,18 @@ namespace Architome
 
         public void ForceUpdate(int index)
         {
+            this.index = index;
             for(int i =0; i < items.Count; i++)
             {
+                if(toggles.Count == items.Count)
+                {
+                    toggles[i].isOn = i == index;
+                }
                 var item = items[i];
                 if (item == null) continue;
                 var canvasGroup = item.GetComponent<CanvasGroup>();
                 if (canvasGroup == null) continue;
+                
                 ArchUI.SetCanvas(canvasGroup, i == index);
             }
         }
