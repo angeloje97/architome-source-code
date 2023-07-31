@@ -1,9 +1,11 @@
 {
   "ExpandedNodes": [
     "",
-    "\\EntityBehavior",
-    "\\EntityBehavior\\Movement"
+    "\\Mechanics",
+    "\\Mechanics\\Abilities",
+    "\\Mechanics\\Abilities\\Augments",
+    "\\Mechanics\\Abilities\\Augments\\Augment Types"
   ],
-  "SelectedNode": "\\EntityBehavior\\EntityInfo.cs",
+  "SelectedNode": "\\Mechanics\\Abilities\\Augments\\Augment Types\\AugmentMovement.cs",
   "PreviewInSolutionExplorer": false
 }

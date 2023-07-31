@@ -33,6 +33,8 @@ namespace Architome
         [Header("Speed")]
         public float speed;
         public float maxSpeed;
+        public float baseOffsetMaxSpeed;
+        public Dictionary<object, float> offsetSources;
         [Header("Metrics")]
         public float endReachDistance;
         public float distanceFromTarget;
@@ -67,31 +69,19 @@ namespace Architome
         Vector3 previousPosition { get; set; }
         public void GetDependencies()
         {
-            if (GetComponentInParent<EntityInfo>())
+            entityInfo = GetComponentInParent<EntityInfo>();
+            if (entityInfo)
             {
-                entityInfo = GetComponentInParent<EntityInfo>();
                 entityObject = entityInfo.gameObject;
                 rigidBody = entityObject.GetComponent<Rigidbody>();
 
                 originalConstraints = rigidBody.constraints;
 
 
+                destinationSetter = entityInfo.AIDestinationSetter();
+                path = entityInfo.Path();
 
-                if (entityInfo.AIDestinationSetter())
-                {
-                    destinationSetter = entityInfo.AIDestinationSetter();
-                }
-
-                if (entityInfo.Path())
-                {
-                    path = entityInfo.Path();
-
-                }
-
-                if (entityInfo.AbilityManager())
-                {
-                    abilityManager = entityInfo.AbilityManager();
-                }
+                abilityManager = entityInfo.AbilityManager();
 
                 entityInfo.OnChangeStats += OnChangeStats;
                 entityInfo.OnLifeChange += OnLifeCheck;
@@ -124,12 +114,10 @@ namespace Architome
 
 
         }
-        private void Awake()
-        {
-            GetDependencies();
-        }
         void Start()
         {
+            GetDependencies();
+
             abilityHandler.Initiate(this);
             previousPosition = transform.position;
 
@@ -207,30 +195,6 @@ namespace Architome
                     speed = 0f;
                 }
             }
-
-            //if(Mathf.Abs(desiredVelocity - realSpeed) > 4f)
-            //{
-            //    if(realSpeed > maxSpeed){
-            //        realSpeed = maxSpeed;
-            //    }
-            //    speed = realSpeed;
-            //}
-            //else
-            //{
-            //    speed = desiredVelocity;
-            //}
-
-
-
-            //if (!checkedPrevious)
-            //{
-            //    previousPosition = transform.position;
-            //    checkedPrevious = true;
-            //}
-            //else
-            //{
-            //    checkedPrevious = false;
-            //}
 
 
             maxSpeed = path.maxSpeed;
@@ -314,16 +278,47 @@ namespace Architome
         }
         void UpdateMovementSpeed()
         {
-            var baseMovementSpeed = walking ? GMHelper.WorldSettings().baseWalkSpeed : GMHelper.WorldSettings().baseMovementSpeed;
-
-            path.maxSpeed = entityInfo.stats.movementSpeed * baseMovementSpeed;
+            SetSpeed(entityInfo.stats.movementSpeed);
         }
+
+
+
         public void SetWalk(bool val)
         {
             walking = val;
             UpdateMovementSpeed();
         }
 
+        public void SetSpeed(float speed = 1f)
+        {
+            var baseMovementSpeed = walking ? GMHelper.WorldSettings().baseWalkSpeed : GMHelper.WorldSettings().baseMovementSpeed;
+            path.maxSpeed = speed * baseMovementSpeed;
+        }
+
+        public Action SetOffSetMovementSpeed(float offsetAmount, object source)
+        {
+            offsetSources ??= new();
+            if (offsetSources.ContainsKey(source)) return () => { };
+            baseOffsetMaxSpeed += offsetAmount;
+            offsetSources.Add(source, offsetAmount);
+
+            
+
+
+            UpdateOffset();
+
+            return () => {
+                baseOffsetMaxSpeed -= offsetAmount;
+                offsetSources.Remove(source);
+                UpdateOffset();
+            };
+
+        }
+
+        public void UpdateOffset()
+        {
+
+        }
 
         public bool HasReachedTarget(float minimumDistance = 1f)
         {
@@ -469,6 +464,7 @@ namespace Architome
 
 
         }
+
 
         public void TriggerEvents()
         {
