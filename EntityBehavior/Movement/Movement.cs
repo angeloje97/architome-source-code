@@ -34,7 +34,7 @@ namespace Architome
         public float speed;
         public float maxSpeed;
         public float baseOffsetMaxSpeed;
-        public Dictionary<object, float> offsetSources;
+        public Dictionary<string, float> offsetSources;
         [Header("Metrics")]
         public float endReachDistance;
         public float distanceFromTarget;
@@ -269,54 +269,71 @@ namespace Architome
         }
         void OnChangeStats(EntityInfo entity)
         {
-            UpdateMovementSpeed();
+            SetOffSetMovementSpeed(entityInfo.stats.movementSpeed, entityInfo.stats);
         }
-
         void OnSignificantMovementChange(Vector3 newPosition)
         {
             StopMoving(true);
         }
-        void UpdateMovementSpeed()
-        {
-            SetSpeed(entityInfo.stats.movementSpeed);
-        }
-
-
-
         public void SetWalk(bool val)
         {
             walking = val;
-            UpdateMovementSpeed();
+            UpdateOffset();
         }
-
         public void SetSpeed(float speed = 1f)
         {
             var baseMovementSpeed = walking ? GMHelper.WorldSettings().baseWalkSpeed : GMHelper.WorldSettings().baseMovementSpeed;
             path.maxSpeed = speed * baseMovementSpeed;
         }
 
-        public Action SetOffSetMovementSpeed(float offsetAmount, object source)
+        public Action SetOffSetMovementSpeed(float offsetAmount, object sourceObj)
         {
             offsetSources ??= new();
-            if (offsetSources.ContainsKey(source)) return () => { };
-            baseOffsetMaxSpeed += offsetAmount;
-            offsetSources.Add(source, offsetAmount);
 
-            
+            var source = sourceObj.ToString();
+            bool changed = false;
 
+            if (offsetSources.ContainsKey(source))
+            {
+                if (offsetSources[source] != offsetAmount)
+                {
+                    offsetSources[source] = offsetAmount;
+                    changed = true;
+                }
 
-            UpdateOffset();
+            }
+            else
+            {
+                offsetSources.Add(source, offsetAmount);
+                changed = true;
+            }
+
+            if (changed)
+            {
+                UpdateOffset();
+            }
+
 
             return () => {
                 baseOffsetMaxSpeed -= offsetAmount;
                 offsetSources.Remove(source);
                 UpdateOffset();
             };
-
         }
 
         public void UpdateOffset()
         {
+            baseOffsetMaxSpeed = 0f;
+
+            Debugger.System(8940, $"Offset sources ({entityInfo}): {offsetSources.Count}");
+
+            foreach(KeyValuePair<string, float> pairs in offsetSources)
+            {
+                Debugger.System(8941, $"Offset({entityInfo}) {pairs.Key}: {pairs.Value}");
+                baseOffsetMaxSpeed += pairs.Value;
+            }
+
+            SetSpeed(baseOffsetMaxSpeed);
 
         }
 
