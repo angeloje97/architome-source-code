@@ -540,8 +540,15 @@ namespace Architome
             if (path == null) return;
 
             path.endReachedDistance = float.PositiveInfinity;
+        }
 
-
+        public async Task StopMovingAsync(bool targetSelf = false)
+        {
+            StopMoving(targetSelf);
+            while (isMoving)
+            {
+                await Task.Yield();
+            }
         }
         public GameObject Location()
         {

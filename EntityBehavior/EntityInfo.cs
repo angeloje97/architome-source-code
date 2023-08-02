@@ -692,19 +692,26 @@ namespace Architome
         }
         public bool RemoveState(EntityState state)
         {
-            if (!states.Contains(state))
+
+            bool removed = false;
+
+            for (int i = 0; i < states.Count; i++)
             {
-                return false;
+                if (states[i] == state)
+                {
+                    states.RemoveAt(i);
+                    removed = true;
+                    break;
+                }
             }
 
+            if (removed)
+            {
+                var previousStates = states.ToList();
+                combatEvents.OnStatesChange?.Invoke(previousStates, states);
 
-            var previousStates = states.ToList();
-
-            states.Remove(state);
-
-            combatEvents.OnStatesChange?.Invoke(previousStates, states);
-
-            return true;
+            }
+            return removed;
         }
 
         public bool SetRarity(EntityRarity rarity)
