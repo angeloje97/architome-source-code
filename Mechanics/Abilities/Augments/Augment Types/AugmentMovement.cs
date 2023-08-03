@@ -24,6 +24,29 @@ namespace Architome
             await base.GetDependencies();
             entityMovement = augment.entity.Movement();
         }
+
+        public override string Description()
+        {
+            var description = "";
+
+            if(augmentMovementType == AugmentMovementType.ChangeSpeed)
+            {
+                var prefix = movementOffset < 0 ? "Decreases" : "Increases";
+                description = $"{prefix} movement speed by {movementOffset}%";
+            }
+
+            if(augmentMovementType == AugmentMovementType.LockMovement)
+            {
+                description = $"Prevents the caster from being able to move.";
+            }
+
+            if(augmentMovementType == AugmentMovementType.CancelOnMove)
+            {
+                description = $"Cancels ability if the caster movies";
+            }
+
+            return description;
+        }
         public override void HandleAbility(AbilityInfo ability, bool start)
         {
             if (start) return;
