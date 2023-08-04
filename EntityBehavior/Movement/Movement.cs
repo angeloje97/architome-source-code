@@ -544,6 +544,7 @@ namespace Architome
 
         public async Task StopMovingAsync(bool targetSelf = false)
         {
+            StopMoving(targetSelf);
             while (isMoving)
             {
                 StopMoving(targetSelf);

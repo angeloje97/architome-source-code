@@ -17,17 +17,26 @@ namespace Architome
 
         Movement entityMovement;
         [SerializeField] AugmentMovementType augmentMovementType;
-        public float movementOffset;
-        
+        [SerializeField] float movementOffset;
+        [SerializeField] bool showDescription;
+
+        void Start()
+        {
+            GetDependencies();
+        }
+
         protected async new void GetDependencies()
         {
             await base.GetDependencies();
             entityMovement = augment.entity.Movement();
+            EnableAbilityStartEnd();
         }
 
         public override string Description()
         {
+            if (!showDescription) return "";
             var description = "";
+            
 
             if(augmentMovementType == AugmentMovementType.ChangeSpeed)
             {
@@ -49,7 +58,7 @@ namespace Architome
         }
         public override void HandleAbility(AbilityInfo ability, bool start)
         {
-            if (start) return;
+            if (!start) return;
             if (entityMovement == null) return;
             Func<Task> endActivation = ability.EndActivation;
             HandleChangeSpeed();
@@ -76,12 +85,16 @@ namespace Architome
             async void HandleCancelOnMove()
             {
                 if (augmentMovementType != AugmentMovementType.CancelOnMove) return;
+                Debugger.Combat(1054, $"Starting augment movement cancel: {augment}");
                 await entityMovement.StopMovingAsync();
+                Debugger.Combat(1055, $"Stopped movement from: {augment}");
+
                 while (ability.activated)
                 {
                     if (entityMovement.isMoving)
                     {
                         ability.CancelCast($"Moved while casting (From ({augment})");
+                        Debugger.Combat(1056, $"Augment Cancels Cast {augment}");
                         break;
                     }
                     await Task.Yield();

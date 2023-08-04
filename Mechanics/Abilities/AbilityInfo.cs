@@ -5,6 +5,7 @@ using Architome.Enums;
 using UnityEngine.UI;
 using System;
 using System.Threading.Tasks;
+using Language.Lua;
 
 namespace Architome 
 {
@@ -183,8 +184,10 @@ namespace Architome
         public bool timerPercentActivated;
         public bool alternateCastingActive;
         public bool cancelAlternateCasting;
+        [SerializeField] bool useProgressMileStone;
         public float progress;
         public float progressTimer;
+
 
 
         [Header("Lock On Behaviors")]
@@ -1553,21 +1556,37 @@ namespace Architome
                     await Task.Yield();
                     timer -= Time.deltaTime;
                     timeElapsed += Time.deltaTime;
+                    
+
+                    WhileCastingAbility();
+                    Func<bool> canContinue = CanContinue;
                     progress = 1 - (timer / startTime);
                     progressTimer = timer;
 
-                    WhileCastingAbility();
-
-                    if(progress > progressMileStone)
+                    if (useProgressMileStone)
                     {
-                        if (!CanContinue())
+
+                        if (progress > progressMileStone)
+                        {
+                            if (!canContinue())
+                            {
+                                success = false;
+                                break;
+                            }
+
+                            progressMileStone += .25f;
+                        }
+                    }
+                    else
+                    {
+                        if (!canContinue())
                         {
                             success = false;
                             break;
                         }
-
-                        progressMileStone += .25f;
                     }
+
+                    
                 }
 
 

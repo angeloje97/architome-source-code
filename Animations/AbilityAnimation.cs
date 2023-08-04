@@ -42,9 +42,6 @@ public class AbilityAnimation
             abilityEvents.OnCastRelease += OnCastRelease;
             abilityEvents.OnCastReleasePercent += OnCastReleasePercent;
         }
-        //abilityManager.OnCastStart += OnCastStart;
-        //abilityManager.OnCastRelease += OnCastRelease;
-        //abilityManager.OnCastReleasePercent += OnCastReleasePercent;
         abilityManager.OnChannelStart += OnChannelStart;
         abilityManager.OnChannelInterval += OnChannelInterval;
         abilityManager.OnChannelEnd += OnCastChannelEnd;
@@ -53,7 +50,6 @@ public class AbilityAnimation
         abilityManager.OnCastChange += OnCastChange;
 
         abilityManager.OnAbilityStart += OnAbilityStart;
-        abilityManager.OnAbilityEnd += OnAbilityEnd;
 
         if (character)
         {
@@ -135,14 +131,11 @@ public class AbilityAnimation
     {
     }
 
-    public void OnAbilityStart(AbilityInfo ability)
+    public async void OnAbilityStart(AbilityInfo ability)
     {
         SetCast(true);
 
-    }
-
-    public void OnAbilityEnd(AbilityInfo ability)
-    {
+        await ability.EndActivation();
         ZeroOut();
         SetCast(false);
 
