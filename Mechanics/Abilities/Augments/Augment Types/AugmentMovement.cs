@@ -32,7 +32,7 @@ namespace Architome
             EnableAbilityStartEnd();
         }
 
-        public override string Description()
+        protected override string Description()
         {
             if (!showDescription) return "";
             var description = "";

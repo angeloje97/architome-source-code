@@ -24,7 +24,7 @@ namespace Architome
             augment.entity.Die();
         }
 
-        public override string Description()
+        protected override string Description()
         {
             return "Caster dies when this ability is successfuly casted.";
         }

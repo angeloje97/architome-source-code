@@ -171,7 +171,7 @@ namespace Architome
 
             foreach (var type in GetComponents<AugmentType>())
             {
-                var description = type.Description();
+                var description = type.ToString();
                 if (description.Length > 0 && result.Length > 0)
                 {
                     result += $"\n";

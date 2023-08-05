@@ -27,7 +27,7 @@ namespace Architome
 
         }
 
-        public override string Description()
+        protected override string Description()
         {
             return $"This ability is activated when the unit completes a task";
         }

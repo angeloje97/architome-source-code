@@ -21,7 +21,7 @@ namespace Architome
             EnableSuccesfulCast();
         }
 
-        public override string Description()
+        protected override string Description()
         {
             return $"Upon successfully casting. This ability will activate ${abilityToActivate}";
         }

@@ -183,7 +183,7 @@ namespace Architome
             }
         }
 
-        public override string Description()
+        protected override string Description()
         {
             var abilityDescription = new Dictionary<string, List<string>>();
             var finalDescription = new List<string>();

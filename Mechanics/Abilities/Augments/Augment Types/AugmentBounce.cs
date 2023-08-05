@@ -53,7 +53,7 @@ namespace Architome
             }
         }
 
-        public override string Description()
+        protected override string Description()
         {
             return $"Bounces between targets that are {radius} meters between each other.";
         }

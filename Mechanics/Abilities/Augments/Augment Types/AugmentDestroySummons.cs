@@ -25,7 +25,7 @@ namespace Architome
             SetCatalyst(catalyst, true);
         }
 
-        public override string Description()
+        protected override string Description()
         {
             return $"If this ability hits a unit that the caster summoned, the unit will instantly die.";
         }

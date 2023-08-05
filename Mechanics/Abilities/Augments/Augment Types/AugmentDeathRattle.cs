@@ -40,7 +40,7 @@ namespace Architome
             augment.ability.HandleAbilityType();
         }
 
-        public override string Description()
+        protected override string Description()
         {
 
             var result = "This ability will be activated when the caster dies";

@@ -30,7 +30,7 @@ namespace Architome
 
 
             EnablePlayableParty();
-            EnableCatalyst();
+            EnableSuccesfulCast();
         }
 
         public override void HandleNewPlayableParty(PartyInfo party, int index)
@@ -40,18 +40,23 @@ namespace Architome
             partyTargets.Add(party);
         }
 
-        public override void HandleNewCatlyst(CatalystInfo catalyst)
+        public override void HandleSuccessfulCast(AbilityInfo ability)
         {
             if (partyTargets == null) return;
-            foreach(var party in partyTargets)
+            foreach (var party in partyTargets)
             {
                 if (party.members == null) continue;
 
-                foreach(var member in party.members)
+                foreach (var member in party.members)
                 {
                     member.KillSelf(augment.entity);
                 }
             }
+        }
+
+        protected override string Description()
+        {
+            return "Kills all party members upon successful cast.";
         }
 
         // Update is called once per frame

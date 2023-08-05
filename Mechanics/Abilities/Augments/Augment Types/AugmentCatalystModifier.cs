@@ -35,7 +35,7 @@ namespace Architome
             catalyst.speed += additiveSpeed;
         }
 
-        public override string Description()
+        protected override string Description()
         {
             
             var resultList = new List<string>();

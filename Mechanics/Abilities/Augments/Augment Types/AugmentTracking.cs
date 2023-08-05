@@ -97,7 +97,7 @@ namespace Architome
             }
         }
 
-        public override string Description()
+        protected override string Description()
         {
             var result = "";
 

@@ -19,6 +19,7 @@ namespace Architome
         public CatalystInfo activeCatalyst;
         protected CatalystHit activeHit;
 
+        [SerializeField] protected bool ignoreDescription;
 
 
         async void Start()
@@ -189,10 +190,17 @@ namespace Architome
         {
 
         }
-        public virtual string Description()
+        protected virtual string Description()
         {
             var result = "";
             return result;
+        }
+
+        public override string ToString()
+        {
+            if (ignoreDescription) return "";
+            return Description();
+
         }
 
         public void TriggerAugment()

@@ -60,7 +60,7 @@ namespace Architome
             };
         }
 
-        public override string Description()
+        protected override string Description()
         {
             var result = $"Does splash effects {ArchString.CamelToTitle(splashTrigger.ToString())} in a {radius} meter radius equal to ";
 

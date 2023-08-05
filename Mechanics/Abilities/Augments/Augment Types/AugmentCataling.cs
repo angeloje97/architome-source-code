@@ -60,7 +60,7 @@ namespace Architome
 
         }
 
-        public override string Description()
+        protected override string Description()
         {
             var catalingName = ArchString.CamelToTitle(cataling.name);
             var catalingType = ArchString.CamelToTitle(this.catalingType.ToString());

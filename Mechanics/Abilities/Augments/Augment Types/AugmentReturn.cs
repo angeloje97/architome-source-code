@@ -28,7 +28,7 @@ namespace Architome
             catalystsReturning = new();
         }
 
-        public override string Description()
+        protected override string Description()
         {
             var result = "";
 
