@@ -145,7 +145,6 @@ namespace Architome
         public float holdToCastValue;
 
         [Header("Movement Casting Properties")]
-        public float castingMovementSpeedReduction;
         public bool cancelCastIfMoved;
         public bool cantMoveWhenCasting;
 
@@ -1269,19 +1268,11 @@ namespace Architome
         public bool EndCast(bool checkRangeLos)
         {
             abilityEvents.OnCastRelease?.Invoke(this);
-            HandleResources();
-            HandleCastMovementSpeed();
             HandleFullHealth();
             HandleAbilityType();
             SetRecast();
 
             return true;
-
-            void HandleResources()
-            {
-                timerPercentActivated = false;
-            
-            }
 
             void HandleFullHealth()
             {
@@ -1293,11 +1284,6 @@ namespace Architome
                         isAutoAttacking = false;
                     }
                 }
-            }
-
-            void HandleCastMovementSpeed()
-            {
-                entityInfo.stats.movementSpeed += castingMovementSpeedReduction;
             }
 
         }

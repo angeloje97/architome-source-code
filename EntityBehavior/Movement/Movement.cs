@@ -590,8 +590,6 @@ namespace Architome
             abilityEvents.OnCastStart += OnCastStart;
             abilityEvents.OnCastEnd += OnCastEnd;
 
-            //abilities.OnCastStart += OnCastStart;
-            //abilities.OnCastEnd += OnCastEnd;
             abilities.OnChannelStart += OnChannelStart;
             abilities.OnChannelEnd += OnChannelEnd;
             abilities.OnTryAttackTarget += OnTryAttackTarget;

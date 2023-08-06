@@ -18,7 +18,6 @@ namespace Architome
         Movement entityMovement;
         [SerializeField] AugmentMovementType augmentMovementType;
         [SerializeField] float movementOffset;
-        [SerializeField] bool showDescription;
 
         void Start()
         {
@@ -34,9 +33,7 @@ namespace Architome
 
         protected override string Description()
         {
-            if (!showDescription) return "";
             var description = "";
-            
 
             if(augmentMovementType == AugmentMovementType.ChangeSpeed)
             {
