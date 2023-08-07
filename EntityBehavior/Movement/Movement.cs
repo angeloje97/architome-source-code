@@ -588,10 +588,8 @@ namespace Architome
 
 
             abilityEvents.OnCastStart += OnCastStart;
-            abilityEvents.OnCastEnd += OnCastEnd;
 
             abilities.OnChannelStart += OnChannelStart;
-            abilities.OnChannelEnd += OnChannelEnd;
             abilities.OnTryAttackTarget += OnTryAttackTarget;
             abilities.OnAbilityStart += OnAbilityStart;
 
@@ -630,26 +628,11 @@ namespace Architome
                 
             //}
         }
-        async void OnCastStart(AbilityInfo ability)
+        void OnCastStart(AbilityInfo ability)
         {
             if (!ability.cancelCastIfMoved) return;
-            var movementTimer = .25f;
+            Debugger.System(2412, $"{ability} needs to add augment of type {typeof(AugmentMovement)})");
             movement.StopMoving();
-            //while (ability.isCasting)
-            //{
-            //    await Task.Yield();
-            //    movementTimer -= Time.deltaTime;
-
-            //    if (movementTimer < 0) break;
-            //    if (movement.isMoving)
-            //    {
-            //        movement.StopMoving();
-            //    }
-            //}
-        }
-        void OnCastEnd(AbilityInfo ability)
-        {
-
         }
         void OnChannelStart(AbilityInfo ability, AugmentChannel augment)
         {
@@ -657,10 +640,6 @@ namespace Architome
             {
                 movement.StopMoving();
             }
-        }
-        void OnChannelEnd(AbilityInfo ability, AugmentChannel augment)
-        {
-
         }
     }
 

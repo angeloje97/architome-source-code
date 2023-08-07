@@ -1683,8 +1683,6 @@ namespace Architome
                 }
             }
         }
-
-    
         public async Task<AbilityInfo> EndActivation()
         {
             while (activated)
@@ -1702,6 +1700,12 @@ namespace Architome
                 await Task.Yield();
             }
 
+            return this;
+        }
+
+        public async Task<AbilityInfo> EndCasting()
+        {
+            while (isCasting) await Task.Yield();
             return this;
         }
         public void HandleAbilityType()                                 //This is where the magic happens.. IE where the catalyst gets released.
