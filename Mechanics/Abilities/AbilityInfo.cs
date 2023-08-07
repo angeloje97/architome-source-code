@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using System;
 using System.Threading.Tasks;
 using Language.Lua;
+using DungeonArchitect.Editors.LaunchPad.Actions.Impl;
 
 namespace Architome 
 {
@@ -217,6 +218,8 @@ namespace Architome
         public Action<AbilityInfo, EntityInfo, List<bool>> OnCanHarmCheck { get; set; }
         public Action<AbilityInfo, EntityInfo, List<bool>> OnCanHealCheck { get; set; }
         public Action<AbilityInfo, EntityInfo> OnCanCastAtCheck { get; set; }
+        public Action<AbilityInfo> OnCastStart { get; set; }
+        public Action<AbilityInfo> OnCastEnd { get; set; }
 
         public float floatCheck { get; set; }
         public Action<AbilityInfo> OnSplashRadiusCheck { get; set; }
@@ -1518,7 +1521,7 @@ namespace Architome
                 float timeElapsed = 0f;
                 canceledCast = false;
                 SetState(AbilityState.Casting);
-
+                
                 if (UseAlternateCasting())
                 {
                     BeginCast();
@@ -1585,7 +1588,7 @@ namespace Architome
                     isCasting = true;
                     timerPercentActivated = false;
                     abilityEvents.OnCastStart?.Invoke(this);
-                    
+                    OnCastStart?.Invoke(this);
                 }
 
                 void EndCasting()
@@ -1598,6 +1601,7 @@ namespace Architome
                     abilityEvents.OnCastEnd?.Invoke(this);
                     isCasting = false;
                     timerPercentActivated = false;
+                    OnCastEnd?.Invoke(this);
                 
                 }
 

@@ -86,7 +86,7 @@ namespace Architome
         //public Action<AbilityInfo> OnCastChannelStart;
         //public Action<AbilityInfo> OnCastChannelInterval;
         //public Action<AbilityInfo> OnCastChannelEnd;
-        public Action<AbilityInfo, AugmentChannel> OnChannelStart;
+        public Action<AbilityInfo, AugmentChannel> OnChannelStart { get; set; }
         public Action<AbilityInfo, AugmentChannel> OnChannelInterval;
         public Action<AbilityInfo, AugmentChannel> OnChannelEnd;
         public Action<AbilityInfo, AugmentChannel> OnCancelChannel;

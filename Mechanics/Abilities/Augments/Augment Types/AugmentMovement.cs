@@ -15,8 +15,16 @@ namespace Architome
             CancelOnMove,
         }
 
+        public enum AbilityPhase
+        {
+            Activating,
+            Casting,
+            Channeling
+        }
+
         Movement entityMovement;
         [SerializeField] AugmentMovementType augmentMovementType;
+        [SerializeField] AbilityPhase phaseType;
         [SerializeField] float movementOffset;
 
         void Start()
@@ -28,7 +36,19 @@ namespace Architome
         {
             await base.GetDependencies();
             entityMovement = augment.entity.Movement();
-            EnableAbilityStartEnd();
+            if (phaseType == AbilityPhase.Activating)
+            {
+                EnableAbilityStartEnd();
+            }
+            else if (phaseType == AbilityPhase.Casting)
+            {
+                EnableStartCast();
+            }
+
+            else if(phaseType == AbilityPhase.Channeling)
+            {
+                EnableAbilityChanneling();
+            }
         }
 
         protected override string Description()
@@ -53,15 +73,15 @@ namespace Architome
 
             return description;
         }
-        public override void HandleAbility(AbilityInfo ability, bool start)
+
+        
+
+        public void HandleMovement(AbilityInfo ability, Func<Task> endActivation, Action escapeCallBack = null)
         {
-            if (!start) return;
             if (entityMovement == null) return;
-            Func<Task> endActivation = ability.EndActivation;
             HandleChangeSpeed();
             HandleLockMovement();
             HandleCancelOnMove();
-
 
             async void HandleChangeSpeed()
             {
@@ -86,17 +106,44 @@ namespace Architome
                 await entityMovement.StopMovingAsync();
                 Debugger.Combat(1055, $"Stopped movement from: {augment}");
 
-                while (ability.activated)
+                var task = endActivation();
+
+                while (!task.IsCompleted)
                 {
                     if (entityMovement.isMoving)
                     {
                         ability.CancelCast($"Moved while casting (From ({augment})");
-                        Debugger.Combat(1056, $"Augment Cancels Cast {augment}");
+                        escapeCallBack?.Invoke();
                         break;
                     }
                     await Task.Yield();
                 }
             }
+        }
+
+        public override void HandleAbility(AbilityInfo ability, bool start)
+        {
+            if (!start) return;
+            HandleMovement(ability, ability.EndActivation, () => {
+                ability.CancelCast($"Moved during casting from {this}");
+                var channelAugments = ability.GetComponentsInChildren<AugmentChannel>();
+                foreach(var channel in channelAugments)
+                {
+                    channel.CancelChannel();
+                }
+            });
+        }
+
+        protected override void HandleCastStart(AbilityInfo ability)
+        {
+            HandleMovement(ability, ability.EndCasting, () => {
+                ability.CancelCast("Moved during casting");
+            });
+        }
+
+        protected override void HandleChannelStart(AbilityInfo ability, AugmentChannel channel)
+        {
+            HandleMovement(ability, channel.EndChanneling, channel.CancelChannel);
         }
 
     }

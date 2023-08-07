@@ -163,6 +163,12 @@ namespace Architome
                 abilityManager.OnChannelEnd?.Invoke(ability, this);
             }
         }
+
+        public async Task<AugmentChannel> EndChanneling()
+        {
+            while (active) await Task.Yield();
+            return this;
+        }
         public override void HandleCancelAbility(AugmentType augment)
         {
             if (!active) return;

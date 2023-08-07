@@ -97,6 +97,15 @@ namespace Architome
             };
         }
 
+        protected void EnableStartCast()
+        {
+            ability.OnCastStart += HandleCastStart;
+            augment.OnRemove += (augment) => {
+                ability.OnCastStart -= HandleCastStart;
+            };
+
+        }
+
         protected void EnablePlayableParty()
         {
             var gameManager = GameManager.active;
@@ -126,6 +135,24 @@ namespace Architome
 
             augment.OnRemove += (Augment augment) => { ability.OnAbilityStartEnd -= HandleAbility; };
         }
+
+        protected void EnableAbilityChanneling()
+        {
+
+            var abilityManager = augment.abilityManager;
+            abilityManager.OnChannelStart += MiddleWare;
+
+            augment.OnRemove += (augment) => {
+                abilityManager.OnChannelStart -= MiddleWare;
+            };
+
+            void MiddleWare(AbilityInfo ability, AugmentChannel channelAugment)
+            {
+                if (ability != this.ability) return;
+                HandleChannelStart(ability, channelAugment);
+            }
+        }
+
 
         protected void EnableTasks()
         {
@@ -163,10 +190,14 @@ namespace Architome
 
         }
 
+        protected virtual void HandleChannelStart(AbilityInfo ability, AugmentChannel channel) { }
+
         public virtual void HandleNewPlayableParty(PartyInfo party, int index)
         {
 
         }
+
+        protected virtual void HandleCastStart(AbilityInfo ability) { }
 
         public virtual void WhileCasting(AbilityInfo ability)
         {

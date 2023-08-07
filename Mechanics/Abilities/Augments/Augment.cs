@@ -28,6 +28,7 @@ namespace Architome
         public Info info;
 
         public AbilityInfo ability;
+        public AbilityManager abilityManager;
         public AugmentCataling augmentCataling;
         public EntityInfo entity;
 
@@ -56,6 +57,7 @@ namespace Architome
         async Task GetDependencies()
         {
             ability = GetComponentInParent<AbilityInfo>();
+            
             augmentCataling = transform.parent.GetComponent<AugmentCataling>();
             entity = GetComponentInParent<EntityInfo>();
 
@@ -63,6 +65,8 @@ namespace Architome
             {
                 await Task.Yield();
             }
+
+            abilityManager = ability.abilityManager;
 
             
             if (augmentCataling)
