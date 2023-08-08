@@ -632,6 +632,7 @@ namespace Architome
         {
             if (!ability.cancelCastIfMoved) return;
             Debugger.System(2412, $"{ability} needs to add augment of type {typeof(AugmentMovement)})");
+            Debugger.Error(5045, $"{ability} needs to add augment of type {typeof(AugmentMovement)}");
             movement.StopMoving();
         }
         void OnChannelStart(AbilityInfo ability, AugmentChannel augment)

@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using SharpNav.Crowds;
 using System;
 using System.Collections;
@@ -15,6 +16,7 @@ namespace Architome
         Social,
         System,
         OutSource,
+        Error,
     }
     public class Debugger : MonoBehaviour
     {
@@ -28,6 +30,7 @@ namespace Architome
             { ALogType.Social, false },
             { ALogType.System, true },
             { ALogType.OutSource, false },
+            { ALogType.Error, false },
         };
 
         public static bool Status(ALogType logType)
@@ -102,6 +105,12 @@ namespace Architome
         {
             if (!logDict[ALogType.System]) return;
             action();
+        }
+
+        public static void Error(int id, string sentence)
+        {
+            if (!logDict[ALogType.Error]) return;
+            Debug.LogError(sentence);
         }
 
         public static void InvokeCheck(ALogType type, Action action)

@@ -31,7 +31,6 @@ namespace Architome
         {
             GetDependencies();
         }
-
         protected async new void GetDependencies()
         {
             await base.GetDependencies();
@@ -50,7 +49,6 @@ namespace Architome
                 EnableAbilityChanneling();
             }
         }
-
         protected override string Description()
         {
             var description = "";
@@ -73,9 +71,6 @@ namespace Architome
 
             return description;
         }
-
-        
-
         public void HandleMovement(AbilityInfo ability, Func<Task> endActivation, Action escapeCallBack = null)
         {
             if (entityMovement == null) return;
