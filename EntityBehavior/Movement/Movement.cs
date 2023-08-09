@@ -590,7 +590,6 @@ namespace Architome
             abilityEvents.OnCastStart += OnCastStart;
 
             abilities.OnChannelStart += OnChannelStart;
-            abilities.OnTryAttackTarget += OnTryAttackTarget;
             abilities.OnAbilityStart += OnAbilityStart;
 
         }
@@ -598,7 +597,7 @@ namespace Architome
         async void OnAbilityStart(AbilityInfo ability)
         {
             if (!ability.cantMoveWhenCasting) return;
-            movement.StopMoving();
+            await movement.StopMovingAsync();
             entity.infoEvents.OnCanMoveCheck += HandleMoveCheck;
 
             await ability.EndActivation();
@@ -612,22 +611,6 @@ namespace Architome
             }
         }
 
-        void OnTryAttackTarget(AbilityInfo attackAbility, EntityInfo target)
-        {
-            var currentlyCasting = abilities.currentlyCasting;
-
-            if (currentlyCasting && currentlyCasting != attackAbility)
-            {
-                return;
-            }
-
-            //if (attackAbility.CanCastAt(target))
-            //{
-            //    var range = attackAbility.range;
-            //    _= movement.MoveToAsync(target.transform, range);
-                
-            //}
-        }
         void OnCastStart(AbilityInfo ability)
         {
             if (!ability.cancelCastIfMoved) return;
@@ -639,6 +622,8 @@ namespace Architome
         {
             if (augment.cancelChannelOnMove)
             {
+                Debugger.System(2412, $"{ability} needs to add augment of type {typeof(AugmentMovement)})");
+                Debugger.Error(5045, $"{ability} needs to add augment of type {typeof(AugmentMovement)}");
                 movement.StopMoving();
             }
         }
