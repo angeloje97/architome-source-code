@@ -137,7 +137,6 @@ namespace Architome
             {
                 abilityManager.WhileCasting?.Invoke(ability);
                 ability.WhileCasting?.Invoke(ability);
-                //ability.HandleTracking();
 
                 if (ability.isAttack) return;
 

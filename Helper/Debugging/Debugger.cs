@@ -18,7 +18,7 @@ namespace Architome
         OutSource,
         Error,
     }
-    public class Debugger : MonoBehaviour
+    public static class Debugger
     {
 
         public static Dictionary<ALogType, bool> logDict = new()
@@ -46,19 +46,6 @@ namespace Architome
         public static void Toggle(ALogType logType)
         {
             logDict[logType] = !logDict[logType];
-        }
-
-
-        void Start()
-        {
-        
-        }
-
-
-        // Update is called once per frame
-        void Update()
-        {
-        
         }
 
         public static void InConsole(int id, string sentence)

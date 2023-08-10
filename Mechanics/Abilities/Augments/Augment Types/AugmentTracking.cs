@@ -46,11 +46,7 @@ namespace Architome
             augment.ActivateAugment(eventData);
 
             await TrackTarget();
-            if (ability.targetLocked)
-            {
-                await PredictTarget(ability.targetLocked.gameObject);
-
-            }
+            await PredictTarget();
 
             eventData.active = false;
 
@@ -71,24 +67,26 @@ namespace Architome
                 tracking = false;
             }
 
-            async Task PredictTarget(GameObject target)
+            async Task PredictTarget()
             {
                 if (trackingType != TrackingType.Predict) return;
                 if (predicting) return;
+                if (ability.targetLocked == null) return;
+
+                var target = ability.targetLocked.transform;
 
                 predicting = true;
 
                 var movement = target.GetComponentInChildren<Movement>();
 
                 var sourceTrans = ability.entityObject.transform;
-                var targetTrans = ability.targetLocked.transform;
 
                 while (ability.isCasting)
                 {
-                    var distance = V3Helper.Distance(sourceTrans.position, targetTrans.position);
+                    var distance = V3Helper.Distance(sourceTrans.position, target.position);
                     var travelTime = distance / catalystSpeed;
 
-                    ability.locationLocked = targetTrans.position + (travelTime * movement.velocity);
+                    ability.locationLocked = target.position + (travelTime * movement.velocity);
 
                     await Task.Yield();
                 }

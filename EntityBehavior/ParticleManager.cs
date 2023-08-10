@@ -119,29 +119,6 @@ namespace Architome
             Destroy(particle.gameObject);
         }
 
-        //For managing your own particles.
-        //public ParticleSystem Play(GameObject particle, bool autoStop = false)
-        //{
-        //    if (particle.GetComponent<ParticleSystem>() == null) return null;
-
-        //    var particleObject = Instantiate(particle, transform);
-            
-
-        //    var system = particleObject.GetComponent<ParticleSystem>();
-        //    system.Play(true);
-
-        //    if (autoStop)
-        //    {
-        //        ArchAction.Delay(() => { system.Stop(true); }, system.main.duration);
-
-        //        ArchAction.Delay(() => { Destroy(system.gameObject); }, system.main.duration + 2f);
-        //    }
-
-
-        //    return system;
-
-        //}
-
         public (ParticleSystem, GameObject) Play(GameObject particle, bool autoStop = false)
         {
             if (particle.GetComponentInChildren<ParticleSystem>() == null) return (null, null);
