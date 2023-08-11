@@ -71,14 +71,20 @@ namespace Architome
 
             return description;
         }
-        public void HandleMovement(AbilityInfo ability, Func<Task> endActivation, Action escapeCallBack = null)
+        public async void HandleMovement(AbilityInfo ability, Func<Task> endActivation, Action escapeCallBack = null)
         {
             if (entityMovement == null) return;
-            HandleChangeSpeed();
-            HandleLockMovement();
-            HandleCancelOnMove();
 
-            async void HandleChangeSpeed()
+            var eventData = new Augment.AugmentEventData(this) { active = true };
+            augment.ActivateAugment(eventData);
+
+            await HandleChangeSpeed();
+            await HandleLockMovement();
+            await HandleCancelOnMove();
+
+            eventData.active = false;
+
+            async Task HandleChangeSpeed()
             {
                 if (augmentMovementType != AugmentMovementType.ChangeSpeed) return;
                 var reset = entityMovement.SetOffSetMovementSpeed(movementOffset, this);
@@ -86,7 +92,7 @@ namespace Architome
                 reset();
             }
 
-            async void HandleLockMovement()
+            async Task HandleLockMovement()
             {
                 if (augmentMovementType != AugmentMovementType.LockMovement) return;
                 augment.entity.AddState(EntityState.Immobalized);
@@ -94,7 +100,7 @@ namespace Architome
                 augment.entity.RemoveState(EntityState.Immobalized);
             }
 
-            async void HandleCancelOnMove()
+            async Task HandleCancelOnMove()
             {
                 if (augmentMovementType != AugmentMovementType.CancelOnMove) return;
                 Debugger.Combat(1054, $"Starting augment movement cancel: {augment}");

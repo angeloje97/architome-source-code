@@ -112,6 +112,5 @@ namespace Architome
             return result;
         }
 
-        // Update is called once per frame
     }
 }

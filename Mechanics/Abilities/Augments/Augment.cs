@@ -216,6 +216,11 @@ namespace Architome
             public bool active = true;
             public AugmentEvent eventTrigger;
 
+            public async Task EndActivation()
+            {
+                while (active) await Task.Yield();
+            }
+
             public AugmentEventData(AugmentType source)
             {
                 augmentType = source;
