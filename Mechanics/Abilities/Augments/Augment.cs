@@ -7,6 +7,8 @@ using Architome.Enums;
 
 namespace Architome
 {
+
+
     public class Augment : MonoBehaviour
     {
         int id;
@@ -38,14 +40,13 @@ namespace Architome
 
         public Action<CatalystInfo> OnNewCatalyst;
         public Action<Augment> OnRemove;
-        public Action<AugmentEventData> OnAugmentTrigger;
-        public Action<AugmentEventData> OnAugmentActivate;
+        ArchEventHandler<AugmentEvent, AugmentEventData> events;
 
         public bool dependenciesAcquired;
 
         async void Start()
         {
-            
+            events = new(this);
             await GetDependencies();
             HandleRestrictions();
         }
@@ -71,14 +72,12 @@ namespace Architome
             
             if (augmentCataling)
             {
-                Action<CatalystInfo, CatalystInfo> action = (CatalystInfo original, CatalystInfo cataling) => {
-                    OnNewCatalyst?.Invoke(cataling);
 
-                    UpdateDeathConditions(cataling);
-                };
+                augmentCataling.AddListener(AugmentCatalingEvent.OnReleaseCataling, ((AugmentEventData, CatalystInfo, CatalystInfo) tuple) => {
+                    OnNewCatalyst?.Invoke(tuple.Item3);
+                    UpdateDeathConditions(tuple.Item3);
+                }, this);
 
-                augmentCataling.OnCatalystRelease += action;
-                OnRemove += (Augment augment) => { augmentCataling.OnCatalystRelease -= action; };
                 catalystTarget = CatalystTarget.Cataling;
                 dependenciesAcquired = true;
 
@@ -142,6 +141,11 @@ namespace Architome
                 ability.restrictions.Subtract(subtractiveRestrictions);
             }
         }
+
+        public Action AddListener(AugmentEvent eventType, Action<AugmentEventData> action, Component listener)
+        {
+            return events.AddListener(eventType, action, listener);
+        }
         Augment FirstAugment
         {
             get
@@ -187,8 +191,8 @@ namespace Architome
         }
         public async void RemoveAugment()
         {
+            events.Invoke(AugmentEvent.OnRemove, new(this));
             OnRemove?.Invoke(this);
-
 
             await Task.Yield();
 
@@ -199,13 +203,13 @@ namespace Architome
         public void TriggerAugment(AugmentEventData eventData)
         {
             eventData.eventTrigger = AugmentEvent.OnAugmentTrigger;
-            OnAugmentTrigger?.Invoke(eventData);
+            events.Invoke(AugmentEvent.OnAugmentTrigger, eventData);
         }
 
         public void ActivateAugment(AugmentEventData eventData)
         {
             eventData.eventTrigger = AugmentEvent.OnAugmentActive;
-            OnAugmentActivate?.Invoke(eventData);
+            events.Invoke(AugmentEvent.OnAugmentActive, eventData);
         }
 
         public class AugmentEventData
@@ -226,6 +230,16 @@ namespace Architome
                 augmentType = source;
                 augment = augmentType.augment;
                 activeCatalyst = source.activeCatalyst;
+            }
+
+            public AugmentEventData(Augment augment)
+            {
+                this.augment = augment;
+            }
+
+            public AugmentEventData()
+            {
+
             }
         }
     }

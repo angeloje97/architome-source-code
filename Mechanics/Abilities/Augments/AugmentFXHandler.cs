@@ -56,36 +56,32 @@ namespace Architome
             particleManager = augment.entity.GetComponentInChildren<ParticleManager>();
             audioManager = augment.entity.SoundEffect();
 
-            augment.OnAugmentTrigger += OnAugmentEvent;
-            augment.OnAugmentActivate += OnAugmentEvent;
-        }
+            foreach(var fx in augmentFX)
+            {
+                augment.AddListener(fx.eventTrigger, (eventData) => {
+                    HandleEffect(eventData, fx);
+                }, this);
 
-        private void OnAugmentEvent(Augment.AugmentEventData eventData)
-        {
-            if (!eventData.active) return;
-            HandleEffect(eventData);
+            }
+
+
         }
 
         // Update is called once per frame
 
-        public void HandleEffect(Augment.AugmentEventData eventData)
+        public void HandleEffect(Augment.AugmentEventData eventData, AugmentFX fx)
         {
             if (augmentFX == null) return;
+            HandleAudio();
+            HandleParticle();
 
-            foreach (var fx in augmentFX)
-            {
-                if (fx.eventTrigger != eventData.eventTrigger) continue;
-                HandleAudio(fx);
-                HandleParticle(fx);
-            }
-
-            void HandleAudio(AugmentFX fx)
+            void HandleAudio()
             {
                 if (fx.audioClip == null) return;
                 if (audioManager == null) return;
             }
 
-            void HandleParticle(AugmentFX fx)
+            void HandleParticle()
             {
                 if (fx.particleObject == null) return;
                 if (particleManager == null) return;

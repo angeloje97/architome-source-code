@@ -101,6 +101,9 @@ namespace Architome.Enums
     {
         OnAugmentTrigger,
         OnAugmentActive,
+        OnAttach,
+        OnRemove,
+        OnReleaseCatalyst,
     }
 
     public enum CatalystEvent

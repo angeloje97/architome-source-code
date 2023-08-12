@@ -8,8 +8,16 @@ using Pathfinding;
 
 namespace Architome
 {
+    public enum AugmentCatalingEvent
+    {
+        OnReleaseCataling
+    }
+
+
     public class AugmentCataling : AugmentType
     {
+        
+
         public GameObject cataling;
         public CatalystInfo catalingInfo;
         public AbilityType catalingType;
@@ -28,9 +36,16 @@ namespace Architome
 
         public Action<CatalystInfo, CatalystInfo> OnCatalystRelease; // (original catalyst, cataling)
 
+        ArchEventHandler<AugmentCatalingEvent, (Augment.AugmentEventData, CatalystInfo, CatalystInfo)> events;
+
         void Start()
         {
             GetDependencies();
+        }
+
+        private void Awake()
+        {
+            events = new(this);
         }
 
         new async void GetDependencies()
@@ -46,6 +61,10 @@ namespace Architome
         
         }
         
+        public Action AddListener(AugmentCatalingEvent eventType, Action<(Augment.AugmentEventData, CatalystInfo, CatalystInfo)> action, Component listener)
+        {
+            return events.AddListener(eventType, action, listener);
+        }
 
         public override void HandleNewCatlyst(CatalystInfo catalyst)
         {
