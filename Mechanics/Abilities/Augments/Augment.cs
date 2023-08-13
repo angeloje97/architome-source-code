@@ -40,20 +40,20 @@ namespace Architome
 
         public Action<CatalystInfo> OnNewCatalyst;
         public Action<Augment> OnRemove;
-        ArchEventHandler<AugmentEvent, AugmentEventData> events;
+        ArchEventHandler<AugmentEvent, AugmentEventData> events { get; set; }
 
         public bool dependenciesAcquired;
 
         async void Start()
         {
-            events = new(this);
             await GetDependencies();
             HandleRestrictions();
         }
 
         private void Awake()
         {
-            
+            events = new(this);
+
         }
         async Task GetDependencies()
         {
@@ -103,6 +103,9 @@ namespace Architome
             }
 
             dependenciesAcquired = true;
+            ArchAction.Delay(() => {
+                events.Invoke(AugmentEvent.OnAttach, new(this));
+            }, .125f);
         }
         public void HandleRestrictions()
         {
@@ -146,6 +149,7 @@ namespace Architome
         {
             return events.AddListener(eventType, action, listener);
         }
+
         Augment FirstAugment
         {
             get

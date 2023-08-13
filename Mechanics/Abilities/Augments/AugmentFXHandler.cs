@@ -75,10 +75,20 @@ namespace Architome
             HandleAudio();
             HandleParticle();
 
-            void HandleAudio()
+            async void HandleAudio()
             {
                 if (fx.audioClip == null) return;
                 if (audioManager == null) return;
+
+                if (fx.loopAudio)
+                {
+                    var source = audioManager.PlaySoundLoop(fx.audioClip);
+                    await eventData.EndActivation();
+                }
+                else
+                {
+                    var source = audioManager.PlayAudioClip(fx.audioClip);
+                }
             }
 
             void HandleParticle()
@@ -147,10 +157,7 @@ namespace Architome
                     if (!fx.loopParticle) return;
                     var particleSystem = particle.GetComponentInChildren<ParticleSystem>();
                     if (particleSystem == null) return;
-                    while (eventData.active)
-                    {
-                        await Task.Yield();
-                    }
+                    await eventData.EndActivation();
 
                     particleSystem.Stop(true);
 
