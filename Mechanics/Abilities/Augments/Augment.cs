@@ -222,11 +222,19 @@ namespace Architome
             public Augment augment;
             public CatalystInfo activeCatalyst;
             public bool active = true;
+            public bool hasEnd { get; set; }
             public AugmentEvent eventTrigger;
 
             public async Task EndActivation()
             {
+                if (!hasEnd)
+                {
+                    await Task.Delay(2000);
+                    return;
+                }
+
                 while (active) await Task.Yield();
+
             }
 
             public AugmentEventData(AugmentType source)
@@ -239,11 +247,6 @@ namespace Architome
             public AugmentEventData(Augment augment)
             {
                 this.augment = augment;
-            }
-
-            public AugmentEventData()
-            {
-
             }
         }
     }

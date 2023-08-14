@@ -75,7 +75,11 @@ namespace Architome
         {
             if (entityMovement == null) return;
 
-            var eventData = new Augment.AugmentEventData(this) { active = true };
+            var eventData = new Augment.AugmentEventData(this) 
+            { 
+                active = true,
+                hasEnd = true,
+            };
             augment.ActivateAugment(eventData);
 
             await HandleChangeSpeed();

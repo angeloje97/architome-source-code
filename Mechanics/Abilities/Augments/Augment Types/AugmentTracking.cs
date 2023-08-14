@@ -42,7 +42,12 @@ namespace Architome
             if (ability.targetLocked == null) return;
             if (predicting || tracking) return;
 
-            var eventData = new Augment.AugmentEventData(this) { active = true };
+            var eventData = new Augment.AugmentEventData(this) 
+            { 
+                active = true,
+                hasEnd = true,
+            };
+
             augment.ActivateAugment(eventData);
 
             await TrackTarget();

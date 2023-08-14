@@ -37,7 +37,11 @@ namespace Architome
             var taskHandler = augment.entity.TaskHandler();
             if (taskHandler == null) return;
 
-            var augmentEvent = new Augment.AugmentEventData(this) { active = true };
+            var augmentEvent = new Augment.AugmentEventData(this) 
+            { 
+                active = true,
+                hasEnd = true,
+            };
 
             augment.ActivateAugment(augmentEvent);
 

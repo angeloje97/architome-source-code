@@ -69,7 +69,11 @@ namespace Architome
         {
             StartChannel();
 
-            var eventData = new Augment.AugmentEventData(this) { active = true };
+            var eventData = new Augment.AugmentEventData(this)
+            {
+                active = true,
+                hasEnd = true,
+            };
             augment.ActivateAugment(eventData);
 
             timer = time - time * ability.Haste();
