@@ -14,6 +14,8 @@ namespace Architome
         ParticleManager particleManager;
         AudioManager audioManager;
         CatalystManager catalystManager;
+        CharacterBodyParts entityBodyParts;
+        
 
         
 
@@ -26,6 +28,7 @@ namespace Architome
             public GameObject particleObject;
             public ParticleTarget particleTarget;
             public BodyPart bodyPartTarget;
+            public BodyPart bodyPartTarget2;
             public bool loopParticle;
 
             [Header("Audio")]
@@ -56,7 +59,14 @@ namespace Architome
             particleManager = augment.entity.GetComponentInChildren<ParticleManager>();
             audioManager = augment.entity.SoundEffect();
 
-            foreach(var fx in augmentFX)
+            var entity = augment.entity;
+
+            if (entity)
+            {
+                entityBodyParts = entity.BodyParts();
+            }
+
+            foreach (var fx in augmentFX)
             {
                 augment.AddListener(fx.eventTrigger, (eventData) => {
                     HandleEffect(eventData, fx);
@@ -101,6 +111,7 @@ namespace Architome
                 if (particle == null) return;
                 particle.transform.SetParent(catalystManager.transform);
 
+
                 HandleTransform();
                 HandleDuration();
 
@@ -116,6 +127,21 @@ namespace Architome
                         case ParticleTarget.Target:
                             HandleTarget();
                             break;
+                        case ParticleTarget.BodyPart:
+                            HandleSelf();
+                            break;
+                        case ParticleTarget.BetweenBodyParts:
+                            HandleBetweenBodyParts();
+                            break;
+                    }
+
+                    void HandleSelf()
+                    {
+                        if (entityBodyParts == null) return;
+                        var trans = entityBodyParts.BodyPartTransform(fx.bodyPartTarget);
+
+                        if (trans == null) return;
+                        particle.transform.SetParent(trans);
                     }
 
                     void HandleCatalyst()
@@ -131,6 +157,23 @@ namespace Architome
                                 particle.transform.SetParent(catalystManager.transform);
                             }
                         };
+                    }
+
+                    async void HandleBetweenBodyParts()
+                    {
+                        if (entityBodyParts == null) return;
+                        var bodyPart1 = entityBodyParts.BodyPartTransform(fx.bodyPartTarget);
+                        var bodyPart2 = entityBodyParts.BodyPartTransform(fx.bodyPartTarget2);
+
+                        if (bodyPart1 == null || bodyPart2 == null) return;
+
+                        while (particle.isPlaying) 
+                        {
+                            var midPoint = V3Helper.MidPoint(bodyPart1.position, bodyPart2.position);
+                            particle.transform.position = midPoint;
+                            await Task.Yield();    
+                        }
+                        
                     }
 
                     void HandleTarget()
