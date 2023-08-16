@@ -603,6 +603,11 @@ namespace Architome
             OnTickChange?.Invoke(this, ticks);
         }
 
+        public async Task CatalystDeath()
+        {
+            while (!isDestroyed) await Task.Yield();
+        }
+
         public void DepleteTicks()
         {
             ticks = 0;

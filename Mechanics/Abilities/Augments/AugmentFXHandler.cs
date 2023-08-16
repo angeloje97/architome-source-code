@@ -111,6 +111,8 @@ namespace Architome
                 if (particle == null) return;
                 particle.transform.SetParent(catalystManager.transform);
 
+                var tasksBeforeDestroyParticle = new List<Task>();
+
 
                 HandleTransform();
                 HandleDuration();
@@ -150,6 +152,8 @@ namespace Architome
                         if (catalyst == null) return;
 
                         particle.transform.SetParent(catalyst.transform);
+
+                        tasksBeforeDestroyParticle.Add(catalyst.CatalystDeath());
 
                         catalyst.OnCatalystDestroy += (CatalystDeathCondition condition) => {
                             if (particle != null)
@@ -201,6 +205,8 @@ namespace Architome
                     var particleSystem = particle.GetComponentInChildren<ParticleSystem>();
                     if (particleSystem == null) return;
                     await eventData.EndActivation();
+
+                    await Task.WhenAll(tasksBeforeDestroyParticle);
 
                     particleSystem.Stop(true);
 
