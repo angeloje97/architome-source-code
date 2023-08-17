@@ -163,7 +163,8 @@ namespace Architome
                 master = augment.entity,
                 liveTime = liveTime,
                 masterDeath = masterDeath,
-                masterCombatFalse = masterCombatFalse
+                masterCombatFalse = masterCombatFalse,
+                sourceAbility = augment.ability,
             });
 
             UpdateStats(summoned, summonable.additiveStats);

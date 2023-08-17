@@ -4,18 +4,46 @@ using UnityEngine;
 using System.Threading.Tasks;
 using System.Linq;
 using Architome.Enums;
+using System;
 
 namespace Architome
 {
     public class ArchSummonAgent : EntityProp
     {
+
+        [Serializable]
+        public class DeathTimer
+        {
+            public float liveTime;
+
+            public async void HandleDeathTimer(EntityInfo entity, Action onTimerEnd)
+            {
+                while (!entity.isAlive) await Task.Yield();
+
+                while(liveTime > 0f)
+                {
+                    liveTime -= Time.deltaTime;
+                    await Task.Yield();
+
+                    if (!entity.isAlive)
+                    {
+                        break;
+                    }
+                }
+
+                onTimerEnd?.Invoke();
+            }
+        }
+
         public EntityInfo master;
         public ThreatManager threatManager;
         public AIBehavior behavior;
-        public AbilityManager ability;
+        public AbilityInfo sourceAbility;
         public EntityInfo.SummonedEntity summoning;
         public CombatBehavior combat;
         public CharacterInfo character;
+
+        [SerializeField] DeathTimer deathTimerHandler;
 
         public float liveTime;
 
@@ -34,6 +62,8 @@ namespace Architome
             threatManager = behavior.GetComponentInChildren<ThreatManager>();
 
             entityInfo.OnDamageDone += OnDamageDone;
+
+            sourceAbility = entityInfo.summon.sourceAbility;
             
 
         }
@@ -43,8 +73,21 @@ namespace Architome
             HandleEvents(true);
             DisableConflicts();
             AcquireThreats();
-            DeathTimer();
+
+
+            deathTimerHandler = new() { liveTime = liveTime };
+            deathTimerHandler.HandleDeathTimer(entityInfo, () => {
+                HandleEvents(false);
+
+                if (entityInfo.isAlive)
+                {
+                    entityInfo.Die();
+                }
+            });
+
         }
+
+
 
         void HandleEvents(bool enter)
         {
@@ -61,6 +104,11 @@ namespace Architome
                     master.OnCombatChange += OnMasterCombatChange;
                     if (!master.isInCombat) liveTime = 0f;
                 }
+
+                if (sourceAbility)
+                {
+                    sourceAbility.OnRemoveAbility += HandleRemoveAbility;
+                }
             }
             else
             {
@@ -73,7 +121,17 @@ namespace Architome
                 {
                     master.OnCombatChange -= OnMasterCombatChange;
                 }
+
+                if (sourceAbility)
+                {
+                    sourceAbility.OnRemoveAbility -= HandleRemoveAbility;
+                }
             }
+        }
+
+        void HandleRemoveAbility(AbilityInfo ability)
+        {
+            deathTimerHandler.liveTime = 0f;
         }
 
         void DisableConflicts()
@@ -108,30 +166,9 @@ namespace Architome
                 foreach (var threat in masterThreat.threats)
                 {
                     var value = threatManager.ThreatMultiplier(threat.threatObject.GetComponent<EntityInfo>());
-                    
-                    //threatManager.IncreaseThreat(threat.threatObject, value);
                     entityInfo.combatEvents.OnPingThreat?.Invoke(threat.threatInfo, value);
                 }
-
-                //threatManager.Bump();
             }, .50f);
-        }
-        async void DeathTimer()
-        {
-            while (!entityInfo.isAlive)
-            {
-                await Task.Yield();
-            }
-
-            while (liveTime > 0)
-            {
-                await Task.Yield();
-                liveTime -= Time.deltaTime;
-                if (!entityInfo.isAlive) break;
-            }
-
-            HandleEvents(false);
-            entityInfo.Die();
         }
 
     }

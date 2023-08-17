@@ -30,7 +30,7 @@ namespace Architome
             { ALogType.Social, false },
             { ALogType.System, true },
             { ALogType.OutSource, false },
-            { ALogType.Error, false },
+            { ALogType.Error, true },
         };
 
         public static bool Status(ALogType logType)
