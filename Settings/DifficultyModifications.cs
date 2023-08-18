@@ -15,19 +15,16 @@ namespace Architome
         private bool startUpdate;
         public List<DifficultySet> difficultySets;
         public Dictionary<Difficulty, DifficultySet> difficultyDict;
-        public DifficultySet settings;
+        public DifficultySet settings { get; private set; }
+        
 
 
         public void DetermineSettings()
         {
-            settings = difficultySets[((int)gameDifficulty) - 1];
             UpdateDictionary();
+            settings = DifficultySet(gameDifficulty);
         }
 
-        void Start()
-        {
-            //DetermineSettings();
-        }
 
         void UpdateDictionary()
         {
@@ -48,12 +45,14 @@ namespace Architome
             {
                 gameDifficulty = Core.currentSave.gameSettings.difficulty;
             }
+
             DetermineSettings();
         }
 
         public DifficultySet DifficultySet(Difficulty type)
         {
-            if (!difficultyDict.ContainsKey(type)) return null;
+            difficultyDict ??= new();
+            if (!difficultyDict.ContainsKey(type)) return new();
 
             return difficultyDict[type];
         }
@@ -123,6 +122,17 @@ namespace Architome
             { "minimumEnemyForces", "%" },
             { "experienceRequiredMultiplier", "exp/level" }
         };
+
+        public void Copy(DifficultySet otherSet)
+        {
+            var fields = typeof(DifficultySet).GetFields();
+
+            foreach(var field in fields)
+            {
+                var value = field.GetValue(otherSet);
+                field.SetValue(this, value);
+            }
+        }
 
         public string Description()
         {
