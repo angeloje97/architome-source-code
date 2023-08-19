@@ -36,8 +36,14 @@ namespace Architome
         private void OnDestroy()
         {
             isDestroyed = true;
-            transform.Translate(Vector3.down * 1000);
-            UpdateObstacle(3f, 3);
+            //transform.Translate(Vector3.down * 1000);
+            //UpdateObstacle(3f, 3);
+
+            var bounds = Bounds(3f);
+
+            ArchAction.Delay(() => {
+                adjustments.AdjustAroundBounds(bounds, 3);
+            }, 1f);
         }
 
         private void OnEnable()
@@ -92,13 +98,26 @@ namespace Architome
             }
         }
 
+        public List<Bounds> Bounds(float sizeMultiplier = 1f)
+        {
+            var bounds = new List<Bounds>();
+
+            foreach(var collider in colliders)
+            {
+                var bound = collider.bounds;
+                bound.size *= sizeMultiplier;
+                bounds.Add(bound);
+            }
+
+            return bounds;
+        }
+
         
 
         void UpdateObstacle(float sizeMultiplier = 1f, int iterations = 1)
         {
             if (adjustments == null) return;
             var bounds = new List<Bounds>();
-            //await adjustments.AdjustAroundCollider(colliders);
             foreach(var collider in colliders)
             {
                 bounds.Add(collider.bounds);

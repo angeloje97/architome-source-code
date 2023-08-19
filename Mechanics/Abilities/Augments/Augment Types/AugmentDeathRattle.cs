@@ -36,8 +36,8 @@ namespace Architome
         void OnEntityLifeChange(bool isAlive)
         {
             if (isAlive) return;
-
             augment.ability.HandleAbilityType();
+            augment.TriggerAugment(new(this));
         }
 
         protected override string Description()

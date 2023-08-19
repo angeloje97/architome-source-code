@@ -122,8 +122,6 @@ namespace Architome
             {
                 newObject.transform.SetParent(room.transform);
             }
-
-            
         }
 
         // Update is called once per frame
