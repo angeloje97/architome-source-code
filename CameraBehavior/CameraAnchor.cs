@@ -188,6 +188,17 @@ namespace Architome
             }
         }
 
+        public async Task SetTargetTemp(Transform target, Predicate<object> predicate, bool instantTransform = false)
+        {
+            var originalTarget = this.target;
+
+            SetTarget(target, instantTransform);
+
+            while (predicate(null)) await Task.Yield();
+
+            SetTarget(originalTarget, instantTransform);
+        }
+
     }
 
 }
