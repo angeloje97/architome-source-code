@@ -33,7 +33,5 @@ namespace Architome.Assets.Source.Scripts.EntityBehavior.Dialogue
                 };
             }
         }
-
-
     }
 }
