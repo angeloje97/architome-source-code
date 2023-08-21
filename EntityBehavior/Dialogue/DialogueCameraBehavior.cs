@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using UnityEngine;
 
 namespace Architome.Assets.Source.Scripts.EntityBehavior.Dialogue
@@ -16,6 +17,23 @@ namespace Architome.Assets.Source.Scripts.EntityBehavior.Dialogue
         {
             dialogueSource = GetComponentInParent<DialogueSource>();
             cameraAnchor = CameraAnchor.active;
+
+            if (dialogueSource && cameraAnchor)
+            {
+                dialogueSource.OnStartConversation += async () => {
+                    var isListening = true;
+
+                    Action stopListening = () => { isListening = false; };
+
+                    dialogueSource.OnDialogueDisabled += stopListening;
+
+                    await cameraAnchor.SetTargetTemp(dialogueSource.transform, (object obj) => isListening);
+
+                    dialogueSource.OnDialogueDisabled -= stopListening;
+                };
+            }
         }
+
+
     }
 }

@@ -27,8 +27,10 @@ namespace Architome
         [SerializeField] float minDistance = 5f;
 
 
-        public UnityEvent OnStartConverstation;
-        public UnityEvent OnDialogueDisabled;
+        public UnityEvent OnStartConversationEvent;
+        public UnityEvent OnDialogueDisabledEvent;
+        public Action OnStartConversation;
+        public Action OnDialogueDisabled;
 
         [SerializeField] List<OptionEvent> optionEvents;
         Dictionary<string, UnityEvent<DialogueEventData>> optionEventsMap;
@@ -120,7 +122,8 @@ namespace Architome
                 sourceEntity = entityInfo,
                 dataSet = initialDataSet,
             };
-            OnStartConverstation?.Invoke();
+            OnStartConversation?.Invoke();
+            OnStartConversationEvent?.Invoke();
 
 
             dialogueManager.StartDialogue(dialogueEventData);
