@@ -12,19 +12,13 @@ namespace Architome
         [Header("Task Properties")]
         BuffsManager buffManager;
 
-        private void Start()
+        private async void Start()
         {
-            GetDependencies();
-        }
 
-        new async void GetDependencies()
-        {
-            await base.GetDependencies();
-
-            EnableTasks();
-
-            buffManager = augment.entity.Buffs();
-
+            await GetDependencies(() => {
+                EnableTasks();
+                buffManager = augment.entity.Buffs();
+            });
         }
 
         protected override string Description()

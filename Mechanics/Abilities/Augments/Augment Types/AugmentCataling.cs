@@ -38,23 +38,19 @@ namespace Architome
 
         ArchEventHandler<AugmentCatalingEvent, (Augment.AugmentEventData, CatalystInfo, CatalystInfo)> events;
 
-        void Start()
+        async void Start()
         {
-            GetDependencies();
+
+            await GetDependencies(() => {
+                catalingInfo = cataling.GetComponent<CatalystInfo>();
+
+                EnableCatalyst();
+            });
         }
 
         private void Awake()
         {
             events = new(this);
-        }
-
-        new async void GetDependencies()
-        {
-            await base.GetDependencies();
-
-            catalingInfo = cataling.GetComponent<CatalystInfo>();
-
-            EnableCatalyst();
         }
         void Update()
         {

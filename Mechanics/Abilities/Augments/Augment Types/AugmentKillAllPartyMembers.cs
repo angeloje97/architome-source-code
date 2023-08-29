@@ -9,28 +9,22 @@ namespace Architome
         [Header("Kill All Party Members Property")]
 
         [SerializeField] List<PartyInfo> partyTargets;
-        void Start()
+        async void Start()
         {
-            GetDependencies();
+            await GetDependencies(() => {
+                partyTargets = new();
 
-        }
+                var playableParties = GameManager.active.playableParties;
 
-        new async void GetDependencies()
-        {
-            await base.GetDependencies();
-
-            partyTargets = new();
-
-            var playableParties = GameManager.active.playableParties;
-
-            foreach(var party in playableParties)
-            {
-                partyTargets.Add(party);
-            }
+                foreach (var party in playableParties)
+                {
+                    partyTargets.Add(party);
+                }
 
 
-            EnablePlayableParty();
-            EnableSuccesfulCast();
+                EnablePlayableParty();
+                EnableSuccesfulCast();
+            });
         }
 
         public override void HandleNewPlayableParty(PartyInfo party, int index)

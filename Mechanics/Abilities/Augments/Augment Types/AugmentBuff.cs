@@ -129,36 +129,31 @@ namespace Architome
 
         public List<AbilityBuff> abilityBuffs;
         public List<CatalystBuff> catalystBuffs;
-        void Start()
+        async void Start()
         {
-            GetDependencies();
+            await GetDependencies(() => {
+                EnableCatalyst();
+                EnableSuccesfulCast();
+
+                EnableAbilityStartEnd();
+
+
+                foreach (var buff in catalystBuffs)
+                {
+                    buff.SetAugment(augment);
+                }
+
+                foreach (var buff in abilityBuffs)
+                {
+                    buff.SetAugment(this);
+                }
+            });
         }
 
         // Update is called once per frame
         void Update()
         {
         
-        }
-
-        new async void GetDependencies()
-        {
-            await base.GetDependencies();
-
-            EnableCatalyst();
-            EnableSuccesfulCast();
-            
-            EnableAbilityStartEnd();
-
-
-            foreach(var buff in catalystBuffs)
-            {
-                buff.SetAugment(augment);
-            }
-
-            foreach(var buff in abilityBuffs)
-            {
-                buff.SetAugment(this);
-            }
         }
 
         public override void HandleNewCatlyst(CatalystInfo catalyst)

@@ -48,9 +48,20 @@ namespace Architome
         LayerMask obstructionLayer;
         WorldActions world;
 
-        void Start()
+        async void Start()
         {
-            GetDependencies();
+            await GetDependencies(() => {
+                world = WorldActions.active;
+
+                var layerMasksData = LayerMasksData.active;
+
+                if (layerMasksData)
+                {
+                    obstructionLayer = layerMasksData.structureLayerMask;
+                }
+
+                EnableCatalyst();
+            });
         }
 
         private void OnValidate()
@@ -97,22 +108,6 @@ namespace Architome
             }
 
             return result;
-        }
-
-        new async void GetDependencies()
-        {
-            await base.GetDependencies();
-
-            world = WorldActions.active;
-
-            var layerMasksData = LayerMasksData.active;
-
-            if (layerMasksData)
-            {
-                obstructionLayer = layerMasksData.structureLayerMask;
-            }
-
-            EnableCatalyst();
         }
 
         public override void HandleNewCatlyst(CatalystInfo catalyst)

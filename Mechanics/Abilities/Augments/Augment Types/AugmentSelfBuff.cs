@@ -15,9 +15,18 @@ namespace Architome
 
         [SerializeField] bool update;
         [SerializeField] bool casting;
-        void Start()
+        async void Start()
         {
-            GetDependencies();
+
+            await GetDependencies(() => {
+                buffManager = augment.entity.Buffs();
+
+                if (buffManager == null) return;
+
+                EnableSuccesfulCast();
+                EnableAbilityStartEnd();
+                EnableAbilityStartEnd();
+            });
         }
 
         private void OnValidate()
@@ -57,18 +66,6 @@ namespace Architome
                     }
                 }
             }
-        }
-        new async void GetDependencies()
-        {
-            await base.GetDependencies();
-
-            buffManager = augment.entity.Buffs();
-
-            if (buffManager == null) return;
-
-            EnableSuccesfulCast();
-            EnableAbilityStartEnd();
-            EnableAbilityStartEnd();
         }
         protected override string Description()
         {

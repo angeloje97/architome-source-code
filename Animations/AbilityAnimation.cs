@@ -137,9 +137,10 @@ public class AbilityAnimation
 
         await ability.EndActivation();
         ZeroOut();
-        SetCast(false);
+
 
         ArchAction.Delay(() => {
+            SetCast(false);
             animator.ResetTrigger("ReleaseAbility");
         }, .25f);
     }

@@ -212,6 +212,32 @@ namespace Architome
 
         }
 
+        public List<ItemInfo> ItemsFromData(ItemData data)
+        {
+            var items = new List<ItemInfo>();
+            foreach(var slot in inventorySlots)
+            {
+                if (slot.currentItemInfo == null) continue;
+                if (slot.item.Equals(data.item))
+                {
+                    items.Add(slot.currentItemInfo);
+                }
+            }
+
+            return items;
+        }
+
+        public void ItemsFromData(Action<ItemInfo> itemAction, ItemData data)
+        {
+            foreach(var slot in inventorySlots)
+            {
+                if (slot.currentItemInfo == null) continue;
+                if (slot.item.Equals(data.item))
+                {
+                    itemAction(slot.currentItemInfo);
+                }
+            }
+        }
         void ClearItems()
         {
             var items = GetComponentsInChildren<ItemInfo>();

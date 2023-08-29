@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Timeline.Actions;
 using UnityEngine;
 
 namespace Architome
@@ -7,16 +8,11 @@ namespace Architome
     public class AugmentThreat : AugmentType
     {
         // Start is called before the first frame update
-        void Start()
+        async void Start()
         {
-            GetDependencies();
-        }
-
-
-        new async void GetDependencies()
-        {
-            await base.GetDependencies();
-            EnableCatalyst();
+            await GetDependencies(() => {
+                EnableCatalyst();
+            });
         }
 
         public override void HandleNewCatlyst(CatalystInfo catalyst)

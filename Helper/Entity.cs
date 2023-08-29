@@ -196,6 +196,32 @@ namespace Architome
             return entities;
         }
 
+        public static List<ItemInfo> ItemsFromAllPlayableEntities(ItemData itemData)
+        {
+            var playableEntities = PlayableEntities();
+            int count = 0;
+            var items = new List<ItemInfo>();
+
+            foreach(var entity in playableEntities)
+            {
+                var inventory = entity.Inventory();
+                if (inventory == null) continue;
+
+                inventory.ItemsInInventory((ItemInfo item) => {
+                    if (count >= itemData.amount) return;
+                    items.Add(item);
+                    count += item.currentStacks;
+                }, itemData);
+            }
+
+            if(count != itemData.amount)
+            {
+                items = new();
+            }
+
+            return items;
+        }
+
         public static bool IsOfEntity(GameObject objectCheck)
         {
             if (objectCheck.GetComponent<EntityInfo>() || objectCheck.GetComponentInParent<EntityInfo>())

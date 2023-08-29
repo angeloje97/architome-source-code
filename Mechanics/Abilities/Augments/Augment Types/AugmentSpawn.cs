@@ -22,28 +22,22 @@ namespace Architome
 
         LayerMask groundLayer;
 
-        void Start()
+        async void Start()
         {
-            GetDependencies();
+            await GetDependencies(() => {
+                EnableCatalyst();
+
+                var layerMaskData = LayerMasksData.active;
+                if (layerMaskData)
+                {
+                    groundLayer = layerMaskData.walkableLayer;
+                }
+            });
         }
         void Update()
         {
 
         }
-
-        new async void GetDependencies()
-        {
-            await base.GetDependencies();
-
-            EnableCatalyst();
-
-            var layerMaskData = LayerMasksData.active;
-            if (layerMaskData)
-            {
-                groundLayer = layerMaskData.walkableLayer;
-            }
-        }
-
         public override void HandleNewCatlyst(CatalystInfo catalyst)
         {
             foreach (var spawnInfo in spawnInfos)

@@ -58,7 +58,7 @@ namespace Architome
         {
             public Action<AbilityInfo> OnCastStart;
             public Action<AbilityInfo> OnCastEnd;
-            public Action<AbilityInfo> OnCastReleasePercent;
+            public Action<AbilityInfo> OnCastReleasePercent { get; set; }
             public Action<AbilityInfo> OnCastRelease;
             public Action<AbilityInfo> OnAttack;
 
@@ -98,7 +98,7 @@ namespace Architome
         public Action<AbilityInfo> OnDeadTarget;
         public Action<AbilityInfo, bool> OnWantsToCastChange;
         public Action<AbilityInfo, bool> OnCastChange;
-        public Action<AbilityInfo, EntityInfo> OnTryAttackTarget;
+        public Action<AbilityInfo, EntityInfo> OnTryAttackTarget { get; set; }
         public Action<AbilityInfo> OnAbilityUpdate { get; set; }
 
         //Event Handlers
@@ -436,7 +436,7 @@ namespace Architome
             if (attackAbility == null) return;
             if (target) {
                 attackAbility.target = target;
-                OnTryAttackTarget(attackAbility, target);
+                //OnTryAttackTarget?.Invoke(attackAbility, target);
             }
             else { attackAbility.target = null; }
 

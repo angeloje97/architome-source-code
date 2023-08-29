@@ -644,13 +644,12 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         if (amount > currentStacks) return null;
 
         var itemPrefab = World.active.prefabsUI.item;
-
+        var worldActions = WorldActions.active;
         if (itemPrefab == null) return null;
 
-        var newItem = Instantiate(itemPrefab);
-
+        //var newItem = Instantiate(itemPrefab);
+        var newItem = worldActions.CreateItemUI(new(item, amount), transform.parent, !disableMove);
         ReduceStacks(amount);
-        newItem.ManifestItem(new() { item = item, amount = amount }, true);
 
         return newItem;
     }

@@ -265,6 +265,24 @@ namespace Architome
 
         }
 
+        public List<ItemInfo> ItemsInInventory(ItemData data)
+        {
+            var items = new List<ItemInfo>();
+            if (entityInventoryUI == null) return items;
+            
+            foreach(var item in entityInventoryUI.ItemsFromData(data))
+            {
+                items.Add(item);
+            }
+
+            return items;
+        }
+
+        public void ItemsInInventory(Action<ItemInfo> itemAction, ItemData data)
+        {
+            entityInventoryUI.ItemsFromData(itemAction, data);
+        }
+
 
         public bool LootItem(ItemInfo info)
         {

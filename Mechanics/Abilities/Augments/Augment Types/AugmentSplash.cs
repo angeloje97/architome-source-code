@@ -33,31 +33,28 @@ namespace Architome
             }
         }
 
-        void Start()
+        async void Start()
         {
-            GetDependencies();
-            OnSetRadius?.Invoke(radius);
+            await GetDependencies(() => {
+                EnableCatalyst();
 
-        }
+                if (ability == null) return;
+                if (augment == null) return;
 
-        new async void GetDependencies()
-        {
-            await base.GetDependencies();
+                Action<AbilityInfo> action = (AbilityInfo abilty) => {
+                    ability.floatCheck = radius;
+                };
 
-            EnableCatalyst();
+                ability.OnSplashRadiusCheck += action;
 
-            if (ability == null) return;
-            if (augment == null) return;
+                augment.OnRemove += (Augment augment) => {
+                    ability.OnSplashRadiusCheck -= action;
+                };
 
-            Action<AbilityInfo> action = (AbilityInfo abilty) => {
-                ability.floatCheck = radius;
-            };
+                OnSetRadius?.Invoke(radius);
 
-            ability.OnSplashRadiusCheck += action;
+            });
 
-            augment.OnRemove += (Augment augment) => {
-                ability.OnSplashRadiusCheck -= action;
-            };
         }
 
         protected override string Description()

@@ -24,9 +24,9 @@ namespace Architome
 
         async void Start()
         {
-            await GetDependencies();
+            await GetDependencies(null);
         }
-        protected async Task GetDependencies()
+        protected async Task GetDependencies(Action onSuccess)
         {
             augment = GetComponent<Augment>();
 
@@ -36,10 +36,16 @@ namespace Architome
                 await Task.Yield();
             }
             
+            
             if (augment)
             {
                 value = valueContribution * augment.info.value;
                 ability = augment.ability;
+            }
+
+            if(augment != null && augment.ability != null)
+            {
+                onSuccess?.Invoke();
             }
         }
 

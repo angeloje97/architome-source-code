@@ -17,31 +17,27 @@ namespace Architome
         LayerMask walkableLayer;
         LayerMask obstructionLayer;
 
-        void Start()
+        async void Start()
         {
-            GetDependencies();
-        }
 
-        new async void GetDependencies()
-        {
-            await base.GetDependencies();
+            await GetDependencies(() => {
+                EnableSuccesfulCast();
+                EnableCatalyst();
 
-            EnableSuccesfulCast();
-            EnableCatalyst();
+                var layerDatas = LayerMasksData.active;
 
-            var layerDatas = LayerMasksData.active;
+                if (layerDatas)
+                {
+                    walkableLayer = layerDatas.walkableLayer;
+                    obstructionLayer = layerDatas.structureLayerMask;
+                }
 
-            if (layerDatas)
-            {
-                walkableLayer = layerDatas.walkableLayer;
-                obstructionLayer = layerDatas.structureLayerMask;
-            }
+                var boxCollider = augment.entity.GetComponent<BoxCollider>();
 
-            var boxCollider = augment.entity.GetComponent<BoxCollider>();
+                heightOffset = .5f * boxCollider.size.y;
 
-            heightOffset = .5f * boxCollider.size.y;
-
-            entityCharacter = augment.entity.GetComponentInChildren<CharacterInfo>();
+                entityCharacter = augment.entity.GetComponentInChildren<CharacterInfo>();
+            });
         }
 
         public override void HandleNewCatlyst(CatalystInfo catalyst)

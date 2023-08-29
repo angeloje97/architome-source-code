@@ -27,27 +27,25 @@ namespace Architome
         [SerializeField] AbilityPhase phaseType;
         [SerializeField] float movementOffset;
 
-        void Start()
+        async void Start()
         {
-            GetDependencies();
-        }
-        protected async new void GetDependencies()
-        {
-            await base.GetDependencies();
-            entityMovement = augment.entity.Movement();
-            if (phaseType == AbilityPhase.Activating)
-            {
-                EnableAbilityStartEnd();
-            }
-            else if (phaseType == AbilityPhase.Casting)
-            {
-                EnableStartCast();
-            }
 
-            else if(phaseType == AbilityPhase.Channeling)
-            {
-                EnableAbilityChanneling();
-            }
+            await GetDependencies(() => {
+                entityMovement = augment.entity.Movement();
+                if (phaseType == AbilityPhase.Activating)
+                {
+                    EnableAbilityStartEnd();
+                }
+                else if (phaseType == AbilityPhase.Casting)
+                {
+                    EnableStartCast();
+                }
+
+                else if (phaseType == AbilityPhase.Channeling)
+                {
+                    EnableAbilityChanneling();
+                }
+            });
         }
         protected override string Description()
         {

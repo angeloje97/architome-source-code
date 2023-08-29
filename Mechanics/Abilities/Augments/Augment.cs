@@ -43,10 +43,17 @@ namespace Architome
         ArchEventHandler<AugmentEvent, AugmentEventData> events { get; set; }
 
         public bool dependenciesAcquired;
+        bool removed;
+
 
         async void Start()
         {
             await GetDependencies();
+            if(ability == null)
+            {
+                RemoveAugment();
+                return;
+            }
             HandleRestrictions();
         }
 
@@ -197,13 +204,19 @@ namespace Architome
         {
             events.Invoke(AugmentEvent.OnRemove, new(this));
             OnRemove?.Invoke(this);
-
+            if (removed) return;
+            removed = true;
             await Task.Yield();
 
 
             Destroy(gameObject);
             
         }
+        private void OnDestroy()
+        {
+            removed = true;
+        }
+
         public void TriggerAugment(AugmentEventData eventData)
         {
             eventData.eventTrigger = AugmentEvent.OnAugmentTrigger;

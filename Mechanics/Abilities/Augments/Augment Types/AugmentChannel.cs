@@ -28,40 +28,36 @@ namespace Architome
 
         float timer = 0f;
 
-        void Start()
+        async void Start()
         {
-            GetDependencies();
-        }
-        new async void GetDependencies()
-        {
-            if (this == null) return;
-            await base.GetDependencies();
 
-            EnableAugmentAbility();
-            AllowInterruptable();
+            await GetDependencies(() => {
+                EnableAugmentAbility();
+                AllowInterruptable();
 
-            if (augment.entity)
-            {
-                entityMovement = augment.entity.Movement();
-            }
+                if (augment.entity)
+                {
+                    entityMovement = augment.entity.Movement();
+                }
 
 
-            abilityManager = ability.GetComponentInParent<AbilityManager>();
+                abilityManager = ability.GetComponentInParent<AbilityManager>();
 
-            augment.OnRemove += (Augment augment) => {
+                augment.OnRemove += (Augment augment) => {
+
+                    if (entityMovement)
+                    {
+                        entityMovement.OnStartMove -= OnStartMove;
+                    }
+                };
 
                 if (entityMovement)
                 {
-                    entityMovement.OnStartMove -= OnStartMove;
+                    entityMovement.OnStartMove += OnStartMove;
                 }
-            };
 
-            if (entityMovement)
-            {
-                entityMovement.OnStartMove += OnStartMove;
-            }
-
-            HandleBusyCheck();
+                HandleBusyCheck();
+            });
         }
 
         

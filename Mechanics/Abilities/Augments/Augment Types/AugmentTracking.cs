@@ -23,18 +23,12 @@ namespace Architome
         bool predicting;
         bool tracking;
         
-        void Start()
+        async void Start()
         {
-            GetDependencies();
-        }
-
-        new async void GetDependencies()
-        {
-            await base.GetDependencies();
-
-            EnableCasting();
-
-            catalystSpeed = augment.ability.catalystInfo.speed;
+            await GetDependencies(() => {
+                EnableCasting();
+                catalystSpeed = augment.ability.catalystInfo.speed;
+            });
         }
 
         public override async void WhileCasting(AbilityInfo ability)
