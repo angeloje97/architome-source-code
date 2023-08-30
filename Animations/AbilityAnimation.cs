@@ -4,6 +4,7 @@ using UnityEngine;
 using System;
 using Architome.Enums;
 using Architome;
+using System.Threading.Tasks;
 
 [Serializable]
 public class AbilityAnimation
@@ -17,6 +18,10 @@ public class AbilityAnimation
     public CharacterInfo character;
 
     public Weapon weapon;
+
+    TaskQueueHandler taskHandler;
+
+    float currentCastAnimation;
 
     AbilityManager.Events abilityEvents
     {
@@ -34,6 +39,7 @@ public class AbilityAnimation
         character = entity.CharacterInfo();
         abilityManager = entityInfo.AbilityManager();
 
+        taskHandler = new(TaskType.Sequential);
 
 
         if (entity)
@@ -133,13 +139,17 @@ public class AbilityAnimation
 
     public async void OnAbilityStart(AbilityInfo ability)
     {
+        var timeStamp = Time.time;
+        currentCastAnimation = timeStamp;
         SetCast(true);
 
         await ability.EndActivation();
         ZeroOut();
 
 
-        ArchAction.Delay(() => {
+        ArchAction.Delay(() =>
+        {
+            if (timeStamp != currentCastAnimation) return;
             SetCast(false);
             animator.ResetTrigger("ReleaseAbility");
         }, .25f);

@@ -443,15 +443,13 @@ namespace Architome
             if (location != null) { attackAbility.location = location; }
             attackAbility.Cast();
         }
-        public AbilityInfo CreateNewAbility(GameObject abilityObject)
+        public AbilityInfo CreateNewAbility(AbilityInfo abilityObject)
         {
-            if (!abilityObject.GetComponent<AbilityInfo>()) return null;
-
             var newAbility = Instantiate(abilityObject, transform);
-            abilities.Add(newAbility.GetComponent<AbilityInfo>());
-            OnNewAbility?.Invoke(newAbility.GetComponent<AbilityInfo>());
+            abilities.Add(newAbility);
+            OnNewAbility?.Invoke(newAbility);
 
-            return newAbility.GetComponent<AbilityInfo>();
+            return newAbility;
         }
 
         public AbilityInfo Ability(AbilityType2 type)
