@@ -6,6 +6,7 @@ using Architome;
 using System;
 using UnityEngine.UI;
 using Pathfinding.Util;
+using System.Threading.Tasks;
 
 public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler
 {
@@ -15,6 +16,7 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
     public Item item { get { return currentItemInfo ? currentItemInfo.item : null; } }
     public ModuleInfo module;
     public ItemSlotHandler itemSlotHandler;
+
 
 
     Transform parent;
@@ -30,6 +32,7 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
         public Action<InventorySlot, Item, Item> OnItemChange { get; set; }
         public Action<InventorySlot> OnSetSlot { get; set; }
         public Action<InventorySlot, ItemInfo, List<bool>> OnCanInsertCheck;
+        public Action<InventorySlot, ItemInfo, bool> OnHoverWithItem;
     }
 
     public bool interactable = true;
@@ -40,6 +43,9 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
     [Header("Inventory Properties")]
     public Item previousItem;
     public ItemInfo previousItemInfo;
+
+    public bool isHovering { get; private set; }
+
 
 
     protected virtual void GetDependencies()
@@ -124,6 +130,9 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
 
         var draggingItem = eventData.pointerDrag.GetComponent<ItemInfo>();
 
+        isHovering = true;
+        events.OnHoverWithItem?.Invoke(this, draggingItem, true);
+
         draggingItem.currentSlotHover = this;
     }
     public virtual void OnPointerExit(PointerEventData eventData)
@@ -132,8 +141,15 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
         if (!eventData.pointerDrag.GetComponent<ItemInfo>()) { return; }
 
         var draggingItem = eventData.pointerDrag.GetComponent<ItemInfo>();
+        events.OnHoverWithItem?.Invoke(this, draggingItem, false);
+        isHovering = false;
 
         draggingItem.currentSlotHover = null;
+    }
+
+    public async Task FinishHovering()
+    {
+        while (isHovering) await Task.Yield();
     }
 
     public virtual bool CanInsert(ItemInfo item)
