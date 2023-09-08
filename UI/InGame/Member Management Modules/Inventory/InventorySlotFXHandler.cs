@@ -20,6 +20,7 @@ namespace Architome
         public FXSettings settings;
 
         public InventorySlot slot;
+        public Image slotBackground;
         public RectTransform rectTransform;
 
         public TaskQueueHandler taskHandler;
@@ -35,9 +36,20 @@ namespace Architome
             slot = GetComponent<InventorySlot>();
             rectTransform = GetComponent<RectTransform>();
             if (slot == null) return;
+            UpdateSlotBackground(false);
 
             slot.events.OnHoverWithItem += HandleHoverWithItem;
         }
+
+        void UpdateSlotBackground(bool isHovering)
+        {
+            if (slotBackground == null) return;
+
+            var targetColor = isHovering ? settings.hoverShade : settings.idleShade;
+            slotBackground.tintColor = targetColor;
+        }
+
+
 
         void HandleHoverWithItem(InventorySlot slot, ItemInfo item, bool enter)
         {
@@ -54,7 +66,7 @@ namespace Architome
 
             async Task HandleEnter()
             {
-
+                UpdateSlotBackground(true);
                 await ArchCurve.Smooth((float lerpValue) => {
                     rectTransform.sizeDelta = Vector2.Lerp(originalSize, targetSize, lerpValue);
                 }, CurveType.EaseIn, .25f);
@@ -62,6 +74,7 @@ namespace Architome
 
             async Task HandleExit()
             {
+                UpdateSlotBackground(false);
                 await ArchCurve.Smooth((float lerpValue) => {
                     rectTransform.sizeDelta = Vector2.Lerp(targetSize, originalSize, lerpValue);
                 }, CurveType.EaseIn, .25f);
