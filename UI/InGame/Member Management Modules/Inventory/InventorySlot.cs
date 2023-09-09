@@ -32,7 +32,7 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
         public Action<InventorySlot, Item, Item> OnItemChange { get; set; }
         public Action<InventorySlot> OnSetSlot { get; set; }
         public Action<InventorySlot, ItemInfo, List<bool>> OnCanInsertCheck;
-        public Action<InventorySlot, ItemInfo, bool> OnHoverWithItem;
+        public Action<InventorySlot, ItemInfo, bool> OnHoverWithItem { get; set; }
     }
 
     public bool interactable = true;
@@ -128,21 +128,21 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
         if (eventData.pointerDrag == null) { return; }
         if (!eventData.pointerDrag.GetComponent<ItemInfo>()) { return; }
 
-        var draggingItem = eventData.pointerDrag.GetComponent<ItemInfo>();
-
         isHovering = true;
+
+        var draggingItem = eventData.pointerDrag.GetComponent<ItemInfo>();
         events.OnHoverWithItem?.Invoke(this, draggingItem, true);
 
         draggingItem.currentSlotHover = this;
     }
     public virtual void OnPointerExit(PointerEventData eventData)
     {
+        isHovering = false;
         if (eventData.pointerDrag == null) { return; }
         if (!eventData.pointerDrag.GetComponent<ItemInfo>()) { return; }
 
         var draggingItem = eventData.pointerDrag.GetComponent<ItemInfo>();
         events.OnHoverWithItem?.Invoke(this, draggingItem, false);
-        isHovering = false;
 
         draggingItem.currentSlotHover = null;
     }

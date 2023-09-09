@@ -23,6 +23,7 @@ namespace Architome
 
         public TaskQueueHandler(TaskType type)
         {
+            this.type = type;
             currentTasks = new();
             currentTasksList = new();
         }

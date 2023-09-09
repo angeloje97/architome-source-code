@@ -1,26 +1,28 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.UIElements;
+using UnityEngine.UI;
 
 namespace Architome
 {
     public class InventorySlotFXHandler : MonoBehaviour
     {
-        [SerializeField]
+        [Serializable]
         public struct FXSettings
         {
             public float hoverSizeAdditive;
-            public Image targetImage;
             public Color idleShade;
             public Color hoverShade;
+            public Color availableColor;
+            public Color unavailableColor;
         }
 
         public FXSettings settings;
 
         public InventorySlot slot;
-        public Image slotBackground;
+        public Image targetImage;
         public RectTransform rectTransform;
 
         public TaskQueueHandler taskHandler;
@@ -36,18 +38,23 @@ namespace Architome
             slot = GetComponent<InventorySlot>();
             rectTransform = GetComponent<RectTransform>();
             if (slot == null) return;
-            UpdateSlotBackground(false);
+            UpdateSlotBackground(false, 0f);
 
             slot.events.OnHoverWithItem += HandleHoverWithItem;
         }
 
-        void UpdateSlotBackground(bool isHovering)
+        Task UpdateSlotBackground(bool isHovering, float transitionTime)
         {
-            if (slotBackground == null) return;
+            if (targetImage == null) return Task.Run(() => { });
+            var startColor = targetImage.color;
 
-            var targetColor = isHovering ? settings.hoverShade : settings.idleShade;
-            slotBackground.tintColor = targetColor;
+            return ArchCurve.Smooth((float lerpValue) => {
+                var targetColor = isHovering ? settings.hoverShade : settings.idleShade;
+
+                targetImage.color = Color.Lerp(startColor, targetColor, lerpValue);
+            }, CurveType.EaseIn, transitionTime);
         }
+
 
 
 
@@ -59,6 +66,8 @@ namespace Architome
             var originalSize = rectTransform.sizeDelta;
             var targetSize = originalSize + (originalSize * settings.hoverSizeAdditive);
 
+            Debugger.UI(5491, $"Hovering over slot {slot} with item {item}");
+
             taskHandler.AddTask(HandleEnter);
             taskHandler.AddTask(slot.FinishHovering);
             taskHandler.AddTask(HandleExit);
@@ -66,18 +75,34 @@ namespace Architome
 
             async Task HandleEnter()
             {
-                UpdateSlotBackground(true);
-                await ArchCurve.Smooth((float lerpValue) => {
-                    rectTransform.sizeDelta = Vector2.Lerp(originalSize, targetSize, lerpValue);
-                }, CurveType.EaseIn, .25f);
+                Debugger.UI(5492, $"Handling Enter");
+                var tasks = new List<Task>()
+                {
+                    UpdateSlotBackground(true, .25f),
+                    ArchCurve.Smooth((float lerpValue) => {
+                        rectTransform.sizeDelta = Vector2.Lerp(originalSize, targetSize, lerpValue);
+                    }, CurveType.EaseIn, .25f),
+                };
+                Debugger.UI(5493, $"Handling Enter Finished");
+
+                await Task.WhenAll(tasks);
+
             }
 
             async Task HandleExit()
             {
-                UpdateSlotBackground(false);
-                await ArchCurve.Smooth((float lerpValue) => {
-                    rectTransform.sizeDelta = Vector2.Lerp(targetSize, originalSize, lerpValue);
-                }, CurveType.EaseIn, .25f);
+
+                Debugger.UI(5493, $"Handling Exit");
+                var tasks = new List<Task>() {
+                    UpdateSlotBackground(false, .25f),
+                    ArchCurve.Smooth((float lerpValue) => {
+                        rectTransform.sizeDelta = Vector2.Lerp(targetSize, originalSize, lerpValue);
+                    }, CurveType.EaseIn, .25f),
+                    
+                };
+                await Task.WhenAll(tasks);
+                Debugger.UI(5493, $"Handling Exit Finished");
+
             }
         }
 
