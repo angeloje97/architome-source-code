@@ -18,6 +18,10 @@ namespace Architome
         {
             GetDependencies();
             CreateItems();
+            if (slotHandler)
+            {
+                slotHandler.SetLockItems(true);
+            }
         }
 
         // Update is called once per frame
@@ -31,6 +35,8 @@ namespace Architome
             shop = GetComponent<Shop>();
             worldActions = WorldActions.active;
             slotHandler = GetComponent<ItemSlotHandler>();
+
+
         }
 
         async Task AddMerch(MerchData merchData)

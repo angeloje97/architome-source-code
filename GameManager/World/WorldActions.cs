@@ -204,10 +204,7 @@ namespace Architome
             var createdItem = Instantiate(itemTemplate, parent);
             createdItem.ManifestItem(data, true);
 
-            if (!draggable)
-            {
-                createdItem.SetMovable(false);
-            }
+            createdItem.SetMovable(draggable);
 
             return createdItem;
 

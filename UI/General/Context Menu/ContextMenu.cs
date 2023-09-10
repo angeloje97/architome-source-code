@@ -125,6 +125,7 @@ namespace Architome
 
         void HandleArchInput()
         {
+            if (inputManager == null) return;
             inputManager.SetTempInput(ArchInputMode.InGameUI, (object obj) => isChoosing);
         }
 
@@ -148,16 +149,19 @@ namespace Architome
 
             var exitKeyDowns = new List<KeyCode>() { KeyCode.Mouse1 };
 
-
-            var currentKeyBindSet = ArchInput.active.currentKeybindSet;
-            foreach (var action in alternateActionsName)
+            if (ArchInput.active)
             {
-                exitKeyUps.Add(currentKeyBindSet.KeyCodeFromName(action));
-                
-            }
 
-            await KeyBindings.LetGoKeys(exitKeyDowns);
-            await KeyBindings.LetGoKeys(exitKeyUps);
+                var currentKeyBindSet = ArchInput.active.currentKeybindSet;
+                foreach (var action in alternateActionsName)
+                {
+                    exitKeyUps.Add(currentKeyBindSet.KeyCodeFromName(action));
+                
+                }
+
+                await KeyBindings.LetGoKeys(exitKeyDowns);
+                await KeyBindings.LetGoKeys(exitKeyUps);
+            }
 
 
             await Task.Yield();
@@ -189,6 +193,12 @@ namespace Architome
             }
 
             exitKeysActive = false;
+
+
+            async Task ExtraInputs()
+            {
+
+            }
         }
 
         void OnActiveChange(bool isActive)

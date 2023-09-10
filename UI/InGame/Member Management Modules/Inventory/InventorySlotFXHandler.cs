@@ -68,6 +68,7 @@ namespace Architome
 
             Debugger.UI(5491, $"Hovering over slot {slot} with item {item}");
 
+            taskHandler.ClearTasks();
             taskHandler.AddTask(HandleEnter);
             taskHandler.AddTask(slot.FinishHovering);
             taskHandler.AddTask(HandleExit);

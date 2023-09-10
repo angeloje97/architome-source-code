@@ -434,6 +434,8 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         HandleInventorySlot();
         HandlePreviousSlot(changedSlot);
         ReturnToSlot();
+        UpdateDragAndDrop();
+
 
         void CheckPrevious()
         {
@@ -475,6 +477,13 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
             previousSlot.currentItemInfo = null;
         }
     }
+
+    void UpdateDragAndDrop()
+    {
+        if (currentSlot == null) return;
+        SetMovable(currentSlot.CanRemoveFromSlot(this));
+    }
+
     public void HandleItem(ItemInfo item)
     {
         if (item == this) return;

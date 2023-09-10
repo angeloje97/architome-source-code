@@ -3,6 +3,7 @@ using System.Collections;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
 
 namespace Architome
 {
@@ -24,6 +25,7 @@ namespace Architome
         public Action UpdateActions;
 
         public bool active;
+        bool lockItems = false;
         public float alpha;
         private void OnValidate()
         {
@@ -104,6 +106,28 @@ namespace Architome
         public void HandleCantInsert(InventorySlot slot, ItemInfo item,  string reason)
         {
             OnCantInsertToSlot?.Invoke(slot, item, reason);
+        }
+
+        public void SetLockItems(bool lockItems)
+        {
+            if (this.lockItems == lockItems) return;
+            this.lockItems = lockItems;
+
+            if (lockItems)
+            {
+                OnCanRemoveFromSlotCheck += HandleLockItems;
+            }
+            else
+            {
+                OnCanRemoveFromSlotCheck -= HandleLockItems;
+            }
+
+
+        }
+
+        void HandleLockItems(InventorySlot slot, ItemInfo item, List<bool> checks)
+        {
+            checks.Add(false);
         }
         
     }

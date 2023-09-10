@@ -34,7 +34,7 @@ namespace Architome
         public float speed;
         public float maxSpeed;
         public float baseOffsetMaxSpeed;
-        public Dictionary<string, float> offsetSources;
+        public Dictionary<string, float> offsetSources { get; set; }
         [Header("Metrics")]
         public float endReachDistance;
         public float distanceFromTarget;
@@ -324,6 +324,7 @@ namespace Architome
         public void UpdateOffset()
         {
             baseOffsetMaxSpeed = 0f;
+            offsetSources ??= new();
 
             Debugger.System(8940, $"Offset sources ({entityInfo}): {offsetSources.Count}");
 
