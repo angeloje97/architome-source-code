@@ -24,40 +24,49 @@ namespace Architome
         public InventorySlot slot;
         public Image targetImage;
         public RectTransform rectTransform;
-
         public TaskQueueHandler taskHandler;
+
+        Color defaultColor;
 
         void Start()
         {
             GetDependencies();
         }
-
         void GetDependencies()
         {
             taskHandler = new(TaskType.Sequential);
             slot = GetComponent<InventorySlot>();
             rectTransform = GetComponent<RectTransform>();
             if (slot == null) return;
+            defaultColor = settings.idleShade;
             UpdateSlotBackground(false, 0f);
 
             slot.events.OnHoverWithItem += HandleHoverWithItem;
+            ItemEventHandler.AddListener(ItemEvents.OnStartDrag, HandleGlobalItemDrag, this);
         }
-
         Task UpdateSlotBackground(bool isHovering, float transitionTime)
         {
             if (targetImage == null) return Task.Run(() => { });
             var startColor = targetImage.color;
 
             return ArchCurve.Smooth((float lerpValue) => {
-                var targetColor = isHovering ? settings.hoverShade : settings.idleShade;
+                var targetColor = isHovering ? settings.hoverShade : defaultColor;
 
                 targetImage.color = Color.Lerp(startColor, targetColor, lerpValue);
             }, CurveType.EaseIn, transitionTime);
         }
 
+        public async void HandleGlobalItemDrag(ItemInfo item)
+        {
+            defaultColor = slot.CanInsert(item) ? settings.availableColor : settings.unavailableColor;
+            await UpdateSlotBackground(false, .25f);
+            
 
+            await item.EndDragging();
 
-
+            defaultColor = settings.idleShade;
+            await UpdateSlotBackground(false, .25f);
+        }
         void HandleHoverWithItem(InventorySlot slot, ItemInfo item, bool enter)
         {
             if (!enter) return;

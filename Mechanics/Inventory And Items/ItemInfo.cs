@@ -213,6 +213,7 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
     #region Event System
     bool disableMove;
     DragAndDrop dragAndDrop;
+    bool holding = false;
     public void SetMovable(bool movable)
     {
         if(dragAndDrop == null)
@@ -228,6 +229,7 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
     }
     public void OnPointerUp(PointerEventData eventData)
     {
+        holding = false;
         if (disableMove) return;
         ReturnToSlot();
         if (moduleHover != null || currentSlotHover != null) return;
@@ -261,9 +263,10 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
             transform.SetParent(postDungeon.foreground);
         }
 
-
         currentSlotHover = currentSlot;
         moduleHover = module;
+        holding = true;
+        ItemEventHandler.HoldItem(this);
 
     }
     public void OnDrop(PointerEventData eventData)
@@ -276,6 +279,11 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
         itemInfo.HandleItem(this);
        
+    }
+
+    public async Task EndDragging()
+    {
+        while (holding) await Task.Yield();
     }
     #endregion
 
