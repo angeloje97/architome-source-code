@@ -149,7 +149,12 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
 
     public async Task FinishHovering()
     {
-        while (isHovering) await Task.Yield();
+        while (true)
+        {
+            if (this == null) break;
+            if (!isHovering) break;
+            await Task.Yield();
+        }
     }
 
     public virtual bool CanInsert(ItemInfo item)

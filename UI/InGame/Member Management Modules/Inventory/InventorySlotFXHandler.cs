@@ -28,6 +28,8 @@ namespace Architome
 
         Color defaultColor;
 
+        bool hoveringEffect;
+
         void Start()
         {
             GetDependencies();
@@ -60,9 +62,9 @@ namespace Architome
         {
             defaultColor = slot.CanInsert(item) ? settings.availableColor : settings.unavailableColor;
             await UpdateSlotBackground(false, .25f);
-            
-
             await item.EndDragging();
+
+            while (hoveringEffect) await Task.Yield();
 
             defaultColor = settings.idleShade;
             await UpdateSlotBackground(false, .25f);
@@ -71,6 +73,8 @@ namespace Architome
         {
             if (!enter) return;
             if (!slot.CanInsert(item)) return;
+            if (hoveringEffect) return;
+            hoveringEffect = true;
 
             var originalSize = rectTransform.sizeDelta;
             var targetSize = originalSize + (originalSize * settings.hoverSizeAdditive);
@@ -81,6 +85,8 @@ namespace Architome
             taskHandler.AddTask(HandleEnter);
             taskHandler.AddTask(slot.FinishHovering);
             taskHandler.AddTask(HandleExit);
+
+            hoveringEffect = false;
 
 
             async Task HandleEnter()
