@@ -17,6 +17,11 @@ namespace Architome
             public Color hoverShade;
             public Color availableColor;
             public Color unavailableColor;
+
+            public AudioClip mouseOverClip;
+            public AudioClip dropItemClip;
+            public AudioClip grabItemClip;
+
         }
 
         public FXSettings settings;
@@ -25,6 +30,7 @@ namespace Architome
         public Image targetImage;
         public RectTransform rectTransform;
         public TaskQueueHandler taskHandler;
+        public AudioManager audioManager;
 
         Color defaultColor;
 
@@ -44,6 +50,7 @@ namespace Architome
             UpdateSlotBackground(false, 0f);
 
             slot.events.OnHoverWithItem += HandleHoverWithItem;
+            slot.events.OnGrabItem += HandleGrabItem;
             ItemEventHandler.AddListener(ItemEvents.OnStartDrag, HandleGlobalItemDrag, this);
         }
         Task UpdateSlotBackground(bool isHovering, float transitionTime)
@@ -68,6 +75,17 @@ namespace Architome
 
             defaultColor = settings.idleShade;
             await UpdateSlotBackground(false, .25f);
+        }
+
+        void HandleGrabItem(InventorySlot slot, ItemInfo item)
+        {
+            PlayAudioClip(settings.grabItemClip);
+        }
+
+        void PlayAudioClip(AudioClip clip)
+        {
+            if (audioManager == null) return;
+            audioManager.PlayAudioClip(clip);
         }
         void HandleHoverWithItem(InventorySlot slot, ItemInfo item, bool enter)
         {
@@ -101,6 +119,7 @@ namespace Architome
                 };
                 Debugger.UI(5493, $"Handling Enter Finished");
 
+                PlayAudioClip(settings.mouseOverClip);
                 await Task.WhenAll(tasks);
 
             }
@@ -116,6 +135,8 @@ namespace Architome
                     }, CurveType.EaseIn, .25f),
                     
                 };
+
+
                 await Task.WhenAll(tasks);
                 Debugger.UI(5493, $"Handling Exit Finished");
 

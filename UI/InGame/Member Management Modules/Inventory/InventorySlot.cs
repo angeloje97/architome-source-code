@@ -33,6 +33,8 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, 
         public Action<InventorySlot> OnSetSlot { get; set; }
         public Action<InventorySlot, ItemInfo, List<bool>> OnCanInsertCheck;
         public Action<InventorySlot, ItemInfo, bool> OnHoverWithItem { get; set; }
+        public Action<InventorySlot, ItemInfo> OnGrabItem { get; set; }
+        public Action<InventorySlot, ItemInfo> OnDropItem { get; set; }
     }
 
     public bool interactable = true;

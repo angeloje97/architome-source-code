@@ -266,6 +266,7 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         currentSlotHover = currentSlot;
         moduleHover = module;
         holding = true;
+        currentSlot.events.OnGrabItem?.Invoke(currentSlot, this);
         ItemEventHandler.HoldItem(this);
 
     }

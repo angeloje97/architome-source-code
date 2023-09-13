@@ -26,10 +26,10 @@ namespace Architome
         ArchEventHandler<ItemEvents, ItemInfo> events;
         public ItemInfo currentItemHolding { get; private set; }
 
-        public static void AddListener(ItemEvents eventType, Action<ItemInfo> action, Component listener)
+        public static Action AddListener(ItemEvents eventType, Action<ItemInfo> action, Component listener)
         {
-            if (active == null) return;
-            active.events.AddListener(eventType, action, listener);
+            if (active == null) return () => { };
+            return active.events.AddListener(eventType, action, listener);
         }
 
         public static void InvokeEvent(ItemEvents eventType, ItemInfo eventData)
