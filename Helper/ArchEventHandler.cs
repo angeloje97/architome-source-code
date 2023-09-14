@@ -13,6 +13,7 @@ namespace Architome
         Dictionary<T, Action<E>> eventDict;
 
         List<Func<Task>> tasksToFinish;
+        List<bool> checks;
         bool doingTasks;
         public ArchEventHandler(Component source)
         {
@@ -86,6 +87,13 @@ namespace Architome
             return unsubscribe;
         }
 
+        public Action AddListenerCheck(T eventType, Action<E, List<bool>> action, Component listener)
+        {
+            return AddListener(eventType, (E data) => {
+                action(data, checks);
+            }, listener);
+        }
+
         public List<Func<Task>> Invoke(T eventType, E eventData)
         {
             tasksToFinish = new();
@@ -94,6 +102,14 @@ namespace Architome
             eventDict[eventType]?.Invoke(eventData);
 
             return tasksToFinish.ToList();
+        }
+
+        public bool InvokeCheck(T eventType, E eventData, LogicType logicType)
+        {
+            checks = new();
+            Invoke(eventType, eventData);
+
+            return new ArchLogic(checks).Valid(logicType);
         }
 
     }

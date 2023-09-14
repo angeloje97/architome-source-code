@@ -2,190 +2,218 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using Architome;
 using System;
 using UnityEngine.UI;
 using Pathfinding.Util;
 using System.Threading.Tasks;
+using UnityEngine.Experimental.AI;
 
-public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler
+namespace Architome
 {
-    // Start is called before the first frame update
-    [Header("Slot Properties")]
-    public ItemInfo currentItemInfo;
-    public Item item { get { return currentItemInfo ? currentItemInfo.item : null; } }
-    public ModuleInfo module;
-    public ItemSlotHandler itemSlotHandler;
-
-
-
-    Transform parent;
-    
-    [Serializable]
-    public struct Info
+    public enum InventorySlotEvent
     {
-        public Image slotIcon;
+        OnTakeItem,
+        OnDropItem,
+        OnHoverWithItem,
     }
-
-    public struct Events
+    public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler
     {
-        public Action<InventorySlot, Item, Item> OnItemChange { get; set; }
-        public Action<InventorySlot> OnSetSlot { get; set; }
-        public Action<InventorySlot, ItemInfo, List<bool>> OnCanInsertCheck;
-        public Action<InventorySlot, ItemInfo, bool> OnHoverWithItem { get; set; }
-        public Action<InventorySlot, ItemInfo> OnGrabItem { get; set; }
-        public Action<InventorySlot, ItemInfo> OnDropItem { get; set; }
-    }
-
-    public bool interactable = true;
-
-    public Events events;
-    public Info info;
-
-    [Header("Inventory Properties")]
-    public Item previousItem;
-    public ItemInfo previousItemInfo;
-
-    public bool isHovering { get; private set; }
+        // Start is called before the first frame update
+        [Header("Slot Properties")]
+        public ItemInfo currentItemInfo;
+        public Item item { get { return currentItemInfo ? currentItemInfo.item : null; } }
+        public ModuleInfo module;
+        public ItemSlotHandler itemSlotHandler;
 
 
 
-    protected virtual void GetDependencies()
-    {
-        module = GetComponentInParent<ModuleInfo>();
-        itemSlotHandler = GetComponentInParent<ItemSlotHandler>();
+        Transform parent;
 
-
-    }
-    void Start()
-    {
-        GetDependencies();
-    }
-    
-    void OnDestroy()
-    {
-    }
-    void Update()
-    {
-
-        HandleEvents();
-    }
-
-    public int Index()
-    {
-        if (parent == null)
+        [Serializable]
+        public struct Info
         {
-            parent = transform.parent;
-            if (parent == null) return -1;
+            public Image slotIcon;
         }
 
-        var slots = parent.GetComponentsInChildren<InventorySlot>();
-
-        for (int i = 0; i < slots.Length; i++)
+        public struct Events
         {
-            if (slots[i] == this)
+            public Action<InventorySlot, Item, Item> OnItemChange { get; set; }
+            public Action<InventorySlot> OnSetSlot { get; set; }
+            public Action<InventorySlot, ItemInfo, List<bool>> OnCanInsertCheck { get; set; }
+        }
+
+        public bool interactable = true;
+
+        public Events events;
+        ArchEventHandler<InventorySlotEvent, (InventorySlot, ItemInfo)> eventHandler;
+        public Info info;
+
+        [Header("Inventory Properties")]
+        public Item previousItem;
+        public ItemInfo previousItemInfo;
+
+        public bool isHovering { get; private set; }
+
+
+
+        protected virtual void GetDependencies()
+        {
+            module = GetComponentInParent<ModuleInfo>();
+            itemSlotHandler = GetComponentInParent<ItemSlotHandler>();
+
+
+        }
+        void Start()
+        {
+            GetDependencies();
+        }
+
+
+        void OnDestroy()
+        {
+        }
+        void Update()
+        {
+
+            HandleEvents();
+        }
+
+        void Awake()
+        {
+            eventHandler = new(this);
+        }
+
+        public int Index()
+        {
+            if (parent == null)
             {
-                return i;
+                parent = transform.parent;
+                if (parent == null) return -1;
+            }
+
+            var slots = parent.GetComponentsInChildren<InventorySlot>();
+
+            for (int i = 0; i < slots.Length; i++)
+            {
+                if (slots[i] == this)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        public void HandleEvents()
+        {
+            if (previousItemInfo != currentItemInfo)
+            {
+
+                events.OnItemChange?.Invoke(this, previousItem, item);
+                itemSlotHandler.HandleChangeItem(new()
+                {
+                    itemSlot = this,
+                    newItem = currentItemInfo,
+                    previousItem = previousItemInfo
+                });
+
+                if (currentItemInfo)
+                {
+                    InvokeEvent(InventorySlotEvent.OnDropItem, (this, currentItemInfo));
+                }
+
+                previousItemInfo = currentItemInfo;
+                previousItem = item;
+
             }
         }
 
-        return -1;
-    }
 
-    public void HandleEvents()
-    {
-        if (previousItemInfo != currentItemInfo)
+        //Event Handlers
+        public virtual void OnDrop(PointerEventData eventData)
         {
-            //if (currentItemInfo)
-            //{
-            //    item = currentItemInfo.item;
-            //}
+            if (!interactable) return;
+            if (eventData.pointerDrag == null) { return; }
+            if (!eventData.pointerDrag.GetComponent<ItemInfo>()) { return; }
 
-            events.OnItemChange?.Invoke(this, previousItem, item);
-            itemSlotHandler.HandleChangeItem(new() {
-                itemSlot = this,
-                newItem = currentItemInfo,
-                previousItem = previousItemInfo
-            });
+            var droppedItem = eventData.pointerDrag.GetComponent<ItemInfo>();
 
-            previousItemInfo = currentItemInfo;
-            previousItem = item;
+            droppedItem.HandleNewSlot(this);
         }
-    }
-
-
-    //Event Handlers
-    public virtual void OnDrop(PointerEventData eventData)
-    {
-        if (!interactable) return;
-        if (eventData.pointerDrag == null) { return; }
-        if (!eventData.pointerDrag.GetComponent<ItemInfo>()) { return; }
-
-        var droppedItem = eventData.pointerDrag.GetComponent<ItemInfo>();
-
-        droppedItem.HandleNewSlot(this);
-    }
-    public virtual void OnPointerEnter(PointerEventData eventData)
-    {
-        if (eventData.pointerDrag == null) { return; }
-        if (!eventData.pointerDrag.GetComponent<ItemInfo>()) { return; }
-
-        isHovering = true;
-
-        var draggingItem = eventData.pointerDrag.GetComponent<ItemInfo>();
-        events.OnHoverWithItem?.Invoke(this, draggingItem, true);
-
-        draggingItem.currentSlotHover = this;
-    }
-    public virtual void OnPointerExit(PointerEventData eventData)
-    {
-        isHovering = false;
-        if (eventData.pointerDrag == null) { return; }
-        if (!eventData.pointerDrag.GetComponent<ItemInfo>()) { return; }
-
-        var draggingItem = eventData.pointerDrag.GetComponent<ItemInfo>();
-        events.OnHoverWithItem?.Invoke(this, draggingItem, false);
-
-        draggingItem.currentSlotHover = null;
-    }
-
-    public async Task FinishHovering()
-    {
-        while (true)
+        public virtual void OnPointerEnter(PointerEventData eventData)
         {
-            if (this == null) break;
-            if (!isHovering) break;
-            await Task.Yield();
+            if (eventData.pointerDrag == null) { return; }
+            if (!eventData.pointerDrag.GetComponent<ItemInfo>()) { return; }
+
+            isHovering = true;
+
+            var draggingItem = eventData.pointerDrag.GetComponent<ItemInfo>();
+            InvokeEvent(InventorySlotEvent.OnHoverWithItem, (this, draggingItem));
+
+            draggingItem.currentSlotHover = this;
         }
-    }
-
-    public virtual bool CanInsert(ItemInfo item)
-    {
-        if (itemSlotHandler)
+        public virtual void OnPointerExit(PointerEventData eventData)
         {
-            var checks = new List<bool>();
-            itemSlotHandler.OnCanInsertToSlotCheck?.Invoke(this, item, checks);
-            foreach (var check in checks)
+            isHovering = false;
+            if (eventData.pointerDrag == null) { return; }
+            if (!eventData.pointerDrag.GetComponent<ItemInfo>()) { return; }
+
+            var draggingItem = eventData.pointerDrag.GetComponent<ItemInfo>();
+
+            draggingItem.currentSlotHover = null;
+        }
+
+        public async Task FinishHovering()
+        {
+            while (true)
             {
-                if (!check) return false;
+                if (this == null) break;
+                if (!isHovering) break;
+                await Task.Yield();
             }
         }
 
-        return true;
-    }
-
-    public virtual bool CanRemoveFromSlot(ItemInfo item)
-    {
-        if (itemSlotHandler)
+        public virtual bool CanInsert(ItemInfo item)
         {
-            var checks = new List<bool>();
-            itemSlotHandler.OnCanRemoveFromSlotCheck?.Invoke(this, item, checks);
-            foreach (var check in checks)
+            if (itemSlotHandler)
             {
-                if (!check) return false;
+                var checks = new List<bool>();
+                itemSlotHandler.OnCanInsertToSlotCheck?.Invoke(this, item, checks);
+                foreach (var check in checks)
+                {
+                    if (!check) return false;
+                }
             }
+
+            return true;
         }
 
-        return true;
+        public virtual bool CanRemoveFromSlot(ItemInfo item)
+        {
+            if (itemSlotHandler)
+            {
+                var checks = new List<bool>();
+                itemSlotHandler.OnCanRemoveFromSlotCheck?.Invoke(this, item, checks);
+                foreach (var check in checks)
+                {
+                    if (!check) return false;
+                }
+            }
+
+            return true;
+        }
+
+        public Action AddListener(InventorySlotEvent trigger, Action<(InventorySlot, ItemInfo)> action, Component listener)
+        {
+            eventHandler ??= new(this);
+
+            return eventHandler.AddListener(trigger, action, listener);
+        }
+
+        public void InvokeEvent(InventorySlotEvent trigger, (InventorySlot, ItemInfo) data)
+        {
+            eventHandler ??= new(this);
+            eventHandler.Invoke(trigger, data);
+        }
     }
 }

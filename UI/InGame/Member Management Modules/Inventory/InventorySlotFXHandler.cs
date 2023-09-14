@@ -12,15 +12,21 @@ namespace Architome
         [Serializable]
         public struct FXSettings
         {
+            [Serializable]
+            public struct SlotFX
+            {
+                public InventorySlotEvent trigger;
+                public AudioClip audioClip;
+            }
+
             public float hoverSizeAdditive;
             public Color idleShade;
             public Color hoverShade;
             public Color availableColor;
             public Color unavailableColor;
 
-            public AudioClip mouseOverClip;
-            public AudioClip dropItemClip;
-            public AudioClip grabItemClip;
+
+            public List<SlotFX> effects;
 
         }
 
@@ -39,7 +45,11 @@ namespace Architome
         void Start()
         {
             GetDependencies();
+            HandleListeners();
         }
+
+        
+
         void GetDependencies()
         {
             taskHandler = new(TaskType.Sequential);
@@ -49,10 +59,24 @@ namespace Architome
             defaultColor = settings.idleShade;
             UpdateSlotBackground(false, 0f);
 
-            slot.events.OnHoverWithItem += HandleHoverWithItem;
-            slot.events.OnGrabItem += HandleGrabItem;
             ItemEventHandler.AddListener(ItemEvents.OnStartDrag, HandleGlobalItemDrag, this);
         }
+
+        void HandleListeners()
+        {
+            slot.AddListener(InventorySlotEvent.OnHoverWithItem, HandleHoverWithItem, this);
+
+
+            if (settings.effects == null) return;
+
+            foreach(var fx in settings.effects)
+            {
+                slot.AddListener(fx.trigger, ((InventorySlot, ItemInfo) data) => {
+                    PlayAudioClip(fx.audioClip);
+                }, this);
+            }
+        }
+
         Task UpdateSlotBackground(bool isHovering, float transitionTime)
         {
             if (targetImage == null) return Task.Run(() => { });
@@ -77,19 +101,14 @@ namespace Architome
             await UpdateSlotBackground(false, .25f);
         }
 
-        void HandleGrabItem(InventorySlot slot, ItemInfo item)
-        {
-            PlayAudioClip(settings.grabItemClip);
-        }
-
         void PlayAudioClip(AudioClip clip)
         {
             if (audioManager == null) return;
             audioManager.PlayAudioClip(clip);
         }
-        void HandleHoverWithItem(InventorySlot slot, ItemInfo item, bool enter)
+        void HandleHoverWithItem((InventorySlot, ItemInfo) data)
         {
-            if (!enter) return;
+            var item = data.Item2;
             if (!slot.CanInsert(item)) return;
             if (hoveringEffect) return;
             hoveringEffect = true;
@@ -119,7 +138,6 @@ namespace Architome
                 };
                 Debugger.UI(5493, $"Handling Enter Finished");
 
-                PlayAudioClip(settings.mouseOverClip);
                 await Task.WhenAll(tasks);
 
             }
