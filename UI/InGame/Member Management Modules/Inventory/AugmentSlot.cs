@@ -17,6 +17,8 @@ namespace Architome
         protected override void GetDependencies()
         {
             base.GetDependencies();
+
+
         }
         void Update()
         {
@@ -43,7 +45,6 @@ namespace Architome
 
         public override bool CanInsert(ItemInfo item)
         {
-            if (!base.CanInsert(item)) return false;
             if (item == null) return false;
             if (item.item == null) return false;
             if (item.item.GetType() != typeof(AugmentItem)) return false;

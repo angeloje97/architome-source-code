@@ -15,6 +15,7 @@ namespace Architome
         OnTakeItem,
         OnDropItem,
         OnHoverWithItem,
+        OnCanInsertCheck,
     }
     public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler
     {
@@ -186,6 +187,7 @@ namespace Architome
             }
 
             return true;
+
         }
 
         public virtual bool CanRemoveFromSlot(ItemInfo item)
@@ -214,6 +216,12 @@ namespace Architome
         {
             eventHandler ??= new(this);
             eventHandler.Invoke(trigger, data);
+        }
+
+        public Action AddListenerCheck(InventorySlotEvent trigger, Action<(InventorySlot, ItemInfo), List<bool>> action, Component listener)
+        {
+            eventHandler ??= new(this);
+            return eventHandler.AddListenerCheck(trigger, action, listener);
         }
     }
 }
