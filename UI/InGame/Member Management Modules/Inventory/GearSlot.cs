@@ -24,6 +24,8 @@ namespace Architome
             base.GetDependencies();
 
             manager = GetComponentInParent<GearSlotManager>();
+
+            AddListenerPredicate(InventorySlotEvent.OnCanInsertCheck, HandleCanInsert, this);
         }
 
         public void Start()
@@ -37,9 +39,9 @@ namespace Architome
             HandleEvents();
         }
 
-        public override bool CanInsert(ItemInfo info)
+        bool HandleCanInsert((InventorySlot, ItemInfo) data)
         {
-            if (!base.CanInsert(info)) return false;
+            var info = data.Item2;
             var item = info.item;
 
             if (!entityInfo)

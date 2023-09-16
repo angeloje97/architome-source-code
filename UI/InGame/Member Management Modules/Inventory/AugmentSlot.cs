@@ -17,7 +17,7 @@ namespace Architome
         protected override void GetDependencies()
         {
             base.GetDependencies();
-
+            AddListenerPredicate(InventorySlotEvent.OnCanInsertCheck, HandleCanInsertCheck, this);
 
         }
         void Update()
@@ -43,8 +43,9 @@ namespace Architome
             this.ability = ability;
         }
 
-        public override bool CanInsert(ItemInfo item)
+        bool HandleCanInsertCheck((InventorySlot, ItemInfo) data)
         {
+            var item = data.Item2;
             if (item == null) return false;
             if (item.item == null) return false;
             if (item.item.GetType() != typeof(AugmentItem)) return false;

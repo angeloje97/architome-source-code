@@ -15,10 +15,12 @@ namespace Architome
         List<Func<Task>> tasksToFinish;
         List<bool> checks;
         bool doingTasks;
-        public ArchEventHandler(Component source)
+        LogicType defaultLogic;
+        public ArchEventHandler(Component source, LogicType defaultLogic = LogicType.NoFalse)
         {
             this.source = source;
             eventDict = new();
+            this.defaultLogic = defaultLogic;
         }
 
         public Action AddListener(T eventType, Action<E> action, Component listener)
@@ -94,6 +96,14 @@ namespace Architome
             }, listener);
         }
 
+        public Action AddListenerPredicate(T eventType, Predicate<E> action, Component listener)
+        {
+            return AddListener(eventType, (E data) => {
+                if (checks == null) return;
+                checks.Add(action(data));
+            }, listener);
+        }
+
         public List<Func<Task>> Invoke(T eventType, E eventData)
         {
             tasksToFinish = new();
@@ -102,6 +112,14 @@ namespace Architome
             eventDict[eventType]?.Invoke(eventData);
 
             return tasksToFinish.ToList();
+        }
+
+        public bool InvokeCheck(T eventType, E eventData)
+        {
+            checks = new();
+            Invoke(eventType, eventData);
+
+            return new ArchLogic(checks).Valid(defaultLogic);
         }
 
         public bool InvokeCheck(T eventType, E eventData, LogicType logicType)
