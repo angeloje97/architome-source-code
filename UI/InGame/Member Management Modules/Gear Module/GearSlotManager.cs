@@ -180,7 +180,7 @@ namespace Architome
                 slot.entityInfo = entityInfo;
                 slot.equipmentSlot = entityInfo.CharacterInfo().EquipmentSlot(slot.slotType);
                 slot.characterInfo = entityInfo.CharacterInfo();
-                slot.events.OnSetSlot?.Invoke(slot);
+                slot.InvokeEvent(InventorySlotEvent.OnSetSlot, (slot, slot.currentItemInfo));
 
                 slot.equipmentSlot.OnLoadEquipment += OnLoadEquipment;
             }

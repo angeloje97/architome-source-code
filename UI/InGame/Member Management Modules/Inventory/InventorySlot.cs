@@ -17,10 +17,10 @@ namespace Architome
         OnHoverWithItem,
         OnCanInsertCheck,
         OnCanRemoveCheck,
+        OnSetSlot,
     }
     public class InventorySlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler
     {
-        // Start is called before the first frame update
         [Header("Slot Properties")]
         public ItemInfo currentItemInfo;
         public Item item { get { return currentItemInfo ? currentItemInfo.item : null; } }
@@ -40,8 +40,6 @@ namespace Architome
         public struct Events
         {
             public Action<InventorySlot, Item, Item> OnItemChange { get; set; }
-            public Action<InventorySlot> OnSetSlot { get; set; }
-            public Action<InventorySlot, ItemInfo, List<bool>> OnCanInsertCheck { get; set; }
         }
 
         public bool interactable = true;

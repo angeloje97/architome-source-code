@@ -22,7 +22,7 @@ namespace Architome
             slot = GetComponentInParent<InventorySlot>();
             
             slot.events.OnItemChange += OnItemChange;
-            slot.events.OnSetSlot += OnSetSlot;
+            slot.AddListener(InventorySlotEvent.OnSetSlot, OnSetSlot, this);
         }
 
         // Update is called once per frame
@@ -36,9 +36,9 @@ namespace Architome
 
         }
 
-        void OnSetSlot(InventorySlot slot)
+        void OnSetSlot((InventorySlot, ItemInfo) data)
         {
-
+            var slot = data.Item1;
             ArchAction.Yield(() => {
                 var isTaken = slot.item != null;
 
