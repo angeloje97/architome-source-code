@@ -32,6 +32,11 @@ namespace Architome
             return true;
         }
 
+        public override bool Useable(UseData data)
+        {
+            return true;
+        }
+
         public override string UseString()
         {
             return "Claim";

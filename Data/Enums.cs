@@ -143,7 +143,9 @@ namespace Architome.Enums
         OnDestroy,
         OnDeplete,
         OnPickUp,
-        OnDrop
+        OnDrop,
+        OnNewSlot,
+        OnAction,
     }
 
     public enum BuffEvents

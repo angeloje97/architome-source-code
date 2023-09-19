@@ -32,9 +32,12 @@ namespace Architome
         public float armorWeight;
         public float magicResistWeight;
 
+
         [SerializeField] bool updateBuffs;
         [SerializeField] bool updateStateWeights;
         [SerializeField] bool clearStats;
+
+
 
         public void OnValidate()
         {
@@ -94,7 +97,23 @@ namespace Architome
             int minLevel = LevelRequired > 0 ? LevelRequired : 1;
             int minIlevel = itemLevel > 0 ? itemLevel : 1;
             value = minIlevel * minLevel * (int) rarity;
-            
+        }
+
+        public override bool Useable(UseData data)
+        {
+            return true;
+        }
+
+        public override string UseString()
+        {
+            return "Equip";
+        }
+
+        public override void Use(UseData data)
+        {
+            var entity = data.entityUsed;
+            if (!entity) return;
+            entity.infoEvents.OnTryEquip?.Invoke(data.itemInfo, entity);
         }
 
         public List<int> EquipmentEffectsData()

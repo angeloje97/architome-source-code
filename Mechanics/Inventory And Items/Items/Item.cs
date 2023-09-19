@@ -8,7 +8,9 @@ using System;
 
 namespace Architome
 {
+
     [CreateAssetMenu(fileName = "New Item", menuName = "Architome/Item/New Item")]
+    
     public class Item : ScriptableObject
     {
         // Start is called before the first frame update
@@ -35,6 +37,7 @@ namespace Architome
         public Currency currencyExchange;
         public GameObject itemObject;
         public int spriteIndex = -1;
+        
 
         public int MaxStacks { get { return maxStacks; } }
 
@@ -59,15 +62,22 @@ namespace Architome
         }
 
 
+        #region Use
+        public virtual bool Useable(UseData data)
+        {
+            return false;
+        }
+
         public virtual string UseString()
         {
-            return "";
+            return "Use";
         }
 
         public virtual void Use(UseData data)
         {
 
         }
+        #endregion
 
         public override string ToString()
         {
@@ -180,9 +190,6 @@ namespace Architome
             this.id = id;
         }
 
-        
-
-
         public virtual bool IsCurrency()
         {
             return false;
@@ -209,11 +216,6 @@ namespace Architome
             return typeof(Equipment).IsAssignableFrom(item.GetType());
         }
 
-        public static bool Useable(Item item)
-        {
-            if (item.GetType() == typeof(Consumable)) return true;
-            return false;
-        }
 
         public void SetMaxStacks(int newStacks)
         {
@@ -266,5 +268,7 @@ namespace Architome
         public GuildManager guildManager;
         public List<InventorySlot> slots;
         public Transform targetParent;
+        public bool triggerEvent;
+        public ItemEvent eventType;
     }
 }

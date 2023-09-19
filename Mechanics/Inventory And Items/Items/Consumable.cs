@@ -91,6 +91,12 @@ namespace Architome
             return result;
         }
 
+        public override bool Useable(UseData data)
+        {
+            var manager = GameManager.active;
+            if (manager == null) return false;
+            return manager.GameState == GameState.Play;
+        }
 
         public override async void Use(UseData data)
         {

@@ -39,19 +39,15 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
     public WorldProperties worldProperties;
 
-    public ItemFXHandler fxHandler;
+    public ItemFXHandler fxHandler { get; set; }
 
     #region Events
-    public Action<InventorySlot> OnNewSlot { get; set; }
     public Action<ItemInfo> OnUpdate { get; set; }
     public Action<ItemInfo> OnItemAction { get; set; }
     public Action<ItemInfo> OnDepleted { get; set; }
-    public Action<ItemInfo> OnDestroy {get; set;}
-    public Action<ItemInfo, UseData> OnUse { get; set; }
-    public Action<ItemInfo, bool> OnDragChange {get; set;}
-    public Action<ItemInfo, bool> OnEquipChange {get; set;}
-    public Action<ItemInfo, EntityInfo> OnPickUp { get; set; }
     public Action<ItemInfo, ToolTipElement> BeforeShowItemToolTip { get; set; }
+
+    public ArchEventHandler<ItemEvent, ItemInfoEventData> itemEvents;
 
     #endregion
 
@@ -64,7 +60,17 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
         if (dragAndDrop)
         {
-            dragAndDrop.OnDragChange += (DragAndDrop drag, bool isDragging) => { OnDragChange?.Invoke(this, isDragging); };
+            dragAndDrop.OnDragChange += (DragAndDrop drag, bool isDragging) => {
+                if (isDragging)
+                {
+                    itemEvents.Invoke(ItemEvent.OnDragStart, new(this));
+                }
+                else
+                {
+                    itemEvents.Invoke(ItemEvent.OnDragEnd, new(this));
+                }
+            };
+
         }
 
         if (item)
@@ -73,6 +79,11 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         }
 
         HandleToolTipElement();
+    }
+
+    void Awake()
+    {
+        itemEvents = new(this);
     }
 
     async public void ThrowRandomly()
@@ -158,24 +169,35 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
     {
         if (item.effects == null) return;
         if (!isUI) return;
-        OnDepleted += (ItemInfo item) => { item.fxHandler.HandleItemFX(item, ItemEvent.OnDeplete); };
-        OnUse += (ItemInfo item, UseData data) => { item.fxHandler.HandleItemFX(item, ItemEvent.OnUse); };
-        OnDestroy += (ItemInfo item) => { item.fxHandler.HandleItemFX(item, ItemEvent.OnDestroy); };
-        OnDragChange += (ItemInfo item, bool isDragging) => {
-            if (isDragging)
-            {
-                item.fxHandler.HandleItemFX(item, ItemEvent.OnDragStart);
-            }
-            else
-            {
-                item.fxHandler.HandleItemFX(item, ItemEvent.OnDragEnd);
-            }
-        };
-        OnEquipChange += (ItemInfo item, bool equip) => {
-            if (item.fxHandler == null) return;
-            if (equip) item.fxHandler.HandleItemFX(item, ItemEvent.OnEquip);
-            else item.fxHandler.HandleItemFX(item, ItemEvent.OnUnequip);
-        };
+        //if (itemEvents == null) return;
+
+
+        foreach(var effect in item.effects.effects)
+        {
+            Debugger.UI(7611, $"Adding Listener for {this}, trigger: {effect.trigger}");
+            itemEvents.AddListener(effect.trigger, (ItemInfoEventData data) => {
+                fxHandler.HandleItemFX(this, effect);
+            }, this);
+        }
+
+        //OnDepleted += (ItemInfo item) => { item.fxHandler.HandleItemFX(item, ItemEvent.OnDeplete); };
+        //OnUse += (ItemInfo item, UseData data) => { item.fxHandler.HandleItemFX(item, ItemEvent.OnUse); };
+        //OnDestroy += (ItemInfo item) => { item.fxHandler.HandleItemFX(item, ItemEvent.OnDestroy); };
+        //OnDragChange += (ItemInfo item, bool isDragging) => {
+        //    if (isDragging)
+        //    {
+        //        item.fxHandler.HandleItemFX(item, ItemEvent.OnDragStart);
+        //    }
+        //    else
+        //    {
+        //        item.fxHandler.HandleItemFX(item, ItemEvent.OnDragEnd);
+        //    }
+        //};
+        //OnEquipChange += (ItemInfo item, bool equip) => {
+        //    if (item.fxHandler == null) return;
+        //    if (equip) item.fxHandler.HandleItemFX(item, ItemEvent.OnEquip);
+        //    else item.fxHandler.HandleItemFX(item, ItemEvent.OnUnequip);
+        //};
     }
     #region 3d World Trigger
     private void OnTriggerEnter(Collider other)
@@ -462,14 +484,14 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
             if (slot.GetType() == typeof(GearSlot))
             {
-                OnEquipChange?.Invoke(this, true);
+                Invoke(ItemEvent.OnEquip, new(this));
             }
 
             slot.currentItemInfo = this;
             currentSlot = slot;
             
             changedSlot = true;
-            OnNewSlot?.Invoke(slot);
+            itemEvents.Invoke(ItemEvent.OnNewSlot, new(this));
         }
 
         void HandlePreviousSlot(bool val)
@@ -480,7 +502,7 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
             if (previousSlot.GetType() == typeof(GearSlot))
             {
-                OnEquipChange?.Invoke(this, false);
+                Invoke(ItemEvent.OnUnequip, new(this));
             }
 
             previousSlot.currentItemInfo = null;
@@ -557,8 +579,7 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
         if (currentStacks <= 0)
         {
-            OnDepleted?.Invoke(this);
-
+            Invoke(ItemEvent.OnDeplete, new(this));
             DestroySelf(true);
         }
 
@@ -579,12 +600,14 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
         if (pickedUp)
         {
-            OnPickUp?.Invoke(this, entityPickedUp);
+            itemEvents.Invoke(ItemEvent.OnPickUp, new(this) {
+                entityInteracted = entityPickedUp,
+            });
         }
 
         if (triggerDestroyEffect)
         {
-            OnDestroy?.Invoke(this);
+            itemEvents.Invoke(ItemEvent.OnDestroy, new(this));
         }
 
         ArchAction.Yield(() => {
@@ -684,7 +707,11 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
     public void Use(UseData data)
     {
         item.Use(data);
-        OnUse?.Invoke(this, data);
+
+        if (data.triggerEvent)
+        {
+            itemEvents.Invoke(data.eventType, new(this));
+        }
     }
     public bool InsertIntoSlots(List<InventorySlot> slots, bool destroyFail = false)
     {
@@ -730,5 +757,28 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
         HandleNewSlot(availableSlots[0]);
 
         return true;
+    }
+
+
+    public void AddListener(ItemEvent trigger, Action<ItemInfoEventData> action, Component listener)
+    {
+        itemEvents.AddListener(trigger, action, listener);
+    }
+
+    public void Invoke(ItemEvent trigger, ItemInfoEventData data)
+    {
+        itemEvents.Invoke(trigger, data);
+    }
+}
+public class ItemInfoEventData
+{
+    public InventorySlot currentSlot;
+    public ItemInfo info;
+    public EntityInfo entityInteracted;
+
+    public ItemInfoEventData(ItemInfo info)
+    {
+        currentSlot = info.currentSlot;
+        this.info = info;
     }
 }

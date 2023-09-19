@@ -381,6 +381,7 @@ namespace Architome
         {
             var contextMenu = ContextMenu.current;
             if (contextMenu == null) return;
+            var item = info.item;
 
             var gameState = GameManager.active ? GameManager.active.GameState : GameState.Lobby;
 
@@ -430,23 +431,16 @@ namespace Architome
                     }));
                 }
 
-                if (Item.Equipable(info.item))
-                {
-                    options.Insert(0, new("Equip", (data) => {
-                        if (entityCharacter == null) return;
-                        entityInfo.infoEvents.OnTryEquip?.Invoke(info, entityInfo);
-                    }));
-                }
+                var useData = new UseData() {
+                    entityUsed = entityInfo,
+                    itemInfo = info,
+                };
 
-                if (Item.Useable(info.item) && gameState == GameState.Play)
+                if (item.Useable(useData))
                 {
-                    options.Insert(0, new("Use", (data) => {
+                    options.Insert(0, new(item.UseString(), (data) => {
                         if (entityCharacter == null) return;
-                        info.Use(new()
-                        {
-                            itemInfo = info,
-                            entityUsed = entityInfo
-                        });
+                        info.Use(useData);
                     }));
                 }
 

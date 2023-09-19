@@ -14,7 +14,7 @@ namespace Architome
         [SerializeField] ItemSlotHandler itemSlotHandler;
         [SerializeField] PopupTextManager popUpManager;
 
-        public ItemInfo worldItemInfo;
+        ItemInfo worldItemInfo;
 
         ItemInfo currentItemInfo;
 
@@ -77,17 +77,18 @@ namespace Architome
             var world = World.active;
             var rarityProperty = world.RarityProperty(item.item.rarity);
 
-            item.OnPickUp += delegate (ItemInfo info, EntityInfo entityPickedUp) {
+            item.AddListener(ItemEvent.OnPickUp, (ItemInfoEventData data) =>
+            {
+                var entityPickedUp = data.entityInteracted;
+                var info = data.info;
                 var soundEffect = entityPickedUp.SoundEffect();
                 if (soundEffect == null) return;
 
                 audioManager = soundEffect;
 
                 HandlePopUpText();
-
                 HandleItemFX(info, ItemEvent.OnPickUp);
-
-            };
+            }, this);
 
             void HandlePopUpText()
             {
@@ -117,6 +118,7 @@ namespace Architome
             var itemEffect = info.item.effects;
             if (itemEffect == null) return;
             if (itemEffect.effects == null) return;
+
             Debugger.UI(1953, $"Item: {info} event: {trigger}");
 
 
@@ -126,6 +128,12 @@ namespace Architome
                 HandleAudio(effect);
             }
             
+        }
+
+        public void HandleItemFX(ItemInfo info, ItemFX.Effect fx)
+        {
+            Debugger.UI(7612, $"Playing effect for {info} on {fx.trigger}");
+            HandleAudio(fx);
         }
 
         void HandleAudio(ItemFX.Effect fx)
