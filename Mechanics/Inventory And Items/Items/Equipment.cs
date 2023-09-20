@@ -37,13 +37,14 @@ namespace Architome
         [SerializeField] bool updateStateWeights;
         [SerializeField] bool clearStats;
 
-
+        [SerializeField] bool updateItemLevel;
 
         public void OnValidate()
         {
             HandleStatWeights();
             HandleClearStats();
             HandleUpdateBuffs();
+            HandleItemLevel();
 
             itemType = ItemType.Equipment;
 
@@ -70,8 +71,13 @@ namespace Architome
                 updateBuffs = false;
 
                 equipmentEffects ??= new();
+            }
 
-
+            void HandleItemLevel()
+            {
+                if (!updateItemLevel) return;
+                updateItemLevel = false;
+                SetPower(LevelRequired, itemLevel, rarity);
             }
         }
 
