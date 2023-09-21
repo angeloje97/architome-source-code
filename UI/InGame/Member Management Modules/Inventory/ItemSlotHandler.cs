@@ -44,6 +44,11 @@ namespace Architome
             }
 
             fxHandler = GetComponent<ItemFXHandler>();
+
+            OnChangeItem += (ItemEventData data) => {
+                if (data.newItem == null) return;
+                data.newItem.fxHandler = fxHandler;
+            };
         }
 
         async void HandleNullModule()
@@ -95,11 +100,6 @@ namespace Architome
 
         public void HandleChangeItem(ItemEventData eventData)
         {
-            if (eventData.newItem)
-            {
-                eventData.newItem.fxHandler = fxHandler;
-            }
-
             OnChangeItem?.Invoke(eventData);
         }
 

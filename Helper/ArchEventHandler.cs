@@ -66,7 +66,7 @@ namespace Architome
             }, listener);
         }
 
-        public Action AddListener(T eventType, Action<E, List<Func<Task>>> action, Component listener)
+        public Action AddListenerTask(T eventType, Action<E, List<Func<Task>>> action, Component listener)
         {
             return AddListener(eventType, (E data) =>
             {
@@ -112,6 +112,30 @@ namespace Architome
             eventDict[eventType]?.Invoke(eventData);
 
             return tasksToFinish.ToList();
+        }
+
+        public async Task InvokeAsyncParallel(T eventType, E eventData)
+        {
+            var functions = Invoke(eventType, eventData);
+            
+            foreach(var func in functions)
+            {
+                await func();
+            }
+        }
+
+        public async Task InvokeAsyncSeq(T eventType, E eventData)
+        {
+            var functions = Invoke(eventType, eventData);
+
+            var tasks = new List<Task>();
+
+            foreach(var func in functions)
+            {
+                tasks.Add(func());
+            }
+
+            await Task.WhenAll(tasks);
         }
 
         public bool InvokeCheck(T eventType, E eventData)

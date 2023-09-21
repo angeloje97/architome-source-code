@@ -44,7 +44,6 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
     #region Events
     public Action<ItemInfo> OnUpdate { get; set; }
     public Action<ItemInfo> OnItemAction { get; set; }
-    public Action<ItemInfo> OnDepleted { get; set; }
     public Action<ItemInfo, ToolTipElement> BeforeShowItemToolTip { get; set; }
 
     public ArchEventHandler<ItemEvent, ItemInfoEventData> itemEvents;

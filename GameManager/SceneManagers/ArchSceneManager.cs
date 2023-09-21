@@ -99,7 +99,7 @@ namespace Architome
 
         public void AddListener(SceneEvent trigger, Action<ArchSceneManager, List<Func<Task>>> action, Component caller)
         {
-            events.AddListener(trigger, action, caller);
+            events.AddListenerTask(trigger, action, caller);
         }
 
         async public void LoadScene(ArchScene archScene, int index = -1, bool async = true)
