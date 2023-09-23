@@ -102,8 +102,21 @@ namespace Architome
             events.AddListenerTask(trigger, action, caller);
         }
 
+        async public Task LoadSceneAsync(ArchScene archScene, int index = -1)
+        {
+            LoadScene(archScene, index, true);
+            await DoneLoading();
+        }
+
+        async public Task DoneLoading()
+        {
+            await Task.Delay(130);
+            while (isLoading) await Task.Yield();
+        }
+
         async public void LoadScene(ArchScene archScene, int index = -1, bool async = true)
         {
+            if (isLoading) return;
             this.sceneToLoad = sceneInfoDict[archScene];
 
             var sceneName = index == -1 ? sceneToLoad.main : sceneToLoad.subScenes[index];

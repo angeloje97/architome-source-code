@@ -39,6 +39,8 @@ namespace Architome
         public Trilogy trilogy;
         public Difficulty currentDifficulty;
 
+        bool loadingGame;
+
 
         private void OnValidate()
         {
@@ -138,8 +140,10 @@ namespace Architome
         }
 
 
-        public void CreateNewSave()
+        public async void CreateNewSave()
         {
+            if (loadingGame) return;
+            loadingGame = true;
             SaveGame newSave = new()
             {
                 saveName = saveName,
@@ -154,8 +158,8 @@ namespace Architome
 
             Core.SetSave(newSave);
 
-
-            ArchSceneManager.active.LoadScene(info.sceneToLoad);
+            await ArchSceneManager.active.LoadSceneAsync(info.sceneToLoad);
+            loadingGame = false;
             //SceneManager.LoadScene(info.sceneToLoad);
             
         }
