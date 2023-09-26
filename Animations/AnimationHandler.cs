@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Architome
@@ -8,6 +9,9 @@ namespace Architome
     public class AnimationHandler<E> where E : Enum
     {
         Animator animator;
+
+        bool isAnimating;
+
 
         public AnimationHandler(Animator animator)
         {
@@ -37,6 +41,16 @@ namespace Architome
         public void SetFloat(E name, float value)
         {
             animator.SetFloat(EnumString.GetValue(name), value);
+        }
+
+        public async Task EndAnimation()
+        {
+            while (isAnimating) await Task.Yield();
+        }
+
+        public void SetStopAnimation()
+        {
+            isAnimating = false;
         }
 
     }
