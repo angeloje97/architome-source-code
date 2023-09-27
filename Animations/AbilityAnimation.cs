@@ -12,7 +12,7 @@ public class AbilityAnimation
     // Start is called before the first frame update
     public EntityInfo entityInfo;
     public AbilityManager abilityManager;
-    public Animator animator;
+    //public Animator animator;
     //public Anim anim;
     public CatalystInfo currentCatalyst;
     public CharacterInfo character;
@@ -22,6 +22,25 @@ public class AbilityAnimation
     TaskQueueHandler taskHandler;
 
     float currentCastAnimation;
+
+    enum ControlParam
+    {
+        CancelAttack,
+        CancelAbility,
+        ReleaseAbility,
+        AbilityX,
+        AbilityY,
+        AbilityZ,
+        AbilityIndex,
+        AttackX,
+        AttackY,
+        AttackZ,
+        AttackSpeed,
+        IsCasting
+    }
+
+    AnimationHandler<ControlParam> animator;
+
 
     AbilityManager.Events abilityEvents
     {
@@ -35,7 +54,7 @@ public class AbilityAnimation
     {
         var abilityManager = entity.AbilityManager();
         entityInfo = entity;
-        this.animator = animator;
+        this.animator = new(animator) ;
         character = entity.CharacterInfo();
         abilityManager = entityInfo.AbilityManager();
 
@@ -100,8 +119,8 @@ public class AbilityAnimation
 
         Debugger.Combat(6418, $"{ability} animation");
 
-        animator.SetTrigger("CancelAttack");
-        animator.SetTrigger("CancelAbility");
+        animator.SetTrigger(ControlParam.CancelAttack);
+        animator.SetTrigger(ControlParam.CancelAbility);
 
         if (ability.isAttack)
         {
@@ -119,7 +138,7 @@ public class AbilityAnimation
     {
         if (ability.isAttack) return;
 
-        animator.SetTrigger("ReleaseAbility");
+        animator.SetTrigger(ControlParam.ReleaseAbility);
     }
     public void OnCastRelease(AbilityInfo ability)
     {
@@ -131,7 +150,7 @@ public class AbilityAnimation
     }
     public void OnChannelInterval(AbilityInfo ability, AugmentChannel augment)
     {
-        animator.SetTrigger("ReleaseAbility");
+        animator.SetTrigger(ControlParam.ReleaseAbility);
     }
     public void OnCastChannelEnd(AbilityInfo ability, AugmentChannel augment)
     {
@@ -151,31 +170,31 @@ public class AbilityAnimation
         {
             if (timeStamp != currentCastAnimation) return;
             SetCast(false);
-            animator.ResetTrigger("ReleaseAbility");
+            animator.ResetTrigger(ControlParam.ReleaseAbility);
         }, .25f);
     }
 
     void ZeroOut()
     {
-        animator.SetInteger("AbilityX", 0);
-        animator.SetInteger("AbilityY", 0);
-        animator.SetInteger("AbilityZ", 0);
-        animator.SetInteger("AbilityIndex", 0);
+        animator.SetInteger(ControlParam.AbilityX, 0);
+        animator.SetInteger(ControlParam.AbilityY, 0);
+        animator.SetInteger(ControlParam.AbilityZ, 0);
+        animator.SetInteger(ControlParam.AbilityIndex, 0);
 
-        animator.SetInteger("AttackX", 0);
-        animator.SetInteger("AttackY", 0);
-        animator.SetInteger("AttackZ", 0);
+        animator.SetInteger(ControlParam.AttackX, 0);
+        animator.SetInteger(ControlParam.AttackY, 0);
+        animator.SetInteger(ControlParam.AttackZ, 0);
 
 
     }
     public void OnCancelCast(AbilityInfo ability)
     {
-        animator.SetTrigger("CancelAbility");
-        animator.SetTrigger("CancelAttack");
+        animator.SetTrigger(ControlParam.CancelAbility);
+        animator.SetTrigger(ControlParam.CancelAttack);
     }
     public void OnCancelChannel(AbilityInfo ability, AugmentChannel augment)
     {
-        animator.SetTrigger("CancelAbility");
+        animator.SetTrigger(ControlParam.CancelAttack);
     }
 
 
@@ -186,15 +205,15 @@ public class AbilityAnimation
         var xStyle = (int)catalyst.catalystStyle.x;
         var yStyle = (int)catalyst.catalystStyle.y;
         var zStyle = (int)catalyst.catalystStyle.z;
-        animator.SetInteger("AbilityX", xStyle);
-        animator.SetInteger("AbilityY", yStyle);
-        animator.SetInteger("AbilityZ", zStyle);
-        animator.SetInteger("AbilityIndex", zStyle);
+        animator.SetInteger(ControlParam.AbilityX, xStyle);
+        animator.SetInteger(ControlParam.AbilityY, yStyle);
+        animator.SetInteger(ControlParam.AbilityZ, zStyle);
+        animator.SetInteger(ControlParam.AbilityIndex, zStyle);
     }
 
     public void Attack()
     {
-        animator.SetFloat("AttackSpeed", entityInfo.stats.attackSpeed);
+        animator.SetFloat(ControlParam.AttackSpeed, entityInfo.stats.attackSpeed);
 
         if (UsesFixedAttackAnimation()) return;
 
@@ -202,15 +221,15 @@ public class AbilityAnimation
 
         if (weapon == null)
         {
-            animator.SetInteger("AttackX", 1);
-            animator.SetInteger("AttackY", 0);
-            animator.SetInteger("AttackZ", 0);
+            animator.SetInteger(ControlParam.AttackX, 1);
+            animator.SetInteger(ControlParam.AttackY, 0);
+            animator.SetInteger(ControlParam.AttackZ, 0);
             return;
         }
 
-        animator.SetInteger("AttackX", (int)weapon.weaponAttackStyle.x);
-        animator.SetInteger("AttackY", (int)weapon.weaponAttackStyle.y);
-        animator.SetInteger("AttackZ", (int)weapon.weaponAttackStyle.z);
+        animator.SetInteger(ControlParam.AttackX, (int)weapon.weaponAttackStyle.x);
+        animator.SetInteger(ControlParam.AttackY, (int)weapon.weaponAttackStyle.y);
+        animator.SetInteger(ControlParam.AttackZ, (int)weapon.weaponAttackStyle.z);
 
         bool UsesFixedAttackAnimation()
         {
@@ -219,9 +238,9 @@ public class AbilityAnimation
 
             var fixedAttack = character.fixedAnimation.attackStyle;
 
-            animator.SetInteger("AttackX", (int)fixedAttack.x);
-            animator.SetInteger("AttackY", (int)fixedAttack.y);
-            animator.SetInteger("AttackZ", (int)fixedAttack.z);
+            animator.SetInteger(ControlParam.AttackX, (int)fixedAttack.x);
+            animator.SetInteger(ControlParam.AttackY, (int)fixedAttack.y);
+            animator.SetInteger(ControlParam.AttackZ, (int)fixedAttack.z);
 
             return true;
         }
@@ -229,6 +248,6 @@ public class AbilityAnimation
 
     public void SetCast(bool val)
     {
-        animator.SetBool("IsCasting", val);
+        animator.SetBool(ControlParam.IsCasting, val);
     }
 }

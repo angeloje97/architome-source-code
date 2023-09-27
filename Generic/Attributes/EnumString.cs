@@ -9,6 +9,7 @@ namespace Architome
 
     public class EnumValue : Attribute
     {
+
         string value;
         public string Value => value;
 
@@ -37,8 +38,14 @@ namespace Architome
 
     public static class EnumString 
     {
+        static Dictionary<Enum, string> storedValues;
         public static string GetValue(Enum value)
         {
+
+            storedValues ??= new();
+
+            if(storedValues.ContainsKey(value)) return storedValues[value];
+
             var type = value.GetType();
 
             var field = type.GetField(value.ToString());
@@ -47,10 +54,15 @@ namespace Architome
 
             if(attributes.Length > 0)
             {
-                return attributes[0].Value;
+                storedValues.Add(value, attributes[0].Value);
+            }
+            else
+            {
+                storedValues.Add(value, value.ToString());
             }
 
-            return value.ToString();
+            return storedValues[value];   
+
         }
     }
 

@@ -33,7 +33,7 @@ namespace Architome
             animator.SetBool(EnumString.GetValue(boolean), value);
         }
 
-        public void SetInt(E name, int value)
+        public void SetInteger(E name, int value)
         {
             animator.SetInteger(EnumString.GetValue(name), value);
         }
