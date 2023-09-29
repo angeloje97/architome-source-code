@@ -50,9 +50,49 @@ namespace Architome
 
             canvas.interactable = val;
             canvas.blocksRaycasts = val;
+        }
+
+        public static void SetDropDown<E>(Action<E> action, TMP_Dropdown dropDown, int defaultOption = 0) where E : Enum
+        {
+            var enums = Enum.GetValues(typeof(E));
+            var options = new List<TMP_Dropdown.OptionData>();
+            dropDown.ClearOptions();
+
+            foreach(E value in enums)
+            {
+                options.Add(new() 
+                {
+                    text = EnumString.GetValue(value),
+                }) ;
+            }
+
+            dropDown.options = options;
+            dropDown.value = defaultOption;
+
+
+            dropDown.onValueChanged.AddListener((int newValue) => {
+                action((E)enums.GetValue(newValue));
+            });
+        }
 
 
 
+        public static void SetDropDown<E>(TMP_Dropdown dropDown, int defaultOption = 0) where E: Enum
+        {
+            var enums = Enum.GetValues(typeof(E));
+            var options = new List<TMP_Dropdown.OptionData>();
+            dropDown.ClearOptions();
+
+            foreach(E value in enums)
+            {
+                options.Add(new()
+                {
+                    text = EnumString.GetValue(value)
+                });
+            }
+
+            dropDown.options = options;
+            dropDown.value = defaultOption;
         }
 
         public static async Task FixLayoutGroups(GameObject target, bool controlCanvas = false, float delay = 0f) // Needs multiple iterations for some reason

@@ -101,21 +101,15 @@ namespace Architome
         [Range(0, 1)]
         public float minimumEnemyForces = .90f;
 
-        static readonly HashSet<string> ignoreField = new HashSet<string>()
-        {
-            "name",
-            "ignoreField",
-            "aliases"
-        };
 
 
-        static readonly Dictionary<string, string> aliases = new Dictionary<string, string>() 
+        static Dictionary<string, string> aliases => new Dictionary<string, string>() 
         {
             { "dungeonCoreMultiplier", "Extra Enemy Power" },
             { "experienceRequiredMultiplier", "Experience Required Per Level" }
         };
 
-        static readonly Dictionary<string, string> unit = new Dictionary<string, string>()
+        static Dictionary<string, string> unit => new Dictionary<string, string>()
         {
             { "npcDetectionRange", "m" },
             { "playerDetectionRange", "m" },
@@ -139,7 +133,6 @@ namespace Architome
             var result = new List<string>();
             foreach(var field in GetType().GetFields())
             {
-                if (ignoreField.Contains(field.Name)) continue;
 
                 var title = aliases.ContainsKey(field.Name) ? aliases[field.Name] : ArchString.CamelToTitle(field.Name);
                 var unitOfMeasurement = unit.ContainsKey(field.Name) ? unit[field.Name] : "";

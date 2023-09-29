@@ -8,6 +8,11 @@ namespace Architome
 {
     public class DifficultyModificationCreator : MonoBehaviour
     {
+        DifficultyModifications modifications;
+        DifficultySet current;
+        DifficultySet tempo;
+
+
         struct Prefabs
         {
             public TMP_Dropdown enumDropDown;
@@ -18,6 +23,7 @@ namespace Architome
         struct Components
         {
             public Transform inputParent;
+            public TMP_Dropdown setSelector;
         }
 
         Prefabs prefabs;
@@ -25,7 +31,30 @@ namespace Architome
 
         private void Start()
         {
-            
+            GetDependencies();
+        }
+
+        void GetDependencies()
+        {
+            modifications = DifficultyModifications.active;
+            UpdateSetSelector();
+        }
+
+        void UpdateSetSelector()
+        {
+            var dropDown = components.setSelector;
+            if (modifications = null) return;
+            if (dropDown == null) return;
+
+            var options = new List<TMP_Dropdown.OptionData>();
+
+            foreach(var set in modifications.difficultySets)
+            {
+                options.Add(new() { text = set.name });
+            }
+
+            dropDown.options = options;
+
         }
     }
 }

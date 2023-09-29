@@ -40,6 +40,8 @@ namespace Architome
         public Action<FieldInfo> OnChangeField;
         public Action<MeterRecordingMode> OnChangeMode;
 
+        [SerializeField] bool updateSelf;
+
 
         void GetDependencies()
         {
@@ -60,6 +62,8 @@ namespace Architome
 
         private void OnValidate()
         {
+            if (!updateSelf) return;
+            updateSelf = false;
             meterMode = typeof(CombatInfo.CombatLogs.Values).GetFields().Select(field => ArchString.CamelToTitle(field.Name)).ToList();
 
             if (info.meterModeDropDown)
@@ -71,19 +75,22 @@ namespace Architome
                     info.meterModeDropDown.options.Add(new TMP_Dropdown.OptionData() { text = mode });
                 }
 
+
                 info.meterModeDropDown.enabled = false;
                 info.meterModeDropDown.enabled = true;
             }
 
             if (info.recordingModeDropDown)
             {
-                info.recordingModeDropDown.ClearOptions();
+                //info.recordingModeDropDown.ClearOptions();
 
-                foreach (MeterRecordingMode mode in Enum.GetValues(typeof(MeterRecordingMode)))
-                {
-                    var newText = ArchString.CamelToTitle(mode.ToString());
-                    info.recordingModeDropDown.options.Add(new() { text = newText });
-                }
+                //foreach (MeterRecordingMode mode in Enum.GetValues(typeof(MeterRecordingMode)))
+                //{
+                //    var newText = ArchString.CamelToTitle(mode.ToString());
+                //    info.recordingModeDropDown.options.Add(new() { text = newText });
+                //}
+
+                ArchUI.SetDropDown<MeterRecordingMode>(info.recordingModeDropDown);
 
                 info.recordingModeDropDown.enabled = false;
                 info.recordingModeDropDown.enabled = true;

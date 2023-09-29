@@ -62,6 +62,17 @@ namespace Architome
             return component;
         }
 
+        public static  void CopyClassValue<T>(T copiedClass, T resultClass) where T: class
+        {
+            var fields = copiedClass.GetType().GetFields();
+
+            foreach(var field in fields)
+            {
+                field.SetValue(resultClass, field.GetValue(copiedClass));
+            }
+
+        }
+
         public static List<T> Shuffle<T>(List<T> items)
         {
             var newList = items.ToList();
