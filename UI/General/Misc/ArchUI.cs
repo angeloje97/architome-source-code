@@ -75,8 +75,6 @@ namespace Architome
             });
         }
 
-
-
         public static void SetDropDown<E>(TMP_Dropdown dropDown, int defaultOption = 0) where E: Enum
         {
             var enums = Enum.GetValues(typeof(E));
@@ -94,6 +92,26 @@ namespace Architome
             dropDown.options = options;
             dropDown.value = defaultOption;
         }
+
+        public static void SetDropDown<C>(Action<string> onChange, TMP_Dropdown dropDown, int defaultOption = 0)
+        {
+            var fields = typeof(C).GetFields();
+
+            var options = new List<TMP_Dropdown.OptionData>();
+
+            foreach(var field in fields)
+            {
+                options.Add(new() { text = field.Name });
+            }
+
+            dropDown.options = options;
+            dropDown.value = defaultOption;
+
+            dropDown.onValueChanged.AddListener((int newIndex) => {
+                onChange(fields[newIndex].Name);
+            });
+        }
+
 
         public static async Task FixLayoutGroups(GameObject target, bool controlCanvas = false, float delay = 0f) // Needs multiple iterations for some reason
         {
