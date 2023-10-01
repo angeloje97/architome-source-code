@@ -12,6 +12,7 @@ namespace Architome
 
         bool isAnimating;
 
+        public bool titleValue;
 
         public AnimationHandler(Animator animator)
         {

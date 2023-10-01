@@ -58,6 +58,7 @@ namespace Architome
             }
             else
             {
+
                 storedValues.Add(value, value.ToString());
             }
 

@@ -52,6 +52,25 @@ namespace Architome
             widget = GetComponentInParent<WidgetInfo>();
 
             widget.OnActiveChange += OnActiveChange;
+
+            if (info.meterModeDropDown)
+            {
+                ArchUI.SetDropDownData<CombatInfo.CombatLogs.Values>((FieldInfo newField) => {
+                    currentField = newField;
+                    OnChangeField?.Invoke(currentField);
+                    SortMeters();
+
+                }, info.meterModeDropDown, 0);
+            }
+
+            if (info.recordingModeDropDown)
+            {
+                ArchUI.SetDropDown((MeterRecordingMode newRecordingMode) => {
+                    this.recordingMode = newRecordingMode;
+                    OnChangeMode?.Invoke(this.recordingMode);
+                    SortMeters();
+                }, info.recordingModeDropDown, 0);
+            }
         }
 
         void Start()
@@ -68,13 +87,7 @@ namespace Architome
 
             if (info.meterModeDropDown)
             {
-                info.meterModeDropDown.ClearOptions();
-
-                foreach (var mode in meterMode)
-                {
-                    info.meterModeDropDown.options.Add(new TMP_Dropdown.OptionData() { text = mode });
-                }
-
+                ArchUI.SetDropDownData<CombatInfo.CombatLogs.Values>(info.meterModeDropDown, 0);
 
                 info.meterModeDropDown.enabled = false;
                 info.meterModeDropDown.enabled = true;
@@ -82,13 +95,6 @@ namespace Architome
 
             if (info.recordingModeDropDown)
             {
-                //info.recordingModeDropDown.ClearOptions();
-
-                //foreach (MeterRecordingMode mode in Enum.GetValues(typeof(MeterRecordingMode)))
-                //{
-                //    var newText = ArchString.CamelToTitle(mode.ToString());
-                //    info.recordingModeDropDown.options.Add(new() { text = newText });
-                //}
 
                 ArchUI.SetDropDown<MeterRecordingMode>(info.recordingModeDropDown);
 
@@ -105,29 +111,25 @@ namespace Architome
 
         public void ChangeField(TMP_Dropdown meterMode)
         {
-            var value = meterMode.value;
-            if (typeof(CombatInfo.CombatLogs.Values).GetFields().Length <= value) return;
-            currentField = typeof(CombatInfo.CombatLogs.Values).GetFields()[value];
+            //var value = meterMode.value;
+            //if (typeof(CombatInfo.CombatLogs.Values).GetFields().Length <= value) return;
+            //currentField = typeof(CombatInfo.CombatLogs.Values).GetFields()[value];
+            //OnChangeField?.Invoke(currentField);
 
-            OnChangeField?.Invoke(currentField);
-
-            SortMeters();
+            //SortMeters();
         }
 
         public void ChangeMode(TMP_Dropdown recordingMode)
         {
-            var index = recordingMode.value;
+            //var index = recordingMode.value;
 
-            var enums = Enum.GetValues(typeof(MeterRecordingMode));
+            //var enums = Enum.GetValues(typeof(MeterRecordingMode));
 
-            if (enums.Length <= index) return;
+            //if (enums.Length <= index) return;
 
-            this.recordingMode = (MeterRecordingMode) enums.GetValue(index);
-
-            OnChangeMode?.Invoke(this.recordingMode);
-
-
-            SortMeters();
+            //this.recordingMode = (MeterRecordingMode) enums.GetValue(index);
+            //OnChangeMode?.Invoke(this.recordingMode);
+            //SortMeters();
         }
 
         void OnActiveChange(bool active)

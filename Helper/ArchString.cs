@@ -49,6 +49,27 @@ namespace Architome
 
             return newText;
         }
+        public static string TitleToCamel(string text)
+        {
+            var newText = "";
+
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (i == 0)
+                {
+                    newText += $"{text[i]}".ToLower();
+                    continue;
+                }
+                if (" "[0] == text[i])
+                {
+                    continue;
+                }
+
+                newText += text[i];
+            }
+
+            return newText;
+        }
 
         public static string StringList(List<string> strings)
         {
@@ -78,27 +99,6 @@ namespace Architome
             return list;
         }
 
-        public static string TitleToCamel(string text)
-        {
-            var newText = "";
-
-            for (int i = 0; i < text.Length; i++)
-            {
-                if (i == 0)
-                {
-                    newText += $"{text[i]}".ToLower();
-                    continue;
-                }
-                if (" "[0] == text[i])
-                {
-                    continue;
-                }
-
-                newText += text[i];
-            }
-
-            return newText;
-        }
 
         public static string Spacer(string line)
         {

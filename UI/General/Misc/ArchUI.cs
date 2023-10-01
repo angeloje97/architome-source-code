@@ -5,12 +5,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Reflection;
 
 namespace Architome
 {
     public static class ArchUI
     {
-
+        #region Canvas
         public static async void SetCanvas(this CanvasGroup canvas, bool val, float totalTime = 0f)
         {
             if (canvas == null) return;
@@ -51,6 +52,10 @@ namespace Architome
             canvas.interactable = val;
             canvas.blocksRaycasts = val;
         }
+
+        #endregion
+
+        #region DropDown
 
         public static void SetDropDown<E>(Action<E> action, TMP_Dropdown dropDown, int defaultOption = 0) where E : Enum
         {
@@ -93,7 +98,9 @@ namespace Architome
             dropDown.value = defaultOption;
         }
 
-        public static void SetDropDown<C>(Action<string> onChange, TMP_Dropdown dropDown, int defaultOption = 0)
+        
+
+        public static void SetDropDownData<C>(Action<FieldInfo> onChange, TMP_Dropdown dropDown, int defaultOption = 0)
         {
             var fields = typeof(C).GetFields();
 
@@ -104,13 +111,30 @@ namespace Architome
                 options.Add(new() { text = field.Name });
             }
 
+
             dropDown.options = options;
             dropDown.value = defaultOption;
 
             dropDown.onValueChanged.AddListener((int newIndex) => {
-                onChange(fields[newIndex].Name);
+                onChange(fields[newIndex]);
             });
         }
+
+        public static void SetDropDownData<C>(TMP_Dropdown dropDown, int defaultOption = 0)
+        {
+            var fields = typeof(C).GetFields();
+
+            var options = new List<TMP_Dropdown.OptionData>();
+
+            foreach (var field in fields)
+            {
+                options.Add(new() { text = ArchString.CamelToTitle(field.Name) });
+            }
+
+            dropDown.options = options;
+            dropDown.value = defaultOption;
+        }
+        #endregion
 
 
         public static async Task FixLayoutGroups(GameObject target, bool controlCanvas = false, float delay = 0f) // Needs multiple iterations for some reason
