@@ -111,25 +111,10 @@ namespace Architome
 
         public void ChangeField(TMP_Dropdown meterMode)
         {
-            //var value = meterMode.value;
-            //if (typeof(CombatInfo.CombatLogs.Values).GetFields().Length <= value) return;
-            //currentField = typeof(CombatInfo.CombatLogs.Values).GetFields()[value];
-            //OnChangeField?.Invoke(currentField);
-
-            //SortMeters();
         }
 
         public void ChangeMode(TMP_Dropdown recordingMode)
         {
-            //var index = recordingMode.value;
-
-            //var enums = Enum.GetValues(typeof(MeterRecordingMode));
-
-            //if (enums.Length <= index) return;
-
-            //this.recordingMode = (MeterRecordingMode) enums.GetValue(index);
-            //OnChangeMode?.Invoke(this.recordingMode);
-            //SortMeters();
         }
 
         void OnActiveChange(bool active)
