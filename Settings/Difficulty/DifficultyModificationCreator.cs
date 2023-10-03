@@ -1,3 +1,4 @@
+using Architome.Enums;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ namespace Architome
     {
         DifficultyModifications modifications;
         DifficultySet current;
-        DifficultySet tempo;
+        DifficultySet temp;
 
 
         struct Prefabs
@@ -32,12 +33,20 @@ namespace Architome
         private void Start()
         {
             GetDependencies();
+            UpdateSetSelector();
+            UpdateFields();
+        }
+
+        private void OnValidate()
+        {
+            Debug.Log($"{AbilityType.Spawn} is Enum: {AbilityType.Spawn is Enum}");
         }
 
         void GetDependencies()
         {
             modifications = DifficultyModifications.active;
-            UpdateSetSelector();
+            current = modifications.settings;
+            temp = current;
         }
 
         void UpdateSetSelector()
@@ -55,6 +64,50 @@ namespace Architome
 
             dropDown.options = options;
 
+        }
+
+        void UpdateFields()
+        {
+            if (modifications == null) return;
+            if (components.inputParent == null) return;
+
+            var tempType = temp.GetType();
+            var fields = tempType.GetFields();
+
+
+            foreach(var field in fields)
+            {
+                var value = field.GetValue(temp);
+                HandleEnum(value, field.Name);
+                HandleBool(value, field.Name);
+                HandleFloat(value, field.Name);
+            }
+
+
+            void HandleEnum(object value, string fieldName)
+            {
+                if (value is not Enum) return;
+                var enumVal = (Enum)value;
+
+                var dropDown = Instantiate(prefabs.enumDropDown, components.inputParent);
+
+                ArchUI.SetDropDown((Enum newValue) => {
+                    var field = tempType.GetField(fieldName);
+                    field.SetValue(temp, newValue);
+                }, dropDown, enumVal);
+            }
+
+            void HandleBool(object value, string fieldName)
+            {
+                if (value is not bool) return;
+                var boolVal = (bool)value;
+            }
+
+            void HandleFloat(object value, string fieldName)
+            {
+                if (value is not float) return;
+                var floatVal = (float)value;
+            }
         }
     }
 }

@@ -57,22 +57,28 @@ namespace Architome
 
         #region DropDown
 
-        public static void SetDropDown<E>(Action<E> action, TMP_Dropdown dropDown, int defaultOption = 0) where E : Enum
+        public static void SetDropDown<E>(Action<E> action, TMP_Dropdown dropDown, E defaultValue) where E : Enum
         {
             var enums = Enum.GetValues(typeof(E));
             var options = new List<TMP_Dropdown.OptionData>();
             dropDown.ClearOptions();
-
+            int defaultIndex = 0;
+            int index = 0; 
             foreach(E value in enums)
             {
+                if (defaultValue.Equals(value))
+                {
+                    defaultIndex = index;
+                }
                 options.Add(new() 
                 {
                     text = EnumString.GetValue(value),
                 }) ;
+                index++;
             }
 
             dropDown.options = options;
-            dropDown.value = defaultOption;
+            dropDown.value = defaultIndex;
 
 
             dropDown.onValueChanged.AddListener((int newValue) => {
@@ -80,22 +86,31 @@ namespace Architome
             });
         }
 
-        public static void SetDropDown<E>(TMP_Dropdown dropDown, int defaultOption = 0) where E: Enum
+        public static void SetDropDown<E>(TMP_Dropdown dropDown, E defaultValue) where E: Enum
         {
             var enums = Enum.GetValues(typeof(E));
             var options = new List<TMP_Dropdown.OptionData>();
             dropDown.ClearOptions();
 
+            var index = 0;
+            var defaultIndex = 0;
+
             foreach(E value in enums)
             {
+                if (defaultValue.Equals(value))
+                {
+                    defaultIndex = index;
+                }
+
                 options.Add(new()
                 {
                     text = EnumString.GetValue(value)
                 });
+                index++;
             }
 
             dropDown.options = options;
-            dropDown.value = defaultOption;
+            dropDown.value = defaultIndex;
         }
 
         
@@ -136,6 +151,16 @@ namespace Architome
         }
         #endregion
 
+        #region Check Boxes
+        public static void SetCheckBox(Action<bool> onChange, Toggle toggle, bool defaultValue)
+        {
+            toggle.isOn = defaultValue;
+            toggle.onValueChanged.AddListener((bool isChecked) => {
+                onChange(isChecked);
+            });
+
+        }
+        #endregion
 
         public static async Task FixLayoutGroups(GameObject target, bool controlCanvas = false, float delay = 0f) // Needs multiple iterations for some reason
         {

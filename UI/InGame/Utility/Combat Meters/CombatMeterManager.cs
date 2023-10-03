@@ -69,7 +69,7 @@ namespace Architome
                     this.recordingMode = newRecordingMode;
                     OnChangeMode?.Invoke(this.recordingMode);
                     SortMeters();
-                }, info.recordingModeDropDown, 0);
+                }, info.recordingModeDropDown, MeterRecordingMode.CurrentFight);
             }
         }
 
@@ -96,7 +96,7 @@ namespace Architome
             if (info.recordingModeDropDown)
             {
 
-                ArchUI.SetDropDown<MeterRecordingMode>(info.recordingModeDropDown);
+                ArchUI.SetDropDown(info.recordingModeDropDown, MeterRecordingMode.CurrentFight);
 
                 info.recordingModeDropDown.enabled = false;
                 info.recordingModeDropDown.enabled = true;
