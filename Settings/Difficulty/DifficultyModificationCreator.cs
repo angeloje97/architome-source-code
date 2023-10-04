@@ -2,8 +2,10 @@ using Architome.Enums;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Architome
 {
@@ -17,8 +19,8 @@ namespace Architome
         struct Prefabs
         {
             public TMP_Dropdown enumDropDown;
-            public TMP_InputField floatInput;
             public TMP_InputField stringInput;
+            public Toggle toggle;
         }
 
         struct Components
@@ -30,16 +32,13 @@ namespace Architome
         Prefabs prefabs;
         Components components;
 
+        List<GameObject> fieldObjects;
+
         private void Start()
         {
             GetDependencies();
             UpdateSetSelector();
             UpdateFields();
-        }
-
-        private void OnValidate()
-        {
-            Debug.Log($"{AbilityType.Spawn} is Enum: {AbilityType.Spawn is Enum}");
         }
 
         void GetDependencies()
@@ -66,10 +65,23 @@ namespace Architome
 
         }
 
+        void ResetFields()
+        {
+            fieldObjects ??= new();
+            
+            foreach(var fieldObj in fieldObjects)
+            {
+                Destroy(fieldObj);
+            }
+
+            fieldObjects = new();
+        }
+
         void UpdateFields()
         {
             if (modifications == null) return;
             if (components.inputParent == null) return;
+            ResetFields();
 
             var tempType = temp.GetType();
             var fields = tempType.GetFields();
@@ -78,35 +90,49 @@ namespace Architome
             foreach(var field in fields)
             {
                 var value = field.GetValue(temp);
-                HandleEnum(value, field.Name);
-                HandleBool(value, field.Name);
-                HandleFloat(value, field.Name);
+                HandleEnum(value, field);
+                HandleBool(value, field);
+                HandleFloat(value, field);
             }
 
 
-            void HandleEnum(object value, string fieldName)
+            void HandleEnum(object value, FieldInfo field)
             {
                 if (value is not Enum) return;
                 var enumVal = (Enum)value;
 
                 var dropDown = Instantiate(prefabs.enumDropDown, components.inputParent);
 
+                fieldObjects.Add(dropDown.gameObject);
+
                 ArchUI.SetDropDown((Enum newValue) => {
-                    var field = tempType.GetField(fieldName);
                     field.SetValue(temp, newValue);
                 }, dropDown, enumVal);
             }
 
-            void HandleBool(object value, string fieldName)
+            void HandleBool(object value, FieldInfo field)
             {
                 if (value is not bool) return;
                 var boolVal = (bool)value;
+
+                var toggle = Instantiate(prefabs.toggle, components.inputParent);
+                fieldObjects.Add(toggle.gameObject);
+
+                ArchUI.SetToggle((bool newValue) => {
+                    field.SetValue(temp, newValue);
+                }, toggle, (bool)value);
             }
 
-            void HandleFloat(object value, string fieldName)
+            void HandleFloat(object value, FieldInfo field)
             {
                 if (value is not float) return;
                 var floatVal = (float)value;
+
+                var floatInput = Instantiate(prefabs.stringInput, components.inputParent);
+
+                ArchUI.SetInputField((string newValue) => {
+                    field.SetValue(temp, (float) Convert.ToDouble(newValue));
+                }, floatInput, value.ToString(), "%[0-9]%");
             }
         }
     }

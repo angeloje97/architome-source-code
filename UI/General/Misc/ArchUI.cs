@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace Architome
 {
@@ -152,14 +153,35 @@ namespace Architome
         #endregion
 
         #region Check Boxes
-        public static void SetCheckBox(Action<bool> onChange, Toggle toggle, bool defaultValue)
+        public static void SetToggle(Action<bool> onChange, Toggle toggle, bool defaultValue)
         {
             toggle.isOn = defaultValue;
             toggle.onValueChanged.AddListener((bool isChecked) => {
                 onChange(isChecked);
             });
-
         }
+        #endregion
+
+        #region Input Field
+
+        public static void SetInputField(Action<string> onChange, TMP_InputField inputField, string defaultValue = "", string regexString = ".*")
+        {
+            inputField.text = defaultValue;
+
+            var currentValue = defaultValue;
+
+            inputField.onValueChanged.AddListener((string newValue) => {
+                if(!Regex.IsMatch(newValue, regexString))
+                {
+                    inputField.SetTextWithoutNotify(currentValue);
+                    return;
+                }
+
+                currentValue = newValue;
+                onChange(newValue);
+            });
+        }
+
         #endregion
 
         public static async Task FixLayoutGroups(GameObject target, bool controlCanvas = false, float delay = 0f) // Needs multiple iterations for some reason
