@@ -44,8 +44,8 @@ namespace Architome
         void GetDependencies()
         {
             modifications = DifficultyModifications.active;
-            current = modifications.settings;
-            temp = current;
+            ArchGeneric.CopyClassValue(modifications.settings, current);
+            ArchGeneric.CopyClassValue(current, temp);
         }
 
         void UpdateSetSelector()
@@ -75,6 +75,12 @@ namespace Architome
             }
 
             fieldObjects = new();
+            ArchGeneric.CopyClassValue(current, temp);
+        }
+
+        public void SaveFields()
+        {
+            ArchGeneric.CopyClassValue(current, temp);
         }
 
         void UpdateFields()
