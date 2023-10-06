@@ -27,6 +27,7 @@ namespace Architome
         {
             public Transform inputParent;
             public TMP_Dropdown setSelector;
+
         }
 
         Prefabs prefabs;
@@ -44,8 +45,9 @@ namespace Architome
         void GetDependencies()
         {
             modifications = DifficultyModifications.active;
-            ArchGeneric.CopyClassValue(modifications.settings, current);
-            ArchGeneric.CopyClassValue(current, temp);
+            SetSet(modifications.settings);
+            
+
         }
 
         void UpdateSetSelector()
@@ -55,6 +57,7 @@ namespace Architome
             if (dropDown == null) return;
 
             var options = new List<TMP_Dropdown.OptionData>();
+            dropDown.onValueChanged.RemoveAllListeners();
 
             foreach(var set in modifications.difficultySets)
             {
@@ -63,6 +66,10 @@ namespace Architome
 
             dropDown.options = options;
 
+            dropDown.onValueChanged.AddListener((int index) => {
+                SetSet(modifications.difficultySets[index]);
+                UpdateFields();
+            });
         }
 
         void ResetFields()
@@ -81,7 +88,17 @@ namespace Architome
         public void SaveFields()
         {
             ArchGeneric.CopyClassValue(current, temp);
+            ArchGeneric.CopyClassValue(current, modifications.DifficultySet(current.name, true));
+
+            UpdateSetSelector();
         }
+
+        public void SetSet(DifficultySet set)
+        {
+            ArchGeneric.CopyClassValue(set, current);
+            ArchGeneric.CopyClassValue(current, temp);
+        }
+
 
         void UpdateFields()
         {

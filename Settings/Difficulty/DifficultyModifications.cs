@@ -57,6 +57,22 @@ namespace Architome
             return difficultyDict[type];
         }
 
+        public DifficultySet DifficultySet(string alias, bool createNewIfNull)
+        {
+            foreach(var set in difficultySets)
+            {
+                if (set.name.Equals(alias)) return set;
+            }
+
+            if (!createNewIfNull) return null;
+
+            var newSet = new DifficultySet() { name = alias };
+
+            difficultySets.Add(newSet);
+
+            return newSet;
+        }
+
         public void OnValidate()
         {
             if (startUpdate)
