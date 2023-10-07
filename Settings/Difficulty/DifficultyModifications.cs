@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using Architome.Enums;
+using JetBrains.Annotations;
 
 namespace Architome
 {
@@ -45,6 +46,8 @@ namespace Architome
             {
                 gameDifficulty = Core.currentSave.gameSettings.difficulty;
             }
+
+            difficultySets = SerializedSets.GetSavedSets(difficultySets).difficultySets;
 
             DetermineSettings();
         }
@@ -101,6 +104,34 @@ namespace Architome
 
 
     }
+
+    [Serializable]
+    public class SerializedSets 
+    {
+        public List<DifficultySet> difficultySets;
+
+
+        static string fileName => "DifficultySets";
+        public static SerializedSets GetSavedSets(List<DifficultySet> defaultSets)
+        {
+            var setData = (SerializedSets) SerializationManager.LoadConfig(fileName);
+            if(setData == null)
+            {
+                setData = new() { difficultySets = defaultSets };
+                SerializationManager.SaveConfig(fileName, setData);
+
+                Debugger.System(6195, $"Failed to locate saved difficulty set. Creating new one");
+            }
+
+            return setData;
+        }
+
+        public static void SaveSets(SerializedSets setToSave)
+        {
+            SerializationManager.SaveConfig(fileName, setToSave);
+        }
+    }
+
 
     [Serializable]
     public class DifficultySet
