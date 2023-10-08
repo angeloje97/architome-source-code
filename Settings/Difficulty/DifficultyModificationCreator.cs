@@ -15,6 +15,9 @@ namespace Architome
         DifficultySet current;
         DifficultySet temp;
 
+        bool createdFields;
+
+        Action onUpdateFields;
 
         struct Prefabs
         {
@@ -33,7 +36,6 @@ namespace Architome
         Prefabs prefabs;
         Components components;
 
-        List<GameObject> fieldObjects;
 
         private void Start()
         {
@@ -74,14 +76,6 @@ namespace Architome
 
         void ResetFields()
         {
-            fieldObjects ??= new();
-            
-            foreach(var fieldObj in fieldObjects)
-            {
-                Destroy(fieldObj);
-            }
-
-            fieldObjects = new();
             ArchGeneric.CopyClassValue(current, temp);
         }
 
@@ -104,19 +98,26 @@ namespace Architome
         {
             if (modifications == null) return;
             if (components.inputParent == null) return;
+
             ResetFields();
 
             var tempType = temp.GetType();
             var fields = tempType.GetFields();
 
 
-            foreach(var field in fields)
+            if (!createdFields)
             {
-                var value = field.GetValue(temp);
-                HandleEnum(value, field);
-                HandleBool(value, field);
-                HandleFloat(value, field);
+                foreach(var field in fields)
+                {
+                    var value = field.GetValue(temp);
+                    HandleEnum(value, field);
+                    HandleBool(value, field);
+                    HandleFloat(value, field);
+                }
+                createdFields = true;
             }
+
+            onUpdateFields?.Invoke();
 
 
             void HandleEnum(object value, FieldInfo field)
@@ -126,11 +127,18 @@ namespace Architome
 
                 var dropDown = Instantiate(prefabs.enumDropDown, components.inputParent);
 
-                fieldObjects.Add(dropDown.gameObject);
+                var enums = Enum.GetValues(enumVal.GetType());
 
-                ArchUI.SetDropDown((Enum newValue) => {
+
+                var setDropDown = ArchUI.SetDropDown((Enum newValue) => {
                     field.SetValue(temp, newValue);
                 }, dropDown, enumVal);
+
+                onUpdateFields += () => {
+                    var updatedValue = (Enum) field.GetValue(temp);
+                    setDropDown(updatedValue);
+                };
+
             }
 
             void HandleBool(object value, FieldInfo field)
@@ -139,7 +147,6 @@ namespace Architome
                 var boolVal = (bool)value;
 
                 var toggle = Instantiate(prefabs.toggle, components.inputParent);
-                fieldObjects.Add(toggle.gameObject);
 
                 ArchUI.SetToggle((bool newValue) => {
                     field.SetValue(temp, newValue);

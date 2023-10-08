@@ -58,7 +58,7 @@ namespace Architome
 
         #region DropDown
 
-        public static void SetDropDown<E>(Action<E> action, TMP_Dropdown dropDown, E defaultValue) where E : Enum
+        public static Action<E> SetDropDown<E>(Action<E> action, TMP_Dropdown dropDown, E defaultValue) where E : Enum
         {
             var enums = Enum.GetValues(typeof(E));
             var options = new List<TMP_Dropdown.OptionData>();
@@ -85,38 +85,29 @@ namespace Architome
             dropDown.onValueChanged.AddListener((int newValue) => {
                 action((E)enums.GetValue(newValue));
             });
-        }
 
-        public static void SetDropDown<E>(TMP_Dropdown dropDown, E defaultValue) where E: Enum
-        {
-            var enums = Enum.GetValues(typeof(E));
-            var options = new List<TMP_Dropdown.OptionData>();
-            dropDown.ClearOptions();
-
-            var index = 0;
-            var defaultIndex = 0;
-
-            foreach(E value in enums)
-            {
-                if (defaultValue.Equals(value))
+            
+            return (E updatedValue) => {
+                index = 0;
+                
+                foreach(E value in enums)
                 {
-                    defaultIndex = index;
+                    if (updatedValue.Equals(value))
+                    {
+                        dropDown.SetValueWithoutNotify(index);
+                    }
+
+                    index++;
                 }
-
-                options.Add(new()
-                {
-                    text = EnumString.GetValue(value)
-                });
-                index++;
-            }
-
-            dropDown.options = options;
-            dropDown.value = defaultIndex;
+            };
         }
 
-        
+        public static Action<E> SetDropDown<E>(TMP_Dropdown dropDown, E defaultValue) where E: Enum
+        {
+            return SetDropDown((E ignore) => { }, dropDown, defaultValue);
+        }
 
-        public static void SetDropDownData<C>(Action<FieldInfo> onChange, TMP_Dropdown dropDown, int defaultOption = 0)
+        public static Action<FieldInfo> SetDropDownData<C>(Action<FieldInfo> onChange, TMP_Dropdown dropDown, int defaultOption = 0)
         {
             var fields = typeof(C).GetFields();
 
@@ -134,21 +125,23 @@ namespace Architome
             dropDown.onValueChanged.AddListener((int newIndex) => {
                 onChange(fields[newIndex]);
             });
+
+            return (FieldInfo info) => {
+                var index = 0;
+                foreach(var field in fields)
+                {
+                    if(info == field)
+                    {
+                        dropDown.SetValueWithoutNotify(index);
+                    }
+                    index++;
+                }
+            };
         }
 
-        public static void SetDropDownData<C>(TMP_Dropdown dropDown, int defaultOption = 0)
+        public static Action<FieldInfo> SetDropDownData<C>(TMP_Dropdown dropDown, int defaultOption = 0)
         {
-            var fields = typeof(C).GetFields();
-
-            var options = new List<TMP_Dropdown.OptionData>();
-
-            foreach (var field in fields)
-            {
-                options.Add(new() { text = ArchString.CamelToTitle(field.Name) });
-            }
-
-            dropDown.options = options;
-            dropDown.value = defaultOption;
+            return SetDropDownData<C>((FieldInfo ignore) => { }, dropDown, defaultOption);
         }
         #endregion
 
