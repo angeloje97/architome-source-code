@@ -151,6 +151,10 @@ namespace Architome
                 ArchUI.SetToggle((bool newValue) => {
                     field.SetValue(temp, newValue);
                 }, toggle, (bool)value);
+
+                onUpdateFields += () => {
+                    toggle.SetIsOnWithoutNotify((bool)field.GetValue(temp));
+                };
             }
 
             void HandleFloat(object value, FieldInfo field)
@@ -163,6 +167,10 @@ namespace Architome
                 ArchUI.SetInputField((string newValue) => {
                     field.SetValue(temp, (float) Convert.ToDouble(newValue));
                 }, floatInput, value.ToString(), "%[0-9]%");
+
+                onUpdateFields += () => {
+                    floatInput.SetTextWithoutNotify(field.GetValue(temp).ToString());
+                };
             }
         }
     }
