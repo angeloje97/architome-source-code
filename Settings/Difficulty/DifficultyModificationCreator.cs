@@ -113,6 +113,7 @@ namespace Architome
                     HandleEnum(value, field);
                     HandleBool(value, field);
                     HandleFloat(value, field);
+                    HandleString(value, field);
                 }
                 createdFields = true;
             }
@@ -170,6 +171,22 @@ namespace Architome
 
                 onUpdateFields += () => {
                     floatInput.SetTextWithoutNotify(field.GetValue(temp).ToString());
+                };
+            }
+
+            void HandleString(object value, FieldInfo field)
+            {
+                if (value is not string) return;
+                var stringVal = (string)value;
+
+                var stringInput = Instantiate(prefabs.stringInput, components.inputParent);
+
+                ArchUI.SetInputField((string newString) => {
+                    field.SetValue(temp, newString);
+                }, stringInput, stringVal);
+
+                onUpdateFields += () => {
+                    stringInput.SetTextWithoutNotify(field.GetValue(temp).ToString());
                 };
             }
         }
