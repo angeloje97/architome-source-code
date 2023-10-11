@@ -1,4 +1,5 @@
 using Architome.Enums;
+using Architome.Settings;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ using UnityEngine.UI;
 
 namespace Architome
 {
-    public class DifficultyModificationCreator : MonoBehaviour
+    public class DifficultyModificationCreator : ArchSettings
     {
         DifficultyModifications modifications;
         DifficultySet current;
@@ -17,7 +18,7 @@ namespace Architome
 
         bool createdFields;
 
-        Action onUpdateFields;
+        public Action onUpdateFields;
 
         struct Prefabs
         {
@@ -42,6 +43,7 @@ namespace Architome
             GetDependencies();
             UpdateSetSelector();
             UpdateFields();
+            HandleDirtyConflicts();
         }
 
         void GetDependencies()
@@ -76,14 +78,14 @@ namespace Architome
 
         void ResetFields()
         {
-            ArchGeneric.CopyClassValue(current, temp);
+            SetSet(current);
+
         }
 
         public void SaveFields()
         {
-            ArchGeneric.CopyClassValue(current, temp);
+            SetSet(temp);
             ArchGeneric.CopyClassValue(current, modifications.DifficultySet(current.name, true));
-
             UpdateSetSelector();
         }
 
@@ -91,6 +93,8 @@ namespace Architome
         {
             ArchGeneric.CopyClassValue(set, current);
             ArchGeneric.CopyClassValue(current, temp);
+            onUpdateFields?.Invoke();
+            SetDirty(false);
         }
 
 
@@ -133,6 +137,7 @@ namespace Architome
 
                 var setDropDown = ArchUI.SetDropDown((Enum newValue) => {
                     field.SetValue(temp, newValue);
+                    SetDirty(true);
                 }, dropDown, enumVal);
 
                 onUpdateFields += () => {
@@ -151,6 +156,8 @@ namespace Architome
 
                 ArchUI.SetToggle((bool newValue) => {
                     field.SetValue(temp, newValue);
+                    SetDirty(true);
+
                 }, toggle, (bool)value);
 
                 onUpdateFields += () => {
@@ -167,6 +174,8 @@ namespace Architome
 
                 ArchUI.SetInputField((string newValue) => {
                     field.SetValue(temp, (float) Convert.ToDouble(newValue));
+                    SetDirty(true);
+
                 }, floatInput, value.ToString(), "%[0-9]%");
 
                 onUpdateFields += () => {
@@ -183,6 +192,8 @@ namespace Architome
 
                 ArchUI.SetInputField((string newString) => {
                     field.SetValue(temp, newString);
+                    SetDirty(true);
+
                 }, stringInput, stringVal);
 
                 onUpdateFields += () => {
@@ -190,5 +201,16 @@ namespace Architome
                 };
             }
         }
+
+        void SetDirty(bool newValue)
+        {
+            dirty = newValue;
+        }
+
+        #region ArchSettings Functions
+        public override void HandleChooseApply() => SaveFields();
+        public override void HandleLeaveDirty() => ResetFields();
+
+        #endregion
     }
 }

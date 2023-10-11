@@ -67,7 +67,7 @@ namespace Architome
                 if (set.name.Equals(alias)) return set;
             }
 
-            if (!createNewIfNull) return null;
+            if (!createNewIfNull) return new();
 
             var newSet = new DifficultySet() { name = alias };
 
@@ -109,9 +109,9 @@ namespace Architome
     public class SerializedSets 
     {
         public List<DifficultySet> difficultySets;
-
-
         static string fileName => "DifficultySets";
+
+
         public static SerializedSets GetSavedSets(List<DifficultySet> defaultSets)
         {
             var setData = (SerializedSets) SerializationManager.LoadConfig(fileName);
