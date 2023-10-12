@@ -102,6 +102,7 @@ namespace Architome
                 await Task.Yield();
             }
         }
+
         public static async void UpdateFor(Action action, float seconds)
         {
 

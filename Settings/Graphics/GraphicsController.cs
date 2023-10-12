@@ -206,7 +206,6 @@ namespace Architome.Settings
 
         public override void HandleChooseApply()
         {
-            base.HandleChooseApply();
             Apply();
         }
 

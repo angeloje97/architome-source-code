@@ -456,6 +456,17 @@ namespace Architome
             }
         }
 
+        public static async Task UpdateComponent(Action<float> action, Component component)
+        {
+            await UpdateAction((float deltaTime) => {
+                if (component == null) return false;
+
+                action(deltaTime);
+
+                return true;
+            });
+        }
+
 
         public static async Task UntilMatch(Predicate<object> focus, bool target)
         {

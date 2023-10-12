@@ -12,6 +12,7 @@ namespace Architome
 {
     public class DifficultyModificationCreator : ArchSettings
     {
+        [Header("Difficulty Modification Properties")]
         DifficultyModifications modifications;
         DifficultySet current;
         DifficultySet temp;
@@ -31,7 +32,7 @@ namespace Architome
         {
             public Transform inputParent;
             public TMP_Dropdown setSelector;
-
+            public Button saveButton;
         }
 
         Prefabs prefabs;
@@ -44,6 +45,8 @@ namespace Architome
             UpdateSetSelector();
             UpdateFields();
             HandleDirtyConflicts();
+
+            HandleDirtyChange((bool isDirty) => components.saveButton.interactable = isDirty );
         }
 
         void GetDependencies()

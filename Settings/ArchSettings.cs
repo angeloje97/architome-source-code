@@ -22,9 +22,10 @@ namespace Architome.Settings
         {
             if (reactiveNavBars != null)
             {
-                foreach(var navBar in reactiveNavBars)
+                foreach (var navBar in reactiveNavBars)
                 {
-                    navBar.OnCanNavigateChange += (NavBar navBar, List<bool> checks) => {
+                    navBar.OnCanNavigateChange += (NavBar navBar, List<bool> checks) =>
+                    {
                         HandleDirty(navBar, checks);
                     };
                 }
@@ -60,6 +61,16 @@ namespace Architome.Settings
 
         }
 
+        protected void HandleDirtyChange(Action<bool> onDirtyChange)
+        {
+            var original = dirty;
+
+            _= World.UpdateComponent((float deltaTime) => {
+                if (original == dirty) return;
+                original = dirty;
+                onDirtyChange?.Invoke(dirty);
+            }, this);
+        }
         void HandleBeforeConfirmLoad(ArchSceneManager sceneManager)
         {
             if (!dirty) return;
@@ -138,8 +149,6 @@ namespace Architome.Settings
 
             var confirmLeave = await ConfirmLeave("Nav Bar");
 
-            
-
             if (!confirmLeave)
             {
                 checks.Add(false);
@@ -153,8 +162,6 @@ namespace Architome.Settings
         {
 
         }
-
-
         public virtual PromptInfoData PromptData()
         {
             chosenApply = false;
@@ -176,11 +183,14 @@ namespace Architome.Settings
                 blocksScreen = true,
             };
         }
-
         public virtual void HandleChooseApply()
         {
 
         }
 
+        public virtual void OnDirtyChange(bool dirty)
+        {
+
+        }
     }
 }
