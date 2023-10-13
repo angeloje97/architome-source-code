@@ -46,7 +46,11 @@ namespace Architome
             UpdateFields();
             HandleDirtyConflicts();
 
-            HandleDirtyChange((bool isDirty) => components.saveButton.interactable = isDirty );
+            if (components.saveButton)
+            {
+                HandleDirtyChange((bool isDirty) => components.saveButton.interactable = isDirty );
+            }
+
         }
 
         void GetDependencies()
@@ -75,7 +79,6 @@ namespace Architome
 
             dropDown.onValueChanged.AddListener((int index) => {
                 SetSet(modifications.difficultySets[index]);
-                UpdateFields();
             });
         }
 
@@ -124,8 +127,6 @@ namespace Architome
                 }
                 createdFields = true;
             }
-
-            onUpdateFields?.Invoke();
 
 
             void HandleEnum(object value, FieldInfo field)

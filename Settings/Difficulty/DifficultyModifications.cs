@@ -15,7 +15,8 @@ namespace Architome
         [SerializeField]
         private bool startUpdate;
         public List<DifficultySet> difficultySets;
-        public Dictionary<Difficulty, DifficultySet> difficultyDict;
+        public Dictionary<Difficulty, DifficultySet> difficultyDict { get; set; }
+        public Dictionary<string, DifficultySet> difficultyDictString { get; set; }
         public DifficultySet settings { get; private set; }
         
 
@@ -30,11 +31,19 @@ namespace Architome
         void UpdateDictionary()
         {
             difficultyDict = new();
-            foreach(var difficultySet in difficultySets)
-            {
-                if (difficultyDict.ContainsKey(difficultySet.difficulty)) continue;
+            difficultyDictString = new();
 
-                difficultyDict.Add(difficultySet.difficulty, difficultySet);
+            foreach (var set in difficultySets)
+            {
+                if (!difficultyDictString.ContainsKey(set.name))
+                {
+                    difficultyDictString.Add(set.name, set);
+                }
+
+                if (!difficultyDict.ContainsKey(set.difficulty))
+                {
+                    difficultyDict.Add(set.difficulty, set);
+                }
             }
         }
 
@@ -48,6 +57,8 @@ namespace Architome
             }
 
             difficultySets = SerializedSets.GetSavedSets(difficultySets).difficultySets;
+
+            
 
             DetermineSettings();
         }
