@@ -92,6 +92,7 @@ namespace Architome
         {
             SetSet(temp);
             ArchGeneric.CopyClassValue(current, modifications.DifficultySet(current.name, true));
+            modifications.SaveCurrentSet();
             UpdateSetSelector();
         }
 
