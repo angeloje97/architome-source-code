@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
@@ -11,9 +12,11 @@ namespace Architome
     [RequireComponent(typeof(CanvasGroup))]
     public class CanvasController : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
+        public static List<CanvasController> activeCanvases;
+
+
         CanvasGroup canvasGroup;
-        public bool isActive;
-        
+        public bool isActive { get; set; }
 
         public bool interactable = true;
         public bool blocksRaycast = true;
@@ -26,6 +29,7 @@ namespace Architome
 
         public Action<CanvasController> OnCanCloseCheck;
         public Action<CanvasController> OnCanOpenCheck;
+        public Action<bool> OnCanvasChange;
 
         public UnityEvent<bool> OnMouseOverChange;
         public List<bool> checks { get; private set; }
@@ -49,8 +53,14 @@ namespace Architome
                 isActive = false;
                 UpdateCanvasGroup();
             }
+
+            HandleActiveChange();
         }
 
+        void Awake()
+        {
+            activeCanvases ??= new();
+        }
         private void Update()
         {
             OnEscape();
@@ -59,6 +69,8 @@ namespace Architome
 
         void HandleEvents()
         {
+
+
             if (!isActive) return;
 
             if(mouseOver != mouseOverCheck)
@@ -68,14 +80,42 @@ namespace Architome
 
             }
         }
+
+        async void HandleActiveChange()
+        {
+            bool currentActive = false;
+            while (this)
+            {
+                await Task.Yield();
+                if(currentActive != isActive)
+                {
+                    currentActive = isActive;
+                    HandleCanvasStack();
+
+                }
+            }
+
+            void HandleCanvasStack()
+            {
+                if(isActive && !activeCanvases.Contains(this))
+                {
+                    activeCanvases.Add(this);
+                }
+
+                else if(isActive && activeCanvases.Contains(this))
+                {
+                    activeCanvases.Remove(this);
+                }
+                
+            }
+        }
+
         void OnEscape()
         {
             if (!selfEscape) return;
             if (!isActive) return;
             if (!Input.GetKeyUp(KeyCode.Escape)) return;
             SetCanvas(false);
-
-
         }
 
         void GetDepdendencies()
@@ -200,7 +240,5 @@ namespace Architome
                 }
             }
         }
-
-
     }
 }
