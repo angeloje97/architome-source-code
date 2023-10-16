@@ -12,7 +12,34 @@ namespace Architome
     [RequireComponent(typeof(CanvasGroup))]
     public class CanvasController : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
+
+        #region Static Properties
         public static List<CanvasController> activeCanvases;
+
+        static bool staticEscape;
+
+        static async void HandleActiveCanvasesEscape()
+        {
+            if (staticEscape) return;
+            staticEscape = true;
+
+            var size = activeCanvases.Count;
+
+            if(size != 0)
+            {
+                var top = activeCanvases[size - 1];
+
+                top.SetCanvas(false);
+            }
+
+
+            await Task.Delay(125);
+
+            staticEscape = false;
+        }
+
+        #endregion
+
 
 
         CanvasGroup canvasGroup;
@@ -83,6 +110,7 @@ namespace Architome
 
         async void HandleActiveChange()
         {
+            if (!selfEscape) return;
             bool currentActive = false;
             while (this)
             {
@@ -115,8 +143,12 @@ namespace Architome
             if (!selfEscape) return;
             if (!isActive) return;
             if (!Input.GetKeyUp(KeyCode.Escape)) return;
-            SetCanvas(false);
+            HandleActiveCanvasesEscape();
         }
+
+        
+
+
 
         void GetDepdendencies()
         {
