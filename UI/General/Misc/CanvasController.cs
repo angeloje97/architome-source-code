@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
+using UnityEngine.WSA;
 
 namespace Architome
 {
     [RequireComponent(typeof(CanvasGroup))]
-    public class CanvasController : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+    public class CanvasController : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
     {
 
         #region Static Properties
@@ -146,10 +147,6 @@ namespace Architome
             HandleActiveCanvasesEscape();
         }
 
-        
-
-
-
         void GetDepdendencies()
         {
             canvasGroup = GetComponent<CanvasGroup>();
@@ -220,15 +217,73 @@ namespace Architome
             return true;
         }
 
+        #region PointerEvents
+        
+
         public void OnPointerEnter(PointerEventData eventData)
         {
             mouseOver = true;
+        }
+
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            if (activeCanvases.Count <= 0) return;
+            int target = 0;
+            float maxZ = 0;
+            bool foundTarget = false;
+            for(int i = 0; i < activeCanvases.Count; i++)
+            {
+                var current = activeCanvases[i];
+
+                var rectTransform = current.GetComponent<RectTransform>();
+                var position = rectTransform.position;
+                if(maxZ <= 0)
+                {
+                    maxZ = position.z;
+                }
+                else
+                {
+                    maxZ += 1;
+                    rectTransform.position = new Vector3(position.x, position.y, maxZ);
+
+                }
+
+                if (current == this)
+                {
+                    target = i;
+                    foundTarget = true;
+                }
+            }
+
+            if (foundTarget)
+            {
+                var lastPos = activeCanvases.Count - 1;
+                var last = activeCanvases[lastPos];
+                var targetCanvas = activeCanvases[target];                
+
+                var temp = activeCanvases[lastPos];
+                activeCanvases[lastPos] = activeCanvases[target];
+                activeCanvases[target] = temp;
+
+                var pos1 = targetCanvas.transform.position;
+                var pos2 = last.transform.position; 
+
+                last.transform.position = new(pos2.x, pos2.y, pos1.z);
+                targetCanvas.transform.position = new (pos1.x, pos1.y, pos2.z);
+
+
+                activeCanvases.Add(this);
+            }
+
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
             mouseOver = false;
         }
+
+        #endregion
+
 
         public void ToggleCanvas()
         {
@@ -272,5 +327,7 @@ namespace Architome
                 }
             }
         }
+
+        
     }
 }
