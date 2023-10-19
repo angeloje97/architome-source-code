@@ -15,9 +15,11 @@ namespace Architome
     {
 
         #region Static Properties
-        public static List<CanvasController> activeCanvases;
+        static LRUCache<CanvasController> activeCanvases;
 
         static bool staticEscape;
+
+        static float lowestZ;
 
         static async void HandleActiveCanvasesEscape()
         {
@@ -28,7 +30,7 @@ namespace Architome
 
             if(size != 0)
             {
-                var top = activeCanvases[size - 1];
+                var top = activeCanvases.Last;
 
                 top.SetCanvas(false);
             }
@@ -87,7 +89,7 @@ namespace Architome
 
         void Awake()
         {
-            activeCanvases ??= new();
+            activeCanvases ??= new(-1);
         }
         private void Update()
         {
@@ -126,15 +128,15 @@ namespace Architome
 
             void HandleCanvasStack()
             {
-                if(isActive && !activeCanvases.Contains(this))
+                if(isActive)
                 {
-                    activeCanvases.Add(this);
+                    activeCanvases.Put(this);
                 }
-
-                else if(isActive && activeCanvases.Contains(this))
+                else
                 {
                     activeCanvases.Remove(this);
                 }
+
                 
             }
         }
@@ -228,52 +230,27 @@ namespace Architome
         public void OnPointerDown(PointerEventData eventData)
         {
             if (activeCanvases.Count <= 0) return;
-            int target = 0;
-            float maxZ = 0;
-            bool foundTarget = false;
-            for(int i = 0; i < activeCanvases.Count; i++)
-            {
-                var current = activeCanvases[i];
 
+            float maxZ = lowestZ;
+
+            activeCanvases.Put(this);
+
+            foreach (var current in activeCanvases)
+            {
                 var rectTransform = current.GetComponent<RectTransform>();
+                if(rectTransform.position.z < lowestZ)
+                {
+                    lowestZ = rectTransform.position.z;
+                }
                 var position = rectTransform.position;
-                if(maxZ <= 0)
-                {
-                    maxZ = position.z;
-                }
-                else
-                {
-                    maxZ += 1;
-                    rectTransform.position = new Vector3(position.x, position.y, maxZ);
+                
+                rectTransform.position = new Vector3(position.x, position.y, maxZ);
+                maxZ += 1;
 
-                }
 
-                if (current == this)
-                {
-                    target = i;
-                    foundTarget = true;
-                }
             }
 
-            if (foundTarget)
-            {
-                var lastPos = activeCanvases.Count - 1;
-                var last = activeCanvases[lastPos];
-                var targetCanvas = activeCanvases[target];                
-
-                var temp = activeCanvases[lastPos];
-                activeCanvases[lastPos] = activeCanvases[target];
-                activeCanvases[target] = temp;
-
-                var pos1 = targetCanvas.transform.position;
-                var pos2 = last.transform.position; 
-
-                last.transform.position = new(pos2.x, pos2.y, pos1.z);
-                targetCanvas.transform.position = new (pos1.x, pos1.y, pos2.z);
-
-
-                activeCanvases.Add(this);
-            }
+            
 
         }
 
