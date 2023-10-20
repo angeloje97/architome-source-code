@@ -35,15 +35,12 @@ namespace Architome
             }
         }
 
-        public T Pop(T defaultValue)
+        public T Pop()
         {
-            if(list.Count > 0)
-            {
-                var last = list.Last.Value;
-                list.RemoveLast();
-                return last;
-            }
-            return defaultValue;
+
+            var last = list.Last.Value;
+            list.RemoveLast();
+            return last;
         }
 
         public bool Contains(T item)

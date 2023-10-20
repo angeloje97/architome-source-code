@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
-using UnityEngine.WSA;
 
 namespace Architome
 {
@@ -28,11 +27,9 @@ namespace Architome
 
             var size = activeCanvases.Count;
 
-            if(size != 0)
+            if(size > 0)
             {
-                var top = activeCanvases.Last;
-
-                top.SetCanvas(false);
+                activeCanvases.Pop().SetCanvas(false);
             }
 
 
