@@ -50,42 +50,37 @@ namespace Architome
 
         public static void InConsole(int id, string sentence)
         {
-            if (!logDict[ALogType.General]) return;
-            Debug.Log($"{id}: {sentence}");
-            
+            Log(id, sentence, ALogType.General);
         }
 
         public static void Combat(int id, string sentence)
         {
-            if (!logDict[ALogType.Combat]) return;
-            Debug.Log($"Combat {id}: {sentence}");
+            Log(id, sentence, ALogType.Combat);
         }
 
         public static void Environment(int id, string sentence)
         {
-            if (!logDict[ALogType.Environment]) return;
-            Debug.Log($"Environment {id}: {sentence}");
+            Log(id, sentence, ALogType.Environment);
         }
 
         public static void UI(int id, string sentence)
         {
-            if (!logDict[ALogType.UI]) return;
-
-            Debug.Log($"UI: {id} : {sentence}");
+            Log(id, sentence, ALogType.UI);
         }
     
         public static void Social(int id, string sentence)
         {
-            if (!logDict[ALogType.Social]) return;
-            Debug.Log($"Social: {id} : {sentence}");
+            Log(id, sentence, ALogType.Social);
         }
 
 
         public static void System(int id, string sentence)
         {
-            if (!logDict[ALogType.System]) return;
-
-            Debug.Log($"System: {id} : {sentence}");
+            Log(id, sentence, ALogType.System);
+        }
+        public static void OutSource(int id, string sentence)
+        {
+            Log(id, sentence, ALogType.OutSource);
         }
 
         public static void System(Action action)
@@ -93,6 +88,7 @@ namespace Architome
             if (!logDict[ALogType.System]) return;
             action();
         }
+
 
         public static void Error(int id, string sentence)
         {
@@ -106,11 +102,14 @@ namespace Architome
             action();
         }
 
-        public static void OutSource(int id, string sentence)
+        
+
+        static void Log(int id, string sentence, ALogType type)
         {
-            if (!logDict[ALogType.OutSource]) return;
-            Debug.Log($"OutSource: {id} : {sentence}");
+            if (!logDict[type]) return;
+            Debug.Log($"[{type}]({id}): {sentence}");
         }
+
 
     }
 
