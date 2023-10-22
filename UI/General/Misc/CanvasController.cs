@@ -61,9 +61,7 @@ namespace Architome
         public UnityEvent<bool> OnMouseOverChange;
         public List<bool> checks { get; private set; }
         public bool haltChange { get; set; }
-
         public bool mouseOver;
-
         bool mouseOverCheck;
 
         private void OnValidate()
@@ -83,7 +81,6 @@ namespace Architome
 
             HandleActiveChange();
         }
-
         void Awake()
         {
             activeCanvases ??= new(-1);
@@ -93,11 +90,8 @@ namespace Architome
             OnEscape();
             HandleEvents();
         }
-
         void HandleEvents()
         {
-
-
             if (!isActive) return;
 
             if(mouseOver != mouseOverCheck)
@@ -244,11 +238,7 @@ namespace Architome
                 rectTransform.position = new Vector3(position.x, position.y, maxZ);
                 maxZ += 1;
 
-
             }
-
-            
-
         }
 
         public void OnPointerExit(PointerEventData eventData)

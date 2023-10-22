@@ -57,8 +57,6 @@ namespace Architome
         {
             modifications = DifficultyModifications.active;
             SetSet(modifications.settings);
-            
-
         }
 
         void UpdateSetSelector()
