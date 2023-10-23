@@ -145,6 +145,7 @@ namespace Architome
         [Header("Hold to Cast Properties")]
         public float holdToCastValue;
 
+        //These are depricated ways of handling movements.
         [Header("Movement Casting Properties")]
         public bool cancelCastIfMoved;
         public bool cantMoveWhenCasting;
@@ -1537,7 +1538,7 @@ namespace Architome
                 progress = 0;
                 var progressMileStone = .25f;
 
-
+                await HandleTasksBeforeCasting();
                 BeginCast();
 
                 while (timer > 0)
@@ -1589,6 +1590,17 @@ namespace Architome
                     timerPercentActivated = false;
                     abilityEvents.OnCastStart?.Invoke(this);
                     OnCastStart?.Invoke(this);
+                }
+
+                async Task HandleTasksBeforeCasting()
+                {
+                    List<Func<Task>> tasksBeforeCasting = new();
+                    abilityEvents.BeforeCastStart?.Invoke(this, tasksBeforeCasting);
+
+                    foreach(var task in tasksBeforeCasting)
+                    {
+                        await task();
+                    }
                 }
 
                 void EndCasting()

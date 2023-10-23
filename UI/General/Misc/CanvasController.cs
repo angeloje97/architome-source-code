@@ -125,10 +125,11 @@ namespace Architome
                 }
                 else
                 {
-                    activeCanvases.Remove(this);
+                    if (activeCanvases.Contains(this))
+                    {
+                        activeCanvases.Remove(this);
+                    }
                 }
-
-                
             }
         }
 
@@ -178,8 +179,6 @@ namespace Architome
                 }
             }
         }
-
-
         bool CanOpen()
         {
             if (haltChange) return false;
@@ -247,8 +246,6 @@ namespace Architome
         }
 
         #endregion
-
-
         public void ToggleCanvas()
         {
             if (isActive && !CanClose()) return;

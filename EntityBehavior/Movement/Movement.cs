@@ -235,14 +235,16 @@ namespace Architome
             
             StopMoving(true);
         }
+
+
+        readonly HashSet<EntityState> immobilizedStates = new HashSet<EntityState>() {
+            EntityState.Stunned,
+            EntityState.Immobalized
+        };
+
         public void OnStatesChange(List<EntityState> previous, List<EntityState> states)
         {
             if (!entityInfo.isAlive) { return; }
-            var immobilizedStates = new List<EntityState>()
-            {
-                EntityState.Stunned,
-                EntityState.Immobalized
-            };
 
             var intersection = states.Intersect(immobilizedStates).ToList();
 
@@ -257,7 +259,11 @@ namespace Architome
         public async void SetValues(bool val, float timer = 0f)
         {
             await Task.Delay((int)(timer * 1000));
-            StopMoving();
+            if (!val)
+            {
+                StopMoving();
+
+            }
             canMove = val;
             destinationSetter.enabled = val;
             path.enabled = val;
@@ -482,8 +488,6 @@ namespace Architome
 
 
         }
-
-
         public void TriggerEvents()
         {
             hasArrivedCheck = !hasArrived;

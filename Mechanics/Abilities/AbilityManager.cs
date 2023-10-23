@@ -56,6 +56,7 @@ namespace Architome
 
         public class Events
         {
+            public Action<AbilityInfo, List<Func<Task>>> BeforeCastStart;
             public Action<AbilityInfo> OnCastStart;
             public Action<AbilityInfo> OnCastEnd;
             public Action<AbilityInfo> OnCastReleasePercent { get; set; }
