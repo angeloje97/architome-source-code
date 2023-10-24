@@ -3,6 +3,7 @@ using UnityEngine;
 using System;
 using System.Threading.Tasks;
 using Architome.Enums;
+using System.Collections.Generic;
 
 namespace Architome
 {
@@ -46,6 +47,11 @@ namespace Architome
                     EnableAbilityChanneling();
                 }
             });
+
+            HandleCancelOnMove();
+
+            //Handle CancelMove;
+            
         }
         protected override string Description()
         {
@@ -69,6 +75,15 @@ namespace Architome
 
             return description;
         }
+
+        void HandleCancelOnMove()
+        {
+
+            EnableAbilityBeforeCast(async (AbilityInfo ability, List<Func<Task>> tasks) => {
+                
+            });
+        }
+
         public async void HandleMovement(AbilityInfo ability, Func<Task> endActivation, Action escapeCallBack = null)
         {
             if (entityMovement == null) return;
@@ -106,6 +121,7 @@ namespace Architome
             {
                 if (augmentMovementType != AugmentMovementType.CancelOnMove) return;
                 Debugger.Combat(1054, $"Starting augment movement cancel: {augment}");
+
                 await entityMovement.StopMovingAsync();
                 Debugger.Combat(1055, $"Stopped movement from: {augment}");
 
@@ -115,7 +131,6 @@ namespace Architome
                 {
                     if (entityMovement.isMoving)
                     {
-                        ability.CancelCast($"Moved while casting (From ({augment})");
                         escapeCallBack?.Invoke();
                         break;
                     }
@@ -127,14 +142,7 @@ namespace Architome
         public override void HandleAbility(AbilityInfo ability, bool start)
         {
             if (!start) return;
-            HandleMovement(ability, ability.EndActivation, () => {
-                ability.CancelCast($"Moved during casting from {this}");
-                var channelAugments = ability.GetComponentsInChildren<AugmentChannel>();
-                foreach(var channel in channelAugments)
-                {
-                    channel.CancelChannel();
-                }
-            });
+            HandleMovement(ability, ability.EndActivation, CancelAll);
         }
 
         protected override void HandleCastStart(AbilityInfo ability)
@@ -147,6 +155,16 @@ namespace Architome
         protected override void HandleChannelStart(AbilityInfo ability, AugmentChannel channel)
         {
             HandleMovement(ability, channel.EndChanneling, channel.CancelChannel);
+        }
+
+        void CancelAll()
+        {
+            ability.CancelCast($"Moved during casting from {this}");
+            var channelAugments = ability.GetComponentsInChildren<AugmentChannel>();
+            foreach (var channel in channelAugments)
+            {
+                channel.CancelChannel();
+            }
         }
 
     }

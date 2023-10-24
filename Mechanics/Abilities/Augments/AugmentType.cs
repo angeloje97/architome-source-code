@@ -159,6 +159,29 @@ namespace Architome
             }
         }
 
+        public void EnableAbilityBeforeCast(Action<AbilityInfo, List<Func<Task>>> action)
+        {
+            bool removedListener = false;
+            ability.BeforeCastStart += MiddleWare;
+            augment.OnRemove += (augment) => {
+                RemoveListener();
+            };
+
+            void RemoveListener()
+            {
+                if (removedListener) return;
+                removedListener = true;
+
+                ability.BeforeCastStart -= MiddleWare;
+            }
+
+            void MiddleWare(AbilityInfo ability, List<Func<Task>> tasks)
+            {
+                if (this == null) RemoveListener();
+                action(ability, tasks);
+            }
+        }
+
 
         protected void EnableTasks()
         {

@@ -219,6 +219,7 @@ namespace Architome
         public Action<AbilityInfo, EntityInfo, List<bool>> OnCanHarmCheck { get; set; }
         public Action<AbilityInfo, EntityInfo, List<bool>> OnCanHealCheck { get; set; }
         public Action<AbilityInfo, EntityInfo> OnCanCastAtCheck { get; set; }
+        public Action<AbilityInfo, List<Func<Task>>> BeforeCastStart;
         public Action<AbilityInfo> OnCastStart { get; set; }
         public Action<AbilityInfo> OnCastEnd { get; set; }
 
@@ -1596,7 +1597,7 @@ namespace Architome
                 {
                     List<Func<Task>> tasksBeforeCasting = new();
                     abilityEvents.BeforeCastStart?.Invoke(this, tasksBeforeCasting);
-
+                    BeforeCastStart?.Invoke(this, tasksBeforeCasting);
                     foreach(var task in tasksBeforeCasting)
                     {
                         await task();
