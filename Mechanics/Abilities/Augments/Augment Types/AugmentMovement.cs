@@ -60,18 +60,25 @@ namespace Architome
             if(augmentMovementType == AugmentMovementType.ChangeSpeed)
             {
                 var prefix = movementOffset < 0 ? "Decreases" : "Increases";
-                description = $"{prefix} movement speed by {movementOffset}%";
+                description = $"{prefix} movement speed by {movementOffset}% ";
             }
 
             if(augmentMovementType == AugmentMovementType.LockMovement)
             {
-                description = $"Prevents the caster from being able to move.";
+                description = $"Prevents the caster from being able to move ";
             }
 
             if(augmentMovementType == AugmentMovementType.CancelOnMove)
             {
-                description = $"Cancels ability if the caster movies";
+                description = $"Cancels ability if the caster moves ";
             }
+
+            description += phaseType switch
+            {
+                AbilityPhase.Channeling => " only while channeling.",
+                AbilityPhase.Casting => " only while casting.",
+                _ => " for the duration of the ability.",
+            };
 
             return description;
         }
