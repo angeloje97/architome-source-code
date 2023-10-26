@@ -55,23 +55,12 @@ namespace Architome
         }
         protected override string Description()
         {
-            var description = "";
-
-            if(augmentMovementType == AugmentMovementType.ChangeSpeed)
+            var description = augmentMovementType switch
             {
-                var prefix = movementOffset < 0 ? "Decreases" : "Increases";
-                description = $"{prefix} movement speed by {movementOffset}% ";
-            }
-
-            if(augmentMovementType == AugmentMovementType.LockMovement)
-            {
-                description = $"Prevents the caster from being able to move ";
-            }
-
-            if(augmentMovementType == AugmentMovementType.CancelOnMove)
-            {
-                description = $"Cancels ability if the caster moves ";
-            }
+                AugmentMovementType.LockMovement => "Prevents the caster from being able to move ",
+                 AugmentMovementType.CancelOnMove => "Cancels ability if the caster moves ",
+                _ => movementOffset < 0 ? "Decreases" : "Increases" + $" movement speed by {movementOffset}% ",
+            };
 
             description += phaseType switch
             {
