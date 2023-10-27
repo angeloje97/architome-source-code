@@ -30,7 +30,6 @@ namespace Architome
 
         async void Start()
         {
-
             await GetDependencies(() => {
                 entityMovement = augment.entity.Movement();
                 if (phaseType == AbilityPhase.Activating)

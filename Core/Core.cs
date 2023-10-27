@@ -6,13 +6,11 @@ using Architome.Enums;
 
 namespace Architome
 {
+
     public static class Core
     {
         public static SaveGame currentSave { get; private set; }
         public static GameState currentState { get; private set; }
-
-
-
 
 
         //Dungeon Properties
@@ -24,6 +22,8 @@ namespace Architome
 
         public static Action<GameState> OnSetState;
 
+        public static Action<SaveGame> OnSetSave;
+        
         
 
         public static void Reset()
@@ -42,6 +42,7 @@ namespace Architome
         {
             currentSave = save;
             currentSave.OnSetSave();
+            OnSetSave?.Invoke(currentSave);
         }
 
         public static void SaveCurrent()

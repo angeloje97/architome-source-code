@@ -8,7 +8,8 @@ namespace Architome
     public enum SaveEvent
     {
         OnSave,
-        BeforeSave
+        BeforeSave,
+        OnSetSave,
     }
     public class SaveSystem : MonoBehaviour
     {
@@ -30,7 +31,12 @@ namespace Architome
         private void Start()
         {
             currentSave = Core.currentSave;
-            
+            Core.OnSetSave += HandleSetSave;
+        }
+
+        private void OnDestroy()
+        {
+            Core.OnSetSave -= HandleSetSave;
         }
 
         public void AddListener<T>(SaveEvent trigger, Action<SaveSystem, SaveGame> action, T caller) where T: Component
@@ -40,16 +46,29 @@ namespace Architome
                 action(data.Item1, data.Item2);
             }, caller);
         }
+
+        public void Invoke(SaveEvent eventType, (SaveSystem, SaveGame) data)
+        {
+            events.Invoke(eventType, data);
+        }
+
+
+        void HandleSetSave(SaveGame newSave)
+        {
+            Invoke(SaveEvent.OnSetSave, (this, newSave));
+            currentSave = newSave;
+        }
+
         public void Save()
         {
             if (current == null) return;
 
 
-            events.Invoke(SaveEvent.BeforeSave, (this, current));
+            Invoke(SaveEvent.BeforeSave, (this, current));
 
             Core.SaveCurrent();
 
-            events.Invoke(SaveEvent.OnSave, (this, current));
+            Invoke(SaveEvent.OnSave, (this, current));
         }
         public void CompleteCurrentDungeon()
         {

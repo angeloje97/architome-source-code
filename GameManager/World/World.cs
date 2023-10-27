@@ -131,20 +131,9 @@ namespace Architome
 
         private void Awake()
         {
-            //if (active)
-            //{
-            //    foreach (var field in typeof(World).GetFields())
-            //    {
-            //        field.SetValue(this, field.GetValue(active));
-            //    }
-
-            //    foreach (var property in typeof(World).GetProperties())
-            //    {
-            //        property.SetValue(this, property.GetValue(active));
-            //    }
-                
-            //}
-
+            //SingletonManger.HandleSingleton(typeof(World), gameObject, true, false, () => {
+            //    active = this;
+            //});
             active = this;
         }
         void Update()
