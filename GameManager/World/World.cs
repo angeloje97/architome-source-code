@@ -99,6 +99,8 @@ namespace Architome
             GetDependencies();
             LoadTime();
             StartTime();
+
+
         }
 
         void StartTime()
@@ -115,6 +117,11 @@ namespace Architome
             if (saveSystem)
             {
                 saveSystem.AddListener(SaveEvent.BeforeSave, BeforeSave, this);
+
+                saveSystem.AddListener(SaveEvent.OnSetSave, (SaveSystem system, SaveGame newSave) => {
+                    LoadTime();
+                    StartTime();
+                }, this);
             }
 
             if (sceneManager)
@@ -122,6 +129,7 @@ namespace Architome
                 sceneManager.AddListener(SceneEvent.BeforeLoadScene, BeforeLoadScene, this);
             }
 
+            
         }
 
         private void OnDestroy()
@@ -173,6 +181,11 @@ namespace Architome
 
         void LoadTime()
         {
+            if (time != null)
+            {
+                _= time.StopTimer();
+            }
+
             var currentSave = SaveSystem.current;
             if (currentSave == null) return;
             if (currentSave.worldTime == null) return;
@@ -292,10 +305,25 @@ namespace Architome
             public float clockHour;
             public float clockMinute;
 
+            bool playing = false;
+            bool stop = false;
+
             public Action<int, int> OnNewTimeScale { get; set; }
+
+            public async Task StopTimer()
+            {
+                stop = true;
+                while (playing)
+                {
+                    await Task.Yield();
+                }
+                stop = false;
+            }
+
             async public void HandleTimer()
             {
-
+                if (playing) return;
+                playing = true;
                 while (Application.isPlaying)
                 {
                     var next = currentTime + UnityEngine.Time.deltaTime * timeScale;
@@ -311,8 +339,12 @@ namespace Architome
 
                     }
 
+                    if (stop) break;
+
                     await Task.Yield();
                 }
+
+                playing = false;
             }
 
             public void ChangeTimeScale(int newTimeScale)
