@@ -103,9 +103,10 @@ namespace Architome
 
         }
 
-        void StartTime()
+        async void StartTime()
         {
             if (time == null) return;
+            await time.StopTimer();
             time.HandleTimer();
         }
         

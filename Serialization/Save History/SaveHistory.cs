@@ -13,6 +13,7 @@ namespace Architome.History
         public EntityHistory entityHistory;
         public QuestHistory questHistory;
         public DialogueHistory dialogueHistory;
+        public ItemHistory itemHistory;
 
         public SaveHistory()
         {
@@ -26,10 +27,13 @@ namespace Architome.History
             entityHistory ??= new();
             questHistory ??= new();
             dialogueHistory ??= new();
+            itemHistory ??= new();
+
 
             entityHistory.SetActiveSingleTon();
             questHistory.SetActiveSingleTon();
             dialogueHistory.SetActiveSingleTon();
+            itemHistory.SetActiveSingleTon();
         }
     }
 }
