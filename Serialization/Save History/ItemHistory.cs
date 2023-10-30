@@ -21,6 +21,37 @@ namespace Architome
 
             active = this;
         }
+
+        public void AddItemPickedUp(ItemInfo item)
+        {
+            var itemId = item.item._id;
+            ItemHistoryData currentData;
+            if (itemHashes.ContainsKey(itemId))
+            {
+                currentData = itemHashes[itemId];
+            }
+            else
+            {
+                currentData = new(item.item);
+                itemHashes.Add(itemId, currentData);                
+            }
+
+
+
+            currentData.obtained = true;
+        }
+
+        public bool HasPickedUp(Item item)
+        {
+            var id = item._id;
+
+            if (!itemHashes.ContainsKey(id))
+            {
+                itemHashes.Add(id, new(item));
+            }
+
+            return itemHashes[id].obtained;
+        }
     }
 
     [Serializable]
@@ -29,5 +60,10 @@ namespace Architome
         public int itemId;
 
         public bool obtained;
+
+        public ItemHistoryData(Item data)
+        {
+            itemId = data._id;
+        }
     }
 }

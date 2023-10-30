@@ -2,6 +2,7 @@ using Architome.History;
 using PixelCrushers.DialogueSystem;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Architome
@@ -24,6 +25,7 @@ namespace Architome
             GetDependencies();
             HandleQuests();
             HandleEntityDeathHandler();
+            HandleItems();
         }
 
         // Update is called once per frame
@@ -147,6 +149,17 @@ namespace Architome
                 }
                 else { questsCompleted[quest] = true; }
             }
+        }
+
+        async void HandleItems()
+        {
+            var gameManager = GameManager.active;
+
+            while(gameManager.playableParties == null)
+            {
+                await Task.Yield();
+            }
+
         }
     }
 }
