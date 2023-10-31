@@ -18,6 +18,7 @@ namespace Architome
         public Dictionary<int, int> currentEnemyKills;
         public Dictionary<int, int> currentPlayerDeaths;
         public Dictionary<Quest, bool> questsCompleted;
+        public Dictionary<int, ItemHistoryData> itemHistoryDatas;
 
 
         void Start()
@@ -40,6 +41,7 @@ namespace Architome
             currentEnemyKills = new();
             currentPlayerDeaths = new();
             questsCompleted = new();
+            itemHistoryDatas = new();
 
             currentSaveSystem = SaveSystem.active;
 
@@ -55,10 +57,14 @@ namespace Architome
 
             HandleEntityHistory();
             HandleQuestHistory();
+            HandleItemHistory();
 
             currentEnemyKills = new();
             questsCompleted = new();
             currentPlayerDeaths = new();
+            itemHistoryDatas = new();
+
+            
 
             void HandleEntityHistory()
             {
@@ -85,7 +91,16 @@ namespace Architome
                 {
                     questHistory.CompleteQuest(pair.Key);
                 }
+            }
 
+            void HandleItemHistory()
+            {
+                var itemHistory = ItemHistory.active;
+                if (itemHistory == null) return;
+                foreach(KeyValuePair<int, ItemHistoryData> pair in itemHistoryDatas)
+                {
+                    itemHistory.UpdateHistoryData(pair.Value);
+                }
             }
         }
 
@@ -154,12 +169,32 @@ namespace Architome
         async void HandleItems()
         {
             var gameManager = GameManager.active;
-
             while(gameManager.playableParties == null)
             {
                 await Task.Yield();
             }
 
+            foreach(var party in gameManager.playableParties)
+            {
+                foreach(var member in party.members)
+                {
+                    member.infoEvents.OnLootItem += HandleLootItem;
+                }
+            }
+
+
+            void HandleLootItem(Inventory.LootEventData eventData)
+            {
+                var id = eventData.itemInfo.item._id;
+                var info = eventData.itemInfo;
+                if (!itemHistoryDatas.ContainsKey(id))
+                {
+                    itemHistoryDatas.Add(id, new(info.item));
+
+                }
+
+                itemHistoryDatas[id].obtained = true;
+            }
         }
     }
 }

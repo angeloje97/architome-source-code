@@ -35,10 +35,24 @@ namespace Architome
                 currentData = new(item.item);
                 itemHashes.Add(itemId, currentData);                
             }
-
-
-
             currentData.obtained = true;
+        }
+
+        public void UpdateHistoryData(ItemHistoryData data)
+        {
+            var id = data.itemId;
+
+            if (!itemHashes.ContainsKey(id))
+            {
+                itemHashes.Add(id, data);
+            }
+            else
+            {
+                if (data.obtained)
+                {
+                    itemHashes[id].obtained = true;
+                }
+            }
         }
 
         public bool HasPickedUp(Item item)
