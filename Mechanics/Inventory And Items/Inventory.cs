@@ -6,6 +6,7 @@ using UnityEngine;
 using Architome.Enums;
 using UnityEditor.Rendering;
 using LootLabels;
+using JetBrains.Annotations;
 
 namespace Architome
 {
@@ -164,7 +165,12 @@ namespace Architome
         
 
 
-        async void OnEntityDeath(CombatEventData eventData)
+        void OnEntityDeath(CombatEventData eventData)
+        {
+            DropInventory();
+        }
+
+        async void DropInventory()
         {
             var worldActions = WorldActions.active;
             if (worldActions == null) return;
@@ -172,7 +178,8 @@ namespace Architome
             foreach (var data in inventoryItems)
             {
                 if (data.item == null) continue;
-                worldActions.DropItem(data, entityInfo.transform.position, true, true);
+                var droppedItem = worldActions.DropItem(data, entityInfo.transform.position, true, true);
+                entityInfo.infoEvents.OnDropItem?.Invoke(new(droppedItem, entityInfo));
                 await Task.Delay(333);
             }
         }
@@ -377,6 +384,9 @@ namespace Architome
                 } 
             }
 
+            public bool dropped;
+            public bool droppedFromPlayer { get; set; }
+
             public bool SetSuccessful(bool val)
             {
                 if (successfulSet) return false;
@@ -389,12 +399,24 @@ namespace Architome
             }
 
 
-
             public LootEventData(ItemInfo itemInfo)
             {
                 this.itemInfo = itemInfo;
                 succesful = true;
                 successfulSet = false;
+            }
+
+            public LootEventData(ItemInfo itemInfo, EntityInfo sourceEntity)
+            {
+                this.itemInfo = itemInfo;
+                succesful = true;
+                successfulSet = false;
+
+                dropped = true;
+                if (Entity.IsPlayer(sourceEntity))
+                {
+                    droppedFromPlayer = true;
+                }
             }
         }
     }

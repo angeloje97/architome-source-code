@@ -28,6 +28,8 @@ namespace Architome
         public Action<Quest> OnQuestComplete;
         public Action<Inventory.LootEventData> OnLootItem { get; set; }
 
+        public Action<Inventory.LootEventData> OnDropItem { get; set; }
+
         public Action<EntityInfo, Consumable> OnConsumeStart, OnConsumeEnd, OnConsumeComplete;
 
         public Action<Inventory.LootEventData, List<bool>> OnLootItemCheck { get; set; }

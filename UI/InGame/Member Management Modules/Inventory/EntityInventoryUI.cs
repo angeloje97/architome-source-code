@@ -188,9 +188,11 @@ namespace Architome
                 if (worldActions == null) return;
                 if (!entityInfo.CanDrop(new(item))) return;
 
-                var newItem = worldActions.DropItem(new(item), entityInfo.transform.position, false);
+                var droppedItem = worldActions.DropItem(new(item), entityInfo.transform.position, false);
+                entityInfo.infoEvents.OnDropItem?.Invoke(new(droppedItem, entityInfo));
 
-                if (newItem)
+
+                if (droppedItem)
                 {
                     item.DestroySelf();
                 }
