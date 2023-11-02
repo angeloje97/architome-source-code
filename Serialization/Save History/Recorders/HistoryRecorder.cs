@@ -192,7 +192,6 @@ namespace Architome
                     itemHistoryDatas.Add(id, new(info.item));
 
                 }
-
                 itemHistoryDatas[id].obtained = true;
             }
         }
