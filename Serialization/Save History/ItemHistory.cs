@@ -55,13 +55,12 @@ namespace Architome
             }
         }
 
-        public bool HasPickedUp(Item item)
+        public bool HasPickedUp(int id)
         {
-            var id = item._id;
 
             if (!itemHashes.ContainsKey(id))
             {
-                itemHashes.Add(id, new(item));
+                itemHashes.Add(id, new(id));
             }
 
             return itemHashes[id].obtained;
@@ -78,6 +77,12 @@ namespace Architome
         public ItemHistoryData(Item data)
         {
             itemId = data._id;
+        }
+
+        public ItemHistoryData(int itemId, bool obtained = false)
+        {
+            this.itemId = itemId;
+            this.obtained = obtained;
         }
     }
 }

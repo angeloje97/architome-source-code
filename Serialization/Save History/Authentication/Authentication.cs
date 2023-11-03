@@ -26,6 +26,6 @@ namespace Architome
         public virtual void OnAuthenticationStart() { }
         public virtual void OnAuthenticationDestroy() { }
 
-
+        public virtual bool Validated() { return true; }
     }
 }

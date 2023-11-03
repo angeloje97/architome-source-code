@@ -4,18 +4,8 @@ using UnityEngine;
 
 namespace Architome
 {
-    public class EntityAuthentication : MonoBehaviour
+    public class EntityAuthentication : Authentication
     {
-        // Start is called before the first frame update
-        void Start()
-        {
-        
-        }
 
-        // Update is called once per frame
-        void Update()
-        {
-        
-        }
     }
 }
