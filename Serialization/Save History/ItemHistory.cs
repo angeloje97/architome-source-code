@@ -38,6 +38,16 @@ namespace Architome
             currentData.obtained = true;
         }
 
+        public IEnumerator<ItemHistoryData> GetEnumerator()
+        {
+            itemHashes ??= new();
+
+            foreach(KeyValuePair<int, ItemHistoryData> key in itemHashes)
+            {
+                yield return key.Value;
+            }
+        }
+
         public void UpdateHistoryData(ItemHistoryData data)
         {
             var id = data.itemId;

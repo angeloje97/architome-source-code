@@ -55,8 +55,9 @@ namespace Architome
             }
         }
 
-        public override bool Validated()
+        public override bool Validated(bool updateValues = false)
         {
+            if (updateValues) UpdateValues();
             var valuesList = values
                 .Select((KeyValuePair<string, bool> pairs) => { return pairs.Value; })
                 .ToList();
