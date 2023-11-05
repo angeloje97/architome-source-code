@@ -1,5 +1,6 @@
 using Architome.History;
 using PixelCrushers.DialogueSystem;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ namespace Architome
 {
     public class HistoryRecorder : MonoBehaviour
     {
+        public static HistoryRecorder active;
         EntityHistory entityHistory;
         QuestHistory questHistory;
         ArchSceneManager sceneManager;
@@ -19,6 +21,15 @@ namespace Architome
         public Dictionary<int, int> currentPlayerDeaths;
         public Dictionary<Quest, bool> questsCompleted;
         public Dictionary<int, ItemHistoryData> itemHistoryDatas;
+
+
+        public Action<EntityInfo, Inventory.LootEventData> OnPlayerObtained;
+
+
+        private void Awake()
+        {
+            active = this;
+        }
 
 
         void Start()
@@ -178,18 +189,19 @@ namespace Architome
             {
                 foreach(var member in party.members)
                 {
-                    member.infoEvents.OnLootItem += HandleLootItem;
+                    member.infoEvents.OnLootItem += (lootEvent) => { HandleLootItem(lootEvent, member); };
                 }
             }
 
 
-            void HandleLootItem(Inventory.LootEventData eventData)
+            void HandleLootItem(Inventory.LootEventData eventData, EntityInfo entity)
             {
                 var id = eventData.itemInfo.item._id;
                 var info = eventData.itemInfo;
                 if (!itemHistoryDatas.ContainsKey(id))
                 {
                     itemHistoryDatas.Add(id, new(info.item));
+                    OnPlayerObtained.Invoke(entity, eventData);
 
                 }
                 itemHistoryDatas[id].obtained = true;
