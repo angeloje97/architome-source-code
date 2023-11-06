@@ -7,30 +7,64 @@ namespace Architome
 {
     public class ItemAuthentication : Authentication
     {
+
+        HistoryRecorder recorder;
+        ItemHistory historyDatas;
         public LogicType authenticationLogic;
         public List<ItemData> requiredItemsObtained;
+           
 
         Dictionary<int, bool> values;
+
+        bool validated;
 
         public override void OnAuthenticationStart()
         {
             base.OnAuthenticationStart();
+            GetDependencies();
             UpdateValues();
 
             var validated = Validated();
             OnStartAuthentication?.Invoke(validated);
         }
 
+        void GetDependencies()
+        {
+            recorder = HistoryRecorder.active;
+            historyDatas = ItemHistory.active;
+
+            recorder.OnItemHistoryChange += HandleChange;
+        }
+
+        void HandleChange(EntityInfo entity, Inventory.LootEventData eventData)
+        {
+            UpdateValues();
+
+            bool current = validated;
+            validated = Validated();
+
+            if(current != validated)
+            {
+                OnAuthenticationChange?.Invoke(validated);
+            }
+
+
+        }
+
         void UpdateValues()
         {
             values ??= new();
-            var itemHistoryDatas = ItemHistory.active;
 
-            if (itemHistoryDatas == null) return;
+            if (historyDatas == null) return;
             
-            foreach(var itemHistoryData in itemHistoryDatas)
+            foreach(var itemHistoryData in historyDatas)
             {
                 UpdateValue(itemHistoryData.itemId, itemHistoryData.obtained);
+            }
+
+            foreach (KeyValuePair<int, ItemHistoryData> pair in recorder.itemHistoryDatas)
+            {
+                UpdateValue(pair.Key, pair.Value.obtained);
             }
         }
 
@@ -53,7 +87,9 @@ namespace Architome
             var valueList = values
                 .Select((KeyValuePair<int, bool> pairs) => pairs.Value)
                 .ToList();
-            return new ArchLogic(valueList).Valid(authenticationLogic);
+
+            validated = new ArchLogic(valueList).Valid(authenticationLogic);
+            return validated;
         }
     }
 }

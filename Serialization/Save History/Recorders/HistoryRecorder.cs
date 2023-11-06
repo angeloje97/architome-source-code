@@ -23,12 +23,17 @@ namespace Architome
         public Dictionary<int, ItemHistoryData> itemHistoryDatas;
 
 
-        public Action<EntityInfo, Inventory.LootEventData> OnPlayerObtained;
+        public Action<EntityInfo, Inventory.LootEventData> OnItemHistoryChange;
 
 
         private void Awake()
         {
             active = this;
+
+            currentEnemyKills = new();
+            currentPlayerDeaths = new();
+            questsCompleted = new();
+            itemHistoryDatas = new();
         }
 
 
@@ -49,11 +54,6 @@ namespace Architome
         void GetDependencies()
         {
             sceneManager = ArchSceneManager.active;
-            currentEnemyKills = new();
-            currentPlayerDeaths = new();
-            questsCompleted = new();
-            itemHistoryDatas = new();
-
             currentSaveSystem = SaveSystem.active;
 
             if (currentSaveSystem)
@@ -180,6 +180,9 @@ namespace Architome
         async void HandleItems()
         {
             var gameManager = GameManager.active;
+            HashSet<int> itemsObtainedSinceStart = new();
+            var history = ItemHistory.active;
+
             while(gameManager.playableParties == null)
             {
                 await Task.Yield();
@@ -201,10 +204,18 @@ namespace Architome
                 if (!itemHistoryDatas.ContainsKey(id))
                 {
                     itemHistoryDatas.Add(id, new(info.item));
-                    OnPlayerObtained.Invoke(entity, eventData);
-
                 }
                 itemHistoryDatas[id].obtained = true;
+
+                HandleHistoryChange();
+
+                void HandleHistoryChange()
+                {
+                    if (itemsObtainedSinceStart.Contains(id)) return;
+                    itemsObtainedSinceStart.Add(id);
+                    if (history.HasPickedUp(id)) return;
+                    OnItemHistoryChange?.Invoke(entity, eventData);
+                }
             }
         }
     }
