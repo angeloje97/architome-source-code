@@ -23,8 +23,7 @@ namespace Architome
         public Dictionary<int, ItemHistoryData> itemHistoryDatas;
 
 
-        public Action<EntityInfo, Inventory.LootEventData> OnItemHistoryChange;
-
+        public SafeEvent<(EntityInfo, Inventory.LootEventData)> OnItemHistoryChange;
 
         private void Awake()
         {
@@ -34,6 +33,11 @@ namespace Architome
             currentPlayerDeaths = new();
             questsCompleted = new();
             itemHistoryDatas = new();
+        }
+
+        void SetUpEvents()
+        {
+            OnItemHistoryChange = new(this);
         }
 
 
@@ -214,7 +218,7 @@ namespace Architome
                     if (itemsObtainedSinceStart.Contains(id)) return;
                     itemsObtainedSinceStart.Add(id);
                     if (history.HasPickedUp(id)) return;
-                    OnItemHistoryChange?.Invoke(entity, eventData);
+                    OnItemHistoryChange.Invoke((entity, eventData));
                 }
             }
         }

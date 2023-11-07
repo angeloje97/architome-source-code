@@ -33,10 +33,10 @@ namespace Architome
             recorder = HistoryRecorder.active;
             historyDatas = ItemHistory.active;
 
-            recorder.OnItemHistoryChange += HandleChange;
+            recorder.OnItemHistoryChange.AddListener(HandleChange, this);
         }
 
-        void HandleChange(EntityInfo entity, Inventory.LootEventData eventData)
+        void HandleChange((EntityInfo, Inventory.LootEventData) data)
         {
             UpdateValues();
 
@@ -47,8 +47,6 @@ namespace Architome
             {
                 OnAuthenticationChange?.Invoke(validated);
             }
-
-
         }
 
         void UpdateValues()
@@ -91,5 +89,6 @@ namespace Architome
             validated = new ArchLogic(valueList).Valid(authenticationLogic);
             return validated;
         }
+
     }
 }

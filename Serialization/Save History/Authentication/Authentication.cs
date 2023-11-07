@@ -5,6 +5,18 @@ using UnityEngine.Events;
 
 namespace Architome
 {
+    public class AuthenticationDetails
+    {
+        public List<string> validValues;
+        public List<string> invalidValues;
+
+        public AuthenticationDetails()
+        {
+            validValues = new();
+            invalidValues = new();
+        }
+    }
+
     public class Authentication : MonoBehaviour
     {
         public UnityEvent<bool> OnStartAuthentication;
@@ -26,6 +38,10 @@ namespace Architome
         public virtual void OnAuthenticationStart() { }
         public virtual void OnAuthenticationDestroy() { }
 
-        public virtual bool Validated(bool updateValues = false) { return true; }
+        public virtual bool Validated(bool updateValues = false) => true;
+
+        public virtual AuthenticationDetails Details() => new();
+
+        
     }
 }
