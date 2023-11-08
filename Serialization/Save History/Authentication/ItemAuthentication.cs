@@ -22,6 +22,7 @@ namespace Architome
         {
             base.OnAuthenticationStart();
             GetDependencies();
+            CreateValues();
             UpdateValues();
 
             var validated = Validated();
@@ -34,6 +35,17 @@ namespace Architome
             historyDatas = ItemHistory.active;
 
             recorder.OnItemHistoryChange.AddListener(HandleChange, this);
+        }
+        
+        void CreateValues()
+        {
+            if (requiredItemsObtained == null) return;
+            values = new();
+
+            foreach(var data in requiredItemsObtained)
+            {
+                values.Add(data.item._id, false);
+            }
         }
 
         void HandleChange((EntityInfo, Inventory.LootEventData) data)
@@ -54,15 +66,20 @@ namespace Architome
             values ??= new();
 
             if (historyDatas == null) return;
-            
-            foreach(var itemHistoryData in historyDatas)
-            {
-                UpdateValue(itemHistoryData.itemId, itemHistoryData.obtained);
-            }
+            if (recorder == null) return;
 
-            foreach (KeyValuePair<int, ItemHistoryData> pair in recorder.itemHistoryDatas)
+            var recorderData = recorder.itemHistoryDatas;
+
+            foreach(var data in requiredItemsObtained)
             {
-                UpdateValue(pair.Key, pair.Value.obtained);
+                var id = data.item._id;
+                var obtainedFromHistory = historyDatas.HasPickedUp(id);
+                var obtainedFromRecorder = recorderData.ContainsKey(id) && recorderData[id].obtained;
+
+                if(obtainedFromHistory || obtainedFromRecorder)
+                {
+                    UpdateValue(id, true);
+                }
             }
         }
 
@@ -71,10 +88,6 @@ namespace Architome
             if (values.ContainsKey(id))
             {
                 values[id] = obtained;
-            }
-            else
-            {
-                values.Add(id, obtained);
             }
         }
 
@@ -90,5 +103,28 @@ namespace Architome
             return validated;
         }
 
+        public override AuthenticationDetails Details()
+        {
+            var details = new AuthenticationDetails();
+
+            UpdateValues();
+
+            
+            foreach(var data in requiredItemsObtained)
+            {
+                var id = data.item._id;
+
+                if (values[id])
+                {
+                    details.validValues.Add(data.item.ToString());
+                }
+                else
+                {
+                    details.invalidValues.Add(data.item.ToString());
+                }
+            }
+
+            return details;
+        }
     }
 }
