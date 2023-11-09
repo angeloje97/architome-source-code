@@ -63,5 +63,21 @@ namespace Architome
                 .ToList();
             return new ArchLogic(valuesList).Valid(authenticationLogic);
         }
+
+        public override AuthenticationDetails Details()
+        {
+            var details = new AuthenticationDetails();
+            var questHistory = QuestHistory.active;
+
+            if (questHistory == null) return details;
+            foreach(var name in validQuests)
+            {
+                var list = questHistory.IsComplete(name) ? details.validValues : details.invalidValues;
+                list.Add(name);
+
+            }
+            return details;
+
+        }
     }
 }

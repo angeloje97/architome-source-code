@@ -114,14 +114,9 @@ namespace Architome
             {
                 var id = data.item._id;
 
-                if (values[id])
-                {
-                    details.validValues.Add(data.item.ToString());
-                }
-                else
-                {
-                    details.invalidValues.Add(data.item.ToString());
-                }
+                var list = values[id] ? details.validValues : details.invalidValues;
+
+                list.Add(data.item.ToString());
             }
 
             return details;
