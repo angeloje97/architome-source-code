@@ -28,6 +28,12 @@ namespace Architome
                     return;
                 }
 
+                if(source == null)
+                {
+                    UnsubScribe();
+                    return;
+                }
+
 
                 actionToInvoke(data);
             }
@@ -46,6 +52,11 @@ namespace Architome
         {
             if (source == null) return;
             action?.Invoke(data);
+        }
+
+        public void RemoveListeners()
+        {
+            action = null;
         }
     }
 }

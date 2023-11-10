@@ -33,6 +33,8 @@ namespace Architome
             currentPlayerDeaths = new();
             questsCompleted = new();
             itemHistoryDatas = new();
+
+            SetUpEvents();
         }
 
         void SetUpEvents()
