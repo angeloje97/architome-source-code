@@ -1,22 +1,21 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Architome
 {
     public class ItemAuthentication : Authentication
     {
-
+        [Header("Item Authentication Fields")]
         HistoryRecorder recorder;
         ItemHistory historyDatas;
-        public LogicType authenticationLogic;
         public List<ItemData> requiredItemsObtained;
            
 
         Dictionary<int, bool> values;
 
-        bool validated;
 
         public override void OnAuthenticationStart()
         {
@@ -25,8 +24,8 @@ namespace Architome
             CreateValues();
             UpdateValues();
 
-            var validated = Validated();
-            OnStartAuthentication?.Invoke(validated);
+            authenticated = Validated();
+            OnStartAuthentication?.Invoke(authenticated);
         }
 
         void GetDependencies()
@@ -34,7 +33,29 @@ namespace Architome
             recorder = HistoryRecorder.active;
             historyDatas = ItemHistory.active;
 
-            recorder.OnItemHistoryChange.AddListener(HandleChange, this);
+            InvokerQueueHandler invokerHandler = new() { delayAmount = 5f, maxInvokesQueued = 2 };
+
+            recorder.OnItemHistoryChange.AddListener(((EntityInfo, Inventory.LootEventData) data) => {
+                invokerHandler.InvokeAction(() => {
+                    var itemEvent = data.Item2;
+                    var itemId = itemEvent.itemInfo.item._id;
+
+                    if (!values.ContainsKey(itemId)) return;
+                    if (values[itemId] == true) return;
+
+                    UpdateValues();
+
+                    bool current = authenticated;
+                    authenticated = Validated();
+
+
+                    if (current != authenticated)
+                    {
+                        OnAuthenticationChange?.Invoke(authenticated);
+                    }
+                });
+
+            }, this);
         }
         
         void CreateValues()
@@ -45,19 +66,6 @@ namespace Architome
             foreach(var data in requiredItemsObtained)
             {
                 values.Add(data.item._id, false);
-            }
-        }
-
-        void HandleChange((EntityInfo, Inventory.LootEventData) data)
-        {
-            UpdateValues();
-
-            bool current = validated;
-            validated = Validated();
-
-            if(current != validated)
-            {
-                OnAuthenticationChange?.Invoke(validated);
             }
         }
 
@@ -94,13 +102,7 @@ namespace Architome
         public override bool Validated(bool updateValues = false)
         {
             if (updateValues) UpdateValues();
-
-            var valueList = values
-                .Select((KeyValuePair<int, bool> pairs) => pairs.Value)
-                .ToList();
-
-            validated = new ArchLogic(valueList).Valid(authenticationLogic);
-            return validated;
+            return ValidDictionary(values);
         }
 
         public override AuthenticationDetails Details()

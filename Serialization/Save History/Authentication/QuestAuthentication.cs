@@ -61,7 +61,8 @@ namespace Architome
             var valuesList = values
                 .Select((KeyValuePair<string, bool> pairs) => { return pairs.Value; })
                 .ToList();
-            return new ArchLogic(valuesList).Valid(authenticationLogic);
+            authenticated = new ArchLogic(valuesList).Valid(authenticationLogic);
+            return authenticated;
         }
 
         public override AuthenticationDetails Details()

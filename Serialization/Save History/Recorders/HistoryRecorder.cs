@@ -24,6 +24,7 @@ namespace Architome
 
 
         public SafeEvent<(EntityInfo, Inventory.LootEventData)> OnItemHistoryChange;
+        public SafeEvent<(EntityInfo, int)> OnEntitySlainHistoryChange;
 
         private void Awake()
         {
@@ -156,6 +157,8 @@ namespace Architome
                 {
                     records[id] += 1;
                 }
+
+                OnEntitySlainHistoryChange?.Invoke((entity, records[id]));
             }
         }
 
