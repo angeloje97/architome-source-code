@@ -19,11 +19,8 @@ namespace Architome
             base.OnAuthenticationStart();
             HandleRecorder();
             InitiateValues();
-            UpdateValues();
 
-            var validated = Validated();
-
-            OnStartAuthentication?.Invoke(validated);
+            Validated(fromStart: true);
         }
 
         void InitiateValues()
@@ -53,13 +50,7 @@ namespace Architome
                     if (!values.ContainsKey(id)) return;
                     var killedBefore = kills > 0;
                     if (values[id] == killedBefore) return;
-
-                    var current = authenticated;
                     UpdateValues();
-                    if(current != authenticated)
-                    {
-                        OnAuthenticationChange?.Invoke(authenticated);
-                    }
 
                 });
 
@@ -68,7 +59,7 @@ namespace Architome
         }
 
 
-        void UpdateValues()
+        protected override void UpdateValues()
         {
             var currentEnemiesKilled = recorder.currentEnemyKills;
                 
@@ -80,8 +71,9 @@ namespace Architome
                 var valid = historyKillCount > 0 || recorderKills > 0;
 
                 UpdateValue(entity, valid);
-
             }
+
+            ValidDictionary(values);
         }
 
         void UpdateValue(EntityInfo target, bool killed)
@@ -92,12 +84,6 @@ namespace Architome
             {
                 values[id] = killed;
             }
-        }
-
-        public override bool Validated(bool updateValues = false)
-        {
-            if (updateValues) UpdateValues();
-            return ValidDictionary(values);
         }
     }
 }

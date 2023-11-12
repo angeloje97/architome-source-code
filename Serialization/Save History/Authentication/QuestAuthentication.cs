@@ -10,17 +10,15 @@ namespace Architome
 {
     public class QuestAuthentication : Authentication
     {
-        public LogicType authenticationLogic;
         public List<string> validQuests;
         
         Dictionary<string, bool> values;
         public override void OnAuthenticationStart()
         {
             base.OnAuthenticationStart();
-            UpdateValues();
-
-            OnStartAuthentication?.Invoke(Validated());
             HandleQuestManager();
+
+            Validated(fromStart: true);
         }
 
         void HandleQuestManager()
@@ -32,17 +30,13 @@ namespace Architome
                 if (!values.ContainsKey(quest.ToString())) return;
                 values[quest.ToString()] = true;
 
-                var validated = Validated();
-                if(validated != authenticated)
-                {
-                    authenticated = validated;
-                    OnAuthenticationChange?.Invoke(validated);
-                }
+                var validated = authenticated;
+                Validated();
 
             }, this);
         }
 
-        void UpdateValues()
+        protected override void UpdateValues()
         {
             values ??= new();
 
@@ -53,16 +47,8 @@ namespace Architome
             {
                 values.Add(quest ,questHistory.IsComplete(quest));
             }
-        }
 
-        public override bool Validated(bool updateValues = false)
-        {
-            if (updateValues) UpdateValues();
-            var valuesList = values
-                .Select((KeyValuePair<string, bool> pairs) => { return pairs.Value; })
-                .ToList();
-            authenticated = new ArchLogic(valuesList).Valid(authenticationLogic);
-            return authenticated;
+            ValidDictionary(values);
         }
 
         public override AuthenticationDetails Details()

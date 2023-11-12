@@ -22,10 +22,8 @@ namespace Architome
             base.OnAuthenticationStart();
             GetDependencies();
             CreateValues();
-            UpdateValues();
 
-            authenticated = Validated();
-            OnStartAuthentication?.Invoke(authenticated);
+            Validated(fromStart:true);
         }
 
         void GetDependencies()
@@ -45,14 +43,7 @@ namespace Architome
 
                     UpdateValues();
 
-                    bool current = authenticated;
-                    authenticated = Validated();
-
-
-                    if (current != authenticated)
-                    {
-                        OnAuthenticationChange?.Invoke(authenticated);
-                    }
+                    Validated();
                 });
 
             }, this);
@@ -69,7 +60,7 @@ namespace Architome
             }
         }
 
-        void UpdateValues()
+        protected override void UpdateValues()
         {
             values ??= new();
 
@@ -89,6 +80,8 @@ namespace Architome
                     UpdateValue(id, true);
                 }
             }
+
+            ValidDictionary(values);
         }
 
         void UpdateValue(int id, bool obtained)
@@ -97,12 +90,6 @@ namespace Architome
             {
                 values[id] = obtained;
             }
-        }
-
-        public override bool Validated(bool updateValues = false)
-        {
-            if (updateValues) UpdateValues();
-            return ValidDictionary(values);
         }
 
         public override AuthenticationDetails Details()

@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace Architome
 {
+    /// <summary>
+    /// This class handles the amount of times a function will be invoked and the frequency it can be invoked.
+    /// </summary>
     public class InvokerQueueHandler
     {
         public int maxInvokesQueued = 1;

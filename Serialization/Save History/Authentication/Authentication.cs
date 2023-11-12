@@ -42,7 +42,29 @@ namespace Architome
         public virtual void OnAuthenticationStart() { }
         public virtual void OnAuthenticationDestroy() { }
 
-        public virtual bool Validated(bool updateValues = false) => true;
+        protected virtual void UpdateValues() { }
+
+        /// <summary>
+        /// updateValues: Will Invoke the UpdateValues which will also overrwrite the authenticated variable.
+        /// </summary>
+        /// <param name="updateValues"></param>
+        /// <returns></returns>
+        public bool Validated(bool updateValues = true, bool fromStart=false)
+        {
+            var original = authenticated;
+            if (updateValues) UpdateValues();
+
+            if(!fromStart && original != authenticated)
+            {
+                OnAuthenticationChange?.Invoke(authenticated);
+            }
+            else
+            {
+                OnStartAuthentication?.Invoke(authenticated);
+            }
+            
+            return authenticated;
+        }
 
         protected bool ValidDictionary<T>(Dictionary<T, bool> dict)
         {
