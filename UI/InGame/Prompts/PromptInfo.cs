@@ -509,13 +509,17 @@ namespace Architome
 
         }
 
+        public void SetAvailable(bool val)
+        {
+            button.SetButton(val);
+        }
+
         async void HandleButtonTimer()
         {
             if (this.timer == 0) return;
             var timer = this.timer;
 
-
-            button.SetButton(false);
+            SetAvailable(false);
 
             for (int i = timer; i >= 0; i--)
             {
@@ -526,8 +530,7 @@ namespace Architome
 
             button.SetName(text);
 
-
-            button.SetButton(true);
+            SetAvailable(true);
         }
 
         public void ChooseOption()

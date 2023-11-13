@@ -35,6 +35,7 @@ namespace Architome
         public string triggerString;
         public int nextTarget = -1;
         public bool endsDialogue;
+        public bool disabled;
     }
 
     [Serializable]

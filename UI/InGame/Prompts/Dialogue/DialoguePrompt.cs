@@ -82,17 +82,18 @@ namespace Architome
 
             foreach(var option in dialogueData.dialogueOptions)
             {
-                options.Add(new(option.text, async (OptionData promptOptionData) => {
+                OptionData optionToAdd = new(option.text, async (OptionData promptOptionData) =>
+                {
 
                     eventData.source.InvokeOption(option.triggerString, eventData);
 
-                    if(option.nextTarget != -2)
+                    if (option.nextTarget != -2)
                     {
                         currentSet.currentDialogueData = option.nextTarget != -1 ? option.nextTarget : currentIndex + 1;
                     }
 
 
-                    if(currentSet.currentDialogueData >= currentSet.data.Count)
+                    if (currentSet.currentDialogueData >= currentSet.data.Count)
                     {
                         currentSet.disabled = true;
                     }
@@ -106,9 +107,13 @@ namespace Architome
                         return;
                     }
                     prompt.RemoveOptions();
-                    
+
                     HandleData(eventData);
-                }));
+                });
+
+                optionToAdd.SetAvailable(!option.disabled);
+
+                options.Add(optionToAdd);
             }
 
 
