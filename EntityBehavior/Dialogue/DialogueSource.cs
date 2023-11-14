@@ -40,9 +40,11 @@ namespace Architome
         public UnityEvent OnDialogueDisabledEvent;
         public Action OnStartConversation;
         public Action OnDialogueDisabled;
+        public Action<DialogueChangeRequestData> OnSendRequestData;
 
         [SerializeField] List<OptionEvent> optionEvents;
         Dictionary<string, UnityEvent<DialogueEventData>> optionEventsMap;
+
         bool disabledCheck;
 
         DialogueChangeRequestData currentRequestData;
@@ -168,6 +170,7 @@ namespace Architome
             if (choiceIndex < 0) return;
 
             initialDataSet.data[entryIndex].dialogueOptions[choiceIndex].disabled = !currentRequestData.choiceAvailability;
+            OnSendRequestData?.Invoke(currentRequestData);
 
             currentRequestData = new();
         }
