@@ -23,11 +23,11 @@ namespace Architome
 
         bool active;
 
+        public Action<DialoguePrompt> OnDialogueEnd;
+        public List<OptionData> currentOptions;
+        public int currentDialogueDataIndex;
 
-        void Update()
-        {
-        
-        }
+
 
         void GetDependencies()
         {
@@ -37,6 +37,7 @@ namespace Architome
         public void EndDialogue()
         {
             active = false;
+            OnDialogueEnd?.Invoke(this);
             prompt.ClosePrompt();
         }
 
@@ -51,6 +52,7 @@ namespace Architome
 
             var sourceEntity = eventData.sourceEntity;
             currentSet = eventData.dataSet;
+            var dialogueSource = eventData.source;
             promptData = new()
             {
                 autoClose = false,
@@ -67,29 +69,42 @@ namespace Architome
                 currentSet.entries = new();
             }
 
+            
+
             SetEntries(currentSet.entries);
             HandleData(eventData);
+
+            var unsubScribe = dialogueSource.OnSendRequestData.AddListener((DialogueChangeRequestData requestData) => {
+                if (currentDialogueDataIndex != requestData.entryIndex) return;
+                currentOptions[requestData.choiceIndex].SetAvailable(requestData.choiceAvailability);
+            }, this);
+
+            OnDialogueEnd += (DialoguePrompt prompt) => {
+                unsubScribe();
+            };
         }
 
         public async void HandleData(DialogueEventData eventData)
         {
             var currentIndex = currentSet.currentDialogueData;
             var dialogueData = currentSet.data[currentIndex];
+            currentDialogueDataIndex = currentIndex;
 
             var text = dialogueData.text;
             var options = new List<OptionData>();
             await AddEntry(new(eventData.sourceEntity.ToString(), dialogueData.text), crawlText: true);
 
+            currentOptions = new();
             foreach(var option in dialogueData.dialogueOptions)
             {
                 OptionData optionToAdd = new(option.text, async (OptionData promptOptionData) =>
                 {
-
                     eventData.source.InvokeOption(option.triggerString, eventData);
 
                     if (option.nextTarget != -2)
                     {
                         currentSet.currentDialogueData = option.nextTarget != -1 ? option.nextTarget : currentIndex + 1;
+                        
                     }
 
 
@@ -114,6 +129,7 @@ namespace Architome
                 optionToAdd.SetAvailable(!option.disabled);
 
                 options.Add(optionToAdd);
+                currentOptions.Add(optionToAdd);
             }
 
 
