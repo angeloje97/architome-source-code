@@ -124,8 +124,6 @@ namespace Architome
             return height;
         }
 
-        
-
         public static float Width(List<Transform> trans)
         {
             var width = 0f;
@@ -636,7 +634,18 @@ namespace Architome
             return newVector;
         }
 
+        #region Relative Vector3
+        public static Vector3 RelativeProportionVector3(Vector3 position, float radius)
+        {
+            return new Vector3(position.x / radius, position.y / radius, position.z / radius);
+        }
 
+        public static Vector3 ProportionToActualVector3(Vector3 proportion, float radius)
+        {
+            return new Vector3(proportion.x * radius, proportion.y * radius, proportion.z * radius);
+        }
+
+        #endregion
 
     }
 
