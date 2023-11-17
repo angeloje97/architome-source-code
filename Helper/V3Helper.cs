@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using System;
+using Pathfinding;
 
 namespace Architome
 {
@@ -643,6 +644,26 @@ namespace Architome
         public static Vector3 ProportionToActualVector3(Vector3 proportion, float radius)
         {
             return new Vector3(proportion.x * radius, proportion.y * radius, proportion.z * radius);
+        }
+
+        public static Vector3 V2ToTopDownV3(Vector2 vector)
+        {
+            return new Vector3(vector.x, 0, vector.y);
+        }
+
+        public static Vector2 TopDownV3ToV2(Vector3 vector)
+        {
+            return new Vector2(vector.x, vector.z);
+        }
+
+        public static Vector2 RelativeProportionVector2(Vector2 vector, float radius)
+        {
+            return new Vector2(vector.x / radius, vector.y / radius);
+        }
+
+        public static Vector2 ProportionToActualVector2(Vector2 vector, float radius)
+        {
+            return new Vector2(vector.x * radius, vector.y * radius);
         }
 
         #endregion
