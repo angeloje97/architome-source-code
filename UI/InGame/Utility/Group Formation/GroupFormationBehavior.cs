@@ -211,12 +211,11 @@ namespace Architome
         {
             for (int i = 0; i < memberSpots.Count; i++)
             {
+                var position = memberSpots[i].transform.localPosition;
+
+                memberSpots[i].transform.localPosition = V3Helper.ClampRadius(position, radius);
 
 
-                if (V3Helper.Abs(memberSpots[i].transform.localPosition) > radius)
-                {
-                    memberSpots[i].transform.localPosition *= radius / V3Helper.Abs(memberSpots[i].transform.localPosition);
-                }
                 var coordX = memberSpots[i].GetComponent<RectTransform>().localPosition.x;
                 var coordY = memberSpots[i].GetComponent<RectTransform>().localPosition.y;
 

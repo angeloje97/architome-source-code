@@ -666,6 +666,13 @@ namespace Architome
             return new Vector2(vector.x * radius, vector.y * radius);
         }
 
+        public static Vector3 ClampRadius(Vector3 vector, float radius)
+        {
+            var abs = (Abs(vector));
+            if (Abs(vector) <= radius) return vector;
+            return vector * radius / Abs(vector);
+        }
+
         #endregion
 
     }
