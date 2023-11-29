@@ -42,7 +42,7 @@ namespace Architome
         public Action<Augment> OnRemove;
         ArchEventHandler<AugmentEvent, AugmentEventData> events { get; set; }
 
-        public bool dependenciesAcquired;
+        bool dependenciesAcquired { get; set; }
         bool removed;
 
 
@@ -109,6 +109,9 @@ namespace Architome
                 catalystTarget = CatalystTarget.Catalyst;
             }
 
+            await Task.Delay(125);
+            if (this == null) return;
+
             dependenciesAcquired = true;
             ArchAction.Delay(() => {
                 events.Invoke(AugmentEvent.OnAttach, new(this));
@@ -157,6 +160,10 @@ namespace Architome
             return events.AddListener(eventType, action, listener);
         }
 
+        public async Task UntilDependenciesAcquired()
+        {
+            while (!dependenciesAcquired) await Task.Yield();
+        }
         Augment FirstAugment
         {
             get

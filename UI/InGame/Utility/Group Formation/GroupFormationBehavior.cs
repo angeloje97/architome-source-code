@@ -219,10 +219,8 @@ namespace Architome
                 var coordX = memberSpots[i].GetComponent<RectTransform>().localPosition.x;
                 var coordY = memberSpots[i].GetComponent<RectTransform>().localPosition.y;
 
-                coordX /= radius;
-                coordY /= radius;
+                memberCoordinates[i] = V3Helper.RelativeProportionVector2(new Vector2(coordX, coordY), radius);
 
-                memberCoordinates[i] = new Vector2(coordX, coordY);
             }
 
 

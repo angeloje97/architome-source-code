@@ -31,11 +31,8 @@ namespace Architome
             augment = GetComponent<Augment>();
 
 
-            while (!augment.dependenciesAcquired)
-            {
-                await Task.Yield();
-            }
-            
+            await augment.UntilDependenciesAcquired();
+                        
             
             if (augment)
             {
@@ -180,6 +177,7 @@ namespace Architome
                 if (this == null) RemoveListener();
                 action(ability, tasks);
             }
+            
         }
 
 

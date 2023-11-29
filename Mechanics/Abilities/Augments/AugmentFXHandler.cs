@@ -50,10 +50,8 @@ namespace Architome
         async void GetDependencies()
         {
             augment = GetComponent<Augment>();
-            while (augment.dependenciesAcquired)
-            {
-                await Task.Yield();
-            }
+            await augment.UntilDependenciesAcquired();
+
 
             catalystManager = CatalystManager.active;
             particleManager = augment.entity.GetComponentInChildren<ParticleManager>();
