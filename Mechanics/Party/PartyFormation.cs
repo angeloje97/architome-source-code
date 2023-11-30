@@ -11,7 +11,7 @@ namespace Architome
     {
         // Start is called before the first frame update
         public List<Transform> spots;
-        public List<Vector2> spotPositions;
+        public List<Vector2> spotPositions { get; set; }
         public Transform radiusCircle;
         public KeyBindings keyBindings;
 
@@ -89,6 +89,7 @@ namespace Architome
 
         public void HandleSpotPosition()
         {
+            if (spotPositions == null) return;
             UpdateSpot();
 
             void UpdateSpot()
@@ -98,10 +99,10 @@ namespace Architome
                 {
                     if (i >= spotPositions.Count) { continue; }
                     var radius = radiusCircle.localScale.x;
-                    var currentPos = spotPositions[i] * (radius / 2);
+                    var currentPos = V3Helper.ProportionToActualVector2(spotPositions[i], radius / 2);
 
 
-                    spots[i].transform.localPosition = new Vector3(currentPos.x, 0, currentPos.y);
+                    spots[i].transform.localPosition = V3Helper.V2ToTopDownV3(currentPos);
 
                     if (LayerMasksData.active == null) return;
 
