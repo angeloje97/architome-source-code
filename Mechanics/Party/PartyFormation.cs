@@ -129,23 +129,6 @@ namespace Architome
                 HandleSpotPosition();
             }
         }
-        public IEnumerator HoldDelay()
-        {
-            OnHoldingChange?.Invoke(true);
-            yield return new WaitForSeconds(.125f);
-
-            var keyCode = ArchInput.active.currentKeybindSet.KeyCodeFromName("Action");
-            
-            if (Input.GetKey(keyCode))
-            {
-                isHolding = true;
-            }
-            else
-            {
-                OnHoldingChange?.Invoke(false);
-            }
-        }
-
         async void HandleHolding()
         {
             if (isHolding) return;
