@@ -32,43 +32,45 @@ namespace Architome
             }
         }
 
-        async void HandleCombatChange(bool isInCombat)
+        void HandleCombatChange(bool isInCombat)
         {
-
-
-            if (!isInCombat)
-            {
-                if (combatStart)
-                {
-                    combatStart = false;
-
-                    var audioManager = musicPlayer.audioManager;
-
-                    var endSong = musicPlaylist.bossPlaylist.combatEnd;
-
-                    if (endSong)
-                    {
-                        audioManager.PlayAudioClip(endSong);
-                    }
-                }
-                return;
-            }
             if (musicPlaylist == null) return;
-            combatStart = true;
-            var songs = musicPlaylist.bossPlaylist.songList;
-            
 
-            foreach(var song in songs)
+            HandleEnterCombat();
+            HandleExitCombat();
+
+            async void HandleEnterCombat()
             {
-                await musicPlayer.PlayTemp(song, (object obj) => {
-                    return entity.isInCombat;
-                });
+                if (!isInCombat) return;
+                var songs = musicPlaylist.bossPlaylist.songList;
 
-                if (!entity.isInCombat)
+                for(int i = 0; i <  songs.Count; i = (i + 1) % songs.Count)
                 {
-                    return;
+                    if (!entity.isInCombat) return;
+                    var song = songs[i];
+
+                    await musicPlayer.PlayTemp(song, (object obj) => entity.isInCombat);
                 }
             }
+
+            void HandleExitCombat()
+            {
+                if (isInCombat) return;
+                if (!combatStart) return;
+                combatStart = false;
+
+                var audioManager = musicPlayer.audioManager;
+
+                var endSong = musicPlaylist.bossPlaylist.combatEnd;
+
+                if (endSong)
+                {
+                    audioManager.PlayAudioClip(endSong);
+                }
+            }
+
+            combatStart = true;
+            
         }
     }
 }
