@@ -11,6 +11,7 @@ namespace Architome
         EaseInOut,
         EaseIn,
         EaseOut,
+        Linear,
     }
     public class ArchCurve : MonoBehaviour
     {
@@ -56,7 +57,7 @@ namespace Architome
         {
             if (!curveDict.ContainsKey(type))
             {
-                return null;
+                return curveDict[CurveType.Linear];
             }
 
             return curveDict[type];

@@ -16,7 +16,7 @@ namespace Architome
         MusicManager managerCheck;
 
 
-        public Action<MusicManager, MusicManager> OnMusicMangerChange;
+        public Action<MusicManager, MusicManager> OnMusicMangerChange { get; set; }
 
         [Range(0, 1)]
         public float targetVolume = 1f;
@@ -92,7 +92,7 @@ namespace Architome
 
             var currentIndex = 0;
 
-            while (true)
+            for(int i = 0; i < length; i = (i+1) % length)
             {
                 var song = songs[currentIndex];
 

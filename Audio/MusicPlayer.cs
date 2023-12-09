@@ -64,24 +64,18 @@ namespace Architome
             if (currentSource.clip == null) return;
             var startVolume = currentSource.volume;
             var targetVolume = 0f;
-            float current = 0f;
 
             currentState = MusicPlayerState.FadingOut;
-            while (current < time)
-            {
-                await Task.Yield();
-                current += Time.deltaTime;
 
-                var lerpPercent = current / time;
-
+            await ArchCurve.Smooth((float interpolation) => {
                 if (currentSource == null)
                 {
                     currentState = MusicPlayerState.NotPlaying;
                     isPlaying = false;
                     return;
                 }
-                currentSource.volume = Mathf.Lerp(startVolume, targetVolume, lerpPercent);
-            }
+                currentSource.volume = Mathf.Lerp(startVolume, targetVolume, interpolation);
+            }, CurveType.Linear, time);
 
             currentSource.volume = 0f;
             currentState = MusicPlayerState.NotPlaying;
@@ -98,15 +92,14 @@ namespace Architome
 
             float startingVolume = 0f;
 
-            float current = 0f;
             currentState = MusicPlayerState.FadingIn;
-            while(current < time)
-            {
-                await Task.Yield();
-                current += Time.deltaTime;
 
-                currentSource.volume = Mathf.Lerp(startingVolume, targetVolume, current / time);
-            }
+            await ArchCurve.Smooth((float interpolation) => {
+                currentSource.volume = Mathf.Lerp(startingVolume, targetVolume, interpolation);
+
+            }, CurveType.Linear, time);
+
+
             currentState = MusicPlayerState.Playing;
 
             currentSource.volume = targetVolume;
