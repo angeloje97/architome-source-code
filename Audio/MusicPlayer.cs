@@ -31,7 +31,9 @@ namespace Architome
         public bool playingTemp;
 
 
-        public Action<AudioSource, MonoBehaviour> OnPlaySong;
+        public Action<AudioSource, MonoBehaviour> OnPlaySong { get; set; }
+        public Action<MusicPlayerState> OnChangeState { get; set; }
+        public Action<MusicPlayerState> OnTempStateChange { get; set; }
 
         private void Awake()
         {
@@ -51,13 +53,36 @@ namespace Architome
             if(active != this) return;
             ArchGeneric.DontDestroyOnLoad(gameObject);
             GetDependencies();
+            HandleEvents();
         }
-
         void GetDependencies()
         {
             audioManager = GetComponent<AudioManager>();
 
         }
+
+        async void HandleEvents()
+        {
+            var currentStateCheck = currentState;
+            var tempStateCheck = tempState;
+
+            while (this)
+            {
+                await Task.Delay(1000);
+                if(currentStateCheck != currentState)
+                {
+                    currentStateCheck = currentState;
+                    OnChangeState?.Invoke(currentState);
+                }
+
+                if(tempStateCheck != tempState)
+                {
+                    tempStateCheck = tempState;
+                    OnTempStateChange?.Invoke(tempState);
+                }
+            }
+        }
+
         public async Task FadeOut(float time)
         {
             if (currentSource == null) return;
