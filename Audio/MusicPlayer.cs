@@ -211,10 +211,6 @@ namespace Architome
             await musicPlayer.FadeOut(transitionTime / 2);
             var audioSource = await musicPlayer.FadeIn(clip, transitionTime / 2);
             musicPlayer.OnPlaySong?.Invoke(audioSource, caller);
-
-
-            
-
         }
         public static async void PlayImmeidate<T>(AudioClip clip, T caller) where T: MonoBehaviour
         {
