@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Architome
@@ -7,6 +8,11 @@ namespace Architome
     public class NotificationMusicPlayer : MonoBehaviour
     {
         MusicPlayer currentPlayer;
+
+        [SerializeField]
+        Animator animator;
+        bool playing;
+
         void Start()
         {
             GetDependencies();
@@ -24,9 +30,24 @@ namespace Architome
         
         }
 
-        void HandleNewSong(AudioSource source, MonoBehaviour behavior)
+        async void HandleNewSong(AudioSource source, MonoBehaviour behavior)
         {
+            await ArchAction.WaitUntil(() => playing, false);
+            PlayMusicNotification($"Now playing {source} ({source.clip.length}");
 
         }
+
+
+        void PlayMusicNotification(string title)
+        {
+            playing = true;
+        }
+
+        public void StopPlaying()
+        {
+            playing = false;
+        }
+
+
     }
 }

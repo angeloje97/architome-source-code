@@ -21,37 +21,13 @@ namespace Architome
                 return world;
             }
         }
+
         public static async void Delay(Action action, float seconds)
         {
-            //bool active = true;
-            //float startTime = 0f;
-
-            //Action<float> middle = (float deltaTime) => {
-            //    if(startTime < seconds)
-            //    {
-            //        startTime += deltaTime;
-            //        return;
-            //    }
-
-            //    active = false;
-            //};
-
-            //World.OnUpdate += middle;
-
-            //while (active)
-            //{
-            //    await Task.Yield();
-            //}
-
-            //World.OnUpdate -= middle;
-
-            //action();
             int milliSeconds = (int)(seconds * 1000);
             await Task.Delay(milliSeconds);
             if (!Application.isPlaying) return;
             action();
-
-
         }
         public static async Task DelayT(Action action, float seconds)
         {
@@ -77,6 +53,12 @@ namespace Architome
 
             action();
         }
+
+        public static async Task WaitUntil(Func<bool> predicate, bool expected)
+        {
+            while (predicate() != expected) await Task.Yield();
+        }
+
         public static async void UpdateWhile(Action action, ArchCondition condition)
         {
             while (condition.isMet)
