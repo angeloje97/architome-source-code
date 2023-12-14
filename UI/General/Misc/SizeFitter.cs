@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Architome
@@ -28,6 +29,15 @@ namespace Architome
             if (!test) return;
             test = false;
             AdjustToSize();
+        }
+
+        public async Task AdjustToSize(int iterations = 1, int timeBetween = 50)
+        {
+            for(int i = 0; i < iterations; i++)
+            {
+                AdjustToSize();
+                await Task.Delay(timeBetween);
+            }
         }
 
 
