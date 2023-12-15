@@ -29,12 +29,10 @@ namespace Architome
             currentPlayer.OnPlaySong += HandleNewSong;
         }
 
-        // Update is called once per frame
         void Update()
         {
         
         }
-
         async void HandleNewSong(AudioSource source, MonoBehaviour behavior)
         {
             await ArchAction.WaitUntil(() => playing, false);
@@ -42,8 +40,6 @@ namespace Architome
             await PlayMusicNotification($"Now playing {source} ({source.clip.length}");
                
         }
-
-
         async Task PlayMusicNotification(string title)
         {
             playing = true;
@@ -63,7 +59,5 @@ namespace Architome
         {
             playing = false;
         }
-
-
     }
 }
