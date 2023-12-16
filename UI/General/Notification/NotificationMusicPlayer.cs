@@ -38,8 +38,8 @@ namespace Architome
             await ArchAction.WaitUntil(() => playing, false);
             await Task.Delay(125);
             await PlayMusicNotification($"Now playing {source} ({source.clip.length}");
-               
         }
+
         async Task PlayMusicNotification(string title)
         {
             playing = true;
@@ -53,6 +53,13 @@ namespace Architome
 
             canvasGroup.SetCanvas(false);
 
+        }
+
+        public void StopPlayingImmediate()
+        {
+            if (!playing) return; 
+            animator.SetTrigger("StopPlaying");
+            playing = false;
         }
 
         public void StopPlaying()
