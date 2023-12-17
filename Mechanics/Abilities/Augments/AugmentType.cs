@@ -184,11 +184,13 @@ namespace Architome
         protected void EnableTasks()
         {
             augment.entity.taskEvents.OnTaskComplete += HandleTaskComplete;
+            augment.entity.taskEvents.OnStartTask += HandleStartTask;
+
             augment.OnRemove += (Augment augment) => {
                 augment.entity.taskEvents.OnTaskComplete -= HandleTaskComplete;
+                augment.entity.taskEvents.OnStartTask -= HandleStartTask;
             };
 
-            augment.entity.taskEvents.OnStartTask += HandleStartTask;
         }
         public virtual void SetCatalyst(CatalystInfo catalyst, bool active)
         {
