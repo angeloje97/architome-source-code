@@ -13,7 +13,7 @@ namespace Architome
         BuffsManager buffManager;
 
         public int validReceiver;
-        public bool ignoreTaskActivator;
+        public bool requiresTaskActivator;
 
         private async void Start()
         {
@@ -34,7 +34,7 @@ namespace Architome
             var taskHandler = augment.entity.TaskHandler();
             if (taskHandler == null) return;
 
-            if (CheckTaskActivator(eventData.workInfo.GetComponent<AugmentTaskActivator>())) return;
+            if (!CheckTaskActivator(eventData.workInfo)) return;
 
             var augmentEvent = new Augment.AugmentEventData(this) 
             { 
@@ -52,15 +52,16 @@ namespace Architome
         public override void HandleTaskComplete(TaskEventData eventData)
         {
             if (augment.ability.abilityType != AbilityType.Use) return;
-            if (CheckTaskActivator(eventData.workInfo.GetComponent<AugmentTaskActivator>())) return;
+            if (!CheckTaskActivator(eventData.workInfo)) return;
 
             augment.ability.HandleAbilityType();
             augment.TriggerAugment(new(this));
         }
 
-        public bool CheckTaskActivator(AugmentTaskActivator activator, bool triggerIncrement = false)
+        public bool CheckTaskActivator(Component componentCheck, bool triggerIncrement = false)
         {
-            if (ignoreTaskActivator) return true;
+            var activator = componentCheck.GetComponent<AugmentTaskActivator>();
+            if (!requiresTaskActivator) return true;
             if (activator == null) return false;
 
             var valid = activator.ValidAugment(this);
