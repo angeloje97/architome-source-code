@@ -15,6 +15,9 @@ namespace Architome
         public int validReceiver;
         public bool requiresTaskActivator;
 
+        public bool requiresActivationAmount;
+        public int targetActivationAmount;
+
         private async void Start()
         {
 
@@ -61,17 +64,34 @@ namespace Architome
         public bool CheckTaskActivator(Component componentCheck, bool triggerIncrement = false)
         {
             var activator = componentCheck.GetComponent<AugmentTaskActivator>();
-            if (!requiresTaskActivator) return true;
-            if (activator == null) return false;
-
-            var valid = activator.ValidAugment(this);
-
-            if (triggerIncrement && valid)
+            var valid = true;
+            
+            if (requiresTaskActivator)
             {
+                if (activator == null)
+                {
+                    valid = false;
+                }
+                else
+                {
+                    valid = activator.ValidAugment(this);
+                }
+            }
+
+            if (triggerIncrement && valid && activator != null)
+            {
+                var nextAmount = activator.amountActivated + 1;
                 ArchAction.Delay(() => {
                     activator.IncrementActivated();
                 }, .125f);
+
+                if (requiresActivationAmount)
+                {
+                    valid = nextAmount == targetActivationAmount;
+                }
             }
+
+            if (requiresActivationAmount && activator == null) valid = false;
 
             return valid;
             
