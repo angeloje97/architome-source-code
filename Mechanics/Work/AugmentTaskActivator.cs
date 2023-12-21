@@ -14,6 +14,8 @@ namespace Architome
 
         [SerializeField] List<ActivatorEvent> events;
 
+        HashSet<AugmentTask> activeAugments;
+
         private void Start()
         {
             events ??= new();
@@ -32,7 +34,22 @@ namespace Architome
         public bool ValidAugment(AugmentTask augment)
         {
             if (validTransmissions == null) return false;
+            HandleNewAugment(augment);
             return validTransmissions.Contains(augment.validReceiver);
+        }
+
+        void HandleNewAugment(AugmentTask augment)
+        {
+            if (activeAugments.Contains(augment)) return;
+            activeAugments.Add(augment);
+        }
+
+        public void HandleRemoveAugment(AugmentTask augment)
+        {
+            if (!activeAugments.Contains(augment)) return;
+            activeAugments.Remove(augment);
+
+            if (activeAugments.Count == 0) ResetAmountActivated();
         }
 
         public void ResetAmountActivated()
