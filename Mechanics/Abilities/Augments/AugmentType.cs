@@ -100,6 +100,17 @@ namespace Architome
             };
         }
 
+        protected void EnableCombatChange()
+        {
+            var entity = augment.ability.entityInfo;
+
+            entity.OnCombatChange += HandleCombatChange;
+
+            augment.OnRemove += (Augment augment) => {
+                entity.OnCombatChange -= HandleCombatChange;
+            };
+        }
+
         protected void EnableStartCast()
         {
             ability.OnCastStart += HandleCastStart;
@@ -227,6 +238,8 @@ namespace Architome
         }
 
         protected virtual void HandleCastStart(AbilityInfo ability) { }
+
+        protected virtual void HandleCombatChange(bool isInCombat) { }
 
         public virtual void WhileCasting(AbilityInfo ability)
         {

@@ -18,13 +18,19 @@ namespace Architome
         public bool requiresActivationAmount;
         public int targetActivationAmount;
 
+        public HashSet<AugmentTaskActivator> currentTaskActivators;
+
         private async void Start()
         {
 
             await GetDependencies(() => {
                 EnableTasks();
+                augment.OnRemove += HandleRemoveAugment;
+                EnableCombatChange();
                 buffManager = augment.entity.Buffs();
             });
+
+            currentTaskActivators = new();
         }
 
         protected override string Description()
@@ -61,6 +67,17 @@ namespace Architome
             augment.TriggerAugment(new(this));
         }
 
+        void HandleRemoveAugment(Augment augment)
+        {
+            ClearActivators();
+        }
+
+        protected override void HandleCombatChange(bool isInCombat)
+        {
+            if (isInCombat) return;
+            ClearActivators();
+        }
+
         public bool CheckTaskActivator(Component componentCheck, bool triggerIncrement = false)
         {
             var activator = componentCheck.GetComponent<AugmentTaskActivator>();
@@ -94,7 +111,14 @@ namespace Architome
             if (requiresActivationAmount && activator == null) valid = false;
 
             return valid;
-            
+        }
+
+        void ClearActivators()
+        {
+            foreach(var activator in currentTaskActivators)
+            {
+                activator.HandleRemoveAugment(this);
+            }
         }
     }
 }
