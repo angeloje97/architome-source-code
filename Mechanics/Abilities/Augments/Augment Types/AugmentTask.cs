@@ -10,7 +10,6 @@ namespace Architome
     public class AugmentTask : AugmentType
     {
         [Header("Task Properties")]
-        BuffsManager buffManager;
 
         public int validReceiver;
         public bool requiresTaskActivator;
@@ -25,9 +24,8 @@ namespace Architome
 
             await GetDependencies(() => {
                 EnableTasks();
-                augment.OnRemove += HandleRemoveAugment;
                 EnableCombatChange();
-                buffManager = augment.entity.Buffs();
+                augment.OnRemove += HandleRemoveAugment;
             });
 
             currentTaskActivators = new();
@@ -119,6 +117,8 @@ namespace Architome
             {
                 activator.HandleRemoveAugment(this);
             }
+
+            currentTaskActivators = new();
         }
     }
 }

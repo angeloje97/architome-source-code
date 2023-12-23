@@ -10,6 +10,7 @@ namespace Architome
 {
     public class AugmentType : MonoBehaviour
     {
+        [Header("AugmentType Properties")]
         public Augment augment;
         protected AbilityInfo ability;
 
