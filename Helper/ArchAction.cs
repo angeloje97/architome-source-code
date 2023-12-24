@@ -54,9 +54,19 @@ namespace Architome
             action();
         }
 
+        //Will keep running until predicate returns expected
+        public static async Task WaitUntil(Predicate<float> predicate, bool expected)
+        {
+            await World.UpdateAction((float deltaTime) => {
+                return predicate(deltaTime) != expected;
+            });
+        }
+
         public static async Task WaitUntil(Func<bool> predicate, bool expected)
         {
-            while (predicate() != expected) await Task.Yield();
+            await World.UpdateAction((float deltaTime) => {
+                return predicate() != expected;
+            });
         }
 
         public static async void UpdateWhile(Action action, ArchCondition condition)
