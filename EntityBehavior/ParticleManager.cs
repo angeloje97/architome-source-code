@@ -142,6 +142,15 @@ namespace Architome
 
         }
 
+        public async void StopParticle(GameObject particleObj)
+        {
+            var system = particleObj.GetComponentInChildren<ParticleSystem>();
+
+            system.Stop(true);
+            await Task.Delay(2000);
+            Destroy(particleObj);
+        }
+
         public void ManifestRadius(GameObject particleObj, float radius)
         {
             var particleSystems = particleObj.GetComponentsInChildren<ParticleSystem>();

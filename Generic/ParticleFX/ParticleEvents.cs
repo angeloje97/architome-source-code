@@ -3,6 +3,7 @@ using System.Collections;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using UnityEngine.Rendering;
 
 namespace Architome
 {
@@ -33,10 +34,17 @@ namespace Architome
         public class EventItemHandler
         {
             public T trigger;
+            [Header("Particle Properties")]
             public GameObject particleObject;
+            public Transform particleTarget;
+            public Vector3 positionOffset;
+            public Vector3 scaleOffset;
+
+            [Header("Audio Properties")]
             public AudioClip audioClip;
 
-            public Transform particleTarget;
+
+
             Transform defaultTarget;
             ParticleManager particleManager;
             AudioManager audioManager;
@@ -62,28 +70,59 @@ namespace Architome
 
             public void ActivateEffect()
             {
+                HandleParticle();
+                HandleAudioClip();
+
             }
 
             async void HandleParticle()
             {
                 if (particleObject == null) return;
+                if (particleManager == null) return;
+
                 var target = particleTarget ?? defaultTarget;
 
-                var activeParticle = particleManager.Play(particleObject).Item1;
+                var (system, gameObj) = particleManager.Play(particleObject);
+                var trans = gameObj.transform;
+
+                trans.SetParent(target);
+
+                HandlePosition();
+                HandleScale();
+
 
                 await HandleDuration();
-                
 
+                particleManager.StopParticle(gameObj);
+
+                void HandlePosition()
+                {
+                    trans.localPosition += positionOffset;
+                }
+
+                void HandleScale()
+                {
+                    trans.localScale += scaleOffset;
+                }
 
             }
 
             void HandleAudioClip()
             {
-
+                if (audioClip == null || audioManager == null) return;
             }
 
+
+            bool durationStarted;
             async Task HandleDuration()
             {
+                if (durationStarted)
+                {
+                    await ArchAction.WaitUntil(() => durationStarted, false);
+                    return;
+                }
+
+                durationStarted = true;
                 if(!overrideContinueCondition)
                 {
                     float currentTimer = defaultDuration;
@@ -97,6 +136,7 @@ namespace Architome
                 {
                     await ArchAction.WaitUntil(canContinuePlaying, false);
                 }
+                durationStarted = false;
             }
         }
     }
