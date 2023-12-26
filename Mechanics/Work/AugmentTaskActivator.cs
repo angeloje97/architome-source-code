@@ -15,10 +15,36 @@ namespace Architome
         [SerializeField] List<ActivatorEvent> events;
 
         HashSet<AugmentTask> activeAugments;
+        public class EventData
+        {
+            public AugmentTaskActivator taskActivator;
+            public EntityInfo sourceEntity;
+        }
+
+        public ArchEventHandler<eTaskActivatorEvent, EventData> eventHandlers;
+
+
+        public EffectsHandler<eTaskActivatorEvent> effectHandler;
+
+        public enum eTaskActivatorEvent
+        {
+            OnFirstActivated,
+            OnReset,
+            OnIncreaseAmountActivated,
+        }
+
 
         private void Start()
         {
             events ??= new();
+            GetDependencies();
+        }
+
+        void GetDependencies()
+        {
+            effectHandler.InitiateItemEffects((item) => {
+                eventHandlers.AddListener(item.trigger, item.ActivateEffect, this);
+            });
         }
 
         public void IncrementActivated()

@@ -8,7 +8,7 @@ using UnityEngine.Rendering;
 namespace Architome
 {
     [Serializable]
-    public class ParticleEvents<T> where T: Enum
+    public class EffectsHandler<T> where T: Enum
     {
         [Header("Required Fields")]
         public Transform defaultParticleSpawnTarget;
@@ -16,19 +16,34 @@ namespace Architome
         public ParticleManager particleManager;
 
         public List<EventItemHandler> effects;
+        Dictionary<T, List<EventItemHandler>> subsets;
 
-
-        public void UpdateEffectItems()
+        public void InitiateItemEffects(Action<EventItemHandler> handleItem)
         {
             effects ??= new();
-
+            subsets = new();
             foreach(var fx in effects)
             {
                 fx.SetEventItem(defaultParticleSpawnTarget, audioManager, particleManager);
+                handleItem(fx);
+
+                if (!subsets.ContainsKey(fx.trigger))
+                {
+                    subsets[fx.trigger] ??= new();
+                }
+
+                subsets[fx.trigger].Add(fx);
             }
         }
 
-        
+        public void Activate(T triggerName)
+        {
+            if (!subsets.ContainsKey(triggerName)) return;
+            foreach (var fx in subsets[triggerName])
+            {
+                fx.ActivateEffect();
+            }
+        }
 
         [Serializable]
         public class EventItemHandler
@@ -61,6 +76,7 @@ namespace Architome
                 this.audioManager = audioManager;
                 this.particleManager = particleManager;
             }
+
 
             public void SetPredicate(Func<bool> predicate)
             {
