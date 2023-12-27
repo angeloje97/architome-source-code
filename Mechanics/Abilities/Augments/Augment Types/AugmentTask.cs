@@ -97,7 +97,7 @@ namespace Architome
             {
                 var nextAmount = activator.amountActivated + 1;
                 ArchAction.Delay(() => {
-                    activator.IncrementActivated();
+                    activator.IncrementActivated(this);
                 }, .125f);
 
                 if (requiresActivationAmount)

@@ -19,6 +19,11 @@ namespace Architome
         {
             public AugmentTaskActivator taskActivator;
             public EntityInfo sourceEntity;
+
+            public EventData(AugmentTaskActivator activator)
+            {
+                this.taskActivator = activator;
+            }
         }
 
         public ArchEventHandler<eTaskActivatorEvent, EventData> eventHandlers;
@@ -47,7 +52,7 @@ namespace Architome
             });
         }
 
-        public void IncrementActivated()
+        public void IncrementActivated(AugmentTask augment)
         {
             amountActivated++;
 
@@ -55,6 +60,17 @@ namespace Architome
             {
                 activatorEvent.HandleIncrement(amountActivated);
             }
+            var eventData = new EventData(this)
+            {
+                sourceEntity = augment.augment.entity,
+            };
+
+            if (amountActivated == 1)
+            {
+                eventHandlers.Invoke(eTaskActivatorEvent.OnFirstActivated, eventData);
+            }
+
+            eventHandlers.Invoke(eTaskActivatorEvent.OnIncreaseAmountActivated, eventData);
         }
 
         public bool ValidAugment(AugmentTask augment)
@@ -81,6 +97,7 @@ namespace Architome
         public void ResetAmountActivated()
         {
             amountActivated = 0;
+            eventHandlers.Invoke(eTaskActivatorEvent.OnReset, new EventData(this));
         }
 
         [Serializable]
