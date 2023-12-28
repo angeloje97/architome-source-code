@@ -261,6 +261,11 @@ namespace Architome
             }
         }
 
+        public async Task UntilDone()
+        {
+            await ArchAction.WaitUntil(() => states.isBeingWorkedOn, false);
+        }
+
         public void HandleTaskCancel()
         {
             if(properties.resetOnCancel)

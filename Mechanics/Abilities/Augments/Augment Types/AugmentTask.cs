@@ -36,12 +36,15 @@ namespace Architome
             return $"This ability is activated when the unit completes a task";
         }
 
+        bool taskInProgress;
+
         public override async void HandleStartTask(TaskEventData eventData)
         {
             var taskHandler = augment.entity.TaskHandler();
             if (taskHandler == null) return;
 
             if (!CheckTaskActivator(eventData.workInfo)) return;
+            
 
             var augmentEvent = new Augment.AugmentEventData(this) 
             { 

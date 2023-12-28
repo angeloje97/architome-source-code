@@ -1,3 +1,4 @@
+using Architome.Effects;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,9 +9,11 @@ namespace Architome
 {
     public class AugmentTaskActivator : MonoBehaviour
     {
-        public int amountActivated;
 
+
+        public WorkInfo workSourceInfo;
         public List<int> validTransmissions;
+        public int amountActivated;
 
         [SerializeField] List<ActivatorEvent> events;
 
@@ -19,6 +22,8 @@ namespace Architome
         {
             public AugmentTaskActivator taskActivator;
             public EntityInfo sourceEntity;
+            public AugmentTask sourceAugment;
+            public TaskInfo sourceTask;
 
             public EventData(AugmentTaskActivator activator)
             {
@@ -26,16 +31,23 @@ namespace Architome
             }
         }
 
+        public class ActivatorEffectItem : EventItemHandler<eTaskActivatorEvent>
+        {
+            public bool playForDuration;
+        }
+
         public ArchEventHandler<eTaskActivatorEvent, EventData> eventHandlers;
 
 
-        public EffectsHandler<eTaskActivatorEvent> effectHandler;
+
+        public EffectsHandler<eTaskActivatorEvent, ActivatorEffectItem> effectHandler;
 
         public enum eTaskActivatorEvent
         {
             OnFirstActivated,
             OnReset,
             OnIncreaseAmountActivated,
+            OnStartTask,
         }
 
 
@@ -47,10 +59,45 @@ namespace Architome
 
         void GetDependencies()
         {
-            effectHandler.InitiateItemEffects((item) => {
-                eventHandlers.AddListener(item.trigger, item.ActivateEffect, this);
-            });
+            HandleListeners();
         }
+
+        void HandleListeners()
+        {
+            effectHandler.InitiateCustomEffects((item) =>
+            {
+
+                if (item.playForDuration && item.trigger == eTaskActivatorEvent.OnStartTask)
+                {
+                    eventHandlers.AddListener(item.trigger, (EventData data) => {
+                        if (data.sourceTask == null)
+                        {
+                            return;
+                        }
+
+                        item.SetCanContinuePredicate(() => data.sourceTask.states.isBeingWorkedOn);
+                        item.ActivateEffect();
+
+                    }, this);
+                    
+                }
+                else
+                {
+                    eventHandlers.AddListener(item.trigger, item.ActivateEffect, this);
+                }
+
+            });
+
+            if (workSourceInfo)
+            {
+                workSourceInfo.taskEvents.OnStartTask += (TaskEventData data) => {
+                    eventHandlers.Invoke(eTaskActivatorEvent.OnStartTask, new(this) { sourceTask = data.task });
+                
+                };
+            }
+        }
+
+
 
         public void IncrementActivated(AugmentTask augment)
         {
@@ -63,6 +110,7 @@ namespace Architome
             var eventData = new EventData(this)
             {
                 sourceEntity = augment.augment.entity,
+                sourceAugment = augment,
             };
 
             if (amountActivated == 1)

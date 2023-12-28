@@ -202,6 +202,12 @@ namespace Architome.Enums
         Catalyst,
     }
 
+    public enum Comparitor
+    {
+        Equal,
+        NotEqual
+    }
+
     public enum PortalType
     {
         Entrance,
