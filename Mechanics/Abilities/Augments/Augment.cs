@@ -224,10 +224,23 @@ namespace Architome
             removed = true;
         }
 
+        public int amountsTriggered;
+        public bool resetTriggerAtAmount;
+        public int amountToReset;
+
         public void TriggerAugment(AugmentEventData eventData)
         {
             eventData.eventTrigger = AugmentEvent.OnAugmentTrigger;
+
+            amountsTriggered++;
+
             events.Invoke(AugmentEvent.OnAugmentTrigger, eventData);
+
+            if (resetTriggerAtAmount && amountsTriggered == amountToReset)
+            {
+                amountsTriggered = 0;
+                events.Invoke(AugmentEvent.OnResetTriggerAmount, eventData);
+            }
         }
 
         public void ActivateAugment(AugmentEventData eventData)

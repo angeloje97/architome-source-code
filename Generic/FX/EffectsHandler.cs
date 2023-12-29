@@ -16,7 +16,7 @@ namespace Architome.Effects
         public AudioManager audioManager;
         public ParticleManager particleManager;
 
-        [SerializeField] List<EventItemHandler<T>> effects;
+        public List<EventItemHandler<T>> effects;
         Dictionary<T, List<EventItemHandler<T>>> subsets;
 
         public void InitiateItemEffects(Action<EventItemHandler<T>> handleItem)
@@ -56,7 +56,7 @@ namespace Architome.Effects
     [Serializable]
     public class EffectsHandler<T,E> : EffectsHandler<T> where T: Enum where E: EventItemHandler<T>
     {
-        [SerializeField] List<E> effects;
+        public new List<E> effects;
         Dictionary<T, List<E>> subsets;
         public void InitiateCustomEffects(Action<E> handleItem)
         {

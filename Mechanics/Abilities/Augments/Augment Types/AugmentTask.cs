@@ -52,7 +52,6 @@ namespace Architome
                 hasEnd = true,
             };
 
-            augment.ActivateAugment(augmentEvent);
 
             await taskHandler.FinishWorking();
 
@@ -65,6 +64,8 @@ namespace Architome
             if (!CheckTaskActivator(eventData.workInfo)) return;
 
             augment.ability.HandleAbilityType();
+            augment.ActivateAugment(augmentEvent);
+
             augment.TriggerAugment(new(this));
         }
 
