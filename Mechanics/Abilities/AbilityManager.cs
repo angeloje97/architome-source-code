@@ -64,6 +64,8 @@ namespace Architome
             public Action<AbilityInfo> OnAttack;
 
             public Action<EntityInfo, List<bool>> OnUseAuto;
+
+            public Action<Augment> OnTriggerAugment;
         }
 
         public Events events
@@ -370,6 +372,11 @@ namespace Architome
             {
                 ability.UpdateAbility();
             }
+        }
+
+        public void HandleTriggerAugment(Augment augment)
+        {
+            events.OnTriggerAugment?.Invoke(augment);
         }
 
         //public void OnStartMove(Movement movement)

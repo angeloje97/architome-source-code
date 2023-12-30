@@ -135,6 +135,19 @@ namespace Architome
             };
 
         }
+
+        protected void EnableAugmentTrigger()
+        {
+            var abilityManager = augment.abilityManager;
+            if (abilityManager == null) return;
+
+            abilityManager.events.OnTriggerAugment += HandleAugmentTrigger;
+
+            augment.OnRemove += (Augment augment) => {
+                abilityManager.events.OnTriggerAugment -= HandleAugmentTrigger;
+            };
+        }
+
         protected void EnableSuccesfulCast()
         {
             ability.OnSuccessfulCast += HandleSuccessfulCast;
@@ -225,6 +238,8 @@ namespace Architome
         {
 
         }
+
+        public virtual void HandleAugmentTrigger(Augment augment) { }
 
         public virtual void HandleCancelAbility(AugmentType augment)
         {

@@ -228,15 +228,25 @@ namespace Architome
         public bool resetTriggerAtAmount;
         public int amountToReset;
 
-        public void TriggerAugment(AugmentEventData eventData)
+        public void TriggerAugment(AugmentEventData eventData, bool effectsOnly = false)
         {
             eventData.eventTrigger = AugmentEvent.OnAugmentTrigger;
 
-            amountsTriggered++;
+            if (!effectsOnly)
+            {
+                amountsTriggered++;
+            }
 
             events.Invoke(AugmentEvent.OnAugmentTrigger, eventData);
 
-            if (resetTriggerAtAmount && amountsTriggered == amountToReset)
+            
+
+            if (!effectsOnly)
+            {
+                abilityManager.HandleTriggerAugment(this);
+            }
+
+            if (resetTriggerAtAmount && amountsTriggered >= amountToReset)
             {
                 amountsTriggered = 0;
                 events.Invoke(AugmentEvent.OnResetTriggerAmount, eventData);

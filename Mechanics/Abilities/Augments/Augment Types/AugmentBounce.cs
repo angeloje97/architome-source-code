@@ -98,7 +98,7 @@ namespace Architome
             {
                 ReflectCatalyst(catalyst);
                 augment.TriggerAugment(new(this));
-            }
+            } 
 
             SetCatalyst(catalyst, false);
         }
