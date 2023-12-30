@@ -4,11 +4,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Architome
 {
+    [Serializable]
     public class ArchEventHandler<T, E>  where T: Enum
     {
+        [SerializeField] List<EventItem> eventItems;
+        Dictionary<T, List<EventItem>> subsets;
         Component source;
         Dictionary<T, Action<E>> eventDict;
 
@@ -16,11 +20,36 @@ namespace Architome
         List<bool> checks;
         bool doingTasks;
         LogicType defaultLogic;
+
+
+
         public ArchEventHandler(Component source, LogicType defaultLogic = LogicType.NoFalse)
         {
             this.source = source;
             eventDict = new();
             this.defaultLogic = defaultLogic;
+
+            CreateSubsets();
+        }
+
+        void CreateSubsets()
+        {
+            eventItems ??= new();
+            subsets ??= new();
+
+            foreach (var item in eventItems)
+            {
+                if (!subsets.ContainsKey(item.trigger))
+                {
+                    subsets.Add(item.trigger, new());
+                }
+
+                subsets[item.trigger].Add(item);
+
+                AddListener(item.trigger, (E data) => {
+                    item.action?.Invoke(data);
+                }, source);
+            }
         }
 
         public Action AddListener(T eventType, Action<E> action, Component listener)
@@ -152,6 +181,13 @@ namespace Architome
             Invoke(eventType, eventData);
 
             return new ArchLogic(checks).Valid(logicType);
+        }
+
+        [Serializable]
+        public class EventItem
+        {
+            public T trigger;
+            public UnityEvent<E> action;
         }
 
     }
