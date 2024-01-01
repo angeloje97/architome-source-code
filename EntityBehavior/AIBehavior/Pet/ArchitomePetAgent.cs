@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Threading.Tasks;
 
 namespace Architome
 {
@@ -19,33 +20,31 @@ namespace Architome
 
         public EntityInfo master { get { return petBase.entityInfo; } }
 
-        new void GetDependencies()
+        public override async Task GetDependencies(Func<Task> extension)
         {
-            base.GetDependencies();
+            await base.GetDependencies(async () => {
 
-            if (entityInfo)
-            {
-                entityInfo.OnCombatChange += OnCombatChange;
-
-                character = entityInfo.CharacterInfo();
-                movement = entityInfo.Movement();
-
-                if (movement)
+                if (entityInfo)
                 {
-                    movement.OnEndMove += OnEndMove;
+                    entityInfo.OnCombatChange += OnCombatChange;
+
+                    character = entityInfo.CharacterInfo();
+                    movement = entityInfo.Movement();
+
+                    if (movement)
+                    {
+                        movement.OnEndMove += OnEndMove;
+                    }
+
+                    if (petBase)
+                    {
+                        entityInfo.ChangeNPCType(petBase.entityInfo.npcType);
+                    }
                 }
 
-                if (petBase)
-                {
-                    entityInfo.ChangeNPCType(petBase.entityInfo.npcType);
-                }
-            }
+                await extension(); 
+            });
 
-            
-        }
-        void Start()
-        {
-            GetDependencies();
         }
 
         public void SetAgent(ArchitomePetBase petBase)

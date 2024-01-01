@@ -5,6 +5,8 @@ using Architome.Enums;
 using Architome;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
+
 public class AIBehavior : EntityProp
 {
     // Start is called before the first frame update
@@ -37,38 +39,45 @@ public class AIBehavior : EntityProp
     private AIBehaviorType behaviorTypeCheck;
     private BehaviorState behaviorStateCheck;
     private CombatBehaviorType combatTypeCheck;
-    new public void GetDependencies()
+    public override async Task GetDependencies(Func<Task> extension)
     {
-        base.GetDependencies();
-        if (entityInfo)
-        {
-            entityObject = entityInfo.gameObject;
-
-            movement = entityInfo.Movement();
-
-            if (entityInfo.Movement())
+        await base.GetDependencies(async () => {
+            if (entityInfo)
             {
+                entityObject = entityInfo.gameObject;
+
                 movement = entityInfo.Movement();
+
+                if (entityInfo.Movement())
+                {
+                    movement = entityInfo.Movement();
+                }
+
+                if (entityInfo.AbilityManager())
+                {
+                    var abilityManager = entityInfo.AbilityManager();
+                }
+
+                entityInfo.combatEvents.OnStatesChange += OnStatesChange;
+
+                if (entityInfo.npcType == NPCType.Hostile)
+                {
+                    combatType = CombatBehaviorType.Aggressive;
+                }
+
+                entityInfo.partyEvents.OnAddedToParty += (PartyInfo party) => {
+                    behaviorType = AIBehaviorType.HalfPlayerControl;
+                };
             }
+        stateManager.Activate(this);
 
-            if (entityInfo.AbilityManager())
-            {
-                var abilityManager = entityInfo.AbilityManager();
-            }
+            StartCoroutine(DependenciesLate());
 
-            entityInfo.combatEvents.OnStatesChange += OnStatesChange;
 
-            if (entityInfo.npcType == NPCType.Hostile)
-            {
-                combatType = CombatBehaviorType.Aggressive;
-            }
+            await extension();
+        });
+        
 
-            entityInfo.partyEvents.OnAddedToParty += (PartyInfo party) => {
-                behaviorType = AIBehaviorType.HalfPlayerControl;
-            };
-        }
-
-        StartCoroutine(DependenciesLate());
 
 
         IEnumerator DependenciesLate()
@@ -121,14 +130,6 @@ public class AIBehavior : EntityProp
         }
     }
 
-
-
-
-    void Start()
-    {
-        GetDependencies();
-        stateManager.Activate(this);
-    }
     void Update()
     {
         HandleEventTriggers();

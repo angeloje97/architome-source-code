@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Threading.Tasks;
 
 namespace Architome
 {
@@ -27,41 +28,44 @@ namespace Architome
         }
         
 
-        void Start()
+        //protected override async void Start()
+        //{
+        //    await GetDependencies(DefaultExtension);
+        //    ApplySettings();
+        //}
+
+        public override async Task GetDependencies(Func<Task> extension)
         {
-            GetDependencies();
-            ApplySettings();
-        }
-        new void GetDependencies()
-        {
-            base.GetDependencies();
+            await base.GetDependencies(async () => {
+                character = GetComponentInParent<CharacterInfo>();
+                animator = GetComponent<Animator>();
 
-            character = GetComponentInParent<CharacterInfo>();
-            animator = GetComponent<Animator>();
-
-            if (entityInfo)
-            {
-                movement = entityInfo.Movement();
-                abilityManager = entityInfo.AbilityManager();
-
-                abilityEvents.OnCastStart += OnCastStart;
-                abilityEvents.OnCastReleasePercent += OnCastReleasePercent;
-
-                if (abilityManager)
+                if (entityInfo)
                 {
-                    abilityManager.OnAbilityStart += OnAbilityStart;
-                    abilityManager.OnAbilityEnd += OnAbilityEnd;
-                    //abilityManager.OnCastStart += OnCastStart;
-                    //abilityManager.OnCastReleasePercent += OnCastReleasePercent;
-                    abilityManager.OnChannelInterval += OnChannelInterval;
+                    movement = entityInfo.Movement();
+                    abilityManager = entityInfo.AbilityManager();
+
+                    abilityEvents.OnCastStart += OnCastStart;
+                    abilityEvents.OnCastReleasePercent += OnCastReleasePercent;
+
+                    if (abilityManager)
+                    {
+                        abilityManager.OnAbilityStart += OnAbilityStart;
+                        abilityManager.OnAbilityEnd += OnAbilityEnd;
+                        abilityManager.OnChannelInterval += OnChannelInterval;
+                    }
+
+                    entityInfo.OnLifeChange += OnLifeChange;
+                    entityInfo.OnDamageTaken += OnDamageTaken;
+                    entityInfo.OnCombatChange += OnCombatChange;
+
+                    HandleTaskAnimation();
                 }
 
-                entityInfo.OnLifeChange += OnLifeChange;
-                entityInfo.OnDamageTaken += OnDamageTaken;
-                entityInfo.OnCombatChange += OnCombatChange;
+                await extension();
+            });
 
-                HandleTaskAnimation();
-            }
+            ApplySettings();
         }
 
         void HandleTaskAnimation()

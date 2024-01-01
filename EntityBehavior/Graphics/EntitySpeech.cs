@@ -34,15 +34,19 @@ namespace Architome
         public bool isSpeaking;
 
         
-        new void GetDependencies()
+        public override async Task GetDependencies(Func<Task> extension)
         {
-            base.GetDependencies();
+            await base.GetDependencies(async () => {
+                chatManager = ChatBubblesManager.active;
 
-            chatManager = ChatBubblesManager.active;
+
+                await extension();
+            });
+
         }
-        void Start()
+
+        private void Awake()
         {
-            GetDependencies();
             speechQueue = new();
         }
 

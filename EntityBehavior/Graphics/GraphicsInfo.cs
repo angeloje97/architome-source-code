@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
 using System.Threading.Tasks;
+using System;
 
 namespace Architome
 {
-    public class GraphicsInfo : MonoBehaviour
+    public class GraphicsInfo : EntityProp
     {
         // Start is called before the first frame update
         public GameObject entityObject;
-        public EntityInfo entityInfo;
         public SpriteRenderer entityIcon;
 
 
@@ -21,12 +21,10 @@ namespace Architome
 
         bool isHidden;
 
-        public void GetDependencies()
+        public override async Task GetDependencies(Func<Task> extension)
         {
+            await base.GetDependencies(async () => {
 
-            if (GetComponentInParent<EntityInfo>())
-            {
-                entityInfo = GetComponentInParent<EntityInfo>();
                 entityObject = entityInfo.gameObject;
 
                 entityInfo.OnLifeChange += OnLifeChange;
@@ -36,9 +34,13 @@ namespace Architome
 
                 entityInfo.portalEvents.OnPortalExit += OnPortalExit;
 
-            }
+                GetChildren();
 
+                await Task.Delay(125);
+                UpdateGraphics();
 
+                await extension();
+            });
         }
         public void GetChildren()
         {
@@ -57,20 +59,6 @@ namespace Architome
             {
                 gameObject.SetActive(false);
             }
-        }
-
-        void Start()
-        {
-            GetDependencies();
-            GetChildren();
-            Invoke("UpdateGraphics", .125f);
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-            //CorrectGraphics();
-            //LookAtCamera();
         }
 
         public void OnLifeChange(bool isAlive)

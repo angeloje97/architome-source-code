@@ -15,16 +15,15 @@ namespace Architome
         public PopupTextManager popUpManager;
         public List<EntityState> previousStates;
 
-        new void GetDependencies()
+        public override async Task GetDependencies(Func<Task> extension)
         {
-            base.GetDependencies();
+            await base.GetDependencies(async () => {
+                popUpManager = PopupTextManager.active;
 
-            popUpManager = PopupTextManager.active;
-
-            if (popUpManager == null) return;
+                if (popUpManager == null) return;
 
 
-            ArchAction.Delay(() => {
+                await Task.Delay(250);
                 if (entityInfo)
                 {
                     if (entityInfo.rarity == EntityRarity.Player)
@@ -47,18 +46,13 @@ namespace Architome
                     entityInfo.combatEvents.OnStatesChange += OnStatesChange;
                     entityInfo.combatEvents.OnAddImmuneState += OnAddImmuneState;
                     entityInfo.combatEvents.OnRemoveImmuneState += OnRemoveImmuneState;
-
-
                 }
-            }, .25f);
+
+                await extension();
+            });
+
+            
         }
-
-
-        void Start()
-        {
-            GetDependencies();
-        }
-
         
         void OnRarityChange(EntityRarity before, EntityRarity after)
         {

@@ -24,9 +24,8 @@ namespace Architome
         bool doingTasks;
         public string currentTaskName;
 
-        void Start()
+        private void Awake()
         {
-            GetDependencies();
             previousTask = null;
             currentTask = null;
             tasks = new();
@@ -35,24 +34,23 @@ namespace Architome
         {
             HandleEvents();
         }
-        public new void GetDependencies()
+        public override async Task GetDependencies(Func<Task> extension)
         {
-            base.GetDependencies();
+            await base.GetDependencies(async () => {
+                if (entityInfo.Movement())
+                {
+                    movement = entityInfo.Movement();
+                }
 
-            if(entityInfo.Movement())
-            {
-                movement = entityInfo.Movement();
-            }
+                entityInfo.combatEvents.OnStatesChange += OnEntityStateChanged;
 
-            entityInfo.combatEvents.OnStatesChange += OnEntityStateChanged;
+                buffManager = entityInfo.Buffs();
 
-            buffManager = entityInfo.Buffs();
+                entityInfo.taskEvents.OnNewTask += OnNewTask;
+                entityInfo.OnDamageTaken += OnDamageTaken;
 
-            entityInfo.taskEvents.OnNewTask += OnNewTask;
-            entityInfo.OnDamageTaken += OnDamageTaken;
-
-
-            
+                await extension();
+            });
         }
 
         void OnEntityStateChanged(List<EntityState> previous, List<EntityState> current)

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Rendering;
@@ -50,15 +51,6 @@ namespace Architome
         bool disabledCheck;
 
         DialogueChangeRequestData currentRequestData;
-        void Start()
-        {
-            GetDependencies();
-
-            ArchAction.Delay(() => {
-                disabledCheck = !initialDataSet.disabled;
-                HandleDisabled();
-            }, 1f);
-        }
 
         [SerializeField] bool validate;
         
@@ -102,19 +94,27 @@ namespace Architome
         
         }
 
-        public override void GetDependencies()
+        public override async Task GetDependencies(Func<Task> extension)
         {
-            base.GetDependencies();
-            dialogueManager = ArchDialogueManager.active;
+            await base.GetDependencies(async () => {
+                dialogueManager = ArchDialogueManager.active;
 
-            optionEventsMap = new();
-            if(optionEvents != null)
-            {
-                foreach(var optionEvent in optionEvents)
+                optionEventsMap = new();
+                if(optionEvents != null)
                 {
-                    optionEventsMap.Add(optionEvent.name, optionEvent.OnTriggerEvent);
+                    foreach(var optionEvent in optionEvents)
+                    {
+                        optionEventsMap.Add(optionEvent.name, optionEvent.OnTriggerEvent);
+                    }
                 }
-            }
+
+                ArchAction.Delay(() => {
+                    disabledCheck = !initialDataSet.disabled;
+                    HandleDisabled();
+                }, 1f);
+
+                await extension();
+            });
         }
 
         public async void StartDialogue(Clickable.ChoiceData choiceData)

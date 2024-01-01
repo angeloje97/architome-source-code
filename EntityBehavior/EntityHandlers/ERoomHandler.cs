@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Threading.Tasks;
-
+using System;
 
 namespace Architome
 {
@@ -12,15 +12,20 @@ namespace Architome
 
         public RoomInfo previousRoom;
 
-        new public void GetDependencies()
+        public override async Task GetDependencies(Func<Task> extension)
         {
-            base.GetDependencies();
-            entityInfo.OnPhysicsEvent += OnPhysicsEvent;
-            entityInfo.OnRoomChange += OnRoomChange;
-            entityInfo.sceneEvents.OnTransferScene += OnTransferScene;
+            await base.GetDependencies(async () => {
 
+                entityInfo.OnPhysicsEvent += OnPhysicsEvent;
+                entityInfo.OnRoomChange += OnRoomChange;
+                entityInfo.sceneEvents.OnTransferScene += OnTransferScene;
 
-            entityInfo.infoEvents.OnSignificantMovementChange += OnSignificantMovementChange;
+                entityInfo.infoEvents.OnSignificantMovementChange += OnSignificantMovementChange;
+
+                AcquireRoom();
+
+                await extension();
+            });
         }
 
         private void OnSignificantMovementChange(Vector3 newPosition)
@@ -28,16 +33,11 @@ namespace Architome
             entityInfo.currentRoom = Entity.Room(newPosition);
         }
 
-        void Update()
+        public override void EUpdate()
         {
             HandleEvents();
         }
 
-        private void Start()
-        {
-            GetDependencies();
-            AcquireRoom();
-        }
         public void OnPhysicsEvent(EntityInfo entity, GameObject other, bool isEnter)
         {
             if(!other.GetComponent<WalkThroughActivate>()) { return; }

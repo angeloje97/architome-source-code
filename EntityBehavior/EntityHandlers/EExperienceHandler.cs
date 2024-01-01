@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using System;
+using System.Threading.Tasks;
 
 namespace Architome
 {
@@ -11,23 +12,18 @@ namespace Architome
         // Start is called before the first frame update
         
 
-        public new void GetDependencies()
+        public override async Task GetDependencies(Func<Task> extension)
         {
-            base.GetDependencies();
+            await base.GetDependencies(async () => {
 
-            entityInfo.OnDamagePreventedFromShields += OnDamagePreventedFromShields;
-            entityInfo.OnDamageTaken += OnDamageTaken;
-            entityInfo.OnDamageDone += OnDamageDone;
-            entityInfo.OnHealingDone += OnHealingDone;
+                entityInfo.OnDamagePreventedFromShields += OnDamagePreventedFromShields;
+                entityInfo.OnDamageTaken += OnDamageTaken;
+                entityInfo.OnDamageDone += OnDamageDone;
+                entityInfo.OnHealingDone += OnHealingDone;
 
-            entityInfo.OnExperienceGainOutside += OnGainExperienceOutside;
-        }
-
-
-
-        public void Start()
-        {
-            GetDependencies();
+                entityInfo.OnExperienceGainOutside += OnGainExperienceOutside;
+                await extension();
+            });
         }
 
         public void GainExp(float value)

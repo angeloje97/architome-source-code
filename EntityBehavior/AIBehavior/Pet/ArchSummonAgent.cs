@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using Architome.Enums;
 using System;
+using PixelCrushers.DialogueSystem;
 
 namespace Architome
 {
@@ -47,29 +48,33 @@ namespace Architome
 
         public float liveTime;
 
-        new void GetDependencies()
+        public override async Task GetDependencies(Func<Task> extension)
         {
-            base.GetDependencies();
+            await base.GetDependencies(async () => {
+                master = entityInfo.summon.master;
 
-            master = entityInfo.summon.master;
+                liveTime = entityInfo.summon.timeRemaining;
+                summoning = entityInfo.summon;
+                behavior = GetComponentInParent<AIBehavior>();
+
+                character = entityInfo.CharacterInfo();
+                combat = behavior.GetComponentInChildren<CombatBehavior>();
+                threatManager = behavior.GetComponentInChildren<ThreatManager>();
+
+                entityInfo.OnDamageDone += OnDamageDone;
+
+                sourceAbility = entityInfo.summon.sourceAbility;
+                await extension();
+            });
+
             
-            liveTime = entityInfo.summon.timeRemaining;
-            summoning = entityInfo.summon;
-            behavior = GetComponentInParent<AIBehavior>();
-
-            character = entityInfo.CharacterInfo();
-            combat = behavior.GetComponentInChildren<CombatBehavior>();
-            threatManager = behavior.GetComponentInChildren<ThreatManager>();
-
-            entityInfo.OnDamageDone += OnDamageDone;
-
-            sourceAbility = entityInfo.summon.sourceAbility;
             
 
         }
-        void Start()
+        protected async override void Start()
         {
-            GetDependencies();
+            await GetDependencies(DefaultExtension);
+
             HandleEvents(true);
             DisableConflicts();
             AcquireThreats();

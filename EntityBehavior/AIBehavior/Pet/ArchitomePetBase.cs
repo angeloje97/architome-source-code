@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Threading.Tasks;
 
 namespace Architome
 {
@@ -26,23 +27,24 @@ namespace Architome
 
         public Transform petSpot { get { return pet.followSpot; } }
 
-        new void GetDependencies()
+        public override async Task GetDependencies(Func<Task> extension)
         {
-            base.GetDependencies();
-            behavior = GetComponentInParent<AIBehavior>();
-            entityGenerator = MapEntityGenerator.active;
-            character = entityInfo.CharacterInfo();
+            await base.GetDependencies(async () => {
 
-            if (character)
-            {
-                pet.followSpot = character.PetSpot();
-            }
+                behavior = GetComponentInParent<AIBehavior>();
+                entityGenerator = MapEntityGenerator.active;
+                character = entityInfo.CharacterInfo();
 
-        }
-        void Start()
-        {
-            GetDependencies();
+                if (character)
+                {
+                    pet.followSpot = character.PetSpot();
+                }
+
+                await extension();
+            });
+
             SummonPet();
+
         }
 
         void SummonPet()
@@ -60,12 +62,6 @@ namespace Architome
             pet.agent = pet.info.AIBehavior().CreateBehavior<ArchitomePetAgent>();
 
             pet.agent.SetAgent(this);
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-
         }
     }
 

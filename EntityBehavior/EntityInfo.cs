@@ -207,11 +207,15 @@ namespace Architome
             abilityEvents ??= new();
             infoEvents.Initiate(this);
         }
+
+        public bool initiated { get; private set; }
         void Start()
         {
             EntityStart();
             HandleFalling();
             HandleRarityEvents();
+
+            initiated = true;
         }
         void Update()
         {

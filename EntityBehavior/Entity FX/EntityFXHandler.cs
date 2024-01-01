@@ -4,6 +4,8 @@ using UnityEngine;
 using Architome.Enums;
 using System.Linq;
 using System.Threading.Tasks;
+using System;
+
 namespace Architome
 {
     public class EntityFXHandler : EntityProp
@@ -31,57 +33,66 @@ namespace Architome
             audioTypeDict = new();
         }
 
-        new void GetDependencies()
+        public override async Task GetDependencies(Func<Task> extension)
         {
-            base.GetDependencies();
-
-            particleManager = GetComponentInChildren<ParticleManager>();
-
-            var mixer = GMHelper.Mixer();
-
-            var sound = mixer.MixerGroup(AudioMixerType.SoundFX);
-            var voice = mixer.MixerGroup(AudioMixerType.Voice);
-            var sceneManager = ArchSceneManager.active;
-
-            if (sceneManager)
+            DetermineActive(null);
+            await base.GetDependencies(async () =>
             {
-                sceneManager.AddListener(SceneEvent.OnLoadScene, OnLoadScene, this);
-            }
+                particleManager = GetComponentInChildren<ParticleManager>();
 
-            foreach (var soundManager in GetComponentsInChildren<AudioManager>())
-            {
-                if (soundManager.mixerGroup == sound)
+                var mixer = GMHelper.Mixer();
+
+                var sound = mixer.MixerGroup(AudioMixerType.SoundFX);
+                var voice = mixer.MixerGroup(AudioMixerType.Voice);
+                var sceneManager = ArchSceneManager.active;
+
+                if (sceneManager)
                 {
-                    audioTypeDict.Add(AudioMixerType.SoundFX, soundManager);
+                    sceneManager.AddListener(SceneEvent.OnLoadScene, OnLoadScene, this);
                 }
 
-                if (soundManager.mixerGroup == voice)
+                foreach (var soundManager in GetComponentsInChildren<AudioManager>())
                 {
-                    audioTypeDict.Add(AudioMixerType.Voice, soundManager);
+                    if (soundManager.mixerGroup == sound)
+                    {
+                        audioTypeDict.Add(AudioMixerType.SoundFX, soundManager);
+                    }
 
-                }
-            }
+                    if (soundManager.mixerGroup == voice)
+                    {
+                        audioTypeDict.Add(AudioMixerType.Voice, soundManager);
 
-            catalystManager = CatalystManager.active;
-
-            if (entityInfo)
-            {
-                entityFX = entityInfo.entityFX;
-                abilityManager = entityInfo.AbilityManager();
-                //characterBodyPart = entityInfo.GetComponentInChildren<CharacterBodyParts>();
-                characterBodyPart = entityInfo.BodyParts();
-                speech = entityInfo.Speech();
-
-                if (entityFX == null) return;
-
-                foreach(var fx in entityFX.effects)
-                {
-                    entityInfo.AddEventTrigger(() => {
-                        HandleEffect(fx);
-                    }, fx.trigger);
+                    }
                 }
 
-            }
+                catalystManager = CatalystManager.active;
+
+                if (entityInfo)
+                {
+                    entityFX = entityInfo.entityFX;
+                    abilityManager = entityInfo.AbilityManager();
+                    //characterBodyPart = entityInfo.GetComponentInChildren<CharacterBodyParts>();
+                    characterBodyPart = entityInfo.BodyParts();
+                    speech = entityInfo.Speech();
+
+                    if (entityFX == null) return;
+
+                    foreach (var fx in entityFX.effects)
+                    {
+                        entityInfo.AddEventTrigger(() =>
+                        {
+                            HandleEffect(fx);
+                        }, fx.trigger);
+                    }
+
+                }
+
+                HandleAdditiveEffects();
+
+                await extension();
+            });
+
+            
         }
 
 
@@ -105,13 +116,6 @@ namespace Architome
             var scene = sceneInfo.scene;
             active = activeScenes.Contains(scene);
 
-        }
-
-        void Start()
-        {
-            DetermineActive(null);
-            GetDependencies();
-            HandleAdditiveEffects();
         }
 
         void HandleAdditiveEffects()

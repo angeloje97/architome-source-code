@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using System;
+using System.Threading.Tasks;
 
 namespace Architome
 {
@@ -13,22 +15,21 @@ namespace Architome
 
         public float startingTimer = 1f;
 
-        new void GetDependencies()
+        public override async Task GetDependencies(Func<Task> extension)
         {
-            base.GetDependencies();
+            await base.GetDependencies(async () => {
 
-            character = GetComponent<CharacterInfo>();
-            archiChar = GetComponentInChildren<ArchitomeCharacter>();
 
-            if (character)
-            {
-                character.OnChangeEquipment += OnChangeEquipment;
-            }
+                character = GetComponent<CharacterInfo>();
+                archiChar = GetComponentInChildren<ArchitomeCharacter>();
 
-        }
-        void Start()
-        {
-            GetDependencies();
+                if (character)
+                {
+                    character.OnChangeEquipment += OnChangeEquipment;
+                }
+                await extension();
+            });
+
         }
 
         private void Update()

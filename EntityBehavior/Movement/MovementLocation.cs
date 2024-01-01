@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Threading.Tasks;
 
 namespace Architome
 {
@@ -22,23 +23,17 @@ namespace Architome
 
         public ParticleFX particles;
 
-        new void GetDependencies()
-        {
-            base.GetDependencies();
-            movement = GetComponentInParent<Movement>();
-
-
-        }
-
-
-        void Start()
+        public override async Task GetDependencies(Func<Task> extension)
         {
             transform.localScale = new Vector3(spaceRange, spaceRange, spaceRange);
-
-            GetDependencies();
             StopAllParticles();
-        }
 
+            await base.GetDependencies(async () => {
+                movement = GetComponentInParent<Movement>();
+
+                await extension();
+            });
+        }
 
         // Update is called once per frame
         void Update()

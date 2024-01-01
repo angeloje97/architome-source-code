@@ -12,13 +12,12 @@ using UnityEngine.Events;
 
 namespace Architome
 {
-    public class Movement : MonoBehaviour
+    public class Movement : EntityProp
     {
         // Start is called before the first frame update
         public GameObject entityObject;
         public GameObject location;
 
-        public EntityInfo entityInfo;
         private AIDestinationSetter destinationSetter;
         private AIPath path;
         public Rigidbody rigidBody;
@@ -67,60 +66,59 @@ namespace Architome
         private bool hasArrivedCheck;
         private Transform currentPathTarget;
         Vector3 previousPosition { get; set; }
-        public void GetDependencies()
+        public override async Task GetDependencies(Func<Task> extension)
         {
-            entityInfo = GetComponentInParent<EntityInfo>();
-            if (entityInfo)
-            {
-                entityObject = entityInfo.gameObject;
-                rigidBody = entityObject.GetComponent<Rigidbody>();
 
-                originalConstraints = rigidBody.constraints;
+            await base.GetDependencies(async () => {
 
-
-                destinationSetter = entityInfo.AIDestinationSetter();
-                path = entityInfo.Path();
-
-                abilityManager = entityInfo.AbilityManager();
-
-                entityInfo.OnChangeStats += OnChangeStats;
-                entityInfo.OnLifeChange += OnLifeCheck;
-                entityInfo.combatEvents.OnStatesChange += OnStatesChange;
-                entityInfo.infoEvents.OnSignificantMovementChange += OnSignificantMovementChange;
-            }
-
-            if (destinationSetter.target == null)
-            {
-                foreach (Transform child in transform)
+                if (entityInfo)
                 {
-                    if (child.CompareTag("GameController"))
+                    entityObject = entityInfo.gameObject;
+                    rigidBody = entityObject.GetComponent<Rigidbody>();
+
+                    originalConstraints = rigidBody.constraints;
+
+
+                    destinationSetter = entityInfo.AIDestinationSetter();
+                    path = entityInfo.Path();
+
+                    abilityManager = entityInfo.AbilityManager();
+
+                    entityInfo.OnChangeStats += OnChangeStats;
+                    entityInfo.OnLifeChange += OnLifeCheck;
+                    entityInfo.combatEvents.OnStatesChange += OnStatesChange;
+                    entityInfo.infoEvents.OnSignificantMovementChange += OnSignificantMovementChange;
+                }
+
+                if (destinationSetter.target == null)
+                {
+                    foreach (Transform child in transform)
                     {
-                        location = child.gameObject;
-                        if (destinationSetter)
+                        if (child.CompareTag("GameController"))
                         {
-                            destinationSetter.target = location.transform;
+                            location = child.gameObject;
+                            if (destinationSetter)
+                            {
+                                destinationSetter.target = location.transform;
+                            }
                         }
                     }
                 }
-            }
 
-            entityInfo.sceneEvents.OnTransferScene += OnTransferScene;
-
-
-            if (behavior == null && entityInfo && entityInfo.AIBehavior())
-            {
-                behavior = entityInfo.AIBehavior();
-            }
+                entityInfo.sceneEvents.OnTransferScene += OnTransferScene;
 
 
-        }
-        void Start()
-        {
-            GetDependencies();
+                if (behavior == null && entityInfo && entityInfo.AIBehavior())
+                {
+                    behavior = entityInfo.AIBehavior();
+                }
 
-            abilityHandler.Initiate(this);
-            previousPosition = transform.position;
+                abilityHandler.Initiate(this);
+                previousPosition = transform.position;
 
+                await extension();
+            });
+            
         }
 
         #region Event Loop

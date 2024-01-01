@@ -70,27 +70,36 @@ public class CharacterInfo : EntityProp
     public CharacterRotation rotation;
 
     bool sheathCheck;
-    public new void GetDependencies()
+    public override async Task GetDependencies(Func<Task> extension)
     {
-        base.GetDependencies();
+        GetProperties();
+        await base.GetDependencies(async () => {
 
-        if (entityInfo)
-        {
-            movement = entityInfo.Movement();
-            abilityManager = entityInfo.AbilityManager();
-            entityInfo.OnHiddenChange += OnHiddenChange;
-        }
+            if (entityInfo)
+            {
+                movement = entityInfo.Movement();
+                abilityManager = entityInfo.AbilityManager();
+                entityInfo.OnHiddenChange += OnHiddenChange;
+            }
 
-        if (movement)
-        {
+            if (movement)
+            {
 
-        }
+            }
 
-        if (abilityManager)
-        {
+            if (abilityManager)
+            {
 
-        }
-        abilityHandler.SetCharacter(this);
+            }
+            abilityHandler.SetCharacter(this);
+            await extension();
+        });
+
+        taskHandler.SetCharacter(this);
+
+
+        Invoke("UpdateEquipmentStats", .125f);
+
 
     }
     public void GetProperties()
@@ -116,14 +125,6 @@ public class CharacterInfo : EntityProp
         }
 
         return null;
-    }
-
-    void Start()
-    {
-        GetProperties();
-        GetDependencies();
-        taskHandler.SetCharacter(this);
-        Invoke("UpdateEquipmentStats", .125f);
     }
     // Update is called once per frame
     void Update()

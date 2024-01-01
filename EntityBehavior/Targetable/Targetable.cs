@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Architome;
+using System.Threading.Tasks;
+using System;
+
 public class Targetable : EntityProp
 {
     // Start is called before the first frame update
@@ -18,28 +21,27 @@ public class Targetable : EntityProp
     public List<GameObject> hoverTargets;
 
     bool ignoreDead;
-    public new void GetDependencies()
+    public async override Task GetDependencies(Func<Task> extensions)
     {
-        base.GetDependencies();
+        await base.GetDependencies(async () => {
 
-        targetManager = ContainerTargetables.active;
 
-        if (targetManager == null) return;
+            targetManager = ContainerTargetables.active;
 
-        entityInfo.targetableEvents.OnHold += OnHold;
-        entityInfo.targetableEvents.OnHover += OnHover;
-        entityInfo.targetableEvents.OnSelect += OnSelect;
-        //entityInfo.infoEvents.OnMouseHover += OnMouseHover;
+            if (targetManager == null) return;
 
-        if (!Entity.IsPlayer(entityInfo))
-        {
-            ignoreDead = true;
-        }
-    }
+            entityInfo.targetableEvents.OnHold += OnHold;
+            entityInfo.targetableEvents.OnHover += OnHover;
+            entityInfo.targetableEvents.OnSelect += OnSelect;
+            //entityInfo.infoEvents.OnMouseHover += OnMouseHover;
 
-    void Start()
-    {
-        GetDependencies();
+            if (!Entity.IsPlayer(entityInfo))
+            {
+                ignoreDead = true;
+            }
+            await extensions();
+        });
+
         SetValues(false);
     }
 

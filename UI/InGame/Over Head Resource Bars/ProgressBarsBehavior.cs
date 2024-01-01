@@ -6,10 +6,8 @@ using System;
 using System.Threading.Tasks;
 using UnityEngine.EventSystems;
 [RequireComponent(typeof(TargetableEntity))]
-public class ProgressBarsBehavior : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+public class ProgressBarsBehavior : EntityProp, IPointerEnterHandler, IPointerExitHandler
 {
-    // Start is called before the first frame update
-    public EntityInfo entityInfo;
     public GraphicsInfo graphicsInfo;
     public EntityClusterAgent clusterAgent;
     public AbilityManager abilityManager;
@@ -50,104 +48,98 @@ public class ProgressBarsBehavior : MonoBehaviour, IPointerEnterHandler, IPointe
     bool activeTimer;
     bool changingAlpha;
 
-    void GetDependencies()
+    public async override Task GetDependencies(Func<Task> extension)
     {
-        entityInfo = GetComponentInParent<EntityInfo>();
-        graphicsInfo = GetComponentInParent<GraphicsInfo>();
+        await base.GetDependencies(async () => {
+            
+            graphicsInfo = GetComponentInParent<GraphicsInfo>();
 
-        if (entityInfo)
-        {
-            SetHealthBarColor();
-            entityInfo.OnHealthChange += OnHealthChange;
-            entityInfo.OnManaChange += OnManaChange;
-            entityInfo.OnLifeChange += OnLifeChange;
-            entityInfo.OnChangeNPCType += OnChangeNPCType;
-            entityInfo.OnCombatChange += OnCombatChange;
-            entityInfo.OnHealingTaken += OnHealingTaken;
-            entityInfo.OnNewBuff += OnNewBuff;
-            OnCombatChange(entityInfo.isInCombat);
-
-            abilityManager = entityInfo.AbilityManager();
-
-            var targetableEntity = GetComponent<TargetableEntity>();
-            targetableEntity.SetEntity(entityInfo);
-        }
-
-        if(abilityManager)
-        {
-
-
-            abilityManager.OnAbilityStart += OnAbilityStart;
-
-
-        }
-
-        if(graphicsInfo)
-        {
-            var clusterAgent = graphicsInfo.EntityClusterAgent();
-            if(clusterAgent)
+            if (entityInfo)
             {
-                clusterAgent = graphicsInfo.EntityClusterAgent();
-                clusterAgent.OnClusterEnter += OnClusterEnter;
-                clusterAgent.OnClusterExit += OnClusterExit;
-                clusterAgent.OnClusterChange += OnClusterChange;
+                SetHealthBarColor();
+                entityInfo.OnHealthChange += OnHealthChange;
+                entityInfo.OnManaChange += OnManaChange;
+                entityInfo.OnLifeChange += OnLifeChange;
+                entityInfo.OnChangeNPCType += OnChangeNPCType;
+                entityInfo.OnCombatChange += OnCombatChange;
+                entityInfo.OnHealingTaken += OnHealingTaken;
+                entityInfo.OnNewBuff += OnNewBuff;
+                OnCombatChange(entityInfo.isInCombat);
+
+                abilityManager = entityInfo.AbilityManager();
+
+                var targetableEntity = GetComponent<TargetableEntity>();
+                targetableEntity.SetEntity(entityInfo);
             }
-        }
 
-        if(healthBarRect.gameObject.activeInHierarchy)
-        {
-            originalHealthBarHeight = healthBarRect.localPosition.y;
-            clusterAgentOffset += healthBarRect.rect.height;
-        }
-
-        if(resourceBarRect.gameObject.activeInHierarchy)
-        {
-            originalResourceBarHeight = resourceBarRect.localPosition.y;
-            clusterAgentOffset += resourceBarRect.rect.height;
-        }
+            if(abilityManager)
+            {
 
 
-        var rectTransform = GetComponent<RectTransform>();
-        rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, clusterAgentOffset);
-        clusterAgentOffset += castBarRect.rect.height;
+                abilityManager.OnAbilityStart += OnAbilityStart;
 
-        canvasGroup = GetComponent<CanvasGroup>();
 
-        if (canvasGroup && entityInfo)
-        {
-            canvasGroup.alpha = entityInfo.isInCombat ? 1f : 0f;
-        }
+            }
+
+            if(graphicsInfo)
+            {
+                var clusterAgent = graphicsInfo.EntityClusterAgent();
+                if(clusterAgent)
+                {
+                    clusterAgent = graphicsInfo.EntityClusterAgent();
+                    clusterAgent.OnClusterEnter += OnClusterEnter;
+                    clusterAgent.OnClusterExit += OnClusterExit;
+                    clusterAgent.OnClusterChange += OnClusterChange;
+                }
+            }
+
+            if(healthBarRect.gameObject.activeInHierarchy)
+            {
+                originalHealthBarHeight = healthBarRect.localPosition.y;
+                clusterAgentOffset += healthBarRect.rect.height;
+            }
+
+            if(resourceBarRect.gameObject.activeInHierarchy)
+            {
+                originalResourceBarHeight = resourceBarRect.localPosition.y;
+                clusterAgentOffset += resourceBarRect.rect.height;
+            }
+
+
+            var rectTransform = GetComponent<RectTransform>();
+            rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, clusterAgentOffset);
+            clusterAgentOffset += castBarRect.rect.height;
+
+            canvasGroup = GetComponent<CanvasGroup>();
+
+            if (canvasGroup && entityInfo)
+            {
+                canvasGroup.alpha = entityInfo.isInCombat ? 1f : 0f;
+            }
+
+            HandleHideMana();
+            UpdateCastBar();
+            taskProgressHandler.Initialize(this);
+
+            await extension();
+        });
 
     }
     public void OnValidate()
     {
         localPosition = transform.localPosition;
     }
-    void Start()
-    {
-        GetDependencies();
-        HandleHideMana();
-        UpdateCastBar();
-        taskProgressHandler.Initialize(this);
 
-    }
-
-    void Update()
-    {
-        if (entityInfo == null) { return; }
-    }
     public void OnPointerEnter(PointerEventData eventData)
     {
         return;
         entityInfo.infoEvents.OnMouseHover?.Invoke(entityInfo, true, gameObject);
-
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
         return;
         entityInfo.infoEvents.OnMouseHover?.Invoke(entityInfo, false, gameObject);
-
     }
 
     public void OnClusterEnter(EntityCluster cluster, int index)

@@ -23,34 +23,34 @@ namespace Architome
         bool tasksActive;
 
 
-        new void GetDependencies()
+        public override async Task GetDependencies(Func<Task> extension)
         {
-            base.GetDependencies();
+            await base.GetDependencies(async () => {
 
-            BossRoom();
+                BossRoom();
 
-            if (bossRoom)
-            {
-                originalPosition = bossRoom.bossPosition;
-            }
+                if (bossRoom)
+                {
+                    originalPosition = bossRoom.bossPosition;
+                }
 
 
-            if (entityInfo)
-            {
-                entityInfo.OnHealthChange += OnHealthChange;
-                entityInfo.OnCombatChange += OnCombatChange;
+                if (entityInfo)
+                {
+                    entityInfo.OnHealthChange += OnHealthChange;
+                    entityInfo.OnCombatChange += OnCombatChange;
 
-                combatBehavior = transform.parent.GetComponentInChildren<CombatBehavior>();
-            }
+                    combatBehavior = transform.parent.GetComponentInChildren<CombatBehavior>();
+                }
+
+                await extension();
+            });
+
+            
         }
 
         private void Awake()
         {
-        }
-
-        private void Start()
-        {
-            GetDependencies();
             tasks = new();
         }
 
