@@ -113,8 +113,6 @@ namespace Architome
             
         }
 
-
-
         protected override string Description()
         {
             var result = "";
@@ -128,7 +126,6 @@ namespace Architome
             return result;
         }
 
-
         public Vector3 FixedPosition(Vector3 position)
         {
 
@@ -141,7 +138,6 @@ namespace Architome
 
             return groundPosition;
         }
-        // Update is called once per frame
 
     }
 }

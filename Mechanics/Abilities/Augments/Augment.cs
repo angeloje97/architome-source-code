@@ -238,7 +238,6 @@ namespace Architome
             }
 
             events.Invoke(AugmentEvent.OnAugmentTrigger, eventData);
-
             
 
             if (!effectsOnly)
