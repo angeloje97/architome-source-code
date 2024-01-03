@@ -34,36 +34,33 @@ namespace Architome
         //    ApplySettings();
         //}
 
-        public override async Task GetDependencies(Func<Task> extension)
+        public override async Task GetDependencies()
         {
-            await base.GetDependencies(async () => {
-                character = GetComponentInParent<CharacterInfo>();
-                animator = GetComponent<Animator>();
+            character = GetComponentInParent<CharacterInfo>();
+            animator = GetComponent<Animator>();
 
-                if (entityInfo)
+            if (entityInfo)
+            {
+                movement = entityInfo.Movement();
+                abilityManager = entityInfo.AbilityManager();
+
+                abilityEvents.OnCastStart += OnCastStart;
+                abilityEvents.OnCastReleasePercent += OnCastReleasePercent;
+
+                if (abilityManager)
                 {
-                    movement = entityInfo.Movement();
-                    abilityManager = entityInfo.AbilityManager();
-
-                    abilityEvents.OnCastStart += OnCastStart;
-                    abilityEvents.OnCastReleasePercent += OnCastReleasePercent;
-
-                    if (abilityManager)
-                    {
-                        abilityManager.OnAbilityStart += OnAbilityStart;
-                        abilityManager.OnAbilityEnd += OnAbilityEnd;
-                        abilityManager.OnChannelInterval += OnChannelInterval;
-                    }
-
-                    entityInfo.OnLifeChange += OnLifeChange;
-                    entityInfo.OnDamageTaken += OnDamageTaken;
-                    entityInfo.OnCombatChange += OnCombatChange;
-
-                    HandleTaskAnimation();
+                    abilityManager.OnAbilityStart += OnAbilityStart;
+                    abilityManager.OnAbilityEnd += OnAbilityEnd;
+                    abilityManager.OnChannelInterval += OnChannelInterval;
                 }
 
-                await extension();
-            });
+                entityInfo.OnLifeChange += OnLifeChange;
+                entityInfo.OnDamageTaken += OnDamageTaken;
+                entityInfo.OnCombatChange += OnCombatChange;
+
+                HandleTaskAnimation();
+            }
+
 
             ApplySettings();
         }

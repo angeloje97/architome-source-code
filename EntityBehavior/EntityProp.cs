@@ -14,8 +14,10 @@ namespace Architome
         public EntityInfo entityInfo;
 
         public bool initiated { get; private set; }
-        public virtual async Task GetDependencies(Func<Task> extension)
+
+        protected async Task Initiate()
         {
+
             try
             {
                 var parent = transform.parent;
@@ -39,17 +41,23 @@ namespace Architome
 
                 if (entityInfo == null) throw new Exception($"Could not find source entity for {gameObject.name} gameObject");
 
-                await extension();
+                GetDependencies();
+                await GetDependenciesTask();
 
+
+                await DefaultExtension();
                 initiated = true;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Defect.CreateIndicator(transform, "EntityProp", e.Message);
                 throw e;
             }
-            
+
         }
+        public virtual async Task GetDependenciesTask() { }
+
+        public virtual void GetDependencies() { }
 
         protected async Task DefaultExtension()
         {
@@ -63,7 +71,7 @@ namespace Architome
 
         protected virtual async void Start()
         {
-            await GetDependencies(DefaultExtension);
+            await Initiate();
         }
 
         protected virtual void Update()

@@ -48,24 +48,21 @@ namespace Architome
 
         public float liveTime;
 
-        public override async Task GetDependencies(Func<Task> extension)
+        public override void GetDependencies()
         {
-            await base.GetDependencies(async () => {
-                master = entityInfo.summon.master;
+            master = entityInfo.summon.master;
 
-                liveTime = entityInfo.summon.timeRemaining;
-                summoning = entityInfo.summon;
-                behavior = GetComponentInParent<AIBehavior>();
+            liveTime = entityInfo.summon.timeRemaining;
+            summoning = entityInfo.summon;
+            behavior = GetComponentInParent<AIBehavior>();
 
-                character = entityInfo.CharacterInfo();
-                combat = behavior.GetComponentInChildren<CombatBehavior>();
-                threatManager = behavior.GetComponentInChildren<ThreatManager>();
+            character = entityInfo.CharacterInfo();
+            combat = behavior.GetComponentInChildren<CombatBehavior>();
+            threatManager = behavior.GetComponentInChildren<ThreatManager>();
 
-                entityInfo.OnDamageDone += OnDamageDone;
+            entityInfo.OnDamageDone += OnDamageDone;
 
-                sourceAbility = entityInfo.summon.sourceAbility;
-                await extension();
-            });
+            sourceAbility = entityInfo.summon.sourceAbility;
 
             
             
@@ -73,7 +70,8 @@ namespace Architome
         }
         protected async override void Start()
         {
-            await GetDependencies(DefaultExtension);
+            //await GetDependencies(DefaultExtension);
+            await Initiate();
 
             HandleEvents(true);
             DisableConflicts();
