@@ -20,10 +20,8 @@ namespace Architome
 
         public EntityInfo master { get { return petBase.entityInfo; } }
 
-        public override async Task GetDependencies(Func<Task> extension)
+        public override void GetDependencies()
         {
-            await base.GetDependencies(async () => {
-
                 if (entityInfo)
                 {
                     entityInfo.OnCombatChange += OnCombatChange;
@@ -41,9 +39,6 @@ namespace Architome
                         entityInfo.ChangeNPCType(petBase.entityInfo.npcType);
                     }
                 }
-
-                await extension(); 
-            });
 
         }
 

@@ -43,9 +43,6 @@ namespace Architome
 
                 GetDependencies();
                 await GetDependenciesTask();
-
-
-                await DefaultExtension();
                 initiated = true;
             }
             catch (Exception e)
@@ -55,14 +52,10 @@ namespace Architome
             }
 
         }
-        public virtual async Task GetDependenciesTask() { }
+        public virtual async Task GetDependenciesTask() => await Task.Yield();
 
         public virtual void GetDependencies() { }
 
-        protected async Task DefaultExtension()
-        {
-            await Task.Yield();
-        }
 
         public async Task UntilInitiationComplete()
         {

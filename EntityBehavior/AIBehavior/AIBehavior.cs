@@ -39,50 +39,45 @@ public class AIBehavior : EntityProp
     private AIBehaviorType behaviorTypeCheck;
     private BehaviorState behaviorStateCheck;
     private CombatBehaviorType combatTypeCheck;
-    public override async Task GetDependencies(Func<Task> extension)
+    public override void GetDependencies()
     {
-        await base.GetDependencies(async () => {
-            if (entityInfo)
+        if (entityInfo)
+        {
+            entityObject = entityInfo.gameObject;
+
+            movement = entityInfo.Movement();
+
+            if (entityInfo.Movement())
             {
-                entityObject = entityInfo.gameObject;
-
                 movement = entityInfo.Movement();
-
-                if (entityInfo.Movement())
-                {
-                    movement = entityInfo.Movement();
-                }
-
-                if (entityInfo.AbilityManager())
-                {
-                    var abilityManager = entityInfo.AbilityManager();
-                }
-
-                entityInfo.combatEvents.OnStatesChange += OnStatesChange;
-
-                if (entityInfo.npcType == NPCType.Hostile)
-                {
-                    combatType = CombatBehaviorType.Aggressive;
-                }
-
-                entityInfo.partyEvents.OnAddedToParty += (PartyInfo party) => {
-                    behaviorType = AIBehaviorType.HalfPlayerControl;
-                };
             }
+
+            if (entityInfo.AbilityManager())
+            {
+                var abilityManager = entityInfo.AbilityManager();
+            }
+
+            entityInfo.combatEvents.OnStatesChange += OnStatesChange;
+
+            if (entityInfo.npcType == NPCType.Hostile)
+            {
+                combatType = CombatBehaviorType.Aggressive;
+            }
+
+            entityInfo.partyEvents.OnAddedToParty += (PartyInfo party) => {
+                behaviorType = AIBehaviorType.HalfPlayerControl;
+            };
+        }
         stateManager.Activate(this);
 
-            StartCoroutine(DependenciesLate());
-
-
-            await extension();
-        });
+        DependenciesLate();
         
 
 
 
-        IEnumerator DependenciesLate()
+        async void DependenciesLate()
         {
-            yield return new WaitForSeconds(.51f);
+            await Task.Delay(500);
 
             if(GMHelper.GameManager().playableEntities.Contains(entityInfo))
             {

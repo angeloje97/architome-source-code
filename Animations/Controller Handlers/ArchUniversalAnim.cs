@@ -34,7 +34,7 @@ namespace Architome
         //    ApplySettings();
         //}
 
-        public override async Task GetDependencies()
+        public override void GetDependencies()
         {
             character = GetComponentInParent<CharacterInfo>();
             animator = GetComponent<Animator>();
@@ -89,12 +89,14 @@ namespace Architome
             };
         }
         // Update is called once per frame
-        void Update()
+        public override void EUpdate()
         {
             if (animator == null) return;
             
             UpdateMetrics();
         }
+
+
 
         void ApplySettings()
         {

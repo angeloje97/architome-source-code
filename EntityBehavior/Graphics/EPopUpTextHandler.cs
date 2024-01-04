@@ -15,9 +15,8 @@ namespace Architome
         public PopupTextManager popUpManager;
         public List<EntityState> previousStates;
 
-        public override async Task GetDependencies(Func<Task> extension)
+        public override async Task GetDependenciesTask()
         {
-            await base.GetDependencies(async () => {
                 popUpManager = PopupTextManager.active;
 
                 if (popUpManager == null) return;
@@ -47,9 +46,6 @@ namespace Architome
                     entityInfo.combatEvents.OnAddImmuneState += OnAddImmuneState;
                     entityInfo.combatEvents.OnRemoveImmuneState += OnRemoveImmuneState;
                 }
-
-                await extension();
-            });
 
             
         }
