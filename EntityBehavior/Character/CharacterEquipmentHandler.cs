@@ -13,26 +13,22 @@ namespace Architome
         CharacterInfo character;
         ArchitomeCharacter archiChar;
 
-        public float startingTimer = 1f;
+        public float startingTimer;
 
-        public override async Task GetDependencies(Func<Task> extension)
+        public override void GetDependencies()
         {
-            await base.GetDependencies(async () => {
 
+            character = GetComponent<CharacterInfo>();
+            archiChar = GetComponentInChildren<ArchitomeCharacter>();
 
-                character = GetComponent<CharacterInfo>();
-                archiChar = GetComponentInChildren<ArchitomeCharacter>();
-
-                if (character)
-                {
-                    character.OnChangeEquipment += OnChangeEquipment;
-                }
-                await extension();
-            });
+            if (character)
+            {
+                character.OnChangeEquipment += OnChangeEquipment;
+            }
 
         }
 
-        private void Update()
+        public override void  EUpdate()
         {
             if (startingTimer > 0)
             {
@@ -44,8 +40,6 @@ namespace Architome
                 startingTimer = 0;
             }
         }
-
-        // Update is called once per frame
 
         public void OnChangeEquipment(EquipmentSlot slot, Equipment previous, Equipment after)
         {

@@ -30,7 +30,7 @@ namespace Architome
 
                     if (entityPropParent == null) throw new Exception($"Could not find parent entity prop for {gameObject.name} gameObject");
 
-                    await ArchAction.WaitUntil(() => entityPropParent.initiated, true);
+                    await entityPropParent.UntilInitiationComplete();
 
                     entityInfo = entityPropParent.entityInfo;
                 }

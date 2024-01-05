@@ -27,21 +27,16 @@ namespace Architome
 
         public Transform petSpot { get { return pet.followSpot; } }
 
-        public override async Task GetDependencies(Func<Task> extension)
+        public override void GetDependencies()
         {
-            await base.GetDependencies(async () => {
+            behavior = GetComponentInParent<AIBehavior>();
+            entityGenerator = MapEntityGenerator.active;
+            character = entityInfo.CharacterInfo();
 
-                behavior = GetComponentInParent<AIBehavior>();
-                entityGenerator = MapEntityGenerator.active;
-                character = entityInfo.CharacterInfo();
-
-                if (character)
-                {
-                    pet.followSpot = character.PetSpot();
-                }
-
-                await extension();
-            });
+            if (character)
+            {
+                pet.followSpot = character.PetSpot();
+            }
 
             SummonPet();
 
