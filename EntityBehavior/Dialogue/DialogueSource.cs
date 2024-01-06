@@ -88,33 +88,23 @@ namespace Architome
             }
         }
 
-        // Update is called once per frame
-        void Update()
+        public override void GetDependencies()
         {
-        
-        }
+            dialogueManager = ArchDialogueManager.active;
 
-        public override async Task GetDependencies(Func<Task> extension)
-        {
-            await base.GetDependencies(async () => {
-                dialogueManager = ArchDialogueManager.active;
-
-                optionEventsMap = new();
-                if(optionEvents != null)
+            optionEventsMap = new();
+            if(optionEvents != null)
+            {
+                foreach(var optionEvent in optionEvents)
                 {
-                    foreach(var optionEvent in optionEvents)
-                    {
-                        optionEventsMap.Add(optionEvent.name, optionEvent.OnTriggerEvent);
-                    }
+                    optionEventsMap.Add(optionEvent.name, optionEvent.OnTriggerEvent);
                 }
+            }
 
-                ArchAction.Delay(() => {
-                    disabledCheck = !initialDataSet.disabled;
-                    HandleDisabled();
-                }, 1f);
-
-                await extension();
-            });
+            ArchAction.Delay(() => {
+                disabledCheck = !initialDataSet.disabled;
+                HandleDisabled();
+            }, 1f);
         }
 
         public async void StartDialogue(Clickable.ChoiceData choiceData)

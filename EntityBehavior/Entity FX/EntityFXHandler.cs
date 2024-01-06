@@ -33,64 +33,59 @@ namespace Architome
             audioTypeDict = new();
         }
 
-        public override async Task GetDependencies(Func<Task> extension)
+        public override void GetDependencies()
         {
             DetermineActive(null);
-            await base.GetDependencies(async () =>
+            particleManager = GetComponentInChildren<ParticleManager>();
+
+            var mixer = GMHelper.Mixer();
+
+            var sound = mixer.MixerGroup(AudioMixerType.SoundFX);
+            var voice = mixer.MixerGroup(AudioMixerType.Voice);
+            var sceneManager = ArchSceneManager.active;
+
+            if (sceneManager)
             {
-                particleManager = GetComponentInChildren<ParticleManager>();
+                sceneManager.AddListener(SceneEvent.OnLoadScene, OnLoadScene, this);
+            }
 
-                var mixer = GMHelper.Mixer();
-
-                var sound = mixer.MixerGroup(AudioMixerType.SoundFX);
-                var voice = mixer.MixerGroup(AudioMixerType.Voice);
-                var sceneManager = ArchSceneManager.active;
-
-                if (sceneManager)
+            foreach (var soundManager in GetComponentsInChildren<AudioManager>())
+            {
+                if (soundManager.mixerGroup == sound)
                 {
-                    sceneManager.AddListener(SceneEvent.OnLoadScene, OnLoadScene, this);
+                    audioTypeDict.Add(AudioMixerType.SoundFX, soundManager);
                 }
 
-                foreach (var soundManager in GetComponentsInChildren<AudioManager>())
+                if (soundManager.mixerGroup == voice)
                 {
-                    if (soundManager.mixerGroup == sound)
-                    {
-                        audioTypeDict.Add(AudioMixerType.SoundFX, soundManager);
-                    }
-
-                    if (soundManager.mixerGroup == voice)
-                    {
-                        audioTypeDict.Add(AudioMixerType.Voice, soundManager);
-
-                    }
-                }
-
-                catalystManager = CatalystManager.active;
-
-                if (entityInfo)
-                {
-                    entityFX = entityInfo.entityFX;
-                    abilityManager = entityInfo.AbilityManager();
-                    //characterBodyPart = entityInfo.GetComponentInChildren<CharacterBodyParts>();
-                    characterBodyPart = entityInfo.BodyParts();
-                    speech = entityInfo.Speech();
-
-                    if (entityFX == null) return;
-
-                    foreach (var fx in entityFX.effects)
-                    {
-                        entityInfo.AddEventTrigger(() =>
-                        {
-                            HandleEffect(fx);
-                        }, fx.trigger);
-                    }
+                    audioTypeDict.Add(AudioMixerType.Voice, soundManager);
 
                 }
+            }
 
-                HandleAdditiveEffects();
+            catalystManager = CatalystManager.active;
 
-                await extension();
-            });
+            if (entityInfo)
+            {
+                entityFX = entityInfo.entityFX;
+                abilityManager = entityInfo.AbilityManager();
+                //characterBodyPart = entityInfo.GetComponentInChildren<CharacterBodyParts>();
+                characterBodyPart = entityInfo.BodyParts();
+                speech = entityInfo.Speech();
+
+                if (entityFX == null) return;
+
+                foreach (var fx in entityFX.effects)
+                {
+                    entityInfo.AddEventTrigger(() =>
+                    {
+                        HandleEffect(fx);
+                    }, fx.trigger);
+                }
+
+            }
+
+            HandleAdditiveEffects();
 
             
         }
