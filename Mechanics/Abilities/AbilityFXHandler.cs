@@ -46,48 +46,38 @@ namespace Architome
             
         }
 
-        // Update is called once per frame
-        void Update()
+        public override void GetDependencies()
         {
-
-        }
-
-        public override async Task GetDependencies(Func<Task> extension)
-        {
-            await base.GetDependencies(async () => {
-                ability = GetComponent<AbilityManager>();
-                character = entityInfo.GetComponentInChildren<CharacterInfo>();
-                if (character)
-                {
-                    bodyPart = character.GetComponentInChildren<CharacterBodyParts>();
-                }
+            ability = GetComponent<AbilityManager>();
+            character = entityInfo.GetComponentInChildren<CharacterInfo>();
+            if (character)
+            {
+                bodyPart = character.GetComponentInChildren<CharacterBodyParts>();
+            }
 
 
-                particleManager = entityInfo.GetComponentInChildren<ParticleManager>();
-                audioManager = entityInfo.SoundEffect();
+            particleManager = entityInfo.GetComponentInChildren<ParticleManager>();
+            audioManager = entityInfo.SoundEffect();
 
-                abilityEvents.OnCastStart += OnCastStart;
-                abilityEvents.OnCastEnd += OnCastEnd;
+            abilityEvents.OnCastStart += OnCastStart;
+            abilityEvents.OnCastEnd += OnCastEnd;
 
-                if (ability)
-                {
-                    //ability.OnCastStart += OnCastStart;
-                    //ability.OnCastEnd += OnCastEnd;
-                    ability.OnChannelStart += OnChannelStart;
-                    ability.OnChannelEnd += OnChannelEnd;
+            if (ability)
+            {
+                //ability.OnCastStart += OnCastStart;
+                //ability.OnCastEnd += OnCastEnd;
+                ability.OnChannelStart += OnChannelStart;
+                ability.OnChannelEnd += OnChannelEnd;
 
-                    ability.OnAbilityStart += OnAbilityStart;
-                    ability.OnAbilityEnd += OnAbilityEnd;
+                ability.OnAbilityStart += OnAbilityStart;
+                ability.OnAbilityEnd += OnAbilityEnd;
 
-                    ability.OnCatalystRelease += OnCatalystRelease;
+                ability.OnCatalystRelease += OnCatalystRelease;
 
-                    ability.OnCancelCast += OnCancelCast;
-                    ability.OnCancelChannel += OnCancelChannel;
-                }
-                layers = GMHelper.LayerMasks();
-
-                await extension();
-            });
+                ability.OnCancelCast += OnCancelCast;
+                ability.OnCancelChannel += OnCancelChannel;
+            }
+            layers = GMHelper.LayerMasks();
 
             
         }

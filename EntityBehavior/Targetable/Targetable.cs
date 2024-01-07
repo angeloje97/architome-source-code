@@ -21,10 +21,8 @@ public class Targetable : EntityProp
     public List<GameObject> hoverTargets;
 
     bool ignoreDead;
-    public async override Task GetDependencies(Func<Task> extensions)
+    public override void GetDependencies()
     {
-        await base.GetDependencies(async () => {
-
 
             targetManager = ContainerTargetables.active;
 
@@ -39,8 +37,6 @@ public class Targetable : EntityProp
             {
                 ignoreDead = true;
             }
-            await extensions();
-        });
 
         SetValues(false);
     }

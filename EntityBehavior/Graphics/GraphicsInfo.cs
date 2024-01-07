@@ -21,27 +21,23 @@ namespace Architome
 
         bool isHidden;
 
-        public override async Task GetDependencies(Func<Task> extension)
+        public override async Task GetDependenciesTask()
         {
-            await base.GetDependencies(async () => {
+            entityObject = entityInfo.gameObject;
 
-                entityObject = entityInfo.gameObject;
+            entityInfo.OnLifeChange += OnLifeChange;
+            entityInfo.OnHiddenChange += OnHiddenChange;
 
-                entityInfo.OnLifeChange += OnLifeChange;
-                entityInfo.OnHiddenChange += OnHiddenChange;
+            entityInfo.portalEvents.OnPortalEnter += OnPortalEnter;
 
-                entityInfo.portalEvents.OnPortalEnter += OnPortalEnter;
+            entityInfo.portalEvents.OnPortalExit += OnPortalExit;
 
-                entityInfo.portalEvents.OnPortalExit += OnPortalExit;
+            GetChildren();
 
-                GetChildren();
-
-                await Task.Delay(125);
-                UpdateGraphics();
-
-                await extension();
-            });
+            await Task.Delay(125);
+            UpdateGraphics();
         }
+
         public void GetChildren()
         {
             foreach (Transform child in transform)

@@ -82,7 +82,7 @@ namespace Architome
 
         public void OnDamageTaken(CombatEventData eventData)
         {
-            GainExp(eventData.value * .125f);
+            GainExp(eventData.value * .0625f);
         }
 
         public void OnDamageDone(CombatEventData eventData)

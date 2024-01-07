@@ -33,29 +33,20 @@ namespace Architome
         
 
 
-        public override async Task GetDependencies(Func<Task> extension)
+        public override void GetDependencies()
         {
-            await base.GetDependencies(async () => {
-                if (entityInfo)
+            if (entityInfo)
+            {
+                entityInfo.infoEvents.OnLootItem += OnLootItem;
+                entityInfo.infoEvents.OnCanPickUpCheck += OnCanPickUp;
+
+                if (dropItemsOnDeath)
                 {
-                    entityInfo.infoEvents.OnLootItem += OnLootItem;
-                    entityInfo.infoEvents.OnCanPickUpCheck += OnCanPickUp;
-
-                    if (dropItemsOnDeath)
-                    {
-                        entityInfo.OnDeath += OnEntityDeath;
-                    }
+                    entityInfo.OnDeath += OnEntityDeath;
                 }
+            }
 
-                HandleItemPools();
-
-                await extension();
-            });
-
-        }
-
-        private void Update()
-        {
+            HandleItemPools();
         }
 
         private void OnValidate()

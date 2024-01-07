@@ -23,22 +23,12 @@ namespace Architome
 
         public ParticleFX particles;
 
-        public override async Task GetDependencies(Func<Task> extension)
+        public override void GetDependencies()
         {
             transform.localScale = new Vector3(spaceRange, spaceRange, spaceRange);
             StopAllParticles();
 
-            await base.GetDependencies(async () => {
-                movement = GetComponentInParent<Movement>();
-
-                await extension();
-            });
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-
+            movement = GetComponentInParent<Movement>();
         }
 
         void StopAllParticles()

@@ -66,58 +66,52 @@ namespace Architome
         private bool hasArrivedCheck;
         private Transform currentPathTarget;
         Vector3 previousPosition { get; set; }
-        public override async Task GetDependencies(Func<Task> extension)
+        public override void GetDependencies()
         {
+            if (entityInfo)
+            {
+                entityObject = entityInfo.gameObject;
+                rigidBody = entityObject.GetComponent<Rigidbody>();
 
-            await base.GetDependencies(async () => {
+                originalConstraints = rigidBody.constraints;
 
-                if (entityInfo)
+
+                destinationSetter = entityInfo.AIDestinationSetter();
+                path = entityInfo.Path();
+
+                abilityManager = entityInfo.AbilityManager();
+
+                entityInfo.OnChangeStats += OnChangeStats;
+                entityInfo.OnLifeChange += OnLifeCheck;
+                entityInfo.combatEvents.OnStatesChange += OnStatesChange;
+                entityInfo.infoEvents.OnSignificantMovementChange += OnSignificantMovementChange;
+            }
+
+            if (destinationSetter.target == null)
+            {
+                foreach (Transform child in transform)
                 {
-                    entityObject = entityInfo.gameObject;
-                    rigidBody = entityObject.GetComponent<Rigidbody>();
-
-                    originalConstraints = rigidBody.constraints;
-
-
-                    destinationSetter = entityInfo.AIDestinationSetter();
-                    path = entityInfo.Path();
-
-                    abilityManager = entityInfo.AbilityManager();
-
-                    entityInfo.OnChangeStats += OnChangeStats;
-                    entityInfo.OnLifeChange += OnLifeCheck;
-                    entityInfo.combatEvents.OnStatesChange += OnStatesChange;
-                    entityInfo.infoEvents.OnSignificantMovementChange += OnSignificantMovementChange;
-                }
-
-                if (destinationSetter.target == null)
-                {
-                    foreach (Transform child in transform)
+                    if (child.CompareTag("GameController"))
                     {
-                        if (child.CompareTag("GameController"))
+                        location = child.gameObject;
+                        if (destinationSetter)
                         {
-                            location = child.gameObject;
-                            if (destinationSetter)
-                            {
-                                destinationSetter.target = location.transform;
-                            }
+                            destinationSetter.target = location.transform;
                         }
                     }
                 }
+            }
 
-                entityInfo.sceneEvents.OnTransferScene += OnTransferScene;
+            entityInfo.sceneEvents.OnTransferScene += OnTransferScene;
 
 
-                if (behavior == null && entityInfo && entityInfo.AIBehavior())
-                {
-                    behavior = entityInfo.AIBehavior();
-                }
+            if (behavior == null && entityInfo && entityInfo.AIBehavior())
+            {
+                behavior = entityInfo.AIBehavior();
+            }
 
-                abilityHandler.Initiate(this);
-                previousPosition = transform.position;
-
-                await extension();
-            });
+            abilityHandler.Initiate(this);
+            previousPosition = transform.position;
             
         }
 

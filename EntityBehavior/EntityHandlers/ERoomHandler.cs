@@ -12,20 +12,16 @@ namespace Architome
 
         public RoomInfo previousRoom;
 
-        public override async Task GetDependencies(Func<Task> extension)
+        public override void GetDependencies()
         {
-            await base.GetDependencies(async () => {
+            entityInfo.OnPhysicsEvent += OnPhysicsEvent;
+            entityInfo.OnRoomChange += OnRoomChange;
+            entityInfo.sceneEvents.OnTransferScene += OnTransferScene;
 
-                entityInfo.OnPhysicsEvent += OnPhysicsEvent;
-                entityInfo.OnRoomChange += OnRoomChange;
-                entityInfo.sceneEvents.OnTransferScene += OnTransferScene;
+            entityInfo.infoEvents.OnSignificantMovementChange += OnSignificantMovementChange;
 
-                entityInfo.infoEvents.OnSignificantMovementChange += OnSignificantMovementChange;
+            AcquireRoom();
 
-                AcquireRoom();
-
-                await extension();
-            });
         }
 
         private void OnSignificantMovementChange(Vector3 newPosition)

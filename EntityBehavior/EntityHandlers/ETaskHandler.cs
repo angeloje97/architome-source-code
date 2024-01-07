@@ -30,27 +30,24 @@ namespace Architome
             currentTask = null;
             tasks = new();
         }
-        void Update()
+        public override void EUpdate()
         {
             HandleEvents();
         }
-        public override async Task GetDependencies(Func<Task> extension)
+        public override void GetDependencies()
         {
-            await base.GetDependencies(async () => {
-                if (entityInfo.Movement())
-                {
-                    movement = entityInfo.Movement();
-                }
 
-                entityInfo.combatEvents.OnStatesChange += OnEntityStateChanged;
+            if (entityInfo.Movement())
+            {
+                movement = entityInfo.Movement();
+            }
 
-                buffManager = entityInfo.Buffs();
+            entityInfo.combatEvents.OnStatesChange += OnEntityStateChanged;
 
-                entityInfo.taskEvents.OnNewTask += OnNewTask;
-                entityInfo.OnDamageTaken += OnDamageTaken;
+            buffManager = entityInfo.Buffs();
 
-                await extension();
-            });
+            entityInfo.taskEvents.OnNewTask += OnNewTask;
+            entityInfo.OnDamageTaken += OnDamageTaken;
         }
 
         void OnEntityStateChanged(List<EntityState> previous, List<EntityState> current)

@@ -48,81 +48,76 @@ public class ProgressBarsBehavior : EntityProp, IPointerEnterHandler, IPointerEx
     bool activeTimer;
     bool changingAlpha;
 
-    public async override Task GetDependencies(Func<Task> extension)
+    public override void GetDependencies()
     {
-        await base.GetDependencies(async () => {
-            
-            graphicsInfo = GetComponentInParent<GraphicsInfo>();
+        graphicsInfo = GetComponentInParent<GraphicsInfo>();
 
-            if (entityInfo)
+        if (entityInfo)
+        {
+            SetHealthBarColor();
+            entityInfo.OnHealthChange += OnHealthChange;
+            entityInfo.OnManaChange += OnManaChange;
+            entityInfo.OnLifeChange += OnLifeChange;
+            entityInfo.OnChangeNPCType += OnChangeNPCType;
+            entityInfo.OnCombatChange += OnCombatChange;
+            entityInfo.OnHealingTaken += OnHealingTaken;
+            entityInfo.OnNewBuff += OnNewBuff;
+            OnCombatChange(entityInfo.isInCombat);
+
+            abilityManager = entityInfo.AbilityManager();
+
+            var targetableEntity = GetComponent<TargetableEntity>();
+            targetableEntity.SetEntity(entityInfo);
+        }
+
+        if(abilityManager)
+        {
+
+
+            abilityManager.OnAbilityStart += OnAbilityStart;
+
+
+        }
+
+        if(graphicsInfo)
+        {
+            var clusterAgent = graphicsInfo.EntityClusterAgent();
+            if(clusterAgent)
             {
-                SetHealthBarColor();
-                entityInfo.OnHealthChange += OnHealthChange;
-                entityInfo.OnManaChange += OnManaChange;
-                entityInfo.OnLifeChange += OnLifeChange;
-                entityInfo.OnChangeNPCType += OnChangeNPCType;
-                entityInfo.OnCombatChange += OnCombatChange;
-                entityInfo.OnHealingTaken += OnHealingTaken;
-                entityInfo.OnNewBuff += OnNewBuff;
-                OnCombatChange(entityInfo.isInCombat);
-
-                abilityManager = entityInfo.AbilityManager();
-
-                var targetableEntity = GetComponent<TargetableEntity>();
-                targetableEntity.SetEntity(entityInfo);
+                clusterAgent = graphicsInfo.EntityClusterAgent();
+                clusterAgent.OnClusterEnter += OnClusterEnter;
+                clusterAgent.OnClusterExit += OnClusterExit;
+                clusterAgent.OnClusterChange += OnClusterChange;
             }
+        }
 
-            if(abilityManager)
-            {
+        if(healthBarRect.gameObject.activeInHierarchy)
+        {
+            originalHealthBarHeight = healthBarRect.localPosition.y;
+            clusterAgentOffset += healthBarRect.rect.height;
+        }
 
-
-                abilityManager.OnAbilityStart += OnAbilityStart;
-
-
-            }
-
-            if(graphicsInfo)
-            {
-                var clusterAgent = graphicsInfo.EntityClusterAgent();
-                if(clusterAgent)
-                {
-                    clusterAgent = graphicsInfo.EntityClusterAgent();
-                    clusterAgent.OnClusterEnter += OnClusterEnter;
-                    clusterAgent.OnClusterExit += OnClusterExit;
-                    clusterAgent.OnClusterChange += OnClusterChange;
-                }
-            }
-
-            if(healthBarRect.gameObject.activeInHierarchy)
-            {
-                originalHealthBarHeight = healthBarRect.localPosition.y;
-                clusterAgentOffset += healthBarRect.rect.height;
-            }
-
-            if(resourceBarRect.gameObject.activeInHierarchy)
-            {
-                originalResourceBarHeight = resourceBarRect.localPosition.y;
-                clusterAgentOffset += resourceBarRect.rect.height;
-            }
+        if(resourceBarRect.gameObject.activeInHierarchy)
+        {
+            originalResourceBarHeight = resourceBarRect.localPosition.y;
+            clusterAgentOffset += resourceBarRect.rect.height;
+        }
 
 
-            var rectTransform = GetComponent<RectTransform>();
-            rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, clusterAgentOffset);
-            clusterAgentOffset += castBarRect.rect.height;
+        var rectTransform = GetComponent<RectTransform>();
+        rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, clusterAgentOffset);
+        clusterAgentOffset += castBarRect.rect.height;
 
-            canvasGroup = GetComponent<CanvasGroup>();
+        canvasGroup = GetComponent<CanvasGroup>();
 
-            if (canvasGroup && entityInfo)
-            {
-                canvasGroup.alpha = entityInfo.isInCombat ? 1f : 0f;
-            }
+        if (canvasGroup && entityInfo)
+        {
+            canvasGroup.alpha = entityInfo.isInCombat ? 1f : 0f;
+        }
 
-            HandleHideMana();
-            UpdateCastBar();
-            taskProgressHandler.Initialize(this);
-
-            await extension();
-        });
+        HandleHideMana();
+        UpdateCastBar();
+        taskProgressHandler.Initialize(this);
 
     }
     public void OnValidate()

@@ -9,13 +9,9 @@ namespace Architome
 {
     public class TargetAgent : EntityProp
     {
-        public override async Task GetDependencies(Func<Task> extension)
+        public override void GetDependencies()
         {
-            await base.GetDependencies(async () => {
-                Destroy(gameObject);
-
-                await extension();
-            });
+            Destroy(gameObject);
         }
 
         // Update is called once per frame
