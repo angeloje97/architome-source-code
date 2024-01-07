@@ -12,18 +12,14 @@ namespace Architome
         // Start is called before the first frame update
         
 
-        public override async Task GetDependencies(Func<Task> extension)
+        public override void GetDependencies()
         {
-            await base.GetDependencies(async () => {
+            entityInfo.OnDamagePreventedFromShields += OnDamagePreventedFromShields;
+            entityInfo.OnDamageTaken += OnDamageTaken;
+            entityInfo.OnDamageDone += OnDamageDone;
+            entityInfo.OnHealingDone += OnHealingDone;
 
-                entityInfo.OnDamagePreventedFromShields += OnDamagePreventedFromShields;
-                entityInfo.OnDamageTaken += OnDamageTaken;
-                entityInfo.OnDamageDone += OnDamageDone;
-                entityInfo.OnHealingDone += OnHealingDone;
-
-                entityInfo.OnExperienceGainOutside += OnGainExperienceOutside;
-                await extension();
-            });
+            entityInfo.OnExperienceGainOutside += OnGainExperienceOutside;
         }
 
         public void GainExp(float value)

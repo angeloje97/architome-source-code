@@ -5,12 +5,14 @@ using Architome.Enums;
 using System.Linq;
 using System.Threading.Tasks;
 using System;
+using Architome.Effects;
 
 namespace Architome
 {
     public class EntityFXHandler : EntityProp
     {
         [SerializeField] List<EntityFXPack> effectPacks;
+        [SerializeField] EffectsHandler<EntityEvent> effectHandler;
         
         EntitySpeech speech;
         ParticleManager particleManager;
@@ -125,9 +127,10 @@ namespace Architome
                     {
                         HandleEffect(fx);
                     }, fx.trigger);
-
                 }
             }
+
+
         }
 
         void OnLoadScene(ArchSceneManager sceneManager)
