@@ -91,9 +91,10 @@ namespace Architome
 
         }
 
-        public void DamagePopUp(Transform target, string text, DamageType damageType = DamageType.True)
+
+        public PopupText DamagePopUp(Transform target, string text, DamageType damageType = DamageType.True)
         {
-            if (!preferences.popUpPreferences.showDamage) return;
+            if (!preferences.popUpPreferences.showDamage) return null;
 
             var color = colors.trueDamage;
 
@@ -112,6 +113,7 @@ namespace Architome
             popUp.SetAnimation(new() { healthChange = true });
             popUp.SetPopUp(target, text, color);
 
+            return popUp;
         }
 
 

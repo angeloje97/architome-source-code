@@ -117,7 +117,9 @@ namespace Architome
 
         void HandleAdditiveEffects()
         {
-            if (effectPacks == null) return;
+            effectPacks ??= new();
+            effectHandler ??= new();
+            effectHandler.effects ??= new();
 
             foreach(var pack in effectPacks)
             {
@@ -126,8 +128,16 @@ namespace Architome
                     entityInfo.AddEventTrigger(() =>
                     {
                         HandleEffect(fx);
+                        Debugger.Error(6549, $"{entityInfo} FX Handler needs an update to move from effect pack to effect handler for {fx.trigger}");
                     }, fx.trigger);
                 }
+            }
+
+            foreach(var fx in effectHandler.effects)
+            {
+                entityInfo.AddEventTrigger(() => {
+                    fx.ActivateEffect();
+                }, fx.trigger);
             }
 
 

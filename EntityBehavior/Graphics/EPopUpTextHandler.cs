@@ -5,6 +5,7 @@ using Architome.Enums;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace Architome
 {
@@ -132,6 +133,11 @@ namespace Architome
         }
 
         // Update is called once per frame
+
+        Dictionary<DamageType, PopupText> popUpDamageType;
+        Dictionary<DamageType, float> popUpDamageValues;
+        bool initializedDamageType = false;
+
         void OnDamageTaken(CombatEventData eventData)
         {
             if (eventData.value <= 0) return;
@@ -140,7 +146,45 @@ namespace Architome
 
             var damageType = eventData.DataDamageType();
 
-            popUpManager.DamagePopUp(transform, $" {ArchString.FloatToSimple(value,0)}", damageType);
+            var popUp = popUpManager.DamagePopUp(transform, $" {ArchString.FloatToSimple(value,0)}", damageType);
+
+            HandleInitialization();
+            HandleDynamicDamage();
+
+            void HandleDynamicDamage()
+            {
+
+                try
+                {
+                    popUpDamageValues[damageType] += value;
+                    var currentValue = popUpDamageValues[damageType];
+
+                    //Replay the animation here
+                }
+                catch
+                {
+                    var currentValue = popUpDamageValues[damageType] = value;
+                    popUpDamageType[damageType] = popUpManager.DamagePopUp(transform, $"{ArchString.FloatToSimple(currentValue, 0)}", damageType);
+                }
+
+                
+            }
+
+            void HandleInitialization()
+            {
+                if (initializedDamageType) return;
+                initializedDamageType = true;
+                popUpDamageType = new();
+                popUpDamageValues = new();
+
+                var enums = Enum.GetValues(typeof(DamageType));
+
+                foreach (DamageType value in enums)
+                {
+                    popUpDamageType.Add(value, null);
+                    popUpDamageValues.Add(value, 0);
+                }
+            }
         }
 
         void OnImmuneDamage(CombatEventData eventData)
