@@ -146,7 +146,6 @@ namespace Architome
 
             var damageType = eventData.DataDamageType();
 
-            var popUp = popUpManager.DamagePopUp(transform, $" {ArchString.FloatToSimple(value,0)}", damageType);
 
             HandleInitialization();
             HandleDynamicDamage();
@@ -158,6 +157,8 @@ namespace Architome
                 {
                     popUpDamageValues[damageType] += value;
                     var currentValue = popUpDamageValues[damageType];
+
+                    popUpDamageType[damageType].UpdatePopUp(value.ToString(), new() { trigger = PopupText.eAnimatorTriggers.HealthChangeRepeat });
 
                     //Replay the animation here
                 }

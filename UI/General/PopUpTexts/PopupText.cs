@@ -35,25 +35,28 @@ namespace Architome
 
         public class PopUpParameters
         {
+            public eAnimatorBools boolean;
+            public eAnimatorTriggers trigger;
             //Animation Parameters
-            public bool healthChange;
-            public bool stateChange;
-            public bool stateImmunity;
-            public bool currencyTop;
-            public bool currency;
-
 
             public bool screenPosition;
         }
 
-        readonly HashSet<string> animatorFields = new HashSet<string>() {
-            "healthChange",
-            "stateChange",
-            "stateImmunity",
-            "currencyTop",
-            "currecy"
-            
-        };
+        public enum eAnimatorBools
+        {
+            None,
+            HealthChange,
+            StateChange,
+            StateImmunity,
+            CurrencyTop,
+            Currency,
+        }
+
+        public enum eAnimatorTriggers
+        {
+            None,
+            HealthChangeRepeat,
+        }
 
         [SerializeField] PopUpParameters parameters;
 
@@ -75,13 +78,18 @@ namespace Architome
             StickToTarget();
         }
 
-        public void SetAnimation(PopUpParameters bools)
+        public void SetAnimation(PopUpParameters parameters)
         {
-            parameters = bools;
-            foreach (var field in bools.GetType().GetFields())
+            this.parameters = parameters;
+
+            if (parameters.boolean != eAnimatorBools.None)
             {
-                if (!animatorFields.Contains(field.Name)) continue;
-                info.animator.SetBool(field.Name, (bool)field.GetValue(bools));
+                info.animator.SetBool(parameters.boolean.ToString(), true);
+            }
+
+            if(parameters.trigger != eAnimatorTriggers.None)
+            {
+                info.animator.SetTrigger(parameters.trigger.ToString());
             }
         }
 
@@ -125,9 +133,12 @@ namespace Architome
             info.time = time;
             info.text.color = color;
             info.text.enabled = true;
-            
-            
+        }
 
+        public void UpdatePopUp(string text, PopUpParameters parameters)
+        {
+            info.text.text = text;
+            SetAnimation(parameters);
         }
 
         public void SetOffset(Vector3 offset)
@@ -136,14 +147,13 @@ namespace Architome
         }
 
 
+
+        bool ignoreEndAnimation;
         public void EndAnimation()
         {
             if (!this) return;
+            if (ignoreEndAnimation) return;
             Destroy(gameObject);
         }
-
-        
-
-
     }
 }

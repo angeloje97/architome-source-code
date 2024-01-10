@@ -42,7 +42,7 @@ namespace Architome
             var popUp = popupManager.GeneralPopUp(transform, text, Color.white, new()
             {
                 screenPosition = true,
-                currencyTop = true,
+                boolean = PopupText.eAnimatorBools.CurrencyTop,
             });
 
 

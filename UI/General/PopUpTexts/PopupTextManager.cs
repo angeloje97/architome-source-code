@@ -110,7 +110,7 @@ namespace Architome
 
             //var popUp = Instantiate(prefabs.damagePopUp, transform).GetComponent<PopupText>();
             var popUp = NewPopUp("Damage");
-            popUp.SetAnimation(new() { healthChange = true });
+            popUp.SetAnimation(new() { boolean = PopupText.eAnimatorBools.HealthChange });
             popUp.SetPopUp(target, text, color);
 
             return popUp;
@@ -122,7 +122,7 @@ namespace Architome
             if (!preferences.popUpPreferences.showCrowdControl) return;
             //var popUp = Instantiate(prefabs.stateChange, transform).GetComponent<PopupText>();
             var popUp = NewPopUp("State");
-            popUp.SetAnimation(new() { stateChange = true });
+            popUp.SetAnimation(new() { boolean = PopupText.eAnimatorBools.StateChange });
             popUp.SetPopUp(position, text, colors.state);
 
         }
@@ -132,14 +132,14 @@ namespace Architome
             if (!preferences.popUpPreferences.showCrowdControl) return;
 
             var popUp = NewPopUp("StateImmune");
-            popUp.SetAnimation(new() { stateImmunity = true });
+            popUp.SetAnimation(new() { boolean = PopupText.eAnimatorBools.StateImmunity });
             popUp.SetPopUp(target, $"{text} Immune", colors.stateImmune);
         }
 
         public void HealPopUp(Transform target, string text)
         {
             var popUp = NewPopUp("Heal");
-            popUp.SetAnimation(new() { healthChange = true });
+            popUp.SetAnimation(new() { boolean = PopupText.eAnimatorBools.HealthChange });
             popUp.SetPopUp(target, text, colors.heal);
         }
 

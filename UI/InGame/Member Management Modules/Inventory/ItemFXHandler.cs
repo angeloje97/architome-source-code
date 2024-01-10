@@ -103,7 +103,7 @@ namespace Architome
 
                 var popUp = popUpManager.GeneralPopUp(transform, text, rarityProperty.color, new()
                 {
-                    healthChange = true
+                    boolean = PopupText.eAnimatorBools.HealthChange
                 });
 
                 popUp.SetOffset(new(0, 60, 0));
