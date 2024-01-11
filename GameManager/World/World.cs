@@ -33,6 +33,7 @@ namespace Architome
         ArchSceneManager sceneManager;
 
         Action<float> OnUpdate { get; set; }
+        Action<float> OnLateUpdate { get; set; }
 
 
 
@@ -150,6 +151,11 @@ namespace Architome
             deltaTime = time.timeScale * UnityEngine.Time.deltaTime;
 
             OnUpdate?.Invoke(deltaTime);
+        }
+
+        private void LateUpdate()
+        {
+            OnLateUpdate?.Invoke(deltaTime);
         }
         private void OnValidate()
         {
@@ -452,13 +458,20 @@ namespace Architome
 
 
         //will contineu to update until predicate is false
-        public static async Task UpdateAction(Predicate<float> action)
+        public static async Task UpdateAction(Predicate<float> action, bool useLateUpdate = false)
         {
 
             var world = active;
             var running = true;
 
-            world.OnUpdate += MiddleWare;
+            if (useLateUpdate)
+            {
+                world.OnLateUpdate += MiddleWare;
+            }
+            else
+            {
+                world.OnUpdate += MiddleWare;
+            }
 
 
             while (running)
@@ -468,7 +481,17 @@ namespace Architome
 
             if (world == null) return;
 
-            world.OnUpdate -= MiddleWare;
+
+
+            if (useLateUpdate)
+            {
+                world.OnLateUpdate += MiddleWare;
+            }
+            else
+            {
+                world.OnUpdate -= MiddleWare;
+
+            }
 
             void MiddleWare(float deltaTime)
             {

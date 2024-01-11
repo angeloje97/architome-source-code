@@ -4,6 +4,7 @@ using UnityEngine;
 using TMPro;
 using System;
 using System.Threading.Tasks;
+using Pathfinding;
 
 namespace Architome
 {
@@ -12,19 +13,12 @@ namespace Architome
         [Serializable]
         public struct Info
         {
-            public float height;
-            public float speed;
-            public float time;
-            public float fadeDelay;
-            public float startXPositionRange;
-            public float xSpeedRange;
-            [Range(0, 1)]
-            public float fadeSpeed;
-
+            [Header("Components")]
             public TextMeshProUGUI text;
             public Transform textTransform;
             public CanvasGroup canvasGroup;
             public Animator animator;
+
         }
 
         public Transform target;
@@ -110,7 +104,11 @@ namespace Architome
 
         void StickToTarget()
         {
-            if (target == null && lastLocation == new Vector3()) return;
+            if (target == null && lastLocation == new Vector3()) 
+            {
+                Debugger.UI(2422, $"Target is null and last location is not set ");
+                return;
+            }
 
             if (target)
             {
@@ -119,26 +117,29 @@ namespace Architome
 
             var position = TargetPosition(target ? target.position : lastLocation);
 
+            Debugger.UI(2423, $"Target position is {position}");
+
             position = new Vector3(position.x, position.y, 0);
             position += offset;
 
             transform.position = position;
         }
 
-        public void SetPopUp(Transform target, string text, Color color, float time = 3f)
+        public void SetPopUp(Transform target, string text, Color color)
         {
             this.target = target;
             StickToTarget();
             info.text.text = text;
-            info.time = time;
             info.text.color = color;
             info.text.enabled = true;
+            HandleRandomDirection();
         }
 
         public void UpdatePopUp(string text, PopUpParameters parameters)
         {
             info.text.text = text;
             SetAnimation(parameters);
+            transform.SetAsLastSibling();
         }
 
         public void SetOffset(Vector3 offset)
@@ -154,6 +155,46 @@ namespace Architome
             if (!this) return;
             if (ignoreEndAnimation) return;
             Destroy(gameObject);
+        }
+
+        [Header("Direction Settings")]
+        [SerializeField] bool randomDirection;
+        [SerializeField] float randomDirectionRange;
+
+        float xDirection;
+        float yDirection;
+
+        async void HandleRandomDirection()
+        {
+            if (!randomDirection) return;
+            var angle = UnityEngine.Random.Range(0f, 360f);
+
+            xDirection = (float) Math.Sin(Math.PI * 2 * angle / 360f);
+            yDirection = (float) Math.Cos(Math.PI * 2 * angle / 360f);
+
+            Debugger.UI(2425, $"x: {xDirection}, y: {yDirection}");
+            var currentX = 0f;
+            var currentY = 0f;
+
+
+            await ArchCurve.SmoothLate((float lerp) =>
+            {
+                currentX = randomDirectionRange * xDirection * lerp;
+                currentY = randomDirectionRange * yDirection * lerp;
+                info.text.transform.localPosition = new Vector3(currentX, currentY, 0f);
+
+                Debugger.UI(2427, $"Local position: {info.text.transform.localPosition}");
+                Debugger.UI(2426, $"xCurrent {currentX} yCurrent: {currentY}");
+                Debugger.UI(2424, $"Lerp Value is {lerp}");
+            }, CurveType.EaseOut, 1f);
+
+            await World.UpdateAction((float deltaTime) => {
+                if(this == null) return false;
+
+                info.text.transform.localPosition = new Vector3(currentX, currentY, 0f);
+
+                return true;
+            }, true);
         }
     }
 }

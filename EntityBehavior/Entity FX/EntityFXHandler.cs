@@ -128,7 +128,7 @@ namespace Architome
                     entityInfo.AddEventTrigger(() =>
                     {
                         HandleEffect(fx);
-                        Debugger.Error(6549, $"{entityInfo} FX Handler needs an update to move from effect pack to effect handler for {fx.trigger}");
+                        //Debugger.Error(6549, $"{entityInfo} FX Handler needs an update to move from effect pack to effect handler for {fx.trigger}");
                     }, fx.trigger);
                 }
             }

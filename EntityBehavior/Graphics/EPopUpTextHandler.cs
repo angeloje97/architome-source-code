@@ -156,11 +156,10 @@ namespace Architome
                 try
                 {
                     popUpDamageValues[damageType] += value;
-                    var currentValue = popUpDamageValues[damageType];
+                    var currentValue = ArchString.FloatToSimple(popUpDamageValues[damageType], 0);
 
-                    popUpDamageType[damageType].UpdatePopUp(value.ToString(), new() { trigger = PopupText.eAnimatorTriggers.HealthChangeRepeat });
+                    popUpDamageType[damageType].UpdatePopUp(currentValue, new() { trigger = PopupText.eAnimatorTriggers.HealthChangeRepeat });
 
-                    //Replay the animation here
                 }
                 catch
                 {
@@ -168,7 +167,7 @@ namespace Architome
                     popUpDamageType[damageType] = popUpManager.DamagePopUp(transform, $"{ArchString.FloatToSimple(currentValue, 0)}", damageType);
                 }
 
-                
+
             }
 
             void HandleInitialization()

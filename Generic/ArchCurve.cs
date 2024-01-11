@@ -41,6 +41,12 @@ namespace Architome
             CreateDictionary();
         }
 
+        Action OnLateUpdate;
+        private void LateUpdate()
+        {
+            OnLateUpdate?.Invoke();
+        }
+
         void CreateDictionary()
         {
             curveDict = new();
@@ -97,6 +103,51 @@ namespace Architome
                 var lerpValue = curve.Evaluate(time / totalTime);
                 action(lerpValue);
                 await Task.Yield();
+            }
+        }
+
+        public static async Task SmoothLate(Action<float> action, CurveType type, float totalTime)
+        {
+            var instance = active;
+
+            if (instance == null)
+            {
+                action(1f);
+                return;
+            }
+
+            var curve = instance.Curve(type);
+            if (curve == null)
+            {
+                action(1f);
+                return;
+            }
+
+            if (totalTime <= 0)
+            {
+                action(1f);
+            }
+
+
+            var time = 0f;
+
+            active.OnLateUpdate += HandleLateUpdate;
+
+            while (time < totalTime)
+            {
+                await Task.Yield();
+            }
+
+            active.OnLateUpdate -= HandleLateUpdate;
+
+            void HandleLateUpdate()
+            {
+                if(time < totalTime)
+                {
+                    time += Time.deltaTime;
+                    var lerpValue = curve.Evaluate(time / totalTime);
+                    action(lerpValue);
+                }
             }
         }
 
