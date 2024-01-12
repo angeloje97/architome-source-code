@@ -90,14 +90,14 @@ namespace Architome
             foreach (var removed in removedStates)
             {
                 var toString = removed.ToString();
-                popUpManager.StateChangePopUp(transform, $"{toString} faded");
+                popUpManager.StateChangePopUp(new(transform, $"{toString} faded"));
                 await Task.Delay(250);
             }
 
             foreach (var state in newStates)
             {
                 var toString = state.ToString();
-                popUpManager.StateChangePopUp(transform, $"{toString}");
+                popUpManager.StateChangePopUp(new(transform, $"{toString}"));
                 await Task.Delay(250);
             }
         }
@@ -110,14 +110,14 @@ namespace Architome
 
             buff.OnBuffEnd += OnBuffEnd;
 
-            popUpManager.DamagePopUp(transform, $"Shielded {ArchString.FloatToSimple(shieldValue)}");
+            popUpManager.DamagePopUp(new(transform, $"Shielded {ArchString.FloatToSimple(shieldValue, 0)}"));
         }
 
         void OnBuffEnd(BuffInfo buff)
         {
             if (buff.GetComponent<BuffShield>())
             {
-                popUpManager.DamagePopUp(transform, $"Shield Faded");
+                popUpManager.DamagePopUp(new(transform, $"Shield Faded"));
             }
 
             buff.OnBuffEnd -= OnBuffEnd;
@@ -129,7 +129,7 @@ namespace Architome
 
             var fixate = fixated ? "Fixated" : "Fixated Faded";
             
-            popUpManager.StateChangePopUp(transform, fixate);
+            popUpManager.StateChangePopUp(new(transform, fixate));
         }
 
         // Update is called once per frame
@@ -153,19 +153,19 @@ namespace Architome
             void HandleDynamicDamage()
             {
 
-                try
+                
+
+                var currentPopup = popUpDamageType[damageType];
+                if (currentPopup != null && currentPopup.ContainsState(PopupText.eAnimatorState.EnableRepeat))
                 {
                     popUpDamageValues[damageType] += value;
-                    var currentValue = ArchString.FloatToSimple(popUpDamageValues[damageType], 0);
-
-                    popUpDamageType[damageType].UpdatePopUp(currentValue, new() { trigger = PopupText.eAnimatorTriggers.HealthChangeRepeat });
-
+                    var updatedValue = ArchString.FloatToSimple(popUpDamageValues[damageType], 0);
+                    popUpDamageType[damageType].UpdatePopUp(new(transform, updatedValue) { trigger = PopupText.eAnimatorTrigger.HealthChangeRepeat });
+                    return;
                 }
-                catch
-                {
-                    var currentValue = popUpDamageValues[damageType] = value;
-                    popUpDamageType[damageType] = popUpManager.DamagePopUp(transform, $"{ArchString.FloatToSimple(currentValue, 0)}", damageType);
-                }
+
+                var currentValue = popUpDamageValues[damageType] = value;
+                popUpDamageType[damageType] = popUpManager.DamagePopUp(new(transform, $"{ArchString.FloatToSimple(currentValue, 0)}"), damageType);
 
 
             }
@@ -189,26 +189,26 @@ namespace Architome
 
         void OnImmuneDamage(CombatEventData eventData)
         {
-            popUpManager.DamagePopUp(transform, $"Immune", DamageType.True);
+            popUpManager.DamagePopUp(new(transform, $"Immune"), DamageType.True);
         }
 
         void OnStateNegated(List<EntityState> currentState, EntityState negatedState)
         {
             if (popUpManager == null) return;
 
-            popUpManager.StateChangeImmunityPopUp(transform, negatedState.ToString());
+            popUpManager.StateChangeImmunityPopUp(new( transform, negatedState.ToString() ));
         }
 
         void OnAddImmuneState(EntityState newState)
         {
             if (popUpManager == null) return;
-            popUpManager.StateChangePopUp(transform, $"Immune to {newState}");
+            popUpManager.StateChangePopUp(new(transform, $"Immune to {newState}"));
         }
 
         void OnRemoveImmuneState(EntityState removedState)
         {
             if (popUpManager == null) return;
-            popUpManager.StateChangePopUp(transform, $"Removed immunity to {removedState}");
+            popUpManager.StateChangePopUp(new(transform, $"Removed immunity to {removedState}"));
         }
 
         void OnLifeChange(bool isAlive)
@@ -217,12 +217,12 @@ namespace Architome
 
             if (isAlive)
             {
-                popUpManager.StateChangePopUp(transform, "Revived");
+                popUpManager.StateChangePopUp(new( transform, "Revived"));
                 return;
             }
             else
             {
-                popUpManager.StateChangePopUp(transform, "Dead");
+                popUpManager.StateChangePopUp(new( transform, "Dead"));
             }
             
         }
@@ -231,7 +231,7 @@ namespace Architome
         {
             if (popUpManager == null) return;
 
-            popUpManager.StateChangePopUp(transform, $"Level {level}");
+            popUpManager.StateChangePopUp(new(transform, $"Level {level}"));
         }
 
     }

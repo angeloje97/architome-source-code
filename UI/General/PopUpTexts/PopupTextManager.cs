@@ -75,24 +75,19 @@ namespace Architome
             return popUpDict["Default"];
         }
 
-        public PopupText NewPopUp(string popUpName, Transform target = null, string text = "")
+        public PopupText NewPopUp(string popUpName)
         {
             var popUp = PopupTextInfo(popUpName);
 
             var newPopUp = Instantiate(popUp.prefab.gameObject, transform).GetComponent<PopupText>();
 
-            if(target != null)
-            {
-                newPopUp.SetPopUp(target, text, popUp.color);
-            }
 
             return newPopUp;
-
-
         }
 
+        public bool enableRepeat;
 
-        public PopupText DamagePopUp(Transform target, string text, DamageType damageType = DamageType.True)
+        public PopupText DamagePopUp(PopUpParameters parameters, DamageType damageType = DamageType.True)
         {
             if (!preferences.popUpPreferences.showDamage) return null;
 
@@ -110,52 +105,54 @@ namespace Architome
 
             //var popUp = Instantiate(prefabs.damagePopUp, transform).GetComponent<PopupText>();
             var popUp = NewPopUp("Damage");
-            popUp.SetAnimation(new() { boolean = PopupText.eAnimatorBools.HealthChange });
-            popUp.SetPopUp(target, text, color);
+
+            parameters.boolean = PopupText.eAnimatorBool.HealthChange;
+            parameters.states = new() { PopupText.eAnimatorState.EnableRepeat };
+            parameters.color = color;
+
+            popUp.SetPopUp(parameters);
 
             return popUp;
         }
 
 
-        public void StateChangePopUp(Transform position, string text)
+        public void StateChangePopUp(PopUpParameters parameters)
         {
             if (!preferences.popUpPreferences.showCrowdControl) return;
             //var popUp = Instantiate(prefabs.stateChange, transform).GetComponent<PopupText>();
             var popUp = NewPopUp("State");
-            popUp.SetAnimation(new() { boolean = PopupText.eAnimatorBools.StateChange });
-            popUp.SetPopUp(position, text, colors.state);
+            parameters.boolean = PopupText.eAnimatorBool.StateChange;
+            popUp.SetPopUp(parameters);
 
         }
 
-        public void StateChangeImmunityPopUp(Transform target, string text)
+        public void StateChangeImmunityPopUp(PopUpParameters parameters)
         {
             if (!preferences.popUpPreferences.showCrowdControl) return;
 
             var popUp = NewPopUp("StateImmune");
-            popUp.SetAnimation(new() { boolean = PopupText.eAnimatorBools.StateImmunity });
-            popUp.SetPopUp(target, $"{text} Immune", colors.stateImmune);
+            parameters.boolean = PopupText.eAnimatorBool.StateImmunity;
+            parameters.color = colors.stateImmune;
+            parameters.text = $"{parameters.text} Immune";
+            popUp.SetPopUp(parameters);
         }
 
-        public void HealPopUp(Transform target, string text)
+        public void HealPopUp(PopUpParameters parameters )
         {
             var popUp = NewPopUp("Heal");
-            popUp.SetAnimation(new() { boolean = PopupText.eAnimatorBools.HealthChange });
-            popUp.SetPopUp(target, text, colors.heal);
+
+            parameters.color = colors.heal;
+            parameters.boolean = PopupText.eAnimatorBool.HealthChange;
+            popUp.SetPopUp(parameters);
         }
 
         
 
-        public PopupText GeneralPopUp(Transform target, string text, Color color, PopupText.PopUpParameters parameters = null)
+        public PopupText GeneralPopUp(PopUpParameters parameters = null)
         {
             if (!preferences.popUpPreferences.showGeneral) return null;
             var popUp = NewPopUp("Default");
-            if (parameters != null)
-            {
-                popUp.SetAnimation(parameters);
-            }
-            popUp.SetPopUp(target, text, color);
-
-
+            popUp.SetPopUp(parameters);
 
             ArchAction.Delay(() => { popUp.EndAnimation(); }, 1f);
 

@@ -5,9 +5,33 @@ using TMPro;
 using System;
 using System.Threading.Tasks;
 using Pathfinding;
+using Language.Lua;
+using static Architome.PopupText;
 
 namespace Architome
 {
+    public class PopUpParameters
+    {
+        public PopUpParameters(Transform target, string text)
+        {
+            this.target = target;
+            this.text = text;
+
+            states = new();
+        }
+
+        public string text;
+        public Color color;
+        public Transform target;
+
+        public eAnimatorBool boolean;
+        public eAnimatorTrigger trigger;
+        public HashSet<eAnimatorState> states;
+        //Animation Parameters
+
+        public bool screenPosition;
+    }
+
     public class PopupText : MonoBehaviour
     {
         [Serializable]
@@ -27,16 +51,9 @@ namespace Architome
         public Info info;
         public Camera mainCamera;
 
-        public class PopUpParameters
-        {
-            public eAnimatorBools boolean;
-            public eAnimatorTriggers trigger;
-            //Animation Parameters
+        
 
-            public bool screenPosition;
-        }
-
-        public enum eAnimatorBools
+        public enum eAnimatorBool
         {
             None,
             HealthChange,
@@ -46,7 +63,12 @@ namespace Architome
             Currency,
         }
 
-        public enum eAnimatorTriggers
+        public enum eAnimatorState
+        {
+            EnableRepeat,
+        }
+
+        public enum eAnimatorTrigger
         {
             None,
             HealthChangeRepeat,
@@ -72,19 +94,33 @@ namespace Architome
             StickToTarget();
         }
 
-        public void SetAnimation(PopUpParameters parameters)
+        void SetAnimation(PopUpParameters parameters)
         {
             this.parameters = parameters;
 
-            if (parameters.boolean != eAnimatorBools.None)
+            if (parameters.boolean != eAnimatorBool.None)
             {
                 info.animator.SetBool(parameters.boolean.ToString(), true);
             }
 
-            if(parameters.trigger != eAnimatorTriggers.None)
+            if(parameters.trigger != eAnimatorTrigger.None)
             {
                 info.animator.SetTrigger(parameters.trigger.ToString());
             }
+
+            if (parameters.states != null)
+            {
+                foreach(var state in parameters.states)
+                {
+                    info.animator.SetBool(state.ToString(), true);
+                }
+            }
+        }
+
+        public bool ContainsState(eAnimatorState state)
+        {
+            if (parameters.states == null) return false;
+            return parameters.states.Contains(state);
         }
 
         public Vector3 TargetPosition(Vector3 position)
@@ -125,19 +161,21 @@ namespace Architome
             transform.position = position;
         }
 
-        public void SetPopUp(Transform target, string text, Color color)
+        public void SetPopUp(PopUpParameters parameters)
         {
-            this.target = target;
+            this.target = parameters.target;
             StickToTarget();
-            info.text.text = text;
-            info.text.color = color;
+            SetAnimation(parameters);
+            info.text.text = parameters.text;
+            info.text.color = parameters.color;
             info.text.enabled = true;
             HandleRandomDirection();
+
         }
 
-        public void UpdatePopUp(string text, PopUpParameters parameters)
+        public void UpdatePopUp(PopUpParameters parameters)
         {
-            info.text.text = text;
+            info.text.text = parameters.text;
             SetAnimation(parameters);
             transform.SetAsLastSibling();
         }
@@ -163,14 +201,27 @@ namespace Architome
 
         float xDirection;
         float yDirection;
+        float previousAngle = 0f;
+
 
         async void HandleRandomDirection()
         {
             if (!randomDirection) return;
-            var angle = UnityEngine.Random.Range(0f, 360f);
+            var angle = 0f;
+
+            do
+            {
+                angle = UnityEngine.Random.Range(0f, 360f);
+
+            }
+            while (RequiresNewAngle(angle, previousAngle));
+
+            previousAngle = angle;
 
             xDirection = (float) Math.Sin(Math.PI * 2 * angle / 360f);
             yDirection = (float) Math.Cos(Math.PI * 2 * angle / 360f);
+
+
 
             Debugger.UI(2425, $"x: {xDirection}, y: {yDirection}");
             var currentX = 0f;
@@ -195,6 +246,24 @@ namespace Architome
 
                 return true;
             }, true);
+
+            bool RequiresNewAngle(float a, float b)
+            {
+                if (Mathf.Abs(a - b) < 35f) return true;
+
+                if(a < b)
+                {
+                    var aOffset = a + 360f;
+                    if (Mathf.Abs(aOffset - b) < 35f) return true;
+                }
+                else
+                {
+                    var bOffset = b + 360f;
+                    if (Mathf.Abs(a - bOffset) < 35f) return true;
+                }
+
+                return false;
+            }
         }
     }
 }

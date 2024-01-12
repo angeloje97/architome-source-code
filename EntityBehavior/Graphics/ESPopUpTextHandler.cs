@@ -42,14 +42,14 @@ namespace Architome
             if (info.popUpManager == null) return;
 
             var text = dead > 0 ? $"Reviving {dead} members" : "No dead party members to revive";
-            info.popUpManager.GeneralPopUp(transform, text, Color.white);
+            info.popUpManager.GeneralPopUp(new(transform, text) { color = Color.white });
         }
 
         public void OnSetPlayerSpawnBeacon(SpawnerInfo spawner)
         {
             if (info.popUpManager == null) return;
 
-            info.popUpManager.GeneralPopUp(transform, $"Player Spawn Beacon Set", Color.white);
+            info.popUpManager.GeneralPopUp(new(transform, $"Player Spawn Beacon Set") { color = Color.white });
         }
     }
 

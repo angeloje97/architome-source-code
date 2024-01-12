@@ -39,13 +39,7 @@ namespace Architome
 
             text += $" {ArchString.FloatToSimple(Mathf.Abs(difference))}";
 
-            var popUp = popupManager.GeneralPopUp(transform, text, Color.white, new()
-            {
-                screenPosition = true,
-                boolean = PopupText.eAnimatorBools.CurrencyTop,
-            });
-
-
+            var popUp = popupManager.GeneralPopUp(new(transform, text) {color =  Color.white, screenPosition = true, boolean = PopupText.eAnimatorBool.CurrencyTop, });
         }
 
 

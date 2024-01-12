@@ -101,10 +101,7 @@ namespace Architome
                     text += $" ({stacks})";
                 }
 
-                var popUp = popUpManager.GeneralPopUp(transform, text, rarityProperty.color, new()
-                {
-                    boolean = PopupText.eAnimatorBools.HealthChange
-                });
+                var popUp = popUpManager.GeneralPopUp(new(transform, text) { color = rarityProperty.color, boolean = PopupText.eAnimatorBool.HealthChange });
 
                 popUp.SetOffset(new(0, 60, 0));
             }
