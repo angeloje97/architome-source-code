@@ -170,7 +170,7 @@ namespace Architome
             var popUp = NewPopUp("Default");
             popUp.SetPopUp(parameters);
 
-            ArchAction.Delay(() => { popUp.EndAnimation(); }, 1f);
+            ArchAction.Delay(() => { popUp.EndAnimation(); }, 3f);
 
             return popUp;
         }

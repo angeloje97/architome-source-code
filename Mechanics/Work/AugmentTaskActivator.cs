@@ -57,6 +57,11 @@ namespace Architome
             GetDependencies();
         }
 
+        private void OnValidate()
+        {
+            effectHandler?.Validate();
+        }
+
         void GetDependencies()
         {
             HandleListeners();

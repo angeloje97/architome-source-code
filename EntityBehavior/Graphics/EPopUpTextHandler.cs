@@ -169,7 +169,6 @@ namespace Architome
                     var updatedValue = ArchString.FloatToSimple(popUpDamageValues[damageType], 0);
                     popUpDamageType[damageType].UpdatePopUp(new(transform, updatedValue)
                     {
-                        boolean = PopupText.eAnimatorBool.HealthChange,
                         trigger = PopupText.eAnimatorTrigger.HealthChangeRepeat,
                     });
                     return true;

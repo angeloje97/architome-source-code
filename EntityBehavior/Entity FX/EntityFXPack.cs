@@ -3,10 +3,19 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using Architome.Enums;
+using Architome.Effects;
 
 [CreateAssetMenu(fileName = "New EntityFX Pack", menuName = "Architome/Entity/EntityFX")]
 public class EntityFXPack : ScriptableObject
 {
+    public EffectsHandler<EntityEvent, FXData> effectsHandler;
+
+    public class FXData : EventItemHandler<EntityEvent>
+    {
+        [Header("Custom Particles")]
+        public BodyPart bodyPart, bodyPart2;
+        public CatalystParticleTarget target;
+    }
 
     [Serializable]
     public class EntityEffect
@@ -53,6 +62,8 @@ public class EntityFXPack : ScriptableObject
         {
             effect.Update();
         }
+
+        effectsHandler?.Validate();
     }
 
     public List<EntityEffect> effects;

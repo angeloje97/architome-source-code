@@ -5,7 +5,7 @@ using UnityEngine.Audio;
 using System;
 using System.Threading.Tasks;
 using CafofoStudio;
-
+using Architome.Enums;
 
 namespace Architome
 {
@@ -16,6 +16,7 @@ namespace Architome
         public List<AudioSource> audioSources;
         public AudioSource presetAudio;
         public AudioMixerGroup mixerGroup;
+        public AudioMixerType audioMixerType;
         public List<Action> Actions;
 
         public bool audioRoutineIsActive;
@@ -27,12 +28,21 @@ namespace Architome
         
         public float pitchRandomRange;
 
+
         public Action<AudioManager> OnEmptyAudio { get; set; }
 
         void Start()
         {
             audioSources = new List<AudioSource>();
             Actions = new();
+
+            
+        }
+
+        public void UpdateMixerGroup()
+        {
+            var audioMixerGroups = AudioMixerGroups.active;
+            mixerGroup = audioMixerGroups.MixerGroup(audioMixerType);
         }
 
         

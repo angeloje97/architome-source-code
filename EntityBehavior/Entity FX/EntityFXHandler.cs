@@ -12,7 +12,6 @@ namespace Architome
     public class EntityFXHandler : EntityProp
     {
         [SerializeField] List<EntityFXPack> effectPacks;
-        [SerializeField] EffectsHandler<EntityEvent> effectHandler;
         
         EntitySpeech speech;
         ParticleManager particleManager;
@@ -118,8 +117,6 @@ namespace Architome
         void HandleAdditiveEffects()
         {
             effectPacks ??= new();
-            effectHandler ??= new();
-            effectHandler.effects ??= new();
 
             foreach(var pack in effectPacks)
             {
@@ -131,13 +128,6 @@ namespace Architome
                         //Debugger.Error(6549, $"{entityInfo} FX Handler needs an update to move from effect pack to effect handler for {fx.trigger}");
                     }, fx.trigger);
                 }
-            }
-
-            foreach(var fx in effectHandler.effects)
-            {
-                entityInfo.AddEventTrigger(() => {
-                    fx.ActivateEffect();
-                }, fx.trigger);
             }
 
 
