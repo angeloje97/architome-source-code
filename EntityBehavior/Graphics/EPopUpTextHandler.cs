@@ -152,22 +152,28 @@ namespace Architome
 
             void HandleDynamicDamage()
             {
-
-                
-
-                var currentPopup = popUpDamageType[damageType];
-                if (currentPopup != null && currentPopup.ContainsState(PopupText.eAnimatorState.EnableRepeat))
-                {
-                    popUpDamageValues[damageType] += value;
-                    var updatedValue = ArchString.FloatToSimple(popUpDamageValues[damageType], 0);
-                    popUpDamageType[damageType].UpdatePopUp(new(transform, updatedValue) { trigger = PopupText.eAnimatorTrigger.HealthChangeRepeat });
-                    return;
-                }
+                if (CanUpdate()) return;
 
                 var currentValue = popUpDamageValues[damageType] = value;
                 popUpDamageType[damageType] = popUpManager.DamagePopUp(new(transform, $"{ArchString.FloatToSimple(currentValue, 0)}"), damageType);
 
+                bool CanUpdate()
+                {
+                    var currentPopup = popUpDamageType[damageType];
 
+                    if (currentPopup == null) return false;
+                    if (popUpManager.damagePopUpType == eDamagePopUpType.Once) return false;
+                    if (currentPopup.blockUpdate) return false;
+
+                    popUpDamageValues[damageType] += value;
+                    var updatedValue = ArchString.FloatToSimple(popUpDamageValues[damageType], 0);
+                    popUpDamageType[damageType].UpdatePopUp(new(transform, updatedValue)
+                    {
+                        boolean = PopupText.eAnimatorBool.HealthChange,
+                        trigger = PopupText.eAnimatorTrigger.HealthChangeRepeat,
+                    });
+                    return true;
+                }
             }
 
             void HandleInitialization()

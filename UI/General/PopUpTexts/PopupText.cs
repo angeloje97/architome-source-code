@@ -66,6 +66,7 @@ namespace Architome
         public enum eAnimatorState
         {
             EnableRepeat,
+            EnableRepeatUnlimited,
         }
 
         public enum eAnimatorTrigger
@@ -94,9 +95,12 @@ namespace Architome
             StickToTarget();
         }
 
-        void SetAnimation(PopUpParameters parameters)
+        void SetAnimation(PopUpParameters parameters, bool updateParameters = true)
         {
-            this.parameters = parameters;
+            if (updateParameters)
+            {
+                this.parameters = parameters;
+            }
 
             if (parameters.boolean != eAnimatorBool.None)
             {
@@ -108,18 +112,14 @@ namespace Architome
                 info.animator.SetTrigger(parameters.trigger.ToString());
             }
 
-            if (parameters.states != null)
+            foreach(var state in parameters.states)
             {
-                foreach(var state in parameters.states)
-                {
-                    info.animator.SetBool(state.ToString(), true);
-                }
+                info.animator.SetBool(state.ToString(), true);
             }
         }
 
         public bool ContainsState(eAnimatorState state)
         {
-            if (parameters.states == null) return false;
             return parameters.states.Contains(state);
         }
 
@@ -172,11 +172,19 @@ namespace Architome
             HandleRandomDirection();
 
         }
+        public bool blockUpdate { get; private set; }
+
+        public void BlockUpdate()
+        {
+            if (parameters.states.Contains(eAnimatorState.EnableRepeatUnlimited)) return;
+            blockUpdate = true;
+        }
+
 
         public void UpdatePopUp(PopUpParameters parameters)
         {
             info.text.text = parameters.text;
-            SetAnimation(parameters);
+            SetAnimation(parameters, false);
             transform.SetAsLastSibling();
         }
 
@@ -201,7 +209,7 @@ namespace Architome
 
         float xDirection;
         float yDirection;
-        float previousAngle = 0f;
+        public static float previousAngle = 0f;
 
 
         async void HandleRandomDirection()

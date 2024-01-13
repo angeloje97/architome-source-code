@@ -6,6 +6,13 @@ using Architome.Enums;
 
 namespace Architome
 {
+    public enum eDamagePopUpType 
+    {
+        Once,
+        ChainedLimited,
+        ChainedUnlimited,
+    }
+
     public class PopupTextManager : MonoBehaviour
     {
 
@@ -85,8 +92,8 @@ namespace Architome
             return newPopUp;
         }
 
-        public bool enableRepeat;
-
+        [Header("Properties")]
+        public eDamagePopUpType damagePopUpType;
         public PopupText DamagePopUp(PopUpParameters parameters, DamageType damageType = DamageType.True)
         {
             if (!preferences.popUpPreferences.showDamage) return null;
@@ -107,7 +114,16 @@ namespace Architome
             var popUp = NewPopUp("Damage");
 
             parameters.boolean = PopupText.eAnimatorBool.HealthChange;
-            parameters.states = new() { PopupText.eAnimatorState.EnableRepeat };
+            if (damagePopUpType == eDamagePopUpType.ChainedLimited)
+            {
+                parameters.states = new() { PopupText.eAnimatorState.EnableRepeat };
+            }
+
+            else if(damagePopUpType == eDamagePopUpType.ChainedUnlimited)
+            {
+                parameters.states = new() { PopupText.eAnimatorState.EnableRepeatUnlimited };
+            }
+
             parameters.color = color;
 
             popUp.SetPopUp(parameters);
