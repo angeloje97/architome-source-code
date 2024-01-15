@@ -137,6 +137,7 @@ namespace Architome
         Dictionary<DamageType, PopupText> popUpDamageType;
         Dictionary<DamageType, float> popUpDamageValues;
         bool initializedDamageType = false;
+        float previousAngle = 0f;
 
         void OnDamageTaken(CombatEventData eventData)
         {
@@ -155,7 +156,11 @@ namespace Architome
                 if (CanUpdate()) return;
 
                 var currentValue = popUpDamageValues[damageType] = value;
-                popUpDamageType[damageType] = popUpManager.DamagePopUp(new(transform, $"{ArchString.FloatToSimple(currentValue, 0)}"), damageType);
+                var newPopup = popUpManager.DamagePopUp(new(transform, $"{ArchString.FloatToSimple(currentValue, 0)}") { previousAngle = previousAngle }, damageType);
+                popUpDamageType[damageType] = newPopup;
+
+                previousAngle = newPopup.previousAngle;
+                
 
                 bool CanUpdate()
                 {

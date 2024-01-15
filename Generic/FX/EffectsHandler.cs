@@ -179,7 +179,7 @@ namespace Architome.Effects
 
             await Task.Delay(2000);
 
-            GameObject.Destroy(gameObj);
+            UnityEngine.Object.Destroy(gameObj);
 
             void HandlePosition()
             {

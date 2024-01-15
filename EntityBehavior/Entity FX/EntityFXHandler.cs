@@ -15,6 +15,8 @@ namespace Architome
         
         EntitySpeech speech;
         ParticleManager particleManager;
+        AudioManager audioManager;
+        
         EntityFXPack entityFX;
         CatalystManager catalystManager;
         CharacterBodyParts characterBodyPart;
@@ -38,6 +40,7 @@ namespace Architome
         {
             DetermineActive(null);
             particleManager = GetComponentInChildren<ParticleManager>();
+            audioManager = GetComponentInChildren<AudioManager>();
 
             var mixer = GMHelper.Mixer();
 
@@ -84,6 +87,8 @@ namespace Architome
                     }, fx.trigger);
                 }
 
+                HandleEffectsHandler(entityFX.effectsHandler);
+
             }
 
             HandleAdditiveEffects();
@@ -128,9 +133,22 @@ namespace Architome
                         //Debugger.Error(6549, $"{entityInfo} FX Handler needs an update to move from effect pack to effect handler for {fx.trigger}");
                     }, fx.trigger);
                 }
+                HandleEffectsHandler(pack.effectsHandler);
             }
+        }
 
 
+        void HandleEffectsHandler(EffectsHandler<EntityEvent, EntityFXPack.FXData> effectsHandler)
+        {
+            if (effectsHandler == null) return;
+
+            effectsHandler.SetDefaults(entityInfo.transform, audioManager, particleManager);
+
+            effectsHandler.InitiateCustomEffects((data) => {
+                entityInfo.AddEventTrigger(() => {
+                    data.ActivateEffect();
+                }, data.trigger);
+            });
         }
 
         void OnLoadScene(ArchSceneManager sceneManager)

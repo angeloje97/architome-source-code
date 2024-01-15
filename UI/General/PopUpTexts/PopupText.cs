@@ -30,6 +30,7 @@ namespace Architome
         //Animation Parameters
 
         public bool screenPosition;
+        public float previousAngle;
     }
 
     public class PopupText : MonoBehaviour
@@ -209,17 +210,22 @@ namespace Architome
 
         float xDirection;
         float yDirection;
-        public static float previousAngle = 0f;
+
+        float startAngle = -75;
+        float endAngle = 75;
+        float newAngleTolerence = 25f;
+        public float previousAngle { get; private set; }
 
 
         async void HandleRandomDirection()
         {
             if (!randomDirection) return;
+            previousAngle = parameters.previousAngle;
             var angle = 0f;
 
             do
             {
-                angle = UnityEngine.Random.Range(0f, 360f);
+                angle = UnityEngine.Random.Range(startAngle, endAngle);
 
             }
             while (RequiresNewAngle(angle, previousAngle));
@@ -257,17 +263,17 @@ namespace Architome
 
             bool RequiresNewAngle(float a, float b)
             {
-                if (Mathf.Abs(a - b) < 35f) return true;
+                if (Mathf.Abs(a - b) < newAngleTolerence) return true;
 
                 if(a < b)
                 {
                     var aOffset = a + 360f;
-                    if (Mathf.Abs(aOffset - b) < 35f) return true;
+                    if (Mathf.Abs(aOffset - b) < newAngleTolerence) return true;
                 }
                 else
                 {
                     var bOffset = b + 360f;
-                    if (Mathf.Abs(a - bOffset) < 35f) return true;
+                    if (Mathf.Abs(a - bOffset) < newAngleTolerence) return true;
                 }
 
                 return false;
