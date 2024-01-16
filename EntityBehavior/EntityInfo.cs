@@ -232,24 +232,30 @@ namespace Architome
                 }
             }
         }
+
+        #region Mouse Over Events
+
+        bool enableMouseOvers = false;
         private void OnMouseEnter()
         {
-            return;
+            if (!enableMouseOvers) return;
             infoEvents.OnMouseHover?.Invoke(this, true, gameObject);
 
 
         }
         private void OnMouseExit()
         {
-            return;
+            if (!enableMouseOvers) return;
             infoEvents.OnMouseHover?.Invoke(this, false, gameObject);
 
         }
+        #endregion
         public void OnTriggerEnter(Collider other)
         {
             OnTriggerEvent?.Invoke(this, other, true);
             OnPhysicsEvent?.Invoke(this, other.gameObject, true);
         }
+
         public void OnTriggerExit(Collider other)
         {
 
@@ -345,6 +351,7 @@ namespace Architome
                 healthRegenPercent = .01f;
             }
         }
+
         async void HandleFalling()
         {
             var height = transform.position.y;
@@ -368,11 +375,13 @@ namespace Architome
                 await Task.Delay(1000);
             }
         }
+
         public void UpdateObjectives(object sender)
         {
             objectives = new();
             infoEvents.OnUpdateObjectives?.Invoke(objectives);
         }
+
         void UpdateResources(bool val)
         {
             if (role == Role.Tank && rarity == EntityRarity.Player)
@@ -393,12 +402,14 @@ namespace Architome
                 mana = maxMana;
             }
         }
+
         void HandleRarityEvents()
         {
             infoEvents.OnRarityChange += (EntityRarity before, EntityRarity after) => {
                 ArchAction.Yield(() => UpdateHealthRegen());
             };
         }
+
         public virtual void EntityStart()
         {
             if (!properties.created)
@@ -411,10 +422,12 @@ namespace Architome
 
             StartCoroutine(HandleRegeneration());
         }
+
         public void GainExperience(object sender, float amount)
         {
             OnExperienceGainOutside?.Invoke(sender, amount);
         }
+
         protected void HandleEventTriggers()
         {
             if (healthCheck != health || maxHealthCheck != maxHealth || shieldCheck != shield)
@@ -464,6 +477,7 @@ namespace Architome
                 npcTypeCheck = npcType;
             }
         }
+
         public string ObjectivesDescription()
         {
             if (objectives == null) objectives = new();

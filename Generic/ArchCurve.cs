@@ -83,26 +83,34 @@ namespace Architome
             }
 
             var curve = instance.Curve(type);
-            if(curve == null)
+            if(curve == null || type == CurveType.Linear)
             {
-                action(1f);
+                await HandleLinear();
                 return;
             }
-            
-            if(totalTime <= 0)
-            {
-                action(1f);
-            }
-
 
             var time = 0f;
 
-            while(time < totalTime)
+            do
             {
                 time += Time.deltaTime;
                 var lerpValue = curve.Evaluate(time / totalTime);
                 action(lerpValue);
                 await Task.Yield();
+            }while (time < totalTime) ;
+
+
+            async Task HandleLinear()
+            {
+                var time = 0f;
+
+                do
+                {
+                    time += Time.deltaTime;
+                    var lerpValue = Mathf.InverseLerp(0, totalTime, time);
+                    action(lerpValue);
+                    await Task.Yield();
+                } while (time < totalTime);
             }
         }
 

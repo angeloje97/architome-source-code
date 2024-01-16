@@ -144,7 +144,7 @@ namespace Architome
 
             effectsHandler.SetDefaults(entityInfo.transform, audioManager, particleManager);
 
-            effectsHandler.InitiateCustomEffects((data) => {
+            effectsHandler.InitiateItemEffects((data) => {
                 entityInfo.AddEventTrigger(() => {
                     data.ActivateEffect();
                 }, data.trigger);

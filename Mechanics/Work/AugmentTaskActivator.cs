@@ -69,7 +69,7 @@ namespace Architome
 
         void HandleListeners()
         {
-            effectHandler.InitiateCustomEffects((item) =>
+            effectHandler.InitiateItemEffects((item) =>
             {
 
                 if (item.playForDuration && item.trigger == eTaskActivatorEvent.OnStartTask)

@@ -5,9 +5,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine.Rendering;
 using Architome.Enums;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Architome.Effects
 {
+    #region Effects Handler
     [Serializable]
     public class EffectsHandler<T> where T: Enum
     {
@@ -44,7 +46,6 @@ namespace Architome.Effects
             if (particleManager != null) this.particleManager = particleManager;
         }
 
-
         public virtual List<EventItemHandler<T>> DefaultItems()
         {
             effects ??= new();
@@ -70,7 +71,12 @@ namespace Architome.Effects
             }
         }
 
-
+        public void ListenTo(ArchEventHandler<T, object> eventHandler, Component listener)
+        {
+            InitiateItemEffects((effectItem) => {
+                eventHandler.AddListener(effectItem.trigger, () => { }, listener);
+            });
+        }
     }
 
     [Serializable]
@@ -78,7 +84,7 @@ namespace Architome.Effects
     {
         public new List<E> effects;
         Dictionary<T, List<E>> subsets;
-        public void InitiateCustomEffects(Action<E> handleItem)
+        public void InitiateItemEffects(Action<E> handleItem)
         {
             effects ??= new();
             subsets = new();
@@ -95,10 +101,13 @@ namespace Architome.Effects
                 subsets[fx.trigger].Add(fx);
             }
         }
-    }
 
+    }
+    #endregion  
+
+    #region Event Item
     [Serializable]
-    public class EventItemHandler<T>
+    public class EventItemHandler<T> where T: Enum
     {
         [HideInInspector] public string name;
         public T trigger;
@@ -113,6 +122,7 @@ namespace Architome.Effects
         public AudioClip audioClip;
         public AudioMixerType audioType;
         public List<AudioClip> randomClips;
+        public float fadeDuration = 0f;
 
         [Header("Phrases")]
         [Multiline]
@@ -148,111 +158,216 @@ namespace Architome.Effects
             overrideContinueCondition = true;
         }
 
-        public void ActivateEffect()
+        public async void ActivateEffect()
         {
+            bool durationStarted = false;
+
+            var eventData = new EffectEventData<T>(this);
+
+
             HandleParticle();
             HandleAudioClip();
-        }
 
-        async void HandleParticle()
-        {
-            if (particleObject == null) return;
-            if (particleManager == null) return;
+            await Task.Delay(62);
 
-            var target = particleTarget ?? defaultTarget;
-
-            var (system, gameObj) = particleManager.Play(particleObject);
-            var trans = gameObj.transform;
-
-            trans.SetParent(target);
-
-            HandlePosition();
-
-            HandleScale();
-
-            HandleParticleExtension(particleObject);
+            await eventData.UntilStopActive();
 
 
-            await HandleDuration();
-
-            particleManager.StopParticle(gameObj);
-
-            await Task.Delay(2000);
-
-            UnityEngine.Object.Destroy(gameObj);
-
-            void HandlePosition()
+            async void HandleParticle()
             {
-                trans.localPosition += positionOffset;
+                if (particleObject == null) return;
+                if (particleManager == null) return;
+
+                var target = particleTarget ?? defaultTarget;
+
+                var (system, gameObj) = particleManager.Play(particleObject);
+                var trans = gameObj.transform;
+                eventData.particlePlaying = true;
+                eventData.particleActive = true;
+
+                trans.SetParent(target);
+
+                HandlePosition();
+
+                HandleScale();
+
+                HandleParticleExtension(eventData);
+
+
+                await HandleDuration();
+
+                particleManager.StopParticle(gameObj);
+
+                eventData.particleActive = false;
+
+                await Task.Delay(2000);
+
+                UnityEngine.Object.Destroy(gameObj);
+
+                eventData.particlePlaying = false;
+
+                void HandlePosition()
+                {
+                    trans.localPosition += positionOffset;
+                }
+
+                void HandleScale()
+                {
+                    trans.localScale += scaleOffset;
+                }
+
+
             }
 
-            void HandleScale()
+            async void HandleAudioClip()
             {
-                trans.localScale += scaleOffset;
+                if (audioManager == null) return;
+                var audioSources = new List<AudioSource>();
+
+                if (audioClip != null)
+                {
+                    audioSources.Add(audioManager.PlayAudioClip(audioClip));
+                }
+
+                if (randomClips != null && randomClips.Count > 0)
+                {
+                    audioSources.Add(audioManager.PlayRandomSound(randomClips));
+                }
+
+                if (audioSources.Count == 0) return;
+                eventData.audioPlaying = true;
+                eventData.audioActive = true;
+
+                HandleAudioExtension(eventData);
+
+                await HandleDuration();
+
+                eventData.audioActive = false;
+
+                var tasks = new List<Task>();
+
+                foreach (var source in audioSources)
+                {
+                    tasks.Add(HandleFadeDuration(source));
+                }
+
+                await Task.WhenAll(tasks);
+
+                eventData.audioPlaying = false;
+
+                async Task HandleFadeDuration(AudioSource source)
+                {
+                    if(fadeDuration <= 0f)
+                    {
+                        source.Stop();
+                        return;
+                    }
+
+                    var startingVolume = source.volume;
+                    await ArchCurve.Smooth((float lerpValue) => {
+
+                        source.volume = Mathf.Lerp(startingVolume, 0f, lerpValue);
+                    }, CurveType.Linear, fadeDuration);
+
+                    source.Stop();
+                }
+
             }
 
 
+            async Task HandleDuration()
+            {
+                if (durationStarted)
+                {
+                    await ArchAction.WaitUntil(() => durationStarted, false);
+                    return;
+                }
+
+                durationStarted = true;
+                if (!overrideContinueCondition)
+                {
+                    float currentTimer = defaultDuration;
+
+                    await ArchAction.WaitUntil((float deltaTime) => {
+                        currentTimer -= deltaTime;
+                        return currentTimer <= 0f;
+                    }, true);
+                }
+                else
+                {
+                    await ArchAction.WaitUntil(canContinuePlaying, false);
+                }
+                durationStarted = false;
+
+
+            }
         }
+
+        public virtual void HandleParticleExtension(EffectEventData<T> eventData) { }
 
         
 
-        public virtual void HandleParticleExtension(GameObject particleObject) { }
-
-        async void HandleAudioClip()
-        {
-            if (audioManager == null) return;
-            var audioSources = new List<AudioSource>();
-
-            if(audioClip != null)
-            {
-                audioSources.Add(audioManager.PlayAudioClip(audioClip));
-            }
-
-            if(randomClips != null && randomClips.Count > 0)
-            {
-                audioSources.Add(audioManager.PlayRandomSound(randomClips));
-            }
-
-            HandleAudioExtension(audioSources);
-
-            await HandleDuration();
-
-            foreach(var source in audioSources)
-            {
-                //Need to change this to a better behavior
-                source.Stop();
-            }
-        }
-
-        public virtual void HandleAudioExtension(List<AudioSource> audioSource) { }
+        public virtual void HandleAudioExtension(EffectEventData<T> eventData) { }
 
         
 
 
-        bool durationStarted;
-        async Task HandleDuration()
-        {
-            if (durationStarted)
-            {
-                await ArchAction.WaitUntil(() => durationStarted, false);
-                return;
-            }
-
-            durationStarted = true;
-            if (!overrideContinueCondition)
-            {
-                float currentTimer = defaultDuration;
-
-                await ArchAction.WaitUntil((float deltaTime) => {
-                    currentTimer -= deltaTime;
-                    return currentTimer <= 0f;
-                }, true);
-            }
-            else
-            {
-                await ArchAction.WaitUntil(canContinuePlaying, false);
-            }
-            durationStarted = false;
-        }
+        
     }
+    #endregion
+
+    #region Effect Event System
+
+    public enum eEffectEvent
+    {
+        OnStartEffect,
+        OnEndEffect,
+    }
+
+    public class EffectEventData<T> where T: Enum
+    {
+        public EventItemHandler<T> itemHandler;
+        public T trigger { get; set; }
+        public bool playing { get { return particlePlaying || audioPlaying; } }
+
+        public bool active { get { return particleActive || audioActive; } }
+
+        public EffectEventData(EventItemHandler<T> itemHandler)
+        {
+            this.itemHandler = itemHandler;
+            this.trigger = itemHandler.trigger;
+        }
+
+        public async Task UntilStopPlaying()
+        {
+            await ArchAction.WaitUntil(() => playing, false);
+        }
+
+        public async Task UntilStopActive()
+        {
+            await ArchAction.WaitUntil(() => active, false);
+        }
+
+        public GameObject particleObject { get; private set; }
+
+        public bool particleActive { get; set; }
+        public bool particlePlaying { get; set; }
+        public void SetParticleObject(GameObject particleObject)
+        {
+            this.particleObject = particleObject;
+            particleActive = true;
+        }
+
+        public List<AudioSource> audioSources { get; private set; }
+        public bool audioActive { get; set; }
+        public bool audioPlaying { get; set; }
+        public void SetAudioSources(List<AudioSource> audioSources)
+        {
+            this.audioSources = audioSources;
+            audioActive = true;
+        }
+
+    }
+
+    #endregion
 }
