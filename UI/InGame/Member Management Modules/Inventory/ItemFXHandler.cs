@@ -18,12 +18,15 @@ namespace Architome
 
         ItemInfo currentItemInfo;
 
-
+        bool dependenciesAcquired;
         private void Start()
         {
             GetDependenciesWorld();
             GetDependenciesUI();
+            dependenciesAcquired = true;
         }
+
+        
 
         void GetDependenciesUI()
         {
@@ -157,11 +160,12 @@ namespace Architome
         }
 
 
-        public void Reveal()
+        public async void Reveal()
         {
             if (audioManager == null) return;
             var world = World.active;
             if (world == null) return;
+            await ArchAction.WaitUntil(() => dependenciesAcquired, true);
             var rarity = world.RarityProperty(worldItemInfo.item.rarity);
 
             if (rarity.revealAudio)

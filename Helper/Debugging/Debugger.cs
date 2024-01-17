@@ -28,9 +28,9 @@ namespace Architome
             { ALogType.Environment, false },
             { ALogType.UI, false },
             { ALogType.Social, false },
-            { ALogType.System, true },
+            { ALogType.System, false },
             { ALogType.OutSource, false },
-            { ALogType.Error, true },
+            { ALogType.Error, false },
         };
 
         public static bool Status(ALogType logType)
