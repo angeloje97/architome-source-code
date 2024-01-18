@@ -15,6 +15,13 @@ public class EntityFXPack : ScriptableObject
         [Header("Custom Particles")]
         public BodyPart bodyPart, bodyPart2;
         public CatalystParticleTarget target;
+
+        public override async void HandleParticleExtension(EffectEventData<EntityEvent> eventData)
+        {
+            await eventData.UntilDone(() => {
+                
+            }, EffectEventField.ParticlePlaying);
+        }
     }
 
     [Serializable]

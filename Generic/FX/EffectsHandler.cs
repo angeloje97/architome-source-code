@@ -165,12 +165,15 @@ namespace Architome.Effects
             var eventData = new EffectEventData<T>(this);
 
 
+
+
             HandleParticle();
             HandleAudioClip();
 
             await Task.Delay(62);
 
-            await eventData.UntilStopActive();
+            //await eventData.UntilStopActive();
+            await eventData.UntilDone(EffectEventField.Active);
 
 
             async void HandleParticle()
@@ -274,7 +277,6 @@ namespace Architome.Effects
 
             }
 
-
             async Task HandleDuration()
             {
                 if (durationStarted)
@@ -310,9 +312,6 @@ namespace Architome.Effects
         public virtual void HandleAudioExtension(EffectEventData<T> eventData) { }
 
         
-
-
-        
     }
     #endregion
 
@@ -324,10 +323,22 @@ namespace Architome.Effects
         OnEndEffect,
     }
 
+    public enum EffectEventField
+    {
+        Playing,
+        Active,
+        ParticlePlaying,
+        ParticleActive,
+        AudioPlaying,
+        AudioActive,
+    }
+
     public class EffectEventData<T> where T: Enum
     {
         public EventItemHandler<T> itemHandler;
         public T trigger { get; set; }
+
+        
         public bool playing { get { return particlePlaying || audioPlaying; } }
 
         public bool active { get { return particleActive || audioActive; } }
@@ -338,14 +349,32 @@ namespace Architome.Effects
             this.trigger = itemHandler.trigger;
         }
 
-        public async Task UntilStopPlaying()
+        public async Task UntilDone(Action action, EffectEventField field)
         {
-            await ArchAction.WaitUntil(() => playing, false);
+            switch (field)
+            {
+                case EffectEventField.Active: await FieldTask(() => particleActive || audioActive); break;
+                case EffectEventField.Playing: await FieldTask(() => particlePlaying || audioPlaying); break;
+                case EffectEventField.ParticlePlaying: await FieldTask(() => particlePlaying); break;
+                case EffectEventField.ParticleActive: await FieldTask(() => particleActive); break;
+                case EffectEventField.AudioPlaying: await FieldTask(() => audioPlaying); break;
+                case EffectEventField.AudioActive: await FieldTask(() => audioActive); break;
+
+            }
+
+            async Task FieldTask(Func<bool> predicate)
+            {
+                await ArchAction.WaitUntil(() =>
+                {
+                    action();
+                    return predicate();
+                }, false);
+            }
         }
 
-        public async Task UntilStopActive()
+        public async Task UntilDone(EffectEventField field)
         {
-            await ArchAction.WaitUntil(() => active, false);
+            await UntilDone(() => { }, field);
         }
 
         public GameObject particleObject { get; private set; }

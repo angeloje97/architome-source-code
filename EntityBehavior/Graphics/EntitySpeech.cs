@@ -81,10 +81,8 @@ namespace Architome
                 var next = speechQueue.Dequeue();
 
                 current = chatManager.ProcessSpeech(transform, next.text, next.type, next.time);
-                while (current != null)
-                {
-                    await Task.Yield();
-                }
+
+                await current.UntilDoneShowing();
             }
 
             isSpeaking = false;
