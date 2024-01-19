@@ -4,17 +4,31 @@ using UnityEngine;
 using System;
 using Architome.Enums;
 using Architome.Effects;
+using Architome;
 
 [CreateAssetMenu(fileName = "New EntityFX Pack", menuName = "Architome/Entity/EntityFX")]
 public class EntityFXPack : ScriptableObject
 {
     public EffectsHandler<EntityEvent, FXData> effectsHandler;
 
+    [Serializable]
     public class FXData : EventItemHandler<EntityEvent>
     {
+        //[Header("Entity Properties")]
+        //EntitySpeech speech;
+        //CatalystManager catalystManager;
+        //CharacterBodyParts characterBodyParts;
+        
+
         [Header("Custom Particles")]
-        public BodyPart bodyPart, bodyPart2;
-        public CatalystParticleTarget target;
+        [SerializeField] public BodyPart bodyPart, bodyPart2;
+        [SerializeField] public CatalystParticleTarget target;
+
+        public void SetProperties(EntityInfo entity)
+        {
+            //speech = entity.Speech();
+            //characterBodyParts = entity.BodyParts();
+        }
 
         public override async void HandleParticleExtension(EffectEventData<EntityEvent> eventData)
         {
