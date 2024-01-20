@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using Architome.Enums;
 
 namespace Architome
 {
@@ -31,16 +32,16 @@ namespace Architome
             active = this;
         }
 
-        public ArchChatBubble ProcessSpeech(Transform target, string text, EntitySpeech.SpeechType type, float time = 5f)
+        public ArchChatBubble ProcessSpeech(Transform target, string text, SpeechType type, float time = 5f)
         {
             var prefab = prefabs.say;
 
             switch (type)
             {
-                case EntitySpeech.SpeechType.Yell:
+                case SpeechType.Yell:
                     prefab = prefabs.yell;
                     break;
-                case EntitySpeech.SpeechType.Whisper:
+                case SpeechType.Whisper:
                     prefab = prefabs.whisper;
                     break;
 

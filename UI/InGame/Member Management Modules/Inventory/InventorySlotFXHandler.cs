@@ -33,7 +33,7 @@ namespace Architome
         public FXSettings settings;
 
         public InventorySlot slot;
-        public Image targetImage;
+        public Image targetImage { get; set; }
         public RectTransform rectTransform;
         public TaskQueueHandler taskHandler;
         public AudioManager audioManager;
@@ -47,8 +47,6 @@ namespace Architome
             GetDependencies();
             HandleListeners();
         }
-
-        
 
         void GetDependencies()
         {

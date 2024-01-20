@@ -72,23 +72,21 @@ namespace Architome
 
             if (entityInfo)
             {
-                entityFX = entityInfo.entityFX;
                 abilityManager = entityInfo.AbilityManager();
                 //characterBodyPart = entityInfo.GetComponentInChildren<CharacterBodyParts>();
                 characterBodyPart = entityInfo.BodyParts();
                 speech = entityInfo.Speech();
 
-                if (entityFX == null) return;
 
-                foreach (var fx in entityFX.effects)
-                {
-                    entityInfo.AddEventTrigger(() =>
-                    {
-                        HandleEffect(fx);
-                    }, fx.trigger);
-                }
+                //foreach (var fx in entityFX.effects)
+                //{
+                //    entityInfo.AddEventTrigger(() =>
+                //    {
+                //        HandleEffect(fx);
+                //    }, fx.trigger);
+                //}
 
-                HandleEffectsHandler(entityFX.effectsHandler);
+                HandleEffectsHandler(entityInfo.entityFX);
 
             }
 
@@ -126,21 +124,23 @@ namespace Architome
 
             foreach(var pack in effectPacks)
             {
-                foreach(var fx in pack.effects)
-                {
-                    entityInfo.AddEventTrigger(() =>
-                    {
-                        HandleEffect(fx);
-                        //Debugger.Error(6549, $"{entityInfo} FX Handler needs an update to move from effect pack to effect handler for {fx.trigger}");
-                    }, fx.trigger);
-                }
-                HandleEffectsHandler(pack.effectsHandler);
+                //foreach(var fx in pack.effects)
+                //{
+                //    entityInfo.AddEventTrigger(() =>
+                //    {
+                //        HandleEffect(fx);
+                //        //Debugger.Error(6549, $"{entityInfo} FX Handler needs an update to move from effect pack to effect handler for {fx.trigger}");
+                //    }, fx.trigger);
+                //}
+                HandleEffectsHandler(pack);
             }
         }
 
 
-        void HandleEffectsHandler(EffectsHandler<EntityEvent, FXData> effectsHandler)
+        void HandleEffectsHandler(EntityFXPack fxPack)
         {
+            if (fxPack == null) return;
+            var effectsHandler = Instantiate(fxPack).effectsHandler;
             if (effectsHandler == null) return;
 
             effectsHandler.SetDefaults(entityInfo.transform, audioManager, particleManager);
@@ -203,7 +203,7 @@ namespace Architome
             if (effect.particleEffect == null) return;
             if (particleManager == null) return;
 
-            var (particle, particleObj) = particleManager.Play(effect.particleEffect, true);
+            //var (particle, particleObj) = particleManager.Play(effect.particleEffect, true);
 
             HandleTransform();
             HandleOffset();
@@ -252,9 +252,9 @@ namespace Architome
 
             void HandleOffset()
             {
-                particle.transform.position += effect.positionOffset;
-                particle.transform.localScale += effect.scaleOffset;
-                particle.transform.eulerAngles += effect.rotationOffset;
+                //particle.transform.position += effect.positionOffset;
+                //particle.transform.localScale += effect.scaleOffset;
+                //particle.transform.eulerAngles += effect.rotationOffset;
             }
         }
 
@@ -372,6 +372,15 @@ namespace Architome
                 await eventData.UntilDone(() => {
                     updates?.Invoke();
                 }, EffectEventField.ParticlePlaying);
+            }
+
+            protected override void HandlePhrase(EffectEventData<EntityEvent> eventData)
+            {
+                if (speech == null) return;
+                if (phrases == null || phrases.Count == 0) return;
+                var randomPhrase = ArchGeneric.RandomItem(phrases);
+
+                speech.Interperate(randomPhrase, phraseType);
             }
         }
 

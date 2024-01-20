@@ -171,7 +171,7 @@ namespace Architome.Enums
     public enum SpeechType
     {
         Whisper,
-        Speak,
+        Say,
         Yell,
     }
 

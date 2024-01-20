@@ -4,17 +4,12 @@ using UnityEngine;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Architome.Enums;
 
 namespace Architome
 {
     public class EntitySpeech : EntityProp
     {
-        public enum SpeechType
-        {
-            Say,
-            Yell,
-            Whisper
-        }
 
         [Serializable]
         public struct SpeechData
@@ -67,6 +62,13 @@ namespace Architome
         {
             speechQueue.Enqueue(new() { text = text, type = SpeechType.Whisper, time = time });
             StartSpeech();
+        }
+
+        public void Interperate(string text, SpeechType speechType, float time = 3f)
+        {
+            speechQueue.Enqueue(new() { text = text, type = speechType, time = time });
+            StartSpeech();
+            
         }
 
         async void StartSpeech()

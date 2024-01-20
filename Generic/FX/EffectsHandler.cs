@@ -18,6 +18,7 @@ namespace Architome.Effects
         public Transform defaultParticleSpawnTarget;
         public AudioManager audioManager;
         public ParticleManager particleManager;
+        public ChatBubblesManager chatBubbleManager;
 
         public List<E> effects;
         Dictionary<T, List<EventItemHandler<T>>> subsets;
@@ -33,7 +34,7 @@ namespace Architome.Effects
 
                 if (!subsets.ContainsKey(fx.trigger))
                 {
-                    subsets[fx.trigger] ??= new();
+                    subsets.Add(fx.trigger, new());
                 }
 
                 subsets[fx.trigger].Add(fx);
@@ -109,6 +110,8 @@ namespace Architome.Effects
         [Header("Phrases")]
         [Multiline]
         public List<string> phrases;
+        public Vector3 phrasePositionOffset;
+        public bool followTarget;
         public SpeechType phraseType;
 
 
@@ -174,7 +177,6 @@ namespace Architome.Effects
             HandleOffsets();
 
             HandleParticleExtension(eventData);
-
 
             await HandleDuration(eventData);
 
@@ -267,7 +269,10 @@ namespace Architome.Effects
             }
         }
 
-        protected async virtual void HandlePhrase(EffectEventData<T> eventData) { }
+        protected async virtual void HandlePhrase(EffectEventData<T> eventData) 
+        {
+            
+        }
 
         protected async Task HandleDuration(EffectEventData<T> eventData)
         {

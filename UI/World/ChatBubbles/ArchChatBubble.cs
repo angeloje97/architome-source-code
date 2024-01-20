@@ -28,16 +28,12 @@ namespace Architome
 
         public Info info;
 
-
         public ArchChatBubble SetBubble(Transform target, string text, float time = 1f)
         {
             this.target = target;
             GenerateText(text, time);
             currentCamera = CameraManager.Main;
             cameraAnchor = CameraManager.active.cameraAnchor;
-
-            
-
             return this;
         }
 

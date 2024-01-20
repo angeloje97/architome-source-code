@@ -82,6 +82,12 @@ namespace Architome
                 return;
             }
 
+            if(totalTime <= 0f)
+            {
+                action(1);
+                return;
+            }
+
             var curve = instance.Curve(type);
             if(curve == null || type == CurveType.Linear)
             {
