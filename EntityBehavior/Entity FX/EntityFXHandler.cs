@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System;
 using Architome.Effects;
+using static UnityEngine.ParticleSystem;
 
 namespace Architome
 {
@@ -138,14 +139,14 @@ namespace Architome
         }
 
 
-        void HandleEffectsHandler(EffectsHandler<EntityEvent, EntityFXPack.FXData> effectsHandler)
+        void HandleEffectsHandler(EffectsHandler<EntityEvent, FXData> effectsHandler)
         {
             if (effectsHandler == null) return;
 
             effectsHandler.SetDefaults(entityInfo.transform, audioManager, particleManager);
 
             effectsHandler.InitiateItemEffects((data) => {
-                data.SetProperties(entityInfo);
+                data.SetProperties(entityInfo, catalystManager);
 
                 entityInfo.AddEventTrigger(() => {
                     data.ActivateEffect();
@@ -209,43 +210,43 @@ namespace Architome
 
             void HandleTransform()
             {
-                if (effect.target == CatalystParticleTarget.Ground)
-                {
-                    var walkableLayer = GMHelper.LayerMasks().walkableLayer;
-                    particle.transform.SetParent(catalystManager != null ? catalystManager.transform : null);
-                    particle.transform.position = V3Helper.GroundPosition(particle.transform.position, walkableLayer, 3, 0);
-                }
+                //if (effect.target == CatalystParticleTarget.Ground)
+                //{
+                //    var walkableLayer = GMHelper.LayerMasks().walkableLayer;
+                //    particle.transform.SetParent(catalystManager != null ? catalystManager.transform : null);
+                //    particle.transform.position = V3Helper.GroundPosition(particle.transform.position, walkableLayer, 3, 0);
+                //}
 
-                if (effect.target == CatalystParticleTarget.BodyPart)
-                {
-                    if (characterBodyPart == null) return;
-                    var bodyPartEnum = effect.bodyPart;
+                //if (effect.target == CatalystParticleTarget.BodyPart)
+                //{
+                //    if (characterBodyPart == null) return;
+                //    var bodyPartEnum = effect.bodyPart;
 
-                    var bodyPart = characterBodyPart.BodyPartTransform(bodyPartEnum);
+                //    var bodyPart = characterBodyPart.BodyPartTransform(bodyPartEnum);
 
-                    if (bodyPart)
-                    {
-                        particle.transform.SetParent(bodyPart);
-                        particle.transform.localPosition = new();
-                    }
-                }
+                //    if (bodyPart)
+                //    {
+                //        particle.transform.SetParent(bodyPart);
+                //        particle.transform.localPosition = new();
+                //    }
+                //}
 
                 HandleBetweenBodyParts();
 
                 async void HandleBetweenBodyParts()
                 {
-                    if (effect.target != CatalystParticleTarget.BetweenBodyParts) return;
-                    if (characterBodyPart == null) return;
+                    //if (effect.target != CatalystParticleTarget.BetweenBodyParts) return;
+                    //if (characterBodyPart == null) return;
 
-                    var bodyPart1 = characterBodyPart.BodyPartTransform(effect.bodyPart);
-                    var bodyPart2 = characterBodyPart.BodyPartTransform(effect.bodyPart2);
+                    //var bodyPart1 = characterBodyPart.BodyPartTransform(effect.bodyPart);
+                    //var bodyPart2 = characterBodyPart.BodyPartTransform(effect.bodyPart2);
 
-                    while (particle.isPlaying)
-                    {
-                        particle.transform.position = V3Helper.MidPoint(bodyPart1.position, bodyPart2.position);
-                        particle.transform.position += effect.positionOffset;
-                        await Task.Yield();
-                    }
+                    //while (particle.isPlaying)
+                    //{
+                    //    particle.transform.position = V3Helper.MidPoint(bodyPart1.position, bodyPart2.position);
+                    //    particle.transform.position += effect.positionOffset;
+                    //    await Task.Yield();
+                    //}
                 }
             }
 
@@ -307,6 +308,70 @@ namespace Architome
                 default:
                     speech.Say(randomPhrase);
                     break;
+            }
+        }
+
+        [Serializable]
+        public class FXData : EventItemHandler<EntityEvent>
+        {
+            [Header("Entity Properties")]
+            EntitySpeech speech;
+            CatalystManager catalystManager;
+            CharacterBodyParts characterBodyParts;
+
+
+            [Header("Custom Particles")]
+            public CatalystParticleTarget target;
+            public BodyPart bodyPart;
+            public BodyPart bodyPart2;
+
+            public void SetProperties(EntityInfo entity, CatalystManager catalystManager)
+            {
+                speech = entity.Speech();
+                characterBodyParts = entity.BodyParts();
+                this.catalystManager = catalystManager;
+            }
+
+            public override async void HandleParticleExtension(EffectEventData<EntityEvent> eventData)
+            {
+                var particle = eventData.particleSystem;
+
+                Action updates = () => { };
+
+                if (target == CatalystParticleTarget.Ground)
+                {
+                    var walkableLayer = GMHelper.LayerMasks().walkableLayer;
+                    particle.transform.SetParent(catalystManager != null ? catalystManager.transform : null);
+                    particle.transform.position = V3Helper.GroundPosition(particle.transform.position, walkableLayer, 3, 0);
+                }
+
+                if (target == CatalystParticleTarget.BodyPart && characterBodyParts != null)
+                {
+
+                    var bodyPart = characterBodyParts.BodyPartTransform(this.bodyPart);
+
+                    if (bodyPart)
+                    {
+                        particle.transform.SetParent(bodyPart);
+                        particle.transform.localPosition = new();
+                    }
+                }
+
+                if(target == CatalystParticleTarget.BetweenBodyParts && characterBodyParts != null)
+                {
+                    if (characterBodyParts == null) return;
+                    var bodyPart1 = characterBodyParts.BodyPartTransform(bodyPart);
+                    var bodyPart2 = characterBodyParts.BodyPartTransform(this.bodyPart2);
+
+                    updates += () => {
+                        particle.transform.position = V3Helper.MidPoint(bodyPart1.position, bodyPart2.position);
+                        particle.transform.position += positionOffset;
+                    };
+                }
+
+                await eventData.UntilDone(() => {
+                    updates?.Invoke();
+                }, EffectEventField.ParticlePlaying);
             }
         }
 

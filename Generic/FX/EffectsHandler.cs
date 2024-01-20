@@ -171,9 +171,7 @@ namespace Architome.Effects
             trans.localPosition = new();
 
 
-            HandlePosition();
-
-            HandleScale();
+            HandleOffsets();
 
             HandleParticleExtension(eventData);
 
@@ -190,17 +188,12 @@ namespace Architome.Effects
 
             eventData.particlePlaying = false;
 
-            void HandlePosition()
+            void HandleOffsets()
             {
                 trans.localPosition += positionOffset;
-            }
-
-            void HandleScale()
-            {
+                trans.localEulerAngles += rotationOffset;
                 trans.localScale += scaleOffset;
             }
-
-
         }
 
         protected async virtual void HandleAudioClip(EffectEventData<T> eventData)
