@@ -48,6 +48,7 @@ namespace Architome
             catch (Exception e)
             {
                 Defect.CreateIndicator(transform, "EntityProp", e.Message, e);
+                Debug.LogError(e.StackTrace);
                 throw e;
             }
 

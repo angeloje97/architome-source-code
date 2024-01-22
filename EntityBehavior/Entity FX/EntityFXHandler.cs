@@ -70,25 +70,12 @@ namespace Architome
 
             catalystManager = CatalystManager.active;
 
-            if (entityInfo)
-            {
-                abilityManager = entityInfo.AbilityManager();
-                //characterBodyPart = entityInfo.GetComponentInChildren<CharacterBodyParts>();
-                characterBodyPart = entityInfo.BodyParts();
-                speech = entityInfo.Speech();
+            abilityManager = entityInfo.AbilityManager();
+            characterBodyPart = entityInfo.BodyParts();
+            speech = entityInfo.Speech();
 
 
-                //foreach (var fx in entityFX.effects)
-                //{
-                //    entityInfo.AddEventTrigger(() =>
-                //    {
-                //        HandleEffect(fx);
-                //    }, fx.trigger);
-                //}
-
-                HandleEffectsHandler(entityInfo.entityFX);
-
-            }
+            HandleEffectsHandler(entityInfo.entityFX);
 
             HandleAdditiveEffects();
 
@@ -148,7 +135,17 @@ namespace Architome
             effectsHandler.InitiateItemEffects((data) => {
                 data.SetProperties(entityInfo, catalystManager);
 
+                if (audioTypeDict.ContainsKey(data.audioType))
+                {
+                    data.SetSoundManager(audioTypeDict[data.audioType]);
+                }
+
+                data.OnCanPlayCheck += (data, list) => {
+                    list.Add(active);
+                };
+
                 entityInfo.AddEventTrigger(() => {
+
                     data.ActivateEffect();
                 }, data.trigger);
             });
@@ -159,156 +156,10 @@ namespace Architome
             DetermineActive(sceneManager.sceneToLoad);
         }
 
-        public void HandleEffect(EntityFXPack.EntityEffect effect)
-        {
-            if (!active) return;
-
-            if (effect.useChance)
-            {
-                var success = ArchGeneric.RollSuccess(effect.chance);
-
-                if (!success) return;
-
-            }
-            if (!CanPlay(effect, true)) return;
-
-            HandleParticle(effect);
-            HandleAudio(effect);
-            HandlePhrases(effect);
-        }
-
-        public bool CanPlay(EntityFXPack.EntityEffect effect, bool invoker)
-        {
-            if (effect.coolDown <= 0f) return true;
-
-            if (!recentTriggers.Contains(effect.trigger))
-            {
-                if (invoker)
-                {
-                    recentTriggers.Add(effect.trigger);
-
-                    ArchAction.Delay(() => {
-                        recentTriggers.Remove(effect.trigger);
-                    }, effect.coolDown);
-                }
-                return true;
-            }
-
-            return false;
-
-        }
-
-        public void HandleParticle(EntityFXPack.EntityEffect effect)
-        {
-            if (effect.particleEffect == null) return;
-            if (particleManager == null) return;
-
-            //var (particle, particleObj) = particleManager.Play(effect.particleEffect, true);
-
-            HandleTransform();
-            HandleOffset();
-
-            void HandleTransform()
-            {
-                //if (effect.target == CatalystParticleTarget.Ground)
-                //{
-                //    var walkableLayer = GMHelper.LayerMasks().walkableLayer;
-                //    particle.transform.SetParent(catalystManager != null ? catalystManager.transform : null);
-                //    particle.transform.position = V3Helper.GroundPosition(particle.transform.position, walkableLayer, 3, 0);
-                //}
-
-                //if (effect.target == CatalystParticleTarget.BodyPart)
-                //{
-                //    if (characterBodyPart == null) return;
-                //    var bodyPartEnum = effect.bodyPart;
-
-                //    var bodyPart = characterBodyPart.BodyPartTransform(bodyPartEnum);
-
-                //    if (bodyPart)
-                //    {
-                //        particle.transform.SetParent(bodyPart);
-                //        particle.transform.localPosition = new();
-                //    }
-                //}
-
-                HandleBetweenBodyParts();
-
-                async void HandleBetweenBodyParts()
-                {
-                    //if (effect.target != CatalystParticleTarget.BetweenBodyParts) return;
-                    //if (characterBodyPart == null) return;
-
-                    //var bodyPart1 = characterBodyPart.BodyPartTransform(effect.bodyPart);
-                    //var bodyPart2 = characterBodyPart.BodyPartTransform(effect.bodyPart2);
-
-                    //while (particle.isPlaying)
-                    //{
-                    //    particle.transform.position = V3Helper.MidPoint(bodyPart1.position, bodyPart2.position);
-                    //    particle.transform.position += effect.positionOffset;
-                    //    await Task.Yield();
-                    //}
-                }
-            }
-
-            void HandleOffset()
-            {
-                //particle.transform.position += effect.positionOffset;
-                //particle.transform.localScale += effect.scaleOffset;
-                //particle.transform.eulerAngles += effect.rotationOffset;
-            }
-        }
-
-        public void HandleAudio(EntityFXPack.EntityEffect effect)
-        {
-            var sfx = AudioManager(effect.audioType);
-            if (sfx == null) return;
-            HandleMainSound();
-            HandleRandomSound();
-
-
-            void HandleRandomSound()
-            {
-                if (effect.randomClips == null) return;
-                if (effect.randomClips.Count <= 0) return;
-                var randomClip = ArchGeneric.RandomItem(effect.randomClips);
-                sfx.PlaySound(randomClip);
-            }
-            void HandleMainSound()
-            {
-                if (effect.audioClip == null) return;
-
-                sfx.PlaySound(effect.audioClip);
-
-
-            }
-        }
-
         public AudioManager AudioManager(AudioMixerType mixerType)
         {
             if (!audioTypeDict.ContainsKey(mixerType)) return null;
             return audioTypeDict[mixerType];
-        }
-
-        public void HandlePhrases(EntityFXPack.EntityEffect effect)
-        {
-            if (effect.phrases == null || effect.phrases.Count == 0) return;
-            if (speech == null) return;
-
-            var randomPhrase = ArchGeneric.RandomItem(effect.phrases);
-            //var randomPhrase = effect.phrases[Random.Range(0, effect.phrases.Count)];
-
-            switch (effect.phraseType)
-            {
-                case SpeechType.Yell:
-                    speech.Yell(randomPhrase);
-                    break;
-                case SpeechType.Whisper:
-                    speech.Whisper(randomPhrase);
-                    break;
-                default:
-                    speech.Say(randomPhrase);
-                    break;
-            }
         }
 
         [Serializable]

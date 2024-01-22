@@ -7,6 +7,8 @@ using UnityEngine.Rendering;
 using Architome.Enums;
 using System.Security.Cryptography.X509Certificates;
 using Unity.IO.LowLevel.Unsafe;
+using UnityEditor.MemoryProfiler;
+using UnityEditor.Profiling.Memory.Experimental;
 
 namespace Architome.Effects
 {
@@ -86,7 +88,10 @@ namespace Architome.Effects
     [Serializable]
     public class EventItemHandler<T> where T: Enum
     {
+        #region Common Data
         [HideInInspector] public string name;
+        public float coolDown;
+        bool onCoolDown;
 
         [Header("Components")]
         protected Transform defaultTarget;
@@ -105,7 +110,16 @@ namespace Architome.Effects
         public AudioClip audioClip;
         public AudioMixerType audioType;
         public List<AudioClip> randomClips;
-        public float fadeDuration = 0f;
+        public float fadeDuration;
+
+        [Header("Audio Chance")]
+        public bool useAudioChance;
+        [Range(0f, 100f)] public float audioChance;
+
+        [Header("Audio Looping")]
+        public bool loopAudio;
+        public float loopFadeDuration = .5f;
+        
 
         [Header("Phrases")]
         [Multiline]
@@ -114,18 +128,26 @@ namespace Architome.Effects
         public bool followTarget;
         public SpeechType phraseType;
 
+        public Action<EventItemHandler<T>, List<bool>> OnCanPlayCheck;
+
 
         bool overrideContinueCondition;
         float defaultDuration = 5;
         Func<bool> canContinuePlaying = () => {
             return false;
         };
+        #endregion
 
         public void SetEventItem(Transform defaultTarget, AudioManager audioManager, ParticleManager particleManager)
         {
             this.defaultTarget = defaultTarget;
-            this.audioManager = audioManager;
+            SetSoundManager(audioManager);
             this.particleManager = particleManager;
+        }
+
+        public void SetSoundManager(AudioManager audioManager)
+        {
+            this.audioManager = audioManager;
         }
 
         public void Validate()
@@ -142,6 +164,8 @@ namespace Architome.Effects
 
         public async void ActivateEffect()
         {
+            if (!CanPlay()) return;
+
             var eventData = new EffectEventData<T>(this);
 
             HandleParticle(eventData);
@@ -153,15 +177,61 @@ namespace Architome.Effects
             //await eventData.UntilStopActive();
             await eventData.UntilDone(EffectEventField.Active);
 
-            
+            HandleCoolDown();
         }
+
+        async void HandleCoolDown()
+        {
+            if (coolDown <= 0f) return;
+
+            onCoolDown = true;
+
+            await World.Delay(coolDown);
+
+            onCoolDown = false;
+        }
+        protected bool CanPlay()
+        {
+            var values = new List<bool>();
+
+            OnCanPlayCheck?.Invoke(this, values);
+            if (values.IsFalsey()) return false;
+
+            return onCoolDown == false;
+        }
+        protected async Task HandleDuration(EffectEventData<T> eventData)
+        {
+            if (eventData.durationStarted)
+            {
+                await ArchAction.WaitUntil(() => eventData.durationStarted, false);
+                return;
+            }
+
+            eventData.durationStarted = true;
+            if (!overrideContinueCondition)
+            {
+                float currentTimer = defaultDuration;
+
+                await ArchAction.WaitUntil((float deltaTime) => {
+                    currentTimer -= deltaTime;
+                    return currentTimer <= 0f;
+                }, true);
+            }
+            else
+            {
+                await ArchAction.WaitUntil(canContinuePlaying, false);
+            }
+            eventData.durationStarted = false;
+        }
+
+        #region Particle
 
         protected async virtual void HandleParticle(EffectEventData<T> eventData)
         {
             if (particleObject == null) return;
             if (particleManager == null) return;
 
-            var target = particleTarget ?? defaultTarget;
+            var target = particleTarget ? particleTarget : defaultTarget;
 
             var (system, gameObj) = particleManager.Play(particleObject);
             var trans = gameObj.transform;
@@ -170,7 +240,9 @@ namespace Architome.Effects
             eventData.particleActive = true;
             eventData.SetParticle(gameObj, system);
 
+
             trans.SetParent(target);
+            Debugger.System(8701, $"Setting Particle Target: {target}");
             trans.localPosition = new();
 
 
@@ -198,10 +270,15 @@ namespace Architome.Effects
             }
         }
 
+        public virtual void HandleParticleExtension(EffectEventData<T> eventData) { }
+        #endregion
+
+        #region Audio
         protected async virtual void HandleAudioClip(EffectEventData<T> eventData)
         {
             if (audioManager == null) return;
             var audioSources = new List<AudioSource>();
+            if (!CanPlayAudio()) return;
 
             if (audioClip != null)
             {
@@ -226,6 +303,8 @@ namespace Architome.Effects
             foreach(var source in audioSources)
             {
                 playingTasks.Add(HandleAudioEnding(source));
+                playingTasks.Add(HandleAudioLoopDuration(source));
+
             }
 
             await Task.WhenAll(playingTasks);
@@ -248,6 +327,8 @@ namespace Architome.Effects
 
             async Task HandleFadeDuration(AudioSource source)
             {
+                if (source == null) return;
+                if (!source.isPlaying) return;
                 if (fadeDuration <= 0f)
                 {
                     source.Stop();
@@ -269,40 +350,39 @@ namespace Architome.Effects
             }
         }
 
+        protected async virtual Task HandleAudioLoopDuration(AudioSource source)
+        {
+            if (!loopAudio) return;
+
+            await World.Delay(5f);
+            var startingVolume = source.volume;
+            await ArchCurve.Smooth((float lerpValue) => {
+                source.volume = Mathf.Lerp(startingVolume, 0f, lerpValue);
+            }, CurveType.Linear, loopFadeDuration);
+
+            source.Stop();
+        }
+
+        public virtual void HandleAudioExtension(EffectEventData<T> eventData) { }
+        protected bool CanPlayAudio()
+        {
+            return PassedChance();
+            bool PassedChance()
+            {
+                if (!useAudioChance) return true;
+
+                return ArchGeneric.RollSuccess(audioChance);
+            }
+        }
+        #endregion
+
+        #region Phrases
         protected async virtual void HandlePhrase(EffectEventData<T> eventData) 
         {
             
         }
 
-        protected async Task HandleDuration(EffectEventData<T> eventData)
-        {
-            if (eventData.durationStarted)
-            {
-                await ArchAction.WaitUntil(() => eventData.durationStarted, false);
-                return;
-            }
-
-            eventData.durationStarted = true;
-            if (!overrideContinueCondition)
-            {
-                float currentTimer = defaultDuration;
-
-                await ArchAction.WaitUntil((float deltaTime) => {
-                    currentTimer -= deltaTime;
-                    return currentTimer <= 0f;
-                }, true);
-            }
-            else
-            {
-                await ArchAction.WaitUntil(canContinuePlaying, false);
-            }
-            eventData.durationStarted = false;
-        }
-
-        public virtual void HandleParticleExtension(EffectEventData<T> eventData) { }
-
-        public virtual void HandleAudioExtension(EffectEventData<T> eventData) { }
-
+        #endregion
     }
     #endregion
 

@@ -63,8 +63,6 @@ namespace Architome
             HandleItemPickUp(worldItemInfo);
 
         }
-
-
         async void HandleStart()
         {
             while (worldItemInfo.item == null)

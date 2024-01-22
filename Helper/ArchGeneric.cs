@@ -5,10 +5,11 @@ using System;
 using Architome.Enums;
 using System.Threading.Tasks;
 using System.Linq;
+using Microsoft.Win32.SafeHandles;
 
 namespace Architome
 {
-
+    #region Generic
     public static class ArchGeneric
     {
         public static bool disallowPersistant = false;
@@ -186,5 +187,64 @@ namespace Architome
         }
 
     }
+    #endregion
 
+    #region Generic Lists
+
+    public static class LogicList
+    {
+        public static bool IsFalsey(this List<bool> values)
+        {
+            if (values.Count == 0) return false;
+            foreach(var value in values)
+            {
+                if (!value) return true;
+            }
+
+            return false;
+        }
+
+        public static bool IsTruthy(this List<bool> values)
+        {
+            foreach(var value in values)
+            {
+                if (!value) return false;
+            }
+
+            return true;
+        }
+
+        public static bool ValidateLogic(this List<bool> values, bool targetValue, LogicGateType type)
+        {
+
+            return type switch
+            {
+                LogicGateType.And => HandleAnd(),
+                LogicGateType.Or => HandleOr(),
+                _ => true,
+            };
+
+            bool HandleAnd()
+            {
+
+                foreach(var value in values)
+                {
+                    if (value != targetValue) return false;
+                }
+
+                return true;
+            }
+
+             bool HandleOr()
+            {
+                foreach(var value in values)
+                {
+                    if(value ==  targetValue) return true;
+                }
+
+                return false;
+            }
+        }
+    }
+    #endregion
 }
