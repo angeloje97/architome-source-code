@@ -9,6 +9,7 @@ using System.Security.Cryptography.X509Certificates;
 using Unity.IO.LowLevel.Unsafe;
 using UnityEditor.MemoryProfiler;
 using UnityEditor.Profiling.Memory.Experimental;
+using System.Runtime.CompilerServices;
 
 namespace Architome.Effects
 {
@@ -97,6 +98,7 @@ namespace Architome.Effects
         protected Transform defaultTarget;
         protected ParticleManager particleManager;
         protected AudioManager audioManager;
+        protected ChatBubblesManager chatBubbleManager;
 
         public T trigger;
         [Header("Particle Properties")]
@@ -138,11 +140,12 @@ namespace Architome.Effects
         };
         #endregion
 
-        public void SetEventItem(Transform defaultTarget, AudioManager audioManager, ParticleManager particleManager)
+        public void SetEventItem(Transform defaultTarget, AudioManager audioManager, ParticleManager particleManager) 
         {
             this.defaultTarget = defaultTarget;
             SetSoundManager(audioManager);
             this.particleManager = particleManager;
+            chatBubbleManager = ChatBubblesManager.active;
         }
 
         public void SetSoundManager(AudioManager audioManager)
@@ -168,16 +171,18 @@ namespace Architome.Effects
 
             var eventData = new EffectEventData<T>(this);
 
+
+
             HandleParticle(eventData);
             HandleAudioClip(eventData);
             HandlePhrase(eventData);
+            HandleCoolDown();
 
             await Task.Delay(62);
 
             //await eventData.UntilStopActive();
             await eventData.UntilDone(EffectEventField.Active);
 
-            HandleCoolDown();
         }
 
         async void HandleCoolDown()
@@ -379,7 +384,7 @@ namespace Architome.Effects
         #region Phrases
         protected async virtual void HandlePhrase(EffectEventData<T> eventData) 
         {
-            
+            if (chatBubbleManager == null) return;
         }
 
         #endregion

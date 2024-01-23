@@ -162,6 +162,7 @@ namespace Architome
             return audioTypeDict[mixerType];
         }
 
+        #region FXData
         [Serializable]
         public class FXData : EventItemHandler<EntityEvent>
         {
@@ -234,7 +235,7 @@ namespace Architome
                 speech.Interperate(randomPhrase, phraseType);
             }
         }
-
+        #endregion
     }
 
 }
