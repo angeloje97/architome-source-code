@@ -200,7 +200,7 @@ namespace Architome.Effects
             var values = new List<bool>();
 
             OnCanPlayCheck?.Invoke(this, values);
-            if (values.IsFalsey()) return false;
+            if (values.ValidateLogic(false, LogicType.Exists)) return false;
 
             return onCoolDown == false;
         }

@@ -214,15 +214,37 @@ namespace Architome
             return true;
         }
 
-        public static bool ValidateLogic(this List<bool> values, bool targetValue, LogicGateType type)
+        public static bool ValidateLogic(this List<bool> values, bool targetValue, LogicType type)
         {
-
             return type switch
             {
-                LogicGateType.And => HandleAnd(),
-                LogicGateType.Or => HandleOr(),
+                LogicType.And => HandleAnd(),
+                LogicType.Or => HandleOr(),
+                LogicType.Exists => HandleExists(), 
+                LogicType.NotExists => HandleNotExists(),
                 _ => true,
             };
+
+            bool HandleExists()
+            {
+                foreach(var value in values)
+                {
+                    if (value == targetValue) return true;
+                }
+
+                return false;
+            }
+
+            bool HandleNotExists()
+            {
+                foreach(var value in values)
+                {
+                    if (value == targetValue) return false;
+                }
+
+                return true;
+            }
+
 
             bool HandleAnd()
             {
