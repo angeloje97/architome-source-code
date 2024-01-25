@@ -52,6 +52,41 @@ namespace Architome
             }
         }
 
+        public Action AddListenerXTimes(T eventType, Action<E> action, Component listener, int count = 1)
+        {
+            if (source == null) return () => { };
+            if (eventDict.ContainsKey(eventType)) eventDict.Add(eventType, null);
+
+            var currentCount = 0;
+            bool unsubscribed = false;
+
+            eventDict[eventType] += MiddleWare;
+
+            return UnsubScribe;
+
+            void MiddleWare(E eventData)
+            {
+                if(listener == null)
+                {
+                    UnsubScribe();
+                    return;
+                }
+
+                currentCount++;
+                action(eventData);
+                if (currentCount >= count) UnsubScribe();
+            }
+
+            void UnsubScribe()
+            {
+                if (unsubscribed) return;
+                unsubscribed = true;
+                if (source == null) return;
+
+                eventDict[eventType] -= MiddleWare;
+            }
+        }
+
         public Action AddListener(T eventType, Action<E> action, Component listener)
         {
             if (source == null) return () => { };
@@ -87,6 +122,10 @@ namespace Architome
             }
         }
 
+        public Action AddListenerXTimes(T eventType, Action action, Component listener, int count = 1)
+        {
+            return AddListenerXTimes(eventType, (E e) => { action(); }, listener, count);
+        }
 
         public Action AddListener(T eventType, Action action, Component listener)
         {
