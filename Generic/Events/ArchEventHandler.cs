@@ -11,6 +11,7 @@ namespace Architome
     [Serializable]
     public class ArchEventHandler<T, E>  where T: Enum
     {
+        #region Common Data
         [SerializeField] List<EventItem> eventItems;
         Dictionary<T, List<EventItem>> subsets;
         Component source;
@@ -20,9 +21,9 @@ namespace Architome
         List<bool> checks;
         bool doingTasks;
         LogicType defaultLogic;
+        #endregion
 
-
-
+        #region Initialization
         public ArchEventHandler(Component source, LogicType defaultLogic = LogicType.NoFalse)
         {
             this.source = source;
@@ -51,8 +52,10 @@ namespace Architome
                 }, source);
             }
         }
+        #endregion
 
-        public Action AddListenerXTimes(T eventType, Action<E> action, Component listener, int count = 1)
+        #region Listener
+        public Action AddListenerLimit(T eventType, Action<E> action, Component listener, int count = 1)
         {
             if (source == null) return () => { };
             if (eventDict.ContainsKey(eventType)) eventDict.Add(eventType, null);
@@ -122,9 +125,29 @@ namespace Architome
             }
         }
 
-        public Action AddListenerXTimes(T eventType, Action action, Component listener, int count = 1)
+        public Action AddListenerInterval(T eventType, Action<E> action, Component listener, int interval = 1)
         {
-            return AddListenerXTimes(eventType, (E e) => { action(); }, listener, count);
+            var current = 0;
+            return AddListener(eventType, (E data) => {
+                current++;
+
+                if (current < interval) return;
+                current = 0;
+                action(data);
+
+            }, listener);
+        }
+
+        public Action AddListenerLimit(T eventType, Action action, Component listener, int count = 1)
+        {
+            return AddListenerLimit(eventType, (E e) => { action(); }, listener, count);
+        }
+
+        public Action AddListenerInterval(T eventType, Action action, Component listener, int interval)
+        {
+            return AddListenerInterval(eventType, (E data) => {
+                action();
+            }, listener, interval);
         }
 
         public Action AddListener(T eventType, Action action, Component listener)
@@ -171,6 +194,9 @@ namespace Architome
                 checks.Add(action(data));
             }, listener);
         }
+        #endregion
+
+        #region Invoker
 
         public List<Func<Task>> Invoke(T eventType, E eventData)
         {
@@ -222,12 +248,16 @@ namespace Architome
             return new ArchLogic(checks).Valid(logicType);
         }
 
+        #endregion
+
+        #region Sub Classes
         [Serializable]
         public class EventItem
         {
             public T trigger;
             public UnityEvent<E> action;
         }
+        #endregion
 
     }
 }

@@ -17,7 +17,6 @@ namespace Architome
 
         protected async Task Initiate()
         {
-
             try
             {
                 var parent = transform.parent;

@@ -17,6 +17,7 @@ namespace Architome.Effects
     [Serializable]
     public class EffectsHandler<T, E> where T: Enum where E: EventItemHandler<T>
     {
+        #region Common Data
         [Header("Required Fields")]
         public Transform defaultParticleSpawnTarget;
         public AudioManager audioManager;
@@ -26,6 +27,9 @@ namespace Architome.Effects
         public List<E> effects;
         Dictionary<T, List<EventItemHandler<T>>> subsets;
 
+        #endregion
+
+        #region Initiation
         public void InitiateItemEffects(Action<E> handleItem)
         {
             effects ??= new();
@@ -56,7 +60,9 @@ namespace Architome.Effects
             effects ??= new();
             return effects;
         }
+        #endregion
 
+        #region OnValidate
         public void Validate()
         {
             effects ??= new();
@@ -66,6 +72,9 @@ namespace Architome.Effects
                 fx.Validate();
             }
         }
+        #endregion
+
+        #region Live Functions
 
         public void Activate(T triggerName)
         {
@@ -82,6 +91,7 @@ namespace Architome.Effects
                 eventHandler.AddListener(effectItem.trigger, () => { }, listener);
             });
         }
+        #endregion
     }
     #endregion  
 
@@ -140,6 +150,8 @@ namespace Architome.Effects
         };
         #endregion
 
+        #region Initiation
+
         public void SetEventItem(Transform defaultTarget, AudioManager audioManager, ParticleManager particleManager) 
         {
             this.defaultTarget = defaultTarget;
@@ -153,18 +165,23 @@ namespace Architome.Effects
             this.audioManager = audioManager;
         }
 
-        public void Validate()
-        {
-            this.name = trigger.ToString();
-        }
-
-        //Will continue the duration until the comparison is true.
         public void SetCanContinuePredicate(Func<bool> predicate)
         {
             this.canContinuePlaying = predicate;
             overrideContinueCondition = true;
         }
+        #endregion
 
+        #region On Validate
+        public void Validate()
+        {
+            this.name = trigger.ToString();
+        }
+        #endregion
+
+        //Will continue the duration until the comparison is true.
+
+        #region Live 
         public async void ActivateEffect()
         {
             if (!CanPlay()) return;
@@ -183,17 +200,6 @@ namespace Architome.Effects
             //await eventData.UntilStopActive();
             await eventData.UntilDone(EffectEventField.Active);
 
-        }
-
-        async void HandleCoolDown()
-        {
-            if (coolDown <= 0f) return;
-
-            onCoolDown = true;
-
-            await World.Delay(coolDown);
-
-            onCoolDown = false;
         }
         protected bool CanPlay()
         {
@@ -228,6 +234,17 @@ namespace Architome.Effects
             }
             eventData.durationStarted = false;
         }
+        async void HandleCoolDown()
+        {
+            if (coolDown <= 0f) return;
+
+            onCoolDown = true;
+
+            await World.Delay(coolDown);
+
+            onCoolDown = false;
+        }
+
 
         #region Particle
 
@@ -388,10 +405,14 @@ namespace Architome.Effects
         }
 
         #endregion
+
+        #endregion
     }
     #endregion
 
     #region Effect Event System
+
+    #region Enums
 
     public enum eEffectEvent
     {
@@ -409,8 +430,11 @@ namespace Architome.Effects
         AudioActive,
     }
 
+    #endregion
+
     public class EffectEventData<T> where T: Enum
     {
+        #region Common Data
         public EventItemHandler<T> itemHandler;
         public T trigger { get; set; }
 
@@ -419,6 +443,7 @@ namespace Architome.Effects
         public bool playing { get { return particlePlaying || audioPlaying; } }
 
         public bool active { get { return particleActive || audioActive; } }
+        #endregion
 
         public EffectEventData(EventItemHandler<T> itemHandler)
         {
@@ -454,6 +479,7 @@ namespace Architome.Effects
             await UntilDone(() => { }, field);
         }
 
+        #region Particle
         public GameObject particleObject { get; private set; }
 
         public ParticleSystem particleSystem{ get; private set; }
@@ -468,6 +494,9 @@ namespace Architome.Effects
             
         }
 
+        #endregion
+
+        #region Audio
         public List<AudioSource> audioSources { get; private set; }
         public bool audioActive { get; set; }
         public bool audioPlaying { get; set; }
@@ -477,6 +506,7 @@ namespace Architome.Effects
             audioActive = true;
         }
 
+        #endregion
     }
 
     #endregion
