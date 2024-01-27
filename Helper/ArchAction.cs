@@ -61,11 +61,22 @@ namespace Architome
             });
         }
 
-        public static async Task WaitUntil(Func<bool> predicate, bool expected)
+        public static async Task WaitUntil(Func<bool> predicate, bool expected, float delay = 0f)
         {
-            await World.UpdateAction((float deltaTime) => {
-                return predicate() != expected;
-            });
+            if(delay == 0)
+            {
+                await World.UpdateAction((float deltaTime) => {
+                    return predicate() != expected;
+                });
+
+            }
+            else
+            {
+                await World.ActionInterval((float deltaTime) =>
+                {
+                    return predicate() != expected;
+                }, delay);
+            }
         }
 
         public static async void UpdateWhile(Action action, ArchCondition condition)
@@ -93,7 +104,6 @@ namespace Architome
                 await Task.Yield();
             }
         }
-
         public static async void UpdateFor(Action action, float seconds)
         {
 

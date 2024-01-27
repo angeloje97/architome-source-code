@@ -148,6 +148,16 @@ namespace Architome.Effects
         Func<bool> canContinuePlaying = () => {
             return false;
         };
+
+        public Transform availableTarget { get {
+                if (particleTarget == null)
+                {
+                    return defaultTarget;
+                }
+
+                return particleTarget;
+            } }
+
         #endregion
 
         #region Initiation
@@ -234,15 +244,28 @@ namespace Architome.Effects
             }
             eventData.durationStarted = false;
         }
-        async void HandleCoolDown()
+        Action HandleCoolDown()
         {
-            if (coolDown <= 0f) return;
+            var coolDownStarted = false;
+            HandleMain();
+            return StartCooldown;
 
-            onCoolDown = true;
+            void StartCooldown()
+            {
 
-            await World.Delay(coolDown);
+            }
 
-            onCoolDown = false;
+            async void HandleMain()
+            {
+                if (coolDown <= 0f) return;
+
+                onCoolDown = true;
+
+                await ArchAction.WaitUntil(() => coolDownStarted, true);
+                await World.Delay(coolDown);
+
+                onCoolDown = false;
+            }
         }
 
 
@@ -253,7 +276,7 @@ namespace Architome.Effects
             if (particleObject == null) return;
             if (particleManager == null) return;
 
-            var target = particleTarget ? particleTarget : defaultTarget;
+            var target = availableTarget;
 
             var (system, gameObj) = particleManager.Play(particleObject);
             var trans = gameObj.transform;
@@ -402,6 +425,24 @@ namespace Architome.Effects
         protected async virtual void HandlePhrase(EffectEventData<T> eventData) 
         {
             if (chatBubbleManager == null) return;
+            if (phrases.Count == 0) return;
+
+
+            var randomItem = ArchGeneric.RandomItem(phrases);
+            var target = availableTarget;
+
+            var chatBubble = chatBubbleManager.ProcessSpeech(target, randomItem, phraseType);
+
+            eventData.SetArchChatBubble(chatBubble);
+
+            HandlePhraseExtension(eventData);
+
+            await chatBubble.UntilDoneShowing();
+        }
+
+        public virtual void HandlePhraseExtension(EffectEventData<T> eventData)
+        {
+
         }
 
         #endregion
@@ -506,6 +547,21 @@ namespace Architome.Effects
             audioActive = true;
         }
 
+        #endregion
+
+        #region Phrase
+
+        public ArchChatBubble chatBubble;
+
+        public bool chatBubblePlaying { get; set; }
+
+        public async void SetArchChatBubble(ArchChatBubble chatBubble)
+        {
+            chatBubblePlaying = true;
+            await chatBubble.UntilActiveDone();
+            chatBubblePlaying = false;
+
+        }
         #endregion
     }
 

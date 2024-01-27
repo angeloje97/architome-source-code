@@ -12,6 +12,7 @@ namespace Architome
 {
     public class EntityFXHandler : EntityProp
     {
+        #region Common Data
         [SerializeField] List<EntityFXPack> effectPacks;
         
         EntitySpeech speech;
@@ -30,6 +31,10 @@ namespace Architome
 
         public List<ArchScene> activeScenes;
         bool active;
+
+        #endregion
+
+        #region Initialization
 
         private void Awake()
         {
@@ -83,6 +88,7 @@ namespace Architome
         }
 
 
+        #endregion
         void DetermineActive(ArchSceneManager.SceneInfo sceneInfo)
         {
             var sceneManager = ArchSceneManager.active;

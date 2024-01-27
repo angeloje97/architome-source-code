@@ -225,6 +225,7 @@ namespace Architome
             }
         }
 
+        #region Properties
         public RarityProperties RarityRoll(float chanceMultiplier = 1f)
         {
             var rarity = RarityProperty(Rarity.Poor);
@@ -297,6 +298,9 @@ namespace Architome
             return null;
         }
 
+        #endregion
+
+        #region Time
         [Serializable]
         public class Time
         {
@@ -363,6 +367,7 @@ namespace Architome
                 timeScale = newTimeScale;
             }
         }
+        #endregion
 
         #region Static functions
         public static async Task Delay(float seconds)

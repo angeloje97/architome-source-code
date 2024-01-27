@@ -27,24 +27,28 @@ namespace Architome
         public Colors colors;
         public Prefabs prefabs;
 
+        public Dictionary<SpeechType, GameObject> speechChatBubbles;
+
         private void Awake()
         {
             active = this;
+
+            speechChatBubbles = new() 
+            {
+                { SpeechType.Say, prefabs.say },
+                { SpeechType.Whisper, prefabs.whisper },
+                { SpeechType.Yell, prefabs.yell },
+            };
         }
 
         public ArchChatBubble ProcessSpeech(Transform target, string text, SpeechType type, float time = 5f)
         {
+
             var prefab = prefabs.say;
 
-            switch (type)
+            if (speechChatBubbles.ContainsKey(type))
             {
-                case SpeechType.Yell:
-                    prefab = prefabs.yell;
-                    break;
-                case SpeechType.Whisper:
-                    prefab = prefabs.whisper;
-                    break;
-
+                prefab = speechChatBubbles[type];
             }
 
 
