@@ -71,7 +71,6 @@ namespace Architome
             {
                 field.SetValue(resultClass, field.GetValue(copiedClass));
             }
-
         }
 
         public static List<T> Shuffle<T>(List<T> items)

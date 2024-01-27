@@ -203,12 +203,14 @@ namespace Architome.Effects
             HandleParticle(eventData);
             HandleAudioClip(eventData);
             HandlePhrase(eventData);
-            HandleCoolDown();
+            var startCoolDown = HandleCoolDown();
 
             await Task.Delay(62);
 
             //await eventData.UntilStopActive();
             await eventData.UntilDone(EffectEventField.Active);
+
+            startCoolDown();
 
         }
         protected bool CanPlay()
@@ -252,7 +254,7 @@ namespace Architome.Effects
 
             void StartCooldown()
             {
-
+                coolDownStarted = true;
             }
 
             async void HandleMain()
@@ -267,8 +269,7 @@ namespace Architome.Effects
                 onCoolDown = false;
             }
         }
-
-
+        
         #region Particle
 
         protected async virtual void HandleParticle(EffectEventData<T> eventData)

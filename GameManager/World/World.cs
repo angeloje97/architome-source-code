@@ -16,7 +16,7 @@ namespace Architome
     //}
     public class World : MonoBehaviour
     {
-
+        #region Common Data
         public static World active;
 
         public static float deltaTime { get; private set; }
@@ -35,8 +35,11 @@ namespace Architome
         Action<float> OnUpdate { get; set; }
         Action<float> OnLateUpdate { get; set; }
 
+        public List<EntityRarityProperties> entityProperties;
+        public List<NPCProperty> npcProperties;
+        #endregion
 
-
+        #region Commmon Data Classes
         [Serializable]
         public class UIPrefabs
         {
@@ -82,15 +85,19 @@ namespace Architome
             [Range(0f, 100f)]
             public float chance;
         }
-        public List<EntityRarityProperties> entityProperties;
-        public List<NPCProperty> npcProperties;
 
         public SpawnerInfo currentSpawnBeacon { get; private set; }
 
         public Action<SpawnerInfo> OnNewSpawnBeacon;
 
         public Time time;
+        #endregion
 
+        #region Initialization
+        private void Awake()
+        {
+            active = this;
+        }
 
         void Start()
         {
@@ -134,18 +141,16 @@ namespace Architome
             
         }
 
+        #endregion
         private void OnDestroy()
         {
         }
-
-
-        private void Awake()
+        private void OnValidate()
         {
-            //SingletonManger.HandleSingleton(typeof(World), gameObject, true, false, () => {
-            //    active = this;
-            //});
-            active = this;
+            //CreateProperties();
         }
+
+
         void Update()
         {
             deltaTime = time.timeScale * UnityEngine.Time.deltaTime;
@@ -156,10 +161,6 @@ namespace Architome
         private void LateUpdate()
         {
             OnLateUpdate?.Invoke(deltaTime);
-        }
-        private void OnValidate()
-        {
-            //CreateProperties();
         }
 
         public void SetSpawnBeacon(SpawnerInfo spawner)
