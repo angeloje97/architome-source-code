@@ -8,6 +8,8 @@ using TMPro;
 using System;
 using Architome;
 using Architome.Enums;
+using Architome.Events;
+
 public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, IDropHandler
 {
     public Item item;

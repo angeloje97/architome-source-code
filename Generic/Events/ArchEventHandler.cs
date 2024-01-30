@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Architome
+namespace Architome.Events
 {
     [Serializable]
     public class ArchEventHandler<T, E>  where T: Enum

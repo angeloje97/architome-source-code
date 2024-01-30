@@ -5,11 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine.Rendering;
 using Architome.Enums;
-using System.Security.Cryptography.X509Certificates;
-using Unity.IO.LowLevel.Unsafe;
-using UnityEditor.MemoryProfiler;
-using UnityEditor.Profiling.Memory.Experimental;
-using System.Runtime.CompilerServices;
+using Architome.Events;
 
 namespace Architome.Effects
 {

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
 using Pathfinding;
+using Architome.Events;
 
 namespace Architome
 {

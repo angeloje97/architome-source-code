@@ -9,7 +9,7 @@ namespace Architome
         #region Common Data
         [SerializeField] EntityInfo entity;
         public float radius;
-        public Collider hitBox;
+        public SphereCollider detectionRadius;
 
         public HashSet<EntityInfo> entitiesWithinRadius;
 
@@ -18,10 +18,31 @@ namespace Architome
 
         #region Initialization
 
+        private void Awake()
+        {
+            entitiesWithinRadius = new();
+        }
+
         public void Start()
         {
+            AdjustHitBox();
+            GetDependencies();
+        }
+
+        void AdjustHitBox()
+        {
+            detectionRadius.radius = radius;
+        }
+
+        void GetDependencies()
+        {
+
         }
 
         #endregion
+        public void Update()
+        {
+            
+        }
     }
 }
