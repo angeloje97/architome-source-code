@@ -6,6 +6,7 @@ using System;
 using UnityEngine.UI;
 using System.Threading.Tasks;
 using UnityEngine.Experimental.AI;
+using Architome.Events;
 
 namespace Architome
 {

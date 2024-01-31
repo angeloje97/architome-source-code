@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Architome.Events
@@ -27,7 +28,6 @@ namespace Architome.Events
 
         [SerializeField] float radius;
 
-
         #endregion
 
         #region Initiation
@@ -36,8 +36,43 @@ namespace Architome.Events
         {
             eventHandler = new(this);
             UpdateSphereCollider();
-            
         }
+        void Start()
+        {
+        
+        }
+
+        #endregion
+
+        // Update is called once per frame
+        void Update()
+        {
+        
+        }
+
+        #region Event Handler Extension
+
+        void Invoke(CollisionEventData data)
+        {
+            eventHandler.Invoke(data.eventType, data);
+        }
+
+
+        public Action AddListener(eCollisionEvent trigger, Action<CollisionEventData> action, Component listener)
+        {
+            return eventHandler.AddListener(trigger, action, listener);
+        }
+
+        public Action AddListenerLimit(eCollisionEvent eventType, Action action, Component listener, int count = 1)
+        {
+            return eventHandler.AddListenerLimit(eventType, (e) => { action(); }, listener, count);
+        }
+
+        #endregion
+
+        #region Collider
+
+        bool updatedCollider;
 
         void UpdateSphereCollider()
         {
@@ -51,30 +86,22 @@ namespace Architome.Events
             }
 
             sphereCollider.radius = radius;
+
+            updatedCollider = true;
         }
 
-
-        void Start()
+        public async void SetTrigger(bool isTrigger)
         {
-        
+            await UntilFinishUpdatingCollider();
+            sphereCollider.isTrigger = isTrigger;
         }
+
+        public async Task UntilFinishUpdatingCollider()
+        {
+            await ArchAction.WaitUntil(() => updatedCollider, true);
+        }
+
         #endregion
-
-        // Update is called once per frame
-        void Update()
-        {
-        
-        }
-
-        void Invoke(CollisionEventData data)
-        {
-            eventHandler.Invoke(data.eventType, data);
-        }
-
-        public Action AddListener(eCollisionEvent trigger, Action<CollisionEventData> action, Component listener)
-        {
-            return eventHandler.AddListener(trigger, action, listener);
-        }
 
         #region Events
         private void OnTriggerEnter(Collider other)
@@ -107,13 +134,14 @@ namespace Architome.Events
 
         #region Static Scope
 
-        public static void HandleObject(GameObject gameObject, Action<PhysicsEventHandler> action)
+        public static void HandleObject(GameObject gameObject, Action<PhysicsEventHandler> action, bool isTrigger = true)
         {
             var eventHandler = gameObject.GetComponent<PhysicsEventHandler>();
 
             if(eventHandler == null)
             {
                 eventHandler = gameObject.AddComponent<PhysicsEventHandler>();
+                eventHandler.SetTrigger(isTrigger);
             }
 
             action(eventHandler);

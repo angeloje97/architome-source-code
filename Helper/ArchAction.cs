@@ -56,6 +56,8 @@ namespace Architome
         //Will keep running until predicate returns expected
         public static async Task WaitUntil(Predicate<float> predicate, bool expected)
         {
+            if (predicate(Time.deltaTime) == expected) return;
+
             await World.UpdateAction((float deltaTime) => {
                 return predicate(deltaTime) != expected;
             });
@@ -63,6 +65,8 @@ namespace Architome
 
         public static async Task WaitUntil(Func<bool> predicate, bool expected, float delay = 0f)
         {
+            if (predicate() == expected) return;
+
             if(delay == 0)
             {
                 await World.UpdateAction((float deltaTime) => {
