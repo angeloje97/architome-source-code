@@ -9,9 +9,6 @@ namespace Architome
         #region Common Data
         [SerializeField] EntityInfo entity;
         public float radius;
-        public SphereCollider detectionRadius;
-
-        public HashSet<EntityInfo> entitiesWithinRadius;
 
 
         #endregion
@@ -20,7 +17,6 @@ namespace Architome
 
         private void Awake()
         {
-            entitiesWithinRadius = new();
         }
 
         public void Start()
@@ -31,7 +27,6 @@ namespace Architome
 
         void AdjustHitBox()
         {
-            detectionRadius.radius = radius;
         }
 
         void GetDependencies()

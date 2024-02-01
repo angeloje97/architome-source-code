@@ -85,7 +85,8 @@ namespace Architome
             return character.transform.position + (Vector3.forward * 2);
         }
 
-        
+
+        #region Radius and LOS
 
         public static List<EntityInfo> EntitiesWithinRange(Vector3 location, float radius)
         {
@@ -157,9 +158,6 @@ namespace Architome
             //entityList = entitiesWithinRange.Select(entity => entity.GetComponent<EntityInfo>()).OrderBy(entity => Vector3.Distance(entity.transform.position, location)).ToList();
 
         }
-
-
-
         public static List<EntityInfo> EntitiesWithinLOS(Vector3 position, float radius)
         {
             var obstructionLayer = GMHelper.LayerMasks().structureLayerMask;
@@ -179,8 +177,9 @@ namespace Architome
             }
 
             return entitiesInSight.OrderBy(entity => Vector3.Distance(entity.transform.position, position)).ToList();
-
         }
+
+        #endregion
 
         public static List<EntityInfo> ToEntities(List<GameObject> entityObjects)
         {

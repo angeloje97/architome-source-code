@@ -1,3 +1,4 @@
+using LootLabels;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -28,6 +29,8 @@ namespace Architome.Events
 
         [SerializeField] float radius;
 
+        [SerializeField] LayerMask targetlayerMask;
+
         #endregion
 
         #region Initiation
@@ -39,7 +42,7 @@ namespace Architome.Events
         }
         void Start()
         {
-        
+            StartEntityHandler();
         }
 
         #endregion
@@ -67,6 +70,46 @@ namespace Architome.Events
         {
             return eventHandler.AddListenerLimit(eventType, (e) => { action(); }, listener, count);
         }
+
+        #endregion
+
+        #region Entity
+
+        [SerializeField] HashSet<EntityInfo> entitiesInRadius;
+        [SerializeField] LayerMask entityLayer;
+
+        public void StartEntityHandler()
+        {
+            entityLayer = LayerMasksData.active.entityLayerMask;
+            entitiesInRadius = new();
+            FindEntitiesAtStart();
+            HandleEvents();
+        }
+
+        void FindEntitiesAtStart()
+        {
+            Entity.ProcessEntitiesInRange(transform.position, radius, entityLayer, (EntityInfo entity) => {
+                HandleEntityEnter(entity);
+            });
+        }
+
+        void HandleEvents()
+        {
+
+        }
+
+        void HandleEntityEnter(EntityInfo entity)
+        {
+            if (entitiesInRadius.Contains(entity)) return;
+            entitiesInRadius.Add(entity);
+        }
+
+        void HandleEntityExit(EntityInfo entity)
+        {
+            if (!entitiesInRadius.Contains(entity)) return;
+            entitiesInRadius.Remove(entity);
+        }
+
 
         #endregion
 
