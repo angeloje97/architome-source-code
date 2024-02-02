@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using LootLabels;
 using System;
 using System.Collections;
@@ -31,6 +32,7 @@ namespace Architome.Events
 
         [SerializeField] LayerMask targetlayerMask;
 
+
         #endregion
 
         #region Initiation
@@ -42,16 +44,103 @@ namespace Architome.Events
         }
         void Start()
         {
-            StartEntityHandler();
+            GetaDependencies();
+            StartLineOfSight();
         }
-
+        void GetaDependencies()
+        {
+            
+        }
         #endregion
 
-        // Update is called once per frame
+        #region General Update
         void Update()
         {
         
         }
+
+        public bool IsValid(Collider collider)
+        {
+            return targetlayerMask.ContainsLayer(collider.gameObject.layer);
+        }
+
+        public bool IsValid(Collision collision)
+        {
+            return targetlayerMask.ContainsLayer(collision.gameObject.layer);
+        }
+        #endregion
+
+        #region Line of Sight
+
+        [SerializeField] UniqueList<GameObject> objectsInLoS;
+        [SerializeField] UniqueList<GameObject> objectsInRadius;
+        LayerMask obstructionLayerMask;
+
+        void StartLineOfSight()
+        {
+            GetDependenciesLoS();
+            HandleEventsLoS();
+        }
+
+        void GetDependenciesLoS()
+        {
+            objectsInLoS = new();
+            objectsInRadius = new();
+            obstructionLayerMask = LayerMasksData.active.structureLayerMask;
+        }
+        void HandleEventsLoS()
+        {
+            eventHandler.AddListener(eCollisionEvent.OnTriggerEnter, async (CollisionEventData data) => {
+                HandleEnterRadius(data);
+
+                await World.ActionInterval((float deltaTime) => {
+
+                    if (!V3Helper.IsObstructed(transform.position, data.otherObject.transform.position, obstructionLayerMask))
+                    {
+                        HandleEnterLoS(data);
+                    }
+                    else
+                    {
+                        HandleExitLoS(data);
+                    }
+
+                    return objectsInRadius.Contains(data.otherObject);
+                }, .25f, true);
+
+            }, this);
+
+            eventHandler.AddListener(eCollisionEvent.OnTriggerExit, (CollisionEventData data) => {
+                HandleExitRadius(data);
+                HandleExitLoS(data);
+            }, this);
+        }
+        void HandleEnterRadius(CollisionEventData eventData)
+        {
+            objectsInRadius.Add(eventData.otherObject);
+        }
+
+        void HandleExitRadius(CollisionEventData eventData)
+        {
+            objectsInRadius.Remove(eventData.otherObject);
+        }
+
+        void HandleEnterLoS(CollisionEventData eventData)
+        {
+            var gameObject = eventData.otherObject;
+            if (!objectsInLoS.Add(gameObject)) return;
+            eventData.eventType = eCollisionEvent.OnLoSEnter;
+            Invoke(eventData);
+        }
+
+        void HandleExitLoS(CollisionEventData eventData)
+        {
+            var gameObject = eventData.otherObject;
+            if (!objectsInLoS.Remove(gameObject)) return;
+            eventData.eventType = eCollisionEvent.OnLosExit;
+            Invoke(eventData);
+        }
+
+        #endregion
 
         #region Event Handler Extension
 
@@ -70,46 +159,6 @@ namespace Architome.Events
         {
             return eventHandler.AddListenerLimit(eventType, (e) => { action(); }, listener, count);
         }
-
-        #endregion
-
-        #region Entity
-
-        [SerializeField] HashSet<EntityInfo> entitiesInRadius;
-        [SerializeField] LayerMask entityLayer;
-
-        public void StartEntityHandler()
-        {
-            entityLayer = LayerMasksData.active.entityLayerMask;
-            entitiesInRadius = new();
-            FindEntitiesAtStart();
-            HandleEvents();
-        }
-
-        void FindEntitiesAtStart()
-        {
-            Entity.ProcessEntitiesInRange(transform.position, radius, entityLayer, (EntityInfo entity) => {
-                HandleEntityEnter(entity);
-            });
-        }
-
-        void HandleEvents()
-        {
-
-        }
-
-        void HandleEntityEnter(EntityInfo entity)
-        {
-            if (entitiesInRadius.Contains(entity)) return;
-            entitiesInRadius.Add(entity);
-        }
-
-        void HandleEntityExit(EntityInfo entity)
-        {
-            if (!entitiesInRadius.Contains(entity)) return;
-            entitiesInRadius.Remove(entity);
-        }
-
 
         #endregion
 
@@ -147,8 +196,10 @@ namespace Architome.Events
         #endregion
 
         #region Events
+
         private void OnTriggerEnter(Collider other)
         {
+            if (!IsValid(other)) return;
             var collisionEventData = new CollisionEventData(eCollisionEvent.OnTriggerEnter, this, other);
             Invoke(collisionEventData);
             
@@ -156,12 +207,14 @@ namespace Architome.Events
 
         private void OnTriggerExit(Collider other)
         {
+            if (!IsValid(other)) return;
             var collisionEventData = new CollisionEventData(eCollisionEvent.OnTriggerExit, this, other);
             Invoke(collisionEventData);
         }
 
         private void OnCollisionEnter(Collision other)
         {
+            if (!IsValid(other)) return;
             var collisionEventData = new CollisionEventData(eCollisionEvent.OnCollisionEnter, this, other);
             Invoke(collisionEventData);
 
@@ -169,6 +222,7 @@ namespace Architome.Events
 
         private void OnCollisionExit(Collision other)
         {
+            if (IsValid(other)) return;
             var collisionEventData = new CollisionEventData(eCollisionEvent.OnCollisionExit, this, other);
             Invoke(collisionEventData);
         }
@@ -201,13 +255,14 @@ namespace Architome.Events
         public PhysicsEventHandler source;        
         public Collider otherCollider;
         public Collision otherCollision;
-
+        public GameObject otherObject;
 
         public CollisionEventData(eCollisionEvent eventType, PhysicsEventHandler handler, Collider otherCollider)
         {
             this.eventType = eventType;
             source = handler;
             this.otherCollider = otherCollider;
+            otherObject = otherCollider.gameObject;
         }
 
         public CollisionEventData(eCollisionEvent eventType, PhysicsEventHandler handler, Collision otherCollision)
@@ -215,6 +270,7 @@ namespace Architome.Events
             this.eventType = eventType;
             source = handler;
             this.otherCollision = otherCollision;
+            otherObject = otherCollision.gameObject;
         }
     }
     #endregion
