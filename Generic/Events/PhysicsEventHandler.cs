@@ -35,6 +35,14 @@ namespace Architome.Events
 
         #endregion
 
+        #region Validation
+        private void OnValidate()
+        {
+            UpdateSphereCollider();
+        }
+
+        #endregion
+
         #region Initiation
 
         private void Awake()
@@ -72,7 +80,7 @@ namespace Architome.Events
 
         #region Line of Sight
 
-        [SerializeField] UniqueList<GameObject> objectsInLoS;
+        [SerializeField] UniqueList<GameObject> objectsInLOS;
         [SerializeField] UniqueList<GameObject> objectsInRadius;
         LayerMask obstructionLayerMask;
 
@@ -84,8 +92,8 @@ namespace Architome.Events
 
         void GetDependenciesLoS()
         {
-            objectsInLoS = new();
-            objectsInRadius = new();
+            objectsInLOS = new(this);
+            objectsInRadius = new(this);
             obstructionLayerMask = LayerMasksData.active.structureLayerMask;
         }
         void HandleEventsLoS()
@@ -107,6 +115,8 @@ namespace Architome.Events
                     return objectsInRadius.Contains(data.otherObject);
                 }, .25f, true);
 
+                HandleExitLoS(data);
+
             }, this);
 
             eventHandler.AddListener(eCollisionEvent.OnTriggerExit, (CollisionEventData data) => {
@@ -127,7 +137,7 @@ namespace Architome.Events
         void HandleEnterLoS(CollisionEventData eventData)
         {
             var gameObject = eventData.otherObject;
-            if (!objectsInLoS.Add(gameObject)) return;
+            if (!objectsInLOS.Add(gameObject)) return;
             eventData.eventType = eCollisionEvent.OnLoSEnter;
             Invoke(eventData);
         }
@@ -135,7 +145,7 @@ namespace Architome.Events
         void HandleExitLoS(CollisionEventData eventData)
         {
             var gameObject = eventData.otherObject;
-            if (!objectsInLoS.Remove(gameObject)) return;
+            if (!objectsInLOS.Remove(gameObject)) return;
             eventData.eventType = eCollisionEvent.OnLosExit;
             Invoke(eventData);
         }
@@ -231,7 +241,7 @@ namespace Architome.Events
 
         #region Static Scope
 
-        public static void HandleObject(GameObject gameObject, Action<PhysicsEventHandler> action, bool isTrigger = true)
+        public static PhysicsEventHandler HandleObject(GameObject gameObject, Action<PhysicsEventHandler> action, bool isTrigger = true)
         {
             var eventHandler = gameObject.GetComponent<PhysicsEventHandler>();
 
@@ -242,6 +252,8 @@ namespace Architome.Events
             }
 
             action(eventHandler);
+
+            return eventHandler;
         }
 
         #endregion

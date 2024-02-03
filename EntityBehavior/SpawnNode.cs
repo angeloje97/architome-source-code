@@ -1,3 +1,4 @@
+using Architome.Events;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,6 +9,7 @@ namespace Architome
     {
         #region Common Data
         [SerializeField] EntityInfo entity;
+        [SerializeField] PhysicsEventHandler physicsEvents;
         public float radius;
 
 
@@ -31,7 +33,7 @@ namespace Architome
 
         void GetDependencies()
         {
-
+            physicsEvents = PhysicsEventHandler.HandleObject(gameObject, (PhysicsEventHandler handler) => { }, true);
         }
 
         #endregion
