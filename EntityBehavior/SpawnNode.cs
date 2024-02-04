@@ -33,8 +33,14 @@ namespace Architome
 
         void GetDependencies()
         {
-            physicsEvents = PhysicsEventHandler.HandleObject(gameObject, (PhysicsEventHandler handler) => { }, true);
+            PhysicsEventHandler.HandleObject(gameObject, (PhysicsEventHandler handler) => {
+                this.physicsEvents = handler;
+                handler.AddListener(eCollisionEvent.OnLoSEnter, (data) => {
+                    
+                }, this);
+            }, true);
         }
+
 
         #endregion
         public void Update()

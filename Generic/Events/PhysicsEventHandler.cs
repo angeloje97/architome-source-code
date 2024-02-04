@@ -45,6 +45,8 @@ namespace Architome.Events
 
         #region Initiation
 
+        bool initiated;
+
         private void Awake()
         {
             eventHandler = new(this);
@@ -54,11 +56,18 @@ namespace Architome.Events
         {
             GetaDependencies();
             StartLineOfSight();
+            initiated = true;
         }
         void GetaDependencies()
         {
             
         }
+
+        public async Task UntilInitiated()
+        {
+            await ArchAction.WaitUntil(() => initiated, true);
+        }
+
         #endregion
 
         #region General Update
@@ -241,7 +250,7 @@ namespace Architome.Events
 
         #region Static Scope
 
-        public static PhysicsEventHandler HandleObject(GameObject gameObject, Action<PhysicsEventHandler> action, bool isTrigger = true)
+        public static async void HandleObject(GameObject gameObject, Action<PhysicsEventHandler> action, bool isTrigger = true)
         {
             var eventHandler = gameObject.GetComponent<PhysicsEventHandler>();
 
@@ -251,9 +260,10 @@ namespace Architome.Events
                 eventHandler.SetTrigger(isTrigger);
             }
 
-            action(eventHandler);
+            await eventHandler.UntilInitiated();
 
-            return eventHandler;
+
+            action(eventHandler);
         }
 
         #endregion

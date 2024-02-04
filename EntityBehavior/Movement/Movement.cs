@@ -9,12 +9,35 @@ using System.Threading.Tasks;
 using Pathfinding.RVO;
 
 using UnityEngine.Events;
+using Architome.Events;
 
 namespace Architome
 {
+    public enum eMovementEvent
+    {
+        OnStartMove,
+        OnEndMove,
+        OnChangePath,
+        OnNewPathTarget,
+        OnQuickMove,
+        OnTryMove,
+        OnCanMoveCheck,
+    }
+
+    public class MovementEventData 
+    {
+        public eMovementEvent trigger;
+        public Movement sourceMovement;
+        public EntityInfo sourceEntity;
+
+        public Transform target;
+    }
+
     public class Movement : EntityProp
     {
         // Start is called before the first frame update
+
+        #region Common Data
         public GameObject entityObject;
         public GameObject location;
 
@@ -24,6 +47,8 @@ namespace Architome
         public RigidbodyConstraints originalConstraints;
         public AbilityManager abilityManager;
         public AIBehavior behavior;
+
+        ArchEventHandler<eMovementEvent, MovementEventData> eventHandler;
 
 
         //public float baseMovementSpeed;
@@ -49,43 +74,47 @@ namespace Architome
 
         [Header("Entity Prop Handlers")]
         AbilityHandler abilityHandler;
-
+        #endregion
         //Events
-        public Action<Movement> OnStartMove;
-        public Action<Movement> OnEndMove;
+        public Action<Movement> OnStartMove { get; set; }
+        public Action<Movement> OnEndMove { get; set; }
         public Action<Movement> OnTryMove { get; set; }
-        public UnityEvent OnTryMoveEvent;
-        public Action<Movement> OnChangePath;
-        public Action<Movement, Transform> OnArrival;
-        public Action<Movement, Transform> OnAway;
-        public Action<Movement, Transform, Transform> OnNewPathTarget;
-        public Action<Movement> OnQuickMove;
+        public UnityEvent OnTryMoveEvent { get; set; }
+        public Action<Movement> OnChangePath { get; set; }
+        public Action<Movement, Transform> OnArrival { get; set; }
+        public Action<Movement, Transform> OnAway { get; set; }
+        public Action<Movement, Transform, Transform> OnNewPathTarget { get; set; }
+        public Action<Movement> OnQuickMove { get; set; }
 
         //Event Triggers
         private bool isMovingChange;
         private bool hasArrivedCheck;
         private Transform currentPathTarget;
         Vector3 previousPosition { get; set; }
+
+        #region Initiation
+
+        private void Awake()
+        {
+            eventHandler = new(this);
+        }
         public override void GetDependencies()
         {
-            if (entityInfo)
-            {
-                entityObject = entityInfo.gameObject;
-                rigidBody = entityObject.GetComponent<Rigidbody>();
+            entityObject = entityInfo.gameObject;
+            rigidBody = entityObject.GetComponent<Rigidbody>();
 
-                originalConstraints = rigidBody.constraints;
+            originalConstraints = rigidBody.constraints;
 
 
-                destinationSetter = entityInfo.AIDestinationSetter();
-                path = entityInfo.Path();
+            destinationSetter = entityInfo.AIDestinationSetter();
+            path = entityInfo.Path();
 
-                abilityManager = entityInfo.AbilityManager();
+            abilityManager = entityInfo.AbilityManager();
 
-                entityInfo.OnChangeStats += OnChangeStats;
-                entityInfo.OnLifeChange += OnLifeCheck;
-                entityInfo.combatEvents.OnStatesChange += OnStatesChange;
-                entityInfo.infoEvents.OnSignificantMovementChange += OnSignificantMovementChange;
-            }
+            entityInfo.OnChangeStats += OnChangeStats;
+            entityInfo.OnLifeChange += OnLifeCheck;
+            entityInfo.combatEvents.OnStatesChange += OnStatesChange;
+            entityInfo.infoEvents.OnSignificantMovementChange += OnSignificantMovementChange;
 
             if (destinationSetter.target == null)
             {
@@ -114,8 +143,11 @@ namespace Architome
             previousPosition = transform.position;
             
         }
+        #endregion
 
         #region Event Loop
+
+        #region Loop
         void FixedUpdate()
         {
             //GetDependencies();
@@ -210,6 +242,9 @@ namespace Architome
 
         }
         #endregion
+        #endregion
+
+        #region Event Listeners
         public void OnTransferScene(string sceneName)
         {
             StopMoving(true);
@@ -229,11 +264,18 @@ namespace Architome
         }
 
 
+        void OnChangeStats(EntityInfo entity)
+        {
+            SetOffSetMovementSpeed(entityInfo.stats.movementSpeed, entityInfo.stats);
+        }
+        void OnSignificantMovementChange(Vector3 newPosition)
+        {
+            StopMoving(true);
+        }
         readonly HashSet<EntityState> immobilizedStates = new HashSet<EntityState>() {
             EntityState.Stunned,
             EntityState.Immobalized
         };
-
         public void OnStatesChange(List<EntityState> previous, List<EntityState> states)
         {
             if (!entityInfo.isAlive) { return; }
@@ -248,6 +290,36 @@ namespace Architome
 
             SetValues(true);
         }
+
+        #endregion
+
+
+        #region ArchEventHandler Overrides
+
+        public Action AddListener(eMovementEvent trigger, Action<MovementEventData> action, Component listener) => eventHandler.AddListener(trigger, action, listener);
+        public Action AddListener(eMovementEvent trigger, Action action, Component listener) => eventHandler.AddListener(trigger, action, listener);
+
+        public Action AddListenerLimit(eMovementEvent trigger, Action<MovementEventData> action, Component listener, int amount = 1) => eventHandler.AddListenerLimit(trigger, action, listener, amount);
+        public Action AddListenerLimit(eMovementEvent trigger, Action action, Component listener, int amount = 1) => eventHandler.AddListenerLimit(trigger, action, listener, amount);
+        public void Invoke(MovementEventData eventData)
+        {
+            eventHandler.Invoke(eventData.trigger, eventData);
+        }
+
+        public bool InvokeCheck(MovementEventData eventData)
+        {
+            return eventHandler.InvokeCheck(eventData.trigger, eventData);
+        }
+
+        public bool InvokeCheck(MovementEventData eventData, bool target, LogicType logicType)
+        {
+            return eventHandler.InvokeCheck(eventData.trigger, eventData, target, logicType);
+        }
+
+        #endregion
+
+        #region State Changers 
+
         public async void SetValues(bool val, float timer = 0f)
         {
             await Task.Delay((int)(timer * 1000));
@@ -265,14 +337,6 @@ namespace Architome
         {
             rigidBody.constraints = restrict ? RigidbodyConstraints.FreezeAll : originalConstraints;
         }
-        void OnChangeStats(EntityInfo entity)
-        {
-            SetOffSetMovementSpeed(entityInfo.stats.movementSpeed, entityInfo.stats);
-        }
-        void OnSignificantMovementChange(Vector3 newPosition)
-        {
-            StopMoving(true);
-        }
         public void SetWalk(bool val)
         {
             walking = val;
@@ -283,7 +347,6 @@ namespace Architome
             var baseMovementSpeed = walking ? GMHelper.WorldSettings().baseWalkSpeed : GMHelper.WorldSettings().baseMovementSpeed;
             path.maxSpeed = speed * baseMovementSpeed;
         }
-
         public Action SetOffSetMovementSpeed(float offsetAmount, object sourceObj)
         {
             offsetSources ??= new();
@@ -318,7 +381,6 @@ namespace Architome
                 UpdateOffset();
             };
         }
-
         public void UpdateOffset()
         {
             baseOffsetMaxSpeed = 0f;
@@ -335,11 +397,9 @@ namespace Architome
             SetSpeed(baseOffsetMaxSpeed);
 
         }
+        #endregion
 
-        public bool HasReachedTarget(float minimumDistance = 1f)
-        {
-            return distanceFromTarget <= minimumDistance + endReachDistance;
-        }
+        #region Movement Actions
         async public Task<bool> MoveToAsync(Transform locationTransform, float endReachDistance = 0f)
         {
             if (!entityInfo.isAlive) return false;
@@ -421,17 +481,6 @@ namespace Architome
 
             return true;
         }
-        async public Task<Transform> NextPathTarget()
-        {
-            var currentTarget = destinationSetter.target;
-
-            while (destinationSetter.target == currentTarget)
-            {
-                await Task.Yield();
-            }
-
-            return destinationSetter.target;
-        }
         void MoveTo(Vector3 location)
         {
             OnTryMove?.Invoke(this);
@@ -480,10 +529,33 @@ namespace Architome
 
 
         }
-        public void TriggerEvents()
+        public void StopMoving(bool targetSelf = false)
         {
-            hasArrivedCheck = !hasArrived;
-            isMovingChange = !isMoving;
+            if (targetSelf && entityObject)
+            {
+                destinationSetter.target = entityObject.transform;
+                MoveTo(entityObject.transform, float.PositiveInfinity);
+            }
+
+            if (path == null) return;
+
+            path.endReachedDistance = float.PositiveInfinity;
+        }
+        public async Task StopMovingAsync(bool targetSelf = false)
+        {
+            StopMoving(targetSelf);
+            while (isMoving)
+            {
+                StopMoving(targetSelf);
+                await Task.Yield();
+            }
+        }
+        #endregion
+
+        #region Functional Properties
+        public bool HasReachedTarget(float minimumDistance = 1f)
+        {
+            return distanceFromTarget <= minimumDistance + endReachDistance;
         }
         public bool IsInRangeFromTarget()
         {
@@ -502,6 +574,32 @@ namespace Architome
 
 
             return false;
+        }
+
+        public bool CanMove(MovementEventData eventData)
+        {
+            if (!canMove) return false;
+
+            return InvokeCheck(eventData, false, LogicType.NotExists);
+        }
+
+        #endregion
+
+        async public Task<Transform> NextPathTarget()
+        {
+            var currentTarget = destinationSetter.target;
+
+            while (destinationSetter.target == currentTarget)
+            {
+                await Task.Yield();
+            }
+
+            return destinationSetter.target;
+        }
+        public void TriggerEvents()
+        {
+            hasArrivedCheck = !hasArrived;
+            isMovingChange = !isMoving;
         }
         public float DistanceFromTarget()
         {
@@ -526,28 +624,6 @@ namespace Architome
             }
             return null;
         }
-        public void StopMoving(bool targetSelf = false)
-        {
-            if (targetSelf && entityObject)
-            {
-                destinationSetter.target = entityObject.transform;
-                MoveTo(entityObject.transform, float.PositiveInfinity);
-            }
-
-            if (path == null) return;
-
-            path.endReachedDistance = float.PositiveInfinity;
-        }
-
-        public async Task StopMovingAsync(bool targetSelf = false)
-        {
-            StopMoving(targetSelf);
-            while (isMoving)
-            {
-                StopMoving(targetSelf);
-                await Task.Yield();
-            }
-        }
         public GameObject Location()
         {
             if (location)
@@ -557,6 +633,9 @@ namespace Architome
             return null;
         }
     }
+
+    #region AbilityHandler
+
     public struct AbilityHandler
     {
         public EntityInfo entity;
@@ -629,6 +708,9 @@ namespace Architome
             Debugger.System(2412, $"{ability} needs to add augment of type {typeof(AugmentMovement)}) from {entity}");
             Debugger.Error(5045, $"{ability} needs to add augment of type {typeof(AugmentMovement)}");
         }
+
+        #endregion
+
     }
 
 }

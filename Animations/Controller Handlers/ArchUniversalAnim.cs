@@ -39,27 +39,24 @@ namespace Architome
             character = GetComponentInParent<CharacterInfo>();
             animator = GetComponent<Animator>();
 
-            if (entityInfo)
+            movement = entityInfo.Movement();
+            abilityManager = entityInfo.AbilityManager();
+
+            abilityEvents.OnCastStart += OnCastStart;
+            abilityEvents.OnCastReleasePercent += OnCastReleasePercent;
+
+            if (abilityManager)
             {
-                movement = entityInfo.Movement();
-                abilityManager = entityInfo.AbilityManager();
-
-                abilityEvents.OnCastStart += OnCastStart;
-                abilityEvents.OnCastReleasePercent += OnCastReleasePercent;
-
-                if (abilityManager)
-                {
-                    abilityManager.OnAbilityStart += OnAbilityStart;
-                    abilityManager.OnAbilityEnd += OnAbilityEnd;
-                    abilityManager.OnChannelInterval += OnChannelInterval;
-                }
-
-                entityInfo.OnLifeChange += OnLifeChange;
-                entityInfo.OnDamageTaken += OnDamageTaken;
-                entityInfo.OnCombatChange += OnCombatChange;
-
-                HandleTaskAnimation();
+                abilityManager.OnAbilityStart += OnAbilityStart;
+                abilityManager.OnAbilityEnd += OnAbilityEnd;
+                abilityManager.OnChannelInterval += OnChannelInterval;
             }
+
+            entityInfo.OnLifeChange += OnLifeChange;
+            entityInfo.OnDamageTaken += OnDamageTaken;
+            entityInfo.OnCombatChange += OnCombatChange;
+
+            HandleTaskAnimation();
 
 
             ApplySettings();
@@ -96,7 +93,7 @@ namespace Architome
             UpdateMetrics();
         }
 
-
+        #region Event Listeners
 
         void ApplySettings()
         {
@@ -187,6 +184,23 @@ namespace Architome
 
             animator.SetTrigger("ReleaseAbility");
         }
+        #endregion
+
+        #region Animation Events
+
+        bool blockMoving = false;
+
+        public void DisableMoving()
+        {
+
+        }
+
+        public void EnableMoving()
+        {
+
+        }
+
+        #endregion
     }
 
 }

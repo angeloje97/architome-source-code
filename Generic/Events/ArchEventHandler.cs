@@ -248,6 +248,14 @@ namespace Architome.Events
             return new ArchLogic(checks).Valid(logicType);
         }
 
+        public bool InvokeCheck(T eventType, E eventData, bool targetValue, LogicType logicType)
+        {
+            checks = new();
+            Invoke(eventType, eventData);
+
+            return checks.ValidateLogic(targetValue, logicType);
+        }
+
         #endregion
 
         #region Sub Classes
