@@ -8,6 +8,7 @@ using System;
 namespace Architome
 {
 
+    #region Special Classes
     [Serializable]
     public class SpecialAbility
     {
@@ -38,15 +39,18 @@ namespace Architome
         public float minimumHealth;
     }
 
+    #endregion
+
+
+    #region Combat Behavior
     [RequireComponent(typeof(CombatInfo))]
 
-    public class CombatBehavior : MonoBehaviour
+    public class CombatBehavior : EntityProp
     {
 
 
         // Start is called before the first frame update
         public GameObject entityObject;
-        public EntityInfo entityInfo;
         public AIBehavior behavior;
 
         public ThreatManager threatManager;
@@ -100,52 +104,44 @@ namespace Architome
 
         bool proactiveTank { get; set; }
 
-        public void GetDependencies()
+        public override void GetDependencies()
         {
-            entityInfo = GetComponentInParent<EntityInfo>();
             behavior = GetComponentInParent<AIBehavior>();
 
-            if (entityInfo)
+            entityObject = entityInfo.gameObject;
+            entityInfo.OnLifeChange += OnLifeChange;
+            entityInfo.OnCombatChange += OnCombatChange;
+            entityInfo.OnHealingDone += OnHealingDone;
+
+            movement = entityInfo.Movement();
+
+
+            if (movement)
             {
-                entityObject = entityInfo.gameObject;
-                entityInfo.OnLifeChange += OnLifeChange;
-                entityInfo.OnCombatChange += OnCombatChange;
-                entityInfo.OnHealingDone += OnHealingDone;
-
-                
-
-
-
-                movement = entityInfo.Movement();
-
-
-                if (movement)
-                {
-                    movement.OnTryMove += OnTryMove;
-                    movement.OnChangePath += OnChangePath;
-                }
-
-                abilityManager = entityInfo.AbilityManager();
-
-                abilityEvents.OnCastRelease += OnCastRelease;
-
-
-                var playerController = entityInfo.PlayerController();
-                if (playerController)
-                {
-                    playerController.OnPlayerTargetting += OnPlayerAbilityTargetting;
-                }
-
-                entityInfo.partyEvents.OnAddedToParty += delegate (PartyInfo party) {
-                    party.events.OnPartyFocus += OnPartyFocus;
-
-                };
-
-                entityInfo.partyEvents.OnRemovedFromParty += delegate (PartyInfo party)
-                {
-                    party.events.OnPartyFocus -= OnPartyFocus;
-                };
+                movement.OnTryMove += OnTryMove;
+                movement.OnChangePath += OnChangePath;
             }
+
+            abilityManager = entityInfo.AbilityManager();
+
+            abilityEvents.OnCastRelease += OnCastRelease;
+
+
+            var playerController = entityInfo.PlayerController();
+            if (playerController)
+            {
+                playerController.OnPlayerTargetting += OnPlayerAbilityTargetting;
+            }
+
+            entityInfo.partyEvents.OnAddedToParty += delegate (PartyInfo party) {
+                party.events.OnPartyFocus += OnPartyFocus;
+
+            };
+
+            entityInfo.partyEvents.OnRemovedFromParty += delegate (PartyInfo party)
+            {
+                party.events.OnPartyFocus -= OnPartyFocus;
+            };
 
             if (behavior)
             {
@@ -162,19 +158,13 @@ namespace Architome
                 }
             }
 
-            
-
             UpdateAggressiveTank();
-        }
-        void Start()
-        {
-            GetDependencies();
+
             if (threatManager) { StartCoroutine(CombatRoutine()); }
             HandleStartCombatStatus();
 
-            
         }
-        void Update()
+        public override void EUpdate()
         {
             HandleEvents();
             HandleTimers();
@@ -572,4 +562,5 @@ namespace Architome
             return null;
         }
     }
+    #endregion
 }

@@ -45,7 +45,7 @@ namespace Architome
         public Properties properties;
         #endregion
 
-
+        #region Common Data
         public string entityName;
         [Multiline]
         public string entityDescription;
@@ -72,7 +72,10 @@ namespace Architome
         public RoomInfo currentRoom;
         public List<EntityState> states;
         public WorkerState workerState;
-        
+
+        #endregion
+
+
         [Serializable]
         public struct SummonedEntity
         {
@@ -202,6 +205,8 @@ namespace Architome
         private NPCType npcTypeCheck;
         #endregion
 
+        #region Initialization
+
         private void Awake()
         {
             abilityEvents ??= new();
@@ -217,62 +222,7 @@ namespace Architome
 
             initiated = true;
         }
-        void Update()
-        {
-            HandleEventTriggers();
-        }
-        public void OnDestroy()
-        {
-            infoEvents.OnDestroy?.Invoke(this);
-            if (GMHelper.TargetManager())
-            {
-                if (GMHelper.TargetManager().selectedTargets.Contains(gameObject))
-                {
-                    GMHelper.TargetManager().selectedTargets.Remove(gameObject);
-                }
-            }
-        }
 
-        #region Mouse Over Events
-
-        bool enableMouseOvers = false;
-        private void OnMouseEnter()
-        {
-            if (!enableMouseOvers) return;
-            infoEvents.OnMouseHover?.Invoke(this, true, gameObject);
-
-
-        }
-        private void OnMouseExit()
-        {
-            if (!enableMouseOvers) return;
-            infoEvents.OnMouseHover?.Invoke(this, false, gameObject);
-
-        }
-        #endregion
-        public void OnTriggerEnter(Collider other)
-        {
-            OnTriggerEvent?.Invoke(this, other, true);
-            OnPhysicsEvent?.Invoke(this, other.gameObject, true);
-        }
-
-        public void OnTriggerExit(Collider other)
-        {
-
-            OnPhysicsEvent?.Invoke(this, other.gameObject, false);
-            OnTriggerEvent?.Invoke(this, other, false);
-        }
-        public void OnCollisionEnter(Collision collision)
-        {
-            OnPhysicsEvent?.Invoke(this, collision.gameObject, true);
-            OnCollisionEvent?.Invoke(this, collision, true);
-        }
-        public void OnCollisionExit(Collision collision)
-        {
-
-            OnPhysicsEvent?.Invoke(this, collision.gameObject, false);
-            OnCollisionEvent?.Invoke(this, collision, true);
-        }
         public void GetDependencies()
         {
 
@@ -287,6 +237,20 @@ namespace Architome
                 }
             }
         }
+
+        public virtual void EntityStart()
+        {
+            if (!properties.created)
+            {
+                GetDependencies();
+                StartUp();
+            }
+
+            components.properties = GetComponentsInChildren<EntityProp>();
+
+            StartCoroutine(HandleRegeneration());
+        }
+
         public void StartUp()
         {
 
@@ -336,7 +300,7 @@ namespace Architome
             SetEntityStats();
             UpdateCurrentStats();
 
-            
+
 
             UpdateHealthRegen();
         }
@@ -352,6 +316,66 @@ namespace Architome
             }
         }
 
+        #endregion
+        void Update()
+        {
+            HandleEventTriggers();
+        }
+        public void OnDestroy()
+        {
+            infoEvents.OnDestroy?.Invoke(this);
+            if (GMHelper.TargetManager())
+            {
+                if (GMHelper.TargetManager().selectedTargets.Contains(gameObject))
+                {
+                    GMHelper.TargetManager().selectedTargets.Remove(gameObject);
+                }
+            }
+        }
+
+        
+
+        #region Mouse Over Events
+
+        bool enableMouseOvers = false;
+        private void OnMouseEnter()
+        {
+            if (!enableMouseOvers) return;
+            infoEvents.OnMouseHover?.Invoke(this, true, gameObject);
+
+
+        }
+        private void OnMouseExit()
+        {
+            if (!enableMouseOvers) return;
+            infoEvents.OnMouseHover?.Invoke(this, false, gameObject);
+
+        }
+        #endregion
+        public void OnTriggerEnter(Collider other)
+        {
+            OnTriggerEvent?.Invoke(this, other, true);
+            OnPhysicsEvent?.Invoke(this, other.gameObject, true);
+        }
+
+        public void OnTriggerExit(Collider other)
+        {
+
+            OnPhysicsEvent?.Invoke(this, other.gameObject, false);
+            OnTriggerEvent?.Invoke(this, other, false);
+        }
+        public void OnCollisionEnter(Collision collision)
+        {
+            OnPhysicsEvent?.Invoke(this, collision.gameObject, true);
+            OnCollisionEvent?.Invoke(this, collision, true);
+        }
+        public void OnCollisionExit(Collision collision)
+        {
+
+            OnPhysicsEvent?.Invoke(this, collision.gameObject, false);
+            OnCollisionEvent?.Invoke(this, collision, true);
+        }
+        
         async void HandleFalling()
         {
             var height = transform.position.y;
@@ -410,19 +434,7 @@ namespace Architome
             };
         }
 
-        public virtual void EntityStart()
-        {
-            if (!properties.created)
-            {
-                GetDependencies();
-                StartUp();
-            }
-
-            components.properties = GetComponentsInChildren<EntityProp>();
-
-            StartCoroutine(HandleRegeneration());
-        }
-
+        
         public void GainExperience(object sender, float amount)
         {
             OnExperienceGainOutside?.Invoke(sender, amount);
@@ -516,6 +528,8 @@ namespace Architome
             OnChangeStats?.Invoke(this);
 
         }
+
+        #region Combat Actions
         public void Damage(CombatEventData combatData)
         {
             if (!isAlive) return;
@@ -731,6 +745,25 @@ namespace Architome
             }
             return removed;
         }
+        public bool UseAutoOn(EntityInfo target)
+        {
+            var checks = new List<bool>();
+
+            abilityEvents.OnUseAuto?.Invoke(target, checks);
+
+            foreach(var check in checks)
+            {
+                if (check) return true;
+            }
+
+            return false;
+        }
+        public bool SetCombatTarget(EntityInfo target)
+        {
+            this.combatTarget = target;
+            return true;
+        }
+        #endregion
 
         public bool SetRarity(EntityRarity rarity)
         {
@@ -752,26 +785,8 @@ namespace Architome
             return true;
         }
 
-        public bool UseAutoOn(EntityInfo target)
-        {
-            var checks = new List<bool>();
-
-            abilityEvents.OnUseAuto?.Invoke(target, checks);
-
-            foreach(var check in checks)
-            {
-                if (check) return true;
-            }
-
-            return false;
-        }
 
         
-        public bool SetCombatTarget(EntityInfo target)
-        {
-            this.combatTarget = target;
-            return true;
-        }
         public bool IsEnemy(GameObject target)
         {
             if (!target.GetComponent<EntityInfo>()) return false;

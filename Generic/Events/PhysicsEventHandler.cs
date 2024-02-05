@@ -147,6 +147,7 @@ namespace Architome.Events
         {
             var gameObject = eventData.otherObject;
             if (!objectsInLOS.Add(gameObject)) return;
+
             eventData.eventType = eCollisionEvent.OnLoSEnter;
             Invoke(eventData);
         }
@@ -294,6 +295,7 @@ namespace Architome.Events
             this.otherCollision = otherCollision;
             otherObject = otherCollision.gameObject;
         }
+
     }
     #endregion
 }

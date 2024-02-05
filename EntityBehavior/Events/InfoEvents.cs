@@ -1,4 +1,5 @@
 using Architome.Enums;
+using Architome.Events;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,6 +14,7 @@ namespace Architome
         public void Initiate(EntityInfo entity)
         {
             this.entity = entity;
+            movementEvents = new(entity);
         }
 
         public enum EventType
@@ -20,6 +22,10 @@ namespace Architome
             IsMaleCheck,
             IsFemaleCheck,
         }
+
+
+        public ArchEventHandler<eMovementEvent, MovementEventData> movementEvents { get; set; }
+
 
         public Dictionary<EventType, Action<EntityInfo, object, List<bool>>> flagCheck;
 

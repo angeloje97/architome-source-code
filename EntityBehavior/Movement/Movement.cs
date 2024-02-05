@@ -21,7 +21,9 @@ namespace Architome
         OnNewPathTarget,
         OnQuickMove,
         OnTryMove,
+        OnSignificantMovementChange,
         OnCanMoveCheck,
+        OnCanChangeTargetCheck,
     }
 
     public class MovementEventData 
@@ -30,7 +32,25 @@ namespace Architome
         public Movement sourceMovement;
         public EntityInfo sourceEntity;
 
+        public Vector3 location;
         public Transform target;
+
+        public MovementEventData(eMovementEvent trigger, Movement sourceMovement, Transform target)
+        {
+            this.trigger = trigger;
+            this.sourceMovement = sourceMovement;
+
+            this.target = target;
+            this.location = target.position;
+        }
+
+        public MovementEventData(eMovementEvent trigger, Movement sourceMovement, Vector3 location)
+        {
+            this.trigger = trigger;
+            this.sourceMovement = sourceMovement;
+            this.location = location;
+            this.target = sourceMovement.Target();
+        }
     }
 
     public class Movement : EntityProp
@@ -48,8 +68,7 @@ namespace Architome
         public AbilityManager abilityManager;
         public AIBehavior behavior;
 
-        ArchEventHandler<eMovementEvent, MovementEventData> eventHandler;
-
+        ArchEventHandler<eMovementEvent, MovementEventData> eventHandler => entityInfo.infoEvents.movementEvents;
 
         //public float baseMovementSpeed;
         //public float entityMovementSpeed;
@@ -96,7 +115,7 @@ namespace Architome
 
         private void Awake()
         {
-            eventHandler = new(this);
+
         }
         public override void GetDependencies()
         {
@@ -141,13 +160,11 @@ namespace Architome
 
             abilityHandler.Initiate(this);
             previousPosition = transform.position;
-            
         }
         #endregion
 
         #region Event Loop
 
-        #region Loop
         void FixedUpdate()
         {
             //GetDependencies();
@@ -241,7 +258,7 @@ namespace Architome
             }
 
         }
-        #endregion
+
         #endregion
 
         #region Event Listeners
@@ -292,7 +309,6 @@ namespace Architome
         }
 
         #endregion
-
 
         #region ArchEventHandler Overrides
 
@@ -484,8 +500,12 @@ namespace Architome
         void MoveTo(Vector3 location)
         {
             OnTryMove?.Invoke(this);
+            Invoke(new(eMovementEvent.OnTryMove, this, location));
             OnTryMoveEvent?.Invoke();
+
+
             if (!entityInfo.CanMove()) return;
+            
             if (!canMove) { return; }
             hasArrivedCheck = false;
             this.location.transform.position = location;
@@ -495,10 +515,14 @@ namespace Architome
             TriggerEvents();
             path.endReachedDistance = 0;
             OnChangePath?.Invoke(this);
+            Invoke(new(eMovementEvent.OnChangePath, this, location));
 
         }
         void MoveTo(Transform locationTransform,  float endReachDistance = 0f)
         {
+
+            Invoke(new(eMovementEvent.OnTryMove, this, locationTransform));
+
             if (!entityInfo.CanMove())
             {
                 return;
@@ -575,11 +599,15 @@ namespace Architome
 
             return false;
         }
-
         public bool CanMove(MovementEventData eventData)
         {
             if (!canMove) return false;
+            if (!entityInfo.isAlive) return false;
 
+            return InvokeCheck(eventData, false, LogicType.NotExists);
+        }
+        public bool CanChangeTarget(MovementEventData eventData)
+        {
             return InvokeCheck(eventData, false, LogicType.NotExists);
         }
 

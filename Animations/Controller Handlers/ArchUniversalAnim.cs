@@ -189,7 +189,6 @@ namespace Architome
         #region Animation Events
 
         bool blockMoving = false;
-
         public void DisableMoving()
         {
 
