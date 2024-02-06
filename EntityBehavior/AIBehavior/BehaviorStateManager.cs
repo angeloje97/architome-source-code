@@ -122,8 +122,8 @@ namespace Architome
             
             if(movement)
             {
-                movement.OnStartMove += OnStartMove;
-                movement.OnEndMove += OnEndMove;
+                movement.AddListener(eMovementEvent.OnStartMove, OnStartMove, behavior);
+                movement.AddListener(eMovementEvent.OnEndMove, OnEndMove, behavior);
                 movement.OnTryMove += OnTryMove;
 
                 ArchAction.Delay(() => {
@@ -195,7 +195,7 @@ namespace Architome
 
 
         }
-        public void OnStartMove(Movement movement)
+        public void OnStartMove(MovementEventData eventData)
         {
             //stateMachine.Transition(Transition.OnStartMove, BehaviorState.Moving);
 
@@ -287,7 +287,7 @@ namespace Architome
         }
 
         
-        public void OnEndMove(Movement movement)
+        public void OnEndMove(MovementEventData eventData)
         {
             stateMachine.Transition(Transition.OnEndMove, BehaviorState.Idle);
 

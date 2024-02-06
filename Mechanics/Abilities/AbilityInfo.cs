@@ -264,8 +264,8 @@ namespace Architome
 
             if(movement)
             {
-                movement.OnStartMove += OnStartMove;
-                movement.OnEndMove += OnEndMove;
+                movement.AddListener(eMovementEvent.OnStartMove, OnStartMove, this);
+                movement.AddListener(eMovementEvent.OnEndMove, OnEndMove, this);
                 movement.OnTryMove += OnTryMove;
                 movement.OnNewPathTarget += OnNewPathTarget;
             }
@@ -344,15 +344,14 @@ namespace Architome
                 await Task.Yield();
             }
         }
-        public void OnStartMove(Movement movement)
+        public void OnStartMove(MovementEventData movement)
         {
-
             if (cancelCastIfMoved && isCasting)
             {
                 CancelCast("Moved On Cast");
             }
         }
-        public void OnEndMove(Movement movement)
+        public void OnEndMove(MovementEventData movement)
         {
 
         }

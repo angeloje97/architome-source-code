@@ -95,15 +95,12 @@ namespace Architome
         AbilityHandler abilityHandler;
         #endregion
         //Events
-        public Action<Movement> OnStartMove { get; set; }
-        public Action<Movement> OnEndMove { get; set; }
         public Action<Movement> OnTryMove { get; set; }
         public UnityEvent OnTryMoveEvent { get; set; }
         public Action<Movement> OnChangePath { get; set; }
         public Action<Movement, Transform> OnArrival { get; set; }
         public Action<Movement, Transform> OnAway { get; set; }
         public Action<Movement, Transform, Transform> OnNewPathTarget { get; set; }
-        public Action<Movement> OnQuickMove { get; set; }
 
         //Event Triggers
         private bool isMovingChange;
@@ -179,11 +176,11 @@ namespace Architome
                 isMovingChange = isMoving;
                 if (isMoving)
                 {
-                    OnStartMove?.Invoke(this);
+                    Invoke(new(eMovementEvent.OnStartMove, this, Target()));
                 }
                 else
                 {
-                    OnEndMove?.Invoke(this);
+                    Invoke(new(eMovementEvent.OnEndMove, this, Target()));
 
                 }
             }

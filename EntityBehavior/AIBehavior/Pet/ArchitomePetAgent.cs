@@ -22,23 +22,20 @@ namespace Architome
 
         public override void GetDependencies()
         {
-                if (entityInfo)
-                {
-                    entityInfo.OnCombatChange += OnCombatChange;
+            entityInfo.OnCombatChange += OnCombatChange;
 
-                    character = entityInfo.CharacterInfo();
-                    movement = entityInfo.Movement();
+            character = entityInfo.CharacterInfo();
+            movement = entityInfo.Movement();
 
-                    if (movement)
-                    {
-                        movement.OnEndMove += OnEndMove;
-                    }
+            if (movement)
+            {
+                movement.AddListener(eMovementEvent.OnEndMove, OnEndMove, this);
+            }
 
-                    if (petBase)
-                    {
-                        entityInfo.ChangeNPCType(petBase.entityInfo.npcType);
-                    }
-                }
+            if (petBase)
+            {
+                entityInfo.ChangeNPCType(petBase.entityInfo.npcType);
+            }
 
         }
 
@@ -58,9 +55,9 @@ namespace Architome
             await movement.MoveToAsync(followSpot);
         }
 
-        void OnEndMove(Movement movement)
+        void OnEndMove(MovementEventData eventData)
         {
-            if (movement.Target() != followSpot) return;
+            if (eventData.target != followSpot) return;
             if (character == null) return;
             if (master == null) return;
 

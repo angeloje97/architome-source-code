@@ -57,37 +57,15 @@ namespace Architome.Events
         #region Listener
         public Action AddListenerLimit(T eventType, Action<E> action, Component listener, int count = 1)
         {
-            if (source == null) return () => { };
-            if (eventDict.ContainsKey(eventType)) eventDict.Add(eventType, null);
-
+            Action unsubscribe = () => { };
             var currentCount = 0;
-            bool unsubscribed = false;
-
-            eventDict[eventType] += MiddleWare;
-
-            return UnsubScribe;
-
-            void MiddleWare(E eventData)
-            {
-                if(listener == null)
-                {
-                    UnsubScribe();
-                    return;
-                }
-
+            unsubscribe = AddListener(eventType, (E data) => {
+                action(data);
                 currentCount++;
-                action(eventData);
-                if (currentCount >= count) UnsubScribe();
-            }
+                if (currentCount >= count) unsubscribe();
+            }, listener);
 
-            void UnsubScribe()
-            {
-                if (unsubscribed) return;
-                unsubscribed = true;
-                if (source == null) return;
-
-                eventDict[eventType] -= MiddleWare;
-            }
+            return unsubscribe;
         }
 
         public Action AddListener(T eventType, Action<E> action, Component listener)

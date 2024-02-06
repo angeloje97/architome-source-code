@@ -40,8 +40,8 @@ namespace Architome
 
             if (movement)
             {
-                movement.OnStartMove += (Movement movement) => { OnMoveChange(true); };
-                movement.OnEndMove += (Movement movement) => { OnMoveChange(false); };
+                movement.AddListener(eMovementEvent.OnStartMove, () => { OnMoveChange(true); }, this);
+                movement.AddListener(eMovementEvent.OnEndMove, () => { OnMoveChange(false); }, this);
             }
 
             if (character)

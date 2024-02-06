@@ -152,30 +152,24 @@ namespace Architome.Tutorial
             base.StartEventListener();
             if (moveToType == MoveToType.StartMove)
             {
-                movement.OnStartMove += OnStartMove; 
+                movement.AddListenerLimit(eMovementEvent.OnStartMove, () => {
+                    CompleteEventListener();
+                }, this);
                 return;
             }
 
             if (moveToType == MoveToType.QuickMoveOnly)
             {
-                movement.OnQuickMove += OnQuickMove;
+                movement.AddListenerLimit(eMovementEvent.OnQuickMove, () => {
+                    CompleteEventListener();
+                }, this);
             }
 
 
 
+
+
             HandleLocation();
-        }
-
-        void OnQuickMove(Movement movement)
-        {
-            movement.OnQuickMove -= OnQuickMove;
-            CompleteEventListener();
-        }
-
-        void OnStartMove(Movement movement)
-        {
-            movement.OnStartMove -= OnStartMove;
-            CompleteEventListener();
         }
     }
 }

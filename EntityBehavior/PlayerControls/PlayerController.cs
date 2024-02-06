@@ -209,7 +209,6 @@ public class PlayerController : MonoBehaviour
             MoveTo(location);
             if (isFromPartyControl)
             {
-                movement.OnQuickMove?.Invoke(movement);
                 movement.Invoke(new(eMovementEvent.OnQuickMove, movement, movement.Target()));
             }
         }

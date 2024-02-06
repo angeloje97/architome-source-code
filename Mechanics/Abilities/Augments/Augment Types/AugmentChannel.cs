@@ -40,20 +40,15 @@ namespace Architome
                     entityMovement = augment.entity.Movement();
                 }
 
-
                 abilityManager = ability.GetComponentInParent<AbilityManager>();
-
-                augment.OnRemove += (Augment augment) => {
-
-                    if (entityMovement)
-                    {
-                        entityMovement.OnStartMove -= OnStartMove;
-                    }
-                };
 
                 if (entityMovement)
                 {
-                    entityMovement.OnStartMove += OnStartMove;
+                    var unsubscribe = entityMovement.AddListener(eMovementEvent.OnStartMove, OnStartMove, this);
+
+                    augment.OnRemove += (Augment augment) => {
+                        unsubscribe();
+                    };
                 }
 
                 HandleBusyCheck();
@@ -187,7 +182,7 @@ namespace Architome
                 ability.OnBusyCheck -= action;
             };
         }
-        public void OnStartMove(Movement movement)
+        public void OnStartMove(MovementEventData movement)
         {
             if (!active) return;
             if (cancelChannelOnMove)

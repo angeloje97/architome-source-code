@@ -33,8 +33,8 @@ public class SocialBehavior : MonoBehaviour
 
         if (movement)
         {
-            movement.OnEndMove += OnEndMove;
-            movement.OnStartMove += OnStartMove;
+            movement.AddListener(eMovementEvent.OnEndMove, OnEndMove, this);
+            movement.AddListener(eMovementEvent.OnStartMove, OnStartMove, this);
         }
     }
     void Start()
@@ -55,12 +55,12 @@ public class SocialBehavior : MonoBehaviour
         
     }
 
-    void OnStartMove(Movement movement)
+    void OnStartMove()
     {
         isMoving = true;
     }
 
-    void OnEndMove(Movement movement)
+    void OnEndMove()
     {
         isMoving = false;
     }

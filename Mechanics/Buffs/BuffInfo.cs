@@ -6,6 +6,8 @@ using Architome.Enums;
 using System;
 using Architome;
 
+
+#region Buff Properties
 [Serializable]
 public class BuffProperties
 {
@@ -29,11 +31,14 @@ public class BuffProperties
     public bool reapplyResetsBuff;
     
 }
+#endregion
+
+#region BuffInfo
 
 [RequireComponent(typeof(BuffFXHandler))]
 public class BuffInfo : MonoBehaviour
 {
-
+    #region Common Data
     [SerializeField] int id;
     public int _id
     {
@@ -81,16 +86,6 @@ public class BuffInfo : MonoBehaviour
 
 
 
-    [Serializable]
-    public struct CleanseConditions {
-        public bool enterCombat, exitCombat, damageTaken, isMoving;
-    }
-
-    [SerializeField]
-    public struct UISettings
-    {
-        public bool hideBuff;
-    }
 
     [Header("Buff Properties")]
     public DamageType damageType;
@@ -100,8 +95,23 @@ public class BuffInfo : MonoBehaviour
     public float progress;
 
     public bool failed { get; set; }
-
     public bool IsComplete { get { return buffTimeComplete; } }
+
+    public BuffFX effects;
+    #endregion
+
+    #region Common Classes
+    [Serializable]
+    public struct CleanseConditions {
+        public bool enterCombat, exitCombat, damageTaken, isMoving;
+
+    }
+
+    [SerializeField]
+    public struct UISettings
+    {
+        public bool hideBuff;
+    }
 
 
     [Serializable]
@@ -134,10 +144,12 @@ public class BuffInfo : MonoBehaviour
         [Header("Transform Effects")]
         public bool shrinkOnEnd;
     }
+    #endregion
 
-    public BuffFX effects;
 
     //Events
+    #region Events
+
     public Action<BuffInfo> OnAcquireVessel;
     public Action<BuffInfo> OnBuffStart;
     public Action<BuffInfo> OnBuffCompletion;
@@ -149,6 +161,7 @@ public class BuffInfo : MonoBehaviour
     public Action<CombatEventData> OnBuffHeal;
     public Action<BuffInfo, int, float> OnStack;
     public Action<BuffInfo, float, float> OnChangeValue;
+    #endregion
 
     LayerMask structureLayer;
     LayerMask entityLayer;
@@ -727,3 +740,4 @@ public class BuffInfo : MonoBehaviour
     }
 
 }
+#endregion
