@@ -13,7 +13,13 @@ namespace Architome
         // Start is called before the first frame update
         public EntityInfo entityInfo;
 
+        #region Initiation
         public bool initiated { get; private set; }
+
+        protected virtual async void Start()
+        {
+            await Initiate();
+        }
 
         protected async Task Initiate()
         {
@@ -55,16 +61,14 @@ namespace Architome
 
         public virtual void GetDependencies() { }
 
+        #endregion
 
         public async Task UntilInitiationComplete()
         {
             await ArchAction.WaitUntil(() => initiated, true);
         }
 
-        protected virtual async void Start()
-        {
-            await Initiate();
-        }
+        #region Loop
 
         protected virtual void Update()
         {
@@ -76,6 +80,7 @@ namespace Architome
         {
 
         }
+        #endregion
     }
 
 }

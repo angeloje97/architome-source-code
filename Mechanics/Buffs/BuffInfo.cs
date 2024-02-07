@@ -98,12 +98,20 @@ public class BuffInfo : MonoBehaviour
     public bool IsComplete { get { return buffTimeComplete; } }
 
     public BuffFX effects;
+
+    LayerMask structureLayer;
+    LayerMask entityLayer;
     #endregion
 
     #region Common Classes
     [Serializable]
     public struct CleanseConditions {
         public bool enterCombat, exitCombat, damageTaken, isMoving;
+
+        public void InitiateCleanseConditions(BuffInfo buff)
+        {
+
+        }
 
     }
 
@@ -163,8 +171,6 @@ public class BuffInfo : MonoBehaviour
     public Action<BuffInfo, float, float> OnChangeValue;
     #endregion
 
-    LayerMask structureLayer;
-    LayerMask entityLayer;
 
 
     public static List<BuffInfo> buffs;
@@ -180,8 +186,10 @@ public class BuffInfo : MonoBehaviour
         ArchAction.Yield(() => { 
             if(!failed) OnBuffStart?.Invoke(this);
             if (properties.time <= 0 && !properties.infiniteTime) Expire();
-                
         });
+
+        cleanseConditions.InitiateCleanseConditions(this);
+
     }
     private void Update()
     {

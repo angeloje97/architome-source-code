@@ -15,6 +15,7 @@ namespace Architome.Events
         [SerializeField] List<EventItem> eventItems;
         Dictionary<T, List<EventItem>> subsets;
         Component source;
+        MonoActor actor;
         Dictionary<T, Action<E>> eventDict;
 
         List<Func<Task>> tasksToFinish;
@@ -27,6 +28,16 @@ namespace Architome.Events
         public ArchEventHandler(Component source, LogicType defaultLogic = LogicType.NoFalse)
         {
             this.source = source;
+            eventDict = new();
+            this.defaultLogic = defaultLogic;
+
+            CreateSubsets();
+        }
+
+        public ArchEventHandler(MonoActor actor, LogicType defaultLogic = LogicType.NoFalse)
+        {
+            this.actor = actor;
+            this.source = actor;
             eventDict = new();
             this.defaultLogic = defaultLogic;
 
@@ -55,17 +66,43 @@ namespace Architome.Events
         #endregion
 
         #region Listener
-        public Action AddListenerLimit(T eventType, Action<E> action, Component listener, int count = 1)
-        {
-            Action unsubscribe = () => { };
-            var currentCount = 0;
-            unsubscribe = AddListener(eventType, (E data) => {
-                action(data);
-                currentCount++;
-                if (currentCount >= count) unsubscribe();
-            }, listener);
 
-            return unsubscribe;
+        public Action AddListener(T eventType, Action<E> action, MonoActor actor)
+        {
+            if (this.actor == null) return () => { };
+
+            if (!eventDict.ContainsKey(eventType))
+            {
+                eventDict.Add(eventType, null);
+            }
+
+            var unsubscribed = false;
+
+            actor.AddListener(eMonoEvent.OnDestroy, Unsubscribe, this.actor);
+
+            this.actor.AddListener(eMonoEvent.OnDestroy, Unsubscribe , this.actor);
+
+            eventDict[eventType] += MiddleWare;
+
+            return Unsubscribe;
+
+            void Unsubscribe()
+            {
+                if (unsubscribed) return;
+                unsubscribed = true;
+
+                eventDict[eventType] -= MiddleWare;
+            }
+
+            void MiddleWare(E data)
+            {
+                action(data);
+            }
+        }
+
+        public Action AddListener(T eventType, Action action, MonoActor actor)
+        {
+            return AddListener(eventType, (E eventData) => { action(); }, actor);
         }
 
         public Action AddListener(T eventType, Action<E> action, Component listener)
@@ -103,6 +140,34 @@ namespace Architome.Events
             }
         }
 
+        public Action AddListener(T eventType, Action action, Component listener)
+        {
+            return AddListener(eventType, (E e) => {
+                action();
+            }, listener);
+        }
+
+        public Action AddListenerLimit(T eventType, Action<E> action, Component listener, int count = 1)
+        {
+            Action unsubscribe = () => { };
+            var currentCount = 0;
+            unsubscribe = AddListener(eventType, MiddleWare, listener);
+
+            return unsubscribe;
+
+            void MiddleWare(E data)
+            {
+                action(data);
+                currentCount++;
+                if (currentCount >= count) unsubscribe();
+            }
+        }
+
+        public Action AddListenerLimit(T eventType, Action action, Component listener, int count = 1)
+        {
+            return AddListenerLimit(eventType, (E e) => { action(); }, listener, count);
+        }
+
         public Action AddListenerInterval(T eventType, Action<E> action, Component listener, int interval = 1)
         {
             var current = 0;
@@ -116,23 +181,11 @@ namespace Architome.Events
             }, listener);
         }
 
-        public Action AddListenerLimit(T eventType, Action action, Component listener, int count = 1)
-        {
-            return AddListenerLimit(eventType, (E e) => { action(); }, listener, count);
-        }
-
         public Action AddListenerInterval(T eventType, Action action, Component listener, int interval)
         {
             return AddListenerInterval(eventType, (E data) => {
                 action();
             }, listener, interval);
-        }
-
-        public Action AddListener(T eventType, Action action, Component listener)
-        {
-            return AddListener(eventType, (E e) => {
-                action();
-            }, listener);
         }
 
         public Action AddListenerTask(T eventType, Action<E, List<Func<Task>>> action, Component listener)
