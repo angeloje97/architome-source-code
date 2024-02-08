@@ -108,9 +108,48 @@ public class BuffInfo : MonoBehaviour
     public struct CleanseConditions {
         public bool enterCombat, exitCombat, damageTaken, isMoving;
 
+        BuffInfo buff;
+
+        EntityInfo entity => buff.sourceInfo;
         public void InitiateCleanseConditions(BuffInfo buff)
         {
+            return;
 
+            if (enterCombat)
+            {
+                entity.OnCombatChange += (bool inCombat) => {
+                    if(inCombat) buff.Cleanse();
+                };
+            }
+
+            if (exitCombat)
+            {
+                entity.OnCombatChange += (bool inCombat) => {
+                    if (!inCombat) buff.Cleanse();
+                };
+            }
+
+            if (damageTaken)
+            {
+                entity.OnDamageTaken += (CombatEventData eventData) => {
+                    if (eventData.value <= 0) return;
+                    buff.Cleanse();
+                };
+            }
+
+            if (isMoving)
+            {
+                var movement = entity.Movement();
+                if (movement)
+                {
+                    if (movement.isMoving) buff.Cleanse();
+                    return;
+
+                    movement.AddListener(eMovementEvent.OnStartMove, () => {
+                        buff.Cleanse("From Cleanse Condition: IsMoving");
+                    }, buff);
+                }
+            }
         }
 
     }

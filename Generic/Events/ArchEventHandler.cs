@@ -76,23 +76,23 @@ namespace Architome.Events
                 eventDict.Add(eventType, null);
             }
 
+            Action unsubscribe = () => { };
+
             var unsubscribed = false;
 
-            actor.AddListener(eMonoEvent.OnDestroy, Unsubscribe, this.actor);
-
-            this.actor.AddListener(eMonoEvent.OnDestroy, Unsubscribe , this.actor);
+            var unsubScribeFromListener = actor.AddListener(eMonoEvent.OnDestroy, unsubscribe, this.actor);
 
             eventDict[eventType] += MiddleWare;
 
-            return Unsubscribe;
-
-            void Unsubscribe()
-            {
+            unsubscribe += () => {
                 if (unsubscribed) return;
                 unsubscribed = true;
 
                 eventDict[eventType] -= MiddleWare;
-            }
+                unsubScribeFromListener();
+            };
+
+            return unsubscribe;
 
             void MiddleWare(E data)
             {
