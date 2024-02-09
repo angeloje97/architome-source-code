@@ -19,12 +19,16 @@ namespace Architome
 
         public bool lethalDamage { get; set; }
 
+        public bool sourceInCombat => source.isInCombat;
+        public bool targetInCombat => target.isInCombat;
+        
         public CombatEventData(CatalystInfo catalyst, EntityInfo source, float value)
         {
             this.catalyst = catalyst;
             this.ability = catalyst.abilityInfo;
             this.source = source;
             this.value = value;
+
         }
 
         public CombatEventData(BuffInfo buff, float value)
