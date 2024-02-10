@@ -8,7 +8,9 @@ namespace Architome
 {
     public enum eMonoEvent
     {
-        OnDestroy
+        OnDestroy,
+        OnEnable,
+        OnDisable,
     }
 
     #region MonoListener
@@ -34,10 +36,21 @@ namespace Architome
 
         #endregion
 
-        #region Destroy
+        #region Events
 
         private void OnDestroy()
         {
+            Invoke(eMonoEvent.OnDestroy, this);
+        }
+
+        private void OnEnable()
+        {
+            Invoke(eMonoEvent.OnEnable, this);
+        }
+
+        private void OnDisable()
+        {
+            Invoke(eMonoEvent.OnDisable, this);
         }
 
         #endregion
