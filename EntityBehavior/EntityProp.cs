@@ -45,7 +45,7 @@ namespace Architome
                 }
 
                 if (entityInfo == null) throw new Exception($"Could not find source entity for {gameObject.name} gameObject");
-
+                if (this == null) return;
                 GetDependencies();
                 await GetDependenciesTask();
                 initiated = true;

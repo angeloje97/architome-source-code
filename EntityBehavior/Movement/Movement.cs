@@ -608,6 +608,11 @@ namespace Architome
             return InvokeCheck(eventData, false, LogicType.NotExists);
         }
 
+        public bool TargetIsMovementLocation(GameObject target)
+        {
+            return target == location;
+        }
+
         #endregion
 
         async public Task<Transform> NextPathTarget()

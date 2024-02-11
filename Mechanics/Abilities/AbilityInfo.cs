@@ -21,7 +21,7 @@ namespace Architome
         AlternateCasting,
         AugmentAbility,
     }
-    public class AbilityInfo : MonoBehaviour
+    public class AbilityInfo : EntityProp
     {
         // Start is called before the first frame update
         [SerializeField] int id;
@@ -63,7 +63,6 @@ namespace Architome
         //public BuffProperties buffProperties;
 
         public AbilityManager abilityManager;
-        public EntityInfo entityInfo;
         public Movement movement;
         public CatalystInfo catalystInfo;
         public LineOfSight lineOfSight;
@@ -238,7 +237,7 @@ namespace Architome
                 return abilityManager.events;
             }
         }
-        public void GetDependencies()
+        public override void GetDependencies()
         {
             entityInfo = GetComponentInParent<EntityInfo>();
 
@@ -282,10 +281,7 @@ namespace Architome
             }
 
             UpdateAbility();
-        }
-        void Start()
-        {
-            GetDependencies();
+
             HandleInitiates();
             HandleEvents();
 
@@ -299,7 +295,7 @@ namespace Architome
             }
         }
 
-        void Update()
+        public override void EUpdate()
         {
             HandleDeadTarget();
         }

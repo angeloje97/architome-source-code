@@ -7,13 +7,12 @@ using System;
 
 namespace Architome
 {
-    public class BuffsManager : MonoBehaviour
+    public class BuffsManager : EntityProp
     {
         // Start is called before the first frame update
         public List<GameObject> buffObjects;
 
         public GameObject entityObject;
-        public EntityInfo entityInfo;
         public CharacterInfo character;
         public Movement movement;
         public Stats stats;
@@ -21,7 +20,7 @@ namespace Architome
         public Action<BuffData> OnBuffStack;
         public Action<BuffData> OnBuffTimerReset;
         public Action<BuffData> OnResetBuff;
-        public void GetDependencies()
+        public override void GetDependencies()
         {
             entityInfo = GetComponentInParent<EntityInfo>();
             if (entityInfo)
@@ -50,13 +49,9 @@ namespace Architome
             }
 
         }
-        void Start()
-        {
-            GetDependencies();
-        }
 
         // Update is called once per frame
-        void Update()
+        public override void EUpdate()
         {
 
         }

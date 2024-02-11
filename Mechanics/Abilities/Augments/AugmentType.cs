@@ -12,7 +12,7 @@ namespace Architome
     {
         [Header("AugmentType Properties")]
         public Augment augment;
-        protected AbilityInfo ability;
+        protected AbilityInfo ability => augment.ability;
 
         public float value;
         public float valueContribution = 1f;
@@ -23,28 +23,32 @@ namespace Architome
         [SerializeField] protected bool ignoreDescription;
 
 
-        async void Start()
+        protected virtual void Start()
         {
-            await GetDependencies(null);
+            InitiateAugmentType();
         }
-        protected async Task GetDependencies(Action onSuccess)
+        async void InitiateAugmentType()
         {
             augment = GetComponent<Augment>();
 
 
             await augment.UntilDependenciesAcquired();
-                        
-            
+
+
             if (augment)
             {
                 value = valueContribution * augment.info.value;
-                ability = augment.ability;
             }
 
-            if(augment != null && augment.ability != null)
+            if (augment != null && augment.ability != null)
             {
-                onSuccess?.Invoke();
+                GetDependencies();
             }
+        }
+
+        protected virtual void GetDependencies()
+        {
+            
         }
 
         public virtual async Task<bool> Ability()

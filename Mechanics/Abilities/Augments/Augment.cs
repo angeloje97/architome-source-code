@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
 using Architome.Events;
+using Language.Lua;
 
 namespace Architome
 {
@@ -66,9 +67,17 @@ namespace Architome
         async Task GetDependencies()
         {
             ability = GetComponentInParent<AbilityInfo>();
+
+
+            await UntilParentAugmentCompleted();
+            await ability.UntilInitiationComplete();
+
+
+
+            if (this == null) return;
             
             augmentCataling = transform.parent.GetComponent<AugmentCataling>();
-            entity = GetComponentInParent<EntityInfo>();
+            entity = ability.entityInfo;
 
             while (ability.abilityManager == null)
             {
@@ -118,6 +127,16 @@ namespace Architome
                 events.Invoke(AugmentEvent.OnAttach, new(this));
             }, .125f);
         }
+
+        async Task UntilParentAugmentCompleted()
+        {
+            var parent = transform.parent;
+            var parentAugment = parent.GetComponent<Augment>();
+            if (parentAugment == null) return;
+
+            await parentAugment.UntilDependenciesAcquired();
+        }
+
         public void HandleRestrictions()
         {
             var firstAugment = FirstAugment;
@@ -161,9 +180,15 @@ namespace Architome
             return events.AddListener(eventType, action, listener);
         }
 
-        public async Task UntilDependenciesAcquired()
+        public async Task<bool> UntilDependenciesAcquired()
         {
-            while (!dependenciesAcquired) await Task.Yield();
+            while (!dependenciesAcquired)
+            {
+                if (this == null) return false;
+                await Task.Yield();
+            }
+
+            return true;
         }
         Augment FirstAugment
         {

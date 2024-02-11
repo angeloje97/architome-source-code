@@ -29,6 +29,9 @@ namespace Architome
             StopAllParticles();
 
             movement = GetComponentInParent<Movement>();
+
+            movement.AddListener(eMovementEvent.OnTryMove, PlayTryMove, this);
+
         }
 
         void StopAllParticles()
@@ -45,11 +48,13 @@ namespace Architome
         //    particles.tryMove.Play(true);
         //}
 
-        public void PlayTryMove()
+        public void PlayTryMove(MovementEventData eventData)
         {
             if (particles.tryMove == null) return;
             if (entityInfo.rarity != Enums.EntityRarity.Player) return;
+            if (!movement.TargetIsMovementLocation(eventData.target.gameObject)) return;
             particles.tryMove.Play(true);
+
         }
 
 
