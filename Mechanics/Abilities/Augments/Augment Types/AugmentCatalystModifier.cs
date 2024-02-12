@@ -11,11 +11,10 @@ namespace Architome
         public int additiveTicks;
         public float additiveRange, additiveLiveTime, additiveSpeed;
 
-        async void Start()
+
+        protected override void GetDependencies()
         {
-            await GetDependencies(() => {
-                EnableCatalyst();
-            });
+            EnableCatalyst();
         }
 
         public override async void HandleNewCatlyst(CatalystInfo catalyst)

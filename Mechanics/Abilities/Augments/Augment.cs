@@ -15,6 +15,8 @@ namespace Architome
     {
         int id;
 
+        #region Common Data
+
         public new string name;
         [Multiline]
         public string description;
@@ -43,11 +45,20 @@ namespace Architome
         public Action<CatalystInfo> OnNewCatalyst;
         public Action<Augment> OnRemove;
         ArchEventHandler<AugmentEvent, AugmentEventData> events { get; set; }
+        Augment FirstAugment
+        {
+            get
+            {
+                var augments = ability.GetComponentsInChildren<Augment>();
 
+                return augments[0];
+            }
+        }
+
+        #endregion
+
+        #region Initiation
         bool dependenciesAcquired { get; set; }
-        bool removed;
-
-
         async void Start()
         {
             await GetDependencies();
@@ -68,75 +79,98 @@ namespace Architome
         {
             ability = GetComponentInParent<AbilityInfo>();
 
-
-            await UntilParentAugmentCompleted();
-            await ability.UntilInitiationComplete();
-
-
-
-            if (this == null) return;
-            
-            augmentCataling = transform.parent.GetComponent<AugmentCataling>();
-            entity = ability.entityInfo;
-
-            while (ability.abilityManager == null)
+            try
             {
+                var success = await UntilParentAugmentCompleted();
+
+                if (!success)
+                {
+                    throw new Exception("Parent augment never completed initiation");
+                }
+
+                await ability.UntilInitiationComplete();
+
+                if (this == null) return;
+
+                augmentCataling = transform.parent.GetComponent<AugmentCataling>();
+                entity = ability.entityInfo;
+
+                while (ability.abilityManager == null)
+                {
+                    await Task.Yield();
+                }
+
+                abilityManager = ability.abilityManager;
+
+
+                if (augmentCataling)
+                {
+
+                    augmentCataling.AddListener(AugmentCatalingEvent.OnReleaseCataling, ((AugmentEventData, CatalystInfo, CatalystInfo) tuple) => {
+                        OnNewCatalyst?.Invoke(tuple.Item3);
+                        UpdateDeathConditions(tuple.Item3);
+                    }, this);
+
+                    catalystTarget = CatalystTarget.Cataling;
+                    dependenciesAcquired = true;
+
+                    info.value = augmentCataling.value * info.valueContributionToAugment;
+                    return;
+                }
+
+                if (ability)
+                {
+                    info.value = ability.value * info.valueContributionToAugment;
+
+                    Action<CatalystInfo> action = (CatalystInfo catalyst) => {
+                        OnNewCatalyst?.Invoke(catalyst);
+                        UpdateDeathConditions(catalyst);
+                    };
+
+                    ability.OnCatalystRelease += action;
+
+                    OnRemove += (Augment augment) => {
+                        ability.OnCatalystRelease -= action;
+                    };
+                    catalystTarget = CatalystTarget.Catalyst;
+                }
+
+                await Task.Delay(125);
+                if (this == null) return;
+
+                dependenciesAcquired = true;
+                ArchAction.Delay(() => {
+                    events.Invoke(AugmentEvent.OnAttach, new(this));
+                }, .125f);
+            }
+            catch(Exception e)
+            {
+                Defect.CreateIndicator(transform, "Augment initialization problem", e);
+            }
+            
+        }
+
+        async Task<bool> UntilParentAugmentCompleted()
+        {
+
+            var parent = transform.parent;
+            var parentAugment = parent.GetComponent<Augment>();
+            if (parentAugment == null) return true;
+
+            var successful = await parentAugment.UntilDependenciesAcquired();
+
+            return successful;
+        }
+        public async Task<bool> UntilDependenciesAcquired()
+        {
+            while (!dependenciesAcquired)
+            {
+                if (this == null) return false;
                 await Task.Yield();
             }
 
-            abilityManager = ability.abilityManager;
-
-            
-            if (augmentCataling)
-            {
-
-                augmentCataling.AddListener(AugmentCatalingEvent.OnReleaseCataling, ((AugmentEventData, CatalystInfo, CatalystInfo) tuple) => {
-                    OnNewCatalyst?.Invoke(tuple.Item3);
-                    UpdateDeathConditions(tuple.Item3);
-                }, this);
-
-                catalystTarget = CatalystTarget.Cataling;
-                dependenciesAcquired = true;
-
-                info.value = augmentCataling.value * info.valueContributionToAugment;
-                return;
-            }
-
-            if (ability)
-            {
-                info.value = ability.value * info.valueContributionToAugment;
-
-                Action<CatalystInfo> action = (CatalystInfo catalyst) => {
-                    OnNewCatalyst?.Invoke(catalyst);
-                    UpdateDeathConditions(catalyst);
-                };
-
-                ability.OnCatalystRelease += action;
-
-                OnRemove += (Augment augment) => {
-                    ability.OnCatalystRelease -= action;
-                };
-                catalystTarget = CatalystTarget.Catalyst;
-            }
-
-            await Task.Delay(125);
-            if (this == null) return;
-
-            dependenciesAcquired = true;
-            ArchAction.Delay(() => {
-                events.Invoke(AugmentEvent.OnAttach, new(this));
-            }, .125f);
+            return true;
         }
-
-        async Task UntilParentAugmentCompleted()
-        {
-            var parent = transform.parent;
-            var parentAugment = parent.GetComponent<Augment>();
-            if (parentAugment == null) return;
-
-            await parentAugment.UntilDependenciesAcquired();
-        }
-
         public void HandleRestrictions()
         {
             var firstAugment = FirstAugment;
@@ -174,31 +208,6 @@ namespace Architome
                 ability.restrictions.Subtract(subtractiveRestrictions);
             }
         }
-
-        public Action AddListener(AugmentEvent eventType, Action<AugmentEventData> action, Component listener)
-        {
-            return events.AddListener(eventType, action, listener);
-        }
-
-        public async Task<bool> UntilDependenciesAcquired()
-        {
-            while (!dependenciesAcquired)
-            {
-                if (this == null) return false;
-                await Task.Yield();
-            }
-
-            return true;
-        }
-        Augment FirstAugment
-        {
-            get
-            {
-                var augments = ability.GetComponentsInChildren<Augment>();
-
-                return augments[0];
-            }
-        }
         async void UpdateDeathConditions(CatalystInfo catalyst)
         {
             var deathCondition = catalyst.GetComponent<CatalystDeathCondition>();
@@ -210,6 +219,14 @@ namespace Architome
 
             deathCondition.conditions.Subtract(subtractiveDestroyConditions);
         }
+
+        #endregion
+        public Action AddListener(AugmentEvent eventType, Action<AugmentEventData> action, Component listener)
+        {
+            return events.AddListener(eventType, action, listener);
+        }
+
+        #region Description
         public string Description()
         {
             var result = "";
@@ -233,6 +250,11 @@ namespace Architome
             }
             return result;
         }
+        #endregion
+
+        #region Remove Handler
+        bool removed { get; set; }
+
         public async void RemoveAugment()
         {
             events.Invoke(AugmentEvent.OnRemove, new(this));
@@ -249,7 +271,9 @@ namespace Architome
         {
             removed = true;
         }
+        #endregion
 
+        #region Trigger Handler
         public int amountsTriggered;
         public bool resetTriggerAtAmount;
         public int amountToReset;
@@ -283,6 +307,7 @@ namespace Architome
             eventData.eventTrigger = AugmentEvent.OnAugmentActive;
             events.Invoke(AugmentEvent.OnAugmentActive, eventData);
         }
+        #endregion
 
         public class AugmentEventData
         {

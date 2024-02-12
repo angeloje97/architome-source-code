@@ -32,8 +32,8 @@ namespace Architome
             augment = GetComponent<Augment>();
 
 
-            await augment.UntilDependenciesAcquired();
-
+            var successful = await augment.UntilDependenciesAcquired();
+            if (!successful) return;
 
             if (augment)
             {

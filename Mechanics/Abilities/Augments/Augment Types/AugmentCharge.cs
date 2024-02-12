@@ -20,19 +20,18 @@ namespace Architome
         public CatalystManager catalystManager;
 
 
-        async void Start()
+        protected override void GetDependencies()
         {
-            await GetDependencies(() => {
-                EnableCatalyst();
-                catalystManager = CatalystManager.active;
+            EnableCatalyst();
+            catalystManager = CatalystManager.active;
 
-                var collider = augment.entity.GetComponent<BoxCollider>();
-                heightOffSet = collider.size.y / 2;
-                var layerMasksData = LayerMasksData.active;
+            var collider = augment.entity.GetComponent<BoxCollider>();
+            heightOffSet = collider.size.y / 2;
+            var layerMasksData = LayerMasksData.active;
 
-                groundLayer = layerMasksData.walkableLayer;
-            });
+            groundLayer = layerMasksData.walkableLayer;
         }
+
 
         public override void HandleNewCatlyst(CatalystInfo catalyst)
         {

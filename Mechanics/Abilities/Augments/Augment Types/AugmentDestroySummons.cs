@@ -6,13 +6,9 @@ namespace Architome
 {
     public class AugmentDestroySummons : AugmentType
     {
-        // Start is called before the first frame update
-        async void Start()
+        protected override void GetDependencies()
         {
-            await GetDependencies(() => {
-
-                EnableCatalyst();
-            });
+            EnableCatalyst();
         }
 
         public override void HandleNewCatlyst(CatalystInfo catalyst)

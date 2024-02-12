@@ -21,32 +21,31 @@ namespace Architome
         LayerMask structureLayerMask;
         LayerMask entityLayer;
 
-        async void Start()
+
+        protected override void GetDependencies()
         {
-            await GetDependencies(() => {
-                EnableCatalyst();
+            EnableCatalyst();
 
-                var layerMaskData = LayerMasksData.active;
-                if (layerMaskData != null)
-                {
-                    structureLayerMask = layerMaskData.structureLayerMask;
-                    entityLayer = layerMaskData.entityLayerMask;
-                }
+            var layerMaskData = LayerMasksData.active;
+            if (layerMaskData != null)
+            {
+                structureLayerMask = layerMaskData.structureLayerMask;
+                entityLayer = layerMaskData.entityLayerMask;
+            }
 
-                if (manifestAbilityRequiresLOS)
-                {
-                    requiresLos = augment.ability.restrictions.requiresLineOfSight;
-                }
+            if (manifestAbilityRequiresLOS)
+            {
+                requiresLos = augment.ability.restrictions.requiresLineOfSight;
+            }
 
-                if (ability.abilityType == AbilityType.LockOn)
-                {
-                    seekTargets = true;
-                }
-                else
-                {
-                    structureBounce = true;
-                }
-            });
+            if (ability.abilityType == AbilityType.LockOn)
+            {
+                seekTargets = true;
+            }
+            else
+            {
+                structureBounce = true;
+            }
         }
 
         protected override string Description()

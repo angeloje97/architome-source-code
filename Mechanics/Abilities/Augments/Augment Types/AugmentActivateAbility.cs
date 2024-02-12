@@ -9,12 +9,10 @@ namespace Architome
     {
         [Header("Activate Ability Properties")]
         public AbilityInfo abilityToActivate;
-        async void Start()
-        {
 
-            await GetDependencies(() => {
-                EnableSuccesfulCast();
-            });
+        protected override void GetDependencies()
+        {
+            EnableSuccesfulCast();
         }
 
         protected override string Description()

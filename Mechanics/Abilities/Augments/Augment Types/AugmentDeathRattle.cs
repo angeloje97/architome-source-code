@@ -2,30 +2,24 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
+using TMPro.EditorUtilities;
 
 namespace Architome
 {
     public class AugmentDeathRattle : AugmentType
     {
-        // Start is called before the first frame update
-        async void Start()
-        {
-            await GetDependencies(() => {
-                if (augment.ability.abilityType != AbilityType.Use) return;
-
-                var entity = augment.entity;
-
-                if (entity)
-                {
-                    entity.OnLifeChange += OnEntityLifeChange;
-                }
-            });
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
         
+
+        protected override void GetDependencies()
+        {
+            if (augment.ability.abilityType != AbilityType.Use) return;
+
+            var entity = augment.entity;
+
+            if (entity)
+            {
+                entity.OnLifeChange += OnEntityLifeChange;
+            }
         }
 
         void OnEntityLifeChange(bool isAlive)

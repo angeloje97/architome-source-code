@@ -17,7 +17,7 @@ namespace Architome
 
     public class AugmentCataling : AugmentType
     {
-        
+        [Header("Augment cataling")]
 
         public GameObject cataling;
         public CatalystInfo catalingInfo;
@@ -39,14 +39,11 @@ namespace Architome
 
         ArchEventHandler<AugmentCatalingEvent, (Augment.AugmentEventData, CatalystInfo, CatalystInfo)> events;
 
-        async void Start()
+        protected override void GetDependencies()
         {
+            catalingInfo = cataling.GetComponent<CatalystInfo>();
 
-            await GetDependencies(() => {
-                catalingInfo = cataling.GetComponent<CatalystInfo>();
-
-                EnableCatalyst();
-            });
+            EnableCatalyst();
         }
 
         private void Awake()
