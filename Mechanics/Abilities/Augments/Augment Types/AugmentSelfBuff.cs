@@ -15,18 +15,16 @@ namespace Architome
 
         [SerializeField] bool update;
         [SerializeField] bool casting;
-        async void Start()
+        
+        protected override void GetDependencies()
         {
+            buffManager = augment.entity.Buffs();
 
-            await GetDependencies(() => {
-                buffManager = augment.entity.Buffs();
+            if (buffManager == null) return;
 
-                if (buffManager == null) return;
-
-                EnableSuccesfulCast();
-                EnableAbilityStartEnd();
-                EnableAbilityStartEnd();
-            });
+            EnableSuccesfulCast();
+            EnableAbilityStartEnd();
+            EnableAbilityStartEnd();
         }
 
         private void OnValidate()

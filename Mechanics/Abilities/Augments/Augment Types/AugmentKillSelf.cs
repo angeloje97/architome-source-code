@@ -6,12 +6,10 @@ namespace Architome
 {
     public class AugmentKillSelf : AugmentType
     {
-        // Start is called before the first frame update
-        async void Start()
+       
+        protected override void GetDependencies()
         {
-            await GetDependencies(() => {
-                EnableSuccesfulCast();
-            });
+            EnableSuccesfulCast();
         }
 
         public override void HandleSuccessfulCast(AbilityInfo ability)

@@ -14,14 +14,12 @@ namespace Architome
 
         public bool appliesBuffs, appliesHealing;
 
-        async void Start()
+
+        protected override void GetDependencies()
         {
+            EnableCatalyst();
 
-            await GetDependencies(() => {
-                EnableCatalyst();
-
-                catalystsReturning = new();
-            });
+            catalystsReturning = new();
         }
 
         protected override string Description()
