@@ -22,17 +22,15 @@ namespace Architome
 
         LayerMask groundLayer;
 
-        async void Start()
+        protected override void GetDependencies()
         {
-            await GetDependencies(() => {
-                EnableCatalyst();
+            EnableCatalyst();
 
-                var layerMaskData = LayerMasksData.active;
-                if (layerMaskData)
-                {
-                    groundLayer = layerMaskData.walkableLayer;
-                }
-            });
+            var layerMaskData = LayerMasksData.active;
+            if (layerMaskData)
+            {
+                groundLayer = layerMaskData.walkableLayer;
+            }
         }
         void Update()
         {

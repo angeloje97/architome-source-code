@@ -9,6 +9,8 @@ namespace Architome
 {
     public class AugmentTask : AugmentType
     {
+        #region Common Data
+
         [Header("Task Properties")]
 
         public int validReceiver;
@@ -18,16 +20,14 @@ namespace Architome
         public int targetActivationAmount;
 
         public HashSet<AugmentTaskActivator> currentTaskActivators;
+        #endregion
 
-        private async void Start()
+
+        protected override void GetDependencies()
         {
-
-            await GetDependencies(() => {
-                EnableTasks();
-                EnableCombatChange();
-                augment.OnRemove += HandleRemoveAugment;
-            });
-
+            EnableTasks();
+            EnableCombatChange();
+            augment.OnRemove += HandleRemoveAugment;
             currentTaskActivators = new();
         }
 

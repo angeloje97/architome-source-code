@@ -48,20 +48,19 @@ namespace Architome
         LayerMask obstructionLayer;
         WorldActions world;
 
-        async void Start()
+
+        protected override void GetDependencies()
         {
-            await GetDependencies(() => {
-                world = WorldActions.active;
+            world = WorldActions.active;
 
-                var layerMasksData = LayerMasksData.active;
+            var layerMasksData = LayerMasksData.active;
 
-                if (layerMasksData)
-                {
-                    obstructionLayer = layerMasksData.structureLayerMask;
-                }
+            if (layerMasksData)
+            {
+                obstructionLayer = layerMasksData.structureLayerMask;
+            }
 
-                EnableCatalyst();
-            });
+            EnableCatalyst();
         }
 
         private void OnValidate()

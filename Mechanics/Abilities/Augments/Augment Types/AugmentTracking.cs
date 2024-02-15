@@ -7,6 +7,7 @@ namespace Architome
 {
     public class AugmentTracking : AugmentType
     {
+        #region Common Data
         [Header("Tracking Properties")]
         public TrackingType trackingType;
         public float trackingInterpolation;
@@ -22,13 +23,13 @@ namespace Architome
 
         bool predicting;
         bool tracking;
-        
-        async void Start()
+
+        #endregion
+
+        protected override void GetDependencies()
         {
-            await GetDependencies(() => {
-                EnableCasting();
-                catalystSpeed = augment.ability.catalystInfo.speed;
-            });
+            EnableCasting();
+            catalystSpeed = augment.ability.catalystInfo.speed;
         }
 
         public override async void WhileCasting(AbilityInfo ability)

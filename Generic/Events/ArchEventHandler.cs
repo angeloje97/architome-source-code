@@ -234,6 +234,7 @@ namespace Architome.Events
             tasksToFinish = new();
             if (source == null) return tasksToFinish.ToList();
             if (!eventDict.ContainsKey(eventType)) return tasksToFinish.ToList();
+
             eventDict[eventType]?.Invoke(eventData);
 
             return tasksToFinish.ToList();

@@ -7,7 +7,8 @@ namespace Architome
 {
     public class AugmentTeleport : AugmentType
     {
-        // Start is called before the first frame update
+        #region Common Data
+
         [Header("Teleport Properties")]
         public bool teleportsBehindTarget;
 
@@ -17,27 +18,27 @@ namespace Architome
         LayerMask walkableLayer;
         LayerMask obstructionLayer;
 
-        async void Start()
-        {
+        #endregion
 
-            await GetDependencies(() => {
-                EnableSuccesfulCast();
-                EnableCatalyst();
+        protected override void GetDependencies()
+        {       
+            EnableSuccesfulCast();
+            EnableCatalyst();
 
-                var layerDatas = LayerMasksData.active;
+            var layerDatas = LayerMasksData.active;
 
-                if (layerDatas)
-                {
-                    walkableLayer = layerDatas.walkableLayer;
-                    obstructionLayer = layerDatas.structureLayerMask;
-                }
+            if (layerDatas)
+            {
+                walkableLayer = layerDatas.walkableLayer;
+                obstructionLayer = layerDatas.structureLayerMask;
+            }
 
-                var boxCollider = augment.entity.GetComponent<BoxCollider>();
+            var boxCollider = augment.entity.GetComponent<BoxCollider>();
 
-                heightOffset = .5f * boxCollider.size.y;
+            heightOffset = .5f * boxCollider.size.y;
 
-                entityCharacter = augment.entity.GetComponentInChildren<CharacterInfo>();
-            });
+            entityCharacter = augment.entity.GetComponentInChildren<CharacterInfo>();
+
         }
 
         public override void HandleNewCatlyst(CatalystInfo catalyst)

@@ -7,14 +7,13 @@ namespace Architome
 {
     public class AugmentTriggerListener : AugmentType
     {
-
+        #region
         [Header("Trigger Listener Properties")]
         public bool onlyOnReset;
-        async void Start()
+        #endregion
+        protected override void GetDependencies()
         {
-            await base.GetDependencies(() => {
-                EnableAugmentTrigger();
-            });
+            EnableAugmentTrigger();
         }
 
         public override void HandleAugmentTrigger(Augment augment)
