@@ -146,11 +146,11 @@ namespace Architome
             public Action<string> OnTransferScene { get; set; }
         }
 
-        public event Action<CombatEventData> OnDamageTaken;
-        public Action<CombatEventData> OnDamageDone;
-        public event Action<CombatEventData> OnHealingTaken;
-        public event Action<CombatEventData> OnHealingDone;
-        public event Action<CombatEventData> OnReviveOther;
+        public  Action<CombatEventData> OnDamageTaken { get;set; }
+        public Action<CombatEventData> OnDamageDone { get; set; }
+        public Action<CombatEventData> OnHealingTaken { get; set; }
+        public Action<CombatEventData> OnHealingDone { get; set; }
+        public Action<CombatEventData> OnReviveOther { get; set; }
         public Action<CombatEventData> OnReviveThis { get; set; }
         public event Action<CombatEventData> OnDeath;
         public event Action<CombatEventData> OnKill;
@@ -211,6 +211,7 @@ namespace Architome
         {
             abilityEvents ??= new();
             infoEvents.Initiate(this);
+            combatEvents.Initiate(this);
         }
 
         public bool initiated { get; private set; }

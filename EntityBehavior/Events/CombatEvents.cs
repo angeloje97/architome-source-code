@@ -3,11 +3,27 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Architome.Events;
 
 namespace Architome
 {
     #region Combat Events
     #region Base Combat Event
+
+    public enum eCombatEvent
+    {
+        OnCombatChange,
+        OnGetRevive,
+        OnGiveRevive,
+        OnDeath,
+        OnKill,
+        OnNewCombatTarget,
+        OnCanAttackCheck,
+        OnCanHelpCheck,
+        OnCanBeAttackedCheck,
+        OnCanBeHelpedCheck,
+    }
+
     public class CombatEvent
     {
         public EntityInfo source { get; private set; }
@@ -46,6 +62,19 @@ namespace Architome
 
     #region Health Change Event
 
+    public enum eHealthEvent
+    {
+        OnDamageTaken,
+        OnDamageDone,
+        OnHealingTaken,
+        OnHealingDone,
+        BeforeDamageTaken,
+        BeforeDamageDone,
+        BeforeHealingTaken,
+        BeforeHealingDone,
+        OnDamagePreventedFromShields,
+    }
+
     public class HealthCombatEvent : CombatEvent
     {
         public float value { get; private set; }
@@ -63,13 +92,23 @@ namespace Architome
     }
 
 
+
     #endregion
 
     #region State Change Event
 
+    public enum eStateChangeEvent
+    {
+        OnStatesChange,
+        OnStatesNegated,
+        OnAddImmuneState,
+        OnRemoveImmuneState,
+    }
+    
     public class StateChangeEvent : CombatEvent
     {
-
+        public List<EntityState> beforeEventStates;
+        public List<EntityState> afterEventStates;
     }
     #endregion
 
@@ -78,6 +117,17 @@ namespace Architome
     #region Events
     public struct CombatEvents
     {
+        public ArchEventHandler<eCombatEvent, CombatEvent> general { get; set; }
+        public ArchEventHandler<eHealthEvent, HealthCombatEvent> healthEvents { get; set; }
+        public ArchEventHandler<eStateChangeEvent, StateChangeEvent> stateChange { get; set; }
+
+        public void Initiate(EntityInfo source)
+        {
+            general = new(source);
+            healthEvents = new(source);
+            stateChange = new(source);
+        }
+
         public Action<CombatEventData, bool> OnFixate;
 
         public Action<ThreatManager.ThreatInfo, float> OnGenerateThreat;
@@ -94,7 +144,7 @@ namespace Architome
         #endregion
 
         #region Health Change Events
-        public Action<CombatEventData> OnImmuneDamage;
+        public Action<CombatEventData> OnImmuneDamage { get; set; }
         public Action<CombatEventData> BeforeDamageTaken { get; set; }
         public Action<CombatEventData> BeforeDamageDone { get; set; }
         public Action<CombatEventData> BeforeHealingTaken { get; set; }
