@@ -26,6 +26,7 @@ namespace Architome
                 character.OnChangeEquipment += OnChangeEquipment;
             }
 
+            UpdateModel();
         }
 
         public override void  EUpdate()

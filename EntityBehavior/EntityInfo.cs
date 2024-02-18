@@ -353,6 +353,9 @@ namespace Architome
 
         }
         #endregion
+
+        #region Physics Events
+
         public void OnTriggerEnter(Collider other)
         {
             OnTriggerEvent?.Invoke(this, other, true);
@@ -377,6 +380,7 @@ namespace Architome
             OnCollisionEvent?.Invoke(this, collision, true);
         }
         
+        #endregion
         async void HandleFalling()
         {
             var height = transform.position.y;

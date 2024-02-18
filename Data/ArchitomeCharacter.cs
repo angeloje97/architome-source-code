@@ -28,6 +28,7 @@ public class ArchitomeCharacter : MonoBehaviour
     public Shader highlightShader;
 
     public List<Vector2> originalParts;
+    public List<Vector3> currentParts;
     public List<Vector3> augmentedParts; //This list is for checking what parts are gears
     public Sex originalSex;
 
@@ -111,7 +112,7 @@ public class ArchitomeCharacter : MonoBehaviour
     }
     public void SaveOriginalParts()
     {
-        originalParts= new List<Vector2>();
+        originalParts = new List<Vector2>();
         foreach(List<GameObject> bodyPart in bodyParts)
         {
             var i = bodyParts.IndexOf(bodyPart);

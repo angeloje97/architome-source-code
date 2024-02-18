@@ -28,7 +28,7 @@ namespace Architome.Events
         public ArchEventHandler(Component source, LogicType defaultLogic = LogicType.NoFalse)
         {
             this.source = source;
-            eventDict = new();
+            eventDict ??= new();
             this.defaultLogic = defaultLogic;
 
             CreateSubsets();
@@ -38,7 +38,7 @@ namespace Architome.Events
         {
             this.actor = actor;
             this.source = actor;
-            eventDict = new();
+            eventDict ??= new();
             this.defaultLogic = defaultLogic;
 
             CreateSubsets();
