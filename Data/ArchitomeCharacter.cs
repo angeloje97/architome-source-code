@@ -5,7 +5,7 @@ using Architome.Enums;
 
 public class ArchitomeCharacter : MonoBehaviour
 {
-    // Start is called before the first frame update
+    #region Common Data
 
     public Sex sex;
     public bool isMale = true;
@@ -65,8 +65,32 @@ public class ArchitomeCharacter : MonoBehaviour
     public List<GameObject> kneeAttachmentLeft;
     public List<GameObject> extraElfEars;               //27
 
+    #endregion
 
+    #region Initiation
+    private void Awake()
+    {
+        GetDependencies();
 
+        if (!created)
+        {
+            SetDefault();
+            SetDefaultMaterial();
+        }
+
+        if (!basePartsSet)
+        {
+            SaveOriginalParts();
+            basePartsSet = true;
+        }
+
+        RandomizeSex();
+        UpdateSex();
+    }
+    void Start()
+    {
+       
+    }
     void GetDependencies()
     {
         bodyParts = new List<List<GameObject>>();
@@ -110,6 +134,23 @@ public class ArchitomeCharacter : MonoBehaviour
             }
         }
     }
+    #endregion
+
+    #region Validation
+    private void OnValidate()
+    {
+        if (!updateCharacter) return;
+        updateCharacter = false;
+        GetDependencies();
+        SetMaterial(currentMaterial);
+        SetDefault();
+        LoadValues();
+        LoadArmor();
+    }
+    #endregion
+
+    #region Save Load
+
     public void SaveOriginalParts()
     {
         originalParts = new List<Vector2>();
@@ -164,6 +205,28 @@ public class ArchitomeCharacter : MonoBehaviour
         }
     }
 
+    public void LoadArmor()
+    {
+        if (!loadArmor) return;
+        loadArmor = false;
+        foreach(var part in augmentedParts)
+        {
+            SetPart((int)part.x, (int)part.y, (int)part.z);
+        }
+    }
+    public void LoadValues()
+    {
+        foreach (Vector2 original in originalParts)
+        {
+            SetPart((int)original.x, (int)original.y);
+        }
+
+        SetSex(originalSex);
+
+        SetMaterial(currentMaterial);
+    }
+
+    #endregion
     public void RemoveHairFromAugmentedParts()
     {
         if (augmentedParts == null) augmentedParts = new();
@@ -201,63 +264,6 @@ public class ArchitomeCharacter : MonoBehaviour
         }
 
         return -1;
-    }
-
-
-    private void OnValidate()
-    {
-        if (!updateCharacter) return;
-        updateCharacter = false;
-        GetDependencies();
-        SetMaterial(currentMaterial);
-        SetDefault();
-        LoadValues();
-        LoadArmor();
-    }
-
-    public void LoadArmor()
-    {
-        if (!loadArmor) return;
-        loadArmor = false;
-        foreach(var part in augmentedParts)
-        {
-            SetPart((int)part.x, (int)part.y, (int)part.z);
-        }
-    }
-    public void LoadValues()
-    {
-        foreach (Vector2 original in originalParts)
-        {
-            SetPart((int)original.x, (int)original.y);
-        }
-
-        SetSex(originalSex);
-
-        SetMaterial(currentMaterial);
-    }
-    void Start()
-    {
-       
-    }
-
-    private void Awake()
-    {
-        GetDependencies();
-
-        if (!created)
-        {
-            SetDefault();
-            SetDefaultMaterial();
-        }
-
-        if (!basePartsSet)
-        {
-            SaveOriginalParts();
-            basePartsSet = true;
-        }
-
-        RandomizeSex();
-        UpdateSex();
     }
 
     void RandomizeSex()
@@ -311,6 +317,10 @@ public class ArchitomeCharacter : MonoBehaviour
         }
         SetSex(Sex.Male);
     }
+    public void SetDefaultMaterial()
+    {
+        SetMaterial(0);
+    }
     public void SetRandomBase()
     {
         randomizeSex = true;
@@ -349,10 +359,6 @@ public class ArchitomeCharacter : MonoBehaviour
         SetMaterial(Random.Range(0, materials.Count));
     }
 
-    public void SetDefaultMaterial()
-    {
-        SetMaterial(0);
-    }
     public void ToggleSex()
     {
         if(!maleBody || !femaleBody) { return; }
@@ -382,6 +388,9 @@ public class ArchitomeCharacter : MonoBehaviour
 
         sex = isMale ? Sex.Male : Sex.Female;
     }
+
+    #region Part Setter
+
     public void SetSex(Sex sex)
     {
         if(!maleBody || !femaleBody) { return; }
@@ -506,6 +515,10 @@ public class ArchitomeCharacter : MonoBehaviour
             break;
         }
     }
+    #endregion
+
+    #region Functional Properties
+
     public GameObject ActivePart(GameObject bodyPart)
     {
         foreach (Transform child in bodyPart.transform)
@@ -533,6 +546,7 @@ public class ArchitomeCharacter : MonoBehaviour
 
         return 0;
     }
+    #endregion
     public void Highlight(bool val)
     {
         isHighlighted = val;
