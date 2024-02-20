@@ -1077,8 +1077,6 @@ namespace Architome
                 if (!check) return false;
             }
 
-
-
             if (target.npcType == NPCType.Untargetable) { return false; }
 
             if (npcType == NPCType.Neutral) { return true; }

@@ -57,6 +57,11 @@ namespace Architome
         {
             this.target = target;
         }
+
+        public void SetSource(EntityInfo source)
+        {
+            this.source = source;
+        }
     }
     #endregion
 
@@ -97,7 +102,7 @@ namespace Architome
 
     #region State Change Event
 
-    public enum eStateChangeEvent
+    public enum eStateEvent
     {
         OnStatesChange,
         OnStatesNegated,
@@ -107,8 +112,10 @@ namespace Architome
     
     public class StateChangeEvent : CombatEvent
     {
-        public List<EntityState> beforeEventStates;
-        public List<EntityState> afterEventStates;
+        public UniqueList<EntityState> beforeEventStates;
+        public UniqueList<EntityState> afterEventStates;
+        public UniqueList<EntityState> statesInAction;
+
     }
     #endregion
 
@@ -117,10 +124,31 @@ namespace Architome
     #region Events
     public struct CombatEvents
     {
-        public ArchEventHandler<eCombatEvent, CombatEvent> general { get; set; }
-        public ArchEventHandler<eHealthEvent, HealthCombatEvent> healthEvents { get; set; }
-        public ArchEventHandler<eStateChangeEvent, StateChangeEvent> stateChange { get; set; }
 
+        #region General Combat Events
+        public ArchEventHandler<eCombatEvent, CombatEvent> general { get; set; }
+
+        public Action AddListenerGeneral(eCombatEvent trigger, Action<CombatEvent> action, MonoActor actor) => general.AddListener(trigger, action, actor);
+        public void InvokeGeneral(eCombatEvent trigger, CombatEvent eventData) => general.Invoke(trigger, eventData);
+
+        #endregion
+
+        #region Health Events
+        public ArchEventHandler<eHealthEvent, HealthCombatEvent> healthEvents { get; set; }
+
+        public Action AddListenerHealth(eHealthEvent trigger, Action<HealthCombatEvent> action, MonoActor actor) => healthEvents.AddListener(trigger, action, actor);
+
+        public void InvokeHealthChange(eHealthEvent trigger, HealthCombatEvent data) => healthEvents.Invoke(trigger, data);
+
+        #endregion
+
+        #region State Events
+        public ArchEventHandler<eStateEvent, StateChangeEvent> stateChange { get; set; }
+
+        public Action AddListenerStateEvent(eStateEvent trigger, Action<StateChangeEvent> action, MonoActor actor) => stateChange.AddListener(trigger, action, actor);
+
+        public void InvokeStateEvent(eStateEvent trigger, StateChangeEvent data) => stateChange.Invoke(trigger, data);
+        #endregion
         public void Initiate(EntityInfo source)
         {
             general = new(source);
@@ -135,8 +163,8 @@ namespace Architome
         public Action<EntityInfo> OnSummonEntity;
 
         #region State Change Events
-        public Action<List<EntityState>, List<EntityState>> OnStatesChange;
-        public Action<List<EntityState>, EntityState> OnStateNegated;
+        public Action<List<EntityState>, List<EntityState>> OnStatesChange { get; set; }
+        public Action<List<EntityState>, EntityState> OnStateNegated { get; set; }
 
         public Action<EntityState> OnAddImmuneState { get; set; }
         public Action<EntityState> OnRemoveImmuneState { get; set; }

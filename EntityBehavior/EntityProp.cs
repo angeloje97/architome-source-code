@@ -10,8 +10,14 @@ namespace Architome
 {
     public class EntityProp : MonoBehaviour
     {
-        // Start is called before the first frame update
+        #region Common Data
+
         public EntityInfo entityInfo;
+
+        public CombatEvents combatEvents => entityInfo.combatEvents;
+        public InfoEvents infoEvents => entityInfo.infoEvents;
+
+        #endregion
 
         #region Initiation
         public bool initiated { get; private set; }

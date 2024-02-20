@@ -227,6 +227,7 @@ public class ArchitomeCharacter : MonoBehaviour
     }
 
     #endregion
+
     public void RemoveHairFromAugmentedParts()
     {
         if (augmentedParts == null) augmentedParts = new();
@@ -253,18 +254,7 @@ public class ArchitomeCharacter : MonoBehaviour
         augmentedParts.Insert(0, new(hairIndex, 0, 0));
     }
 
-    public int MaterialIndex(Material sharedMaterial)
-    {
-        for (int i = 0; i < materials.Count; i++)
-        {
-            if (materials[i] == sharedMaterial)
-            {
-                return i;
-            }
-        }
-
-        return -1;
-    }
+    #region Random Functions
 
     void RandomizeSex()
     {
@@ -282,45 +272,6 @@ public class ArchitomeCharacter : MonoBehaviour
         }
         
     }
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-    public void HideAll()
-    {
-        if(bodyParts == null) { return;}
-        foreach(List<GameObject> i in bodyParts)
-        {
-            foreach(GameObject j in i)
-            {
-                foreach(Transform child in j.transform)
-                {
-                    child.gameObject.SetActive(false);
-                }
-            }
-        }
-    }
-    public void SetDefault()
-    {
-        if(bodyParts == null) { return; }
-        HideAll();
-        foreach(List<GameObject> i in bodyParts)
-        {
-            foreach (GameObject j in i)
-            {
-                if (j.transform.childCount > 0)
-                {
-                    j.transform.GetChild(0).gameObject.SetActive(true);
-                }
-            }
-        }
-        SetSex(Sex.Male);
-    }
-    public void SetDefaultMaterial()
-    {
-        SetMaterial(0);
-    }
     public void SetRandomBase()
     {
         randomizeSex = true;
@@ -332,7 +283,6 @@ public class ArchitomeCharacter : MonoBehaviour
         SetPart(17, Random.Range(0, 39)); //Random Hair
         SetMaterial(Random.Range(0, materials.Count)); //Random Skin
     }
-
     public void RandomizeAll()
     {
         List<List<GameObject>> exclusions = new()
@@ -358,36 +308,7 @@ public class ArchitomeCharacter : MonoBehaviour
 
         SetMaterial(Random.Range(0, materials.Count));
     }
-
-    public void ToggleSex()
-    {
-        if(!maleBody || !femaleBody) { return; }
-        isMale = !isMale;
-        isFemale = !isMale;
-
-        UpdateSex();
-    }
-    void UpdateSex()
-    {
-        if(isMale && isFemale)
-        {
-            isMale = true;
-            isFemale = false;
-        }
-
-        if (isMale)
-        {
-            maleBody.SetActive(true);
-            femaleBody.SetActive(false);
-        }
-        else if (isFemale)
-        {
-            femaleBody.SetActive(true);
-            maleBody.SetActive(false);
-        }
-
-        sex = isMale ? Sex.Male : Sex.Female;
-    }
+    #endregion
 
     #region Part Setter
 
@@ -546,7 +467,88 @@ public class ArchitomeCharacter : MonoBehaviour
 
         return 0;
     }
+
+    public int MaterialIndex(Material sharedMaterial)
+    {
+        for (int i = 0; i < materials.Count; i++)
+        {
+            if (materials[i] == sharedMaterial)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
     #endregion
+
+    public void HideAll()
+    {
+        if(bodyParts == null) { return;}
+        foreach(List<GameObject> i in bodyParts)
+        {
+            foreach(GameObject j in i)
+            {
+                foreach(Transform child in j.transform)
+                {
+                    child.gameObject.SetActive(false);
+                }
+            }
+        }
+    }
+    public void SetDefault()
+    {
+        if(bodyParts == null) { return; }
+        HideAll();
+        foreach(List<GameObject> i in bodyParts)
+        {
+            foreach (GameObject j in i)
+            {
+                if (j.transform.childCount > 0)
+                {
+                    j.transform.GetChild(0).gameObject.SetActive(true);
+                }
+            }
+        }
+        SetSex(Sex.Male);
+    }
+    public void SetDefaultMaterial()
+    {
+        SetMaterial(0);
+    }
+
+
+    public void ToggleSex()
+    {
+        if(!maleBody || !femaleBody) { return; }
+        isMale = !isMale;
+        isFemale = !isMale;
+
+        UpdateSex();
+    }
+    void UpdateSex()
+    {
+        if(isMale && isFemale)
+        {
+            isMale = true;
+            isFemale = false;
+        }
+
+        if (isMale)
+        {
+            maleBody.SetActive(true);
+            femaleBody.SetActive(false);
+        }
+        else if (isFemale)
+        {
+            femaleBody.SetActive(true);
+            maleBody.SetActive(false);
+        }
+
+        sex = isMale ? Sex.Male : Sex.Female;
+    }
+
+
     public void Highlight(bool val)
     {
         isHighlighted = val;
