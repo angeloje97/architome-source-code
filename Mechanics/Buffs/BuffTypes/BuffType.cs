@@ -6,12 +6,20 @@ namespace Architome
 {
     public class BuffType : MonoBehaviour
     {
+        #region Common Data
+
         public BuffInfo buffInfo;
 
         public float valueContributionToBuffType = 1;
         public float value = 1;
         public float selfCastMultiplier = 1;
 
+        public EntityInfo host => buffInfo.hostInfo;
+        public EntityInfo source => buffInfo.sourceInfo;
+
+        public CombatEvents hostCombatEvent => host.combatEvents;
+
+        #endregion
         public void GetDependencies()
         {
             buffInfo = GetComponent<BuffInfo>();

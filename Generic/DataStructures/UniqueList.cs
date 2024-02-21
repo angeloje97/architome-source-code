@@ -8,7 +8,7 @@ namespace Architome
 {
     #region UniqueList
     [Serializable]
-    public class UniqueList<T>
+    public class UniqueList<T> : IEnumerable<T>
     {
         HashSet<T> items;
         [SerializeField] List<T> debugValues;
@@ -17,6 +17,19 @@ namespace Architome
         {
             items = new();
             debugValues = new();
+
+            HandleDebug(listener);
+        }
+
+        public UniqueList(Component listener, IEnumerable<T> startingValues)
+        {
+            items = new();
+            debugValues = new();
+
+            foreach(var value in startingValues)
+            {
+                Add(value);
+            }
 
             HandleDebug(listener);
         }
@@ -56,6 +69,19 @@ namespace Architome
         }
 
         public bool Contains(T item) => items.Contains(item);
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            return items.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+
+
     }
     #endregion
 }

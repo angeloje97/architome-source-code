@@ -8,6 +8,7 @@ using Architome.Events;
 namespace Architome
 {
     #region Combat Events
+
     #region Base Combat Event
 
     public enum eCombatEvent
@@ -26,12 +27,24 @@ namespace Architome
 
     public class CombatEvent
     {
+        #region Common Data
         public EntityInfo source { get; private set; }
         public EntityInfo target { get; private set; }
         public CatalystInfo catalyst { get; private set; }
         public AbilityInfo ability { get; private set; }
         public BuffInfo buff { get; private set; }
 
+        #endregion
+
+        #region Properties
+
+        public bool sourceInCombat => source.isInCombat;
+        public bool targetInCombat => target.isInCombat;
+        public bool bothInCombat => target.isInCombat && source.isInCombat;
+
+        #endregion
+
+        #region Constructors
         public CombatEvent() { }
 
         public CombatEvent(CatalystInfo catalyst, EntityInfo source)
@@ -46,12 +59,15 @@ namespace Architome
             this.buff = buff;
             this.source = buff.sourceInfo;
             this.ability = buff.sourceAbility;
+            this.target = buff.hostInfo;
         }
 
         public CombatEvent(EntityInfo source)
         {
             this.source = source;
         }
+
+        #endregion
 
         public void SetTarget(EntityInfo target)
         {
@@ -115,6 +131,18 @@ namespace Architome
         public UniqueList<EntityState> beforeEventStates;
         public UniqueList<EntityState> afterEventStates;
         public UniqueList<EntityState> statesInAction;
+
+        public StateChangeEvent(BuffInfo buffInfo, IEnumerable<EntityState> statesInAction ) : base(buffInfo)
+        {
+            beforeEventStates = new(target, target.states);
+            this.statesInAction = new(target, statesInAction);
+        }
+
+        public StateChangeEvent(BuffInfo buffInfo, EntityState stateInAction) : base(buffInfo)
+        {
+            statesInAction = new(target);
+            statesInAction.Add(stateInAction);
+        }
 
     }
     #endregion

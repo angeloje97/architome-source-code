@@ -20,11 +20,12 @@ namespace Architome
         #region Common Data
 
         ArchEventHandler<eMonoEvent, MonoActor> monoEvents;
+
         #endregion
 
         #region Initiation
 
-        private void Awake()
+        protected virtual void Awake()
         {
             monoEvents = new(this);
         }

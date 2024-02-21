@@ -33,7 +33,7 @@ namespace Architome
                 if (triggerEvents)
                 {
                     ArchAction.Delay(() => {
-                        buffInfo.hostInfo.combatEvents.OnAddImmuneState?.Invoke(state);
+                        hostCombatEvent.InvokeStateEvent(eStateEvent.OnAddImmuneState, new(buffInfo, state));
                     }, i * .25f);
 
                 }
