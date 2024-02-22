@@ -47,8 +47,9 @@ namespace Architome
 
         }
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             var gameManager = GMHelper.GameManager();
 
             if (gameManager.GameState != GameState.Play)

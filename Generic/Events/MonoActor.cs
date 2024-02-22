@@ -30,11 +30,6 @@ namespace Architome
             monoEvents = new(this);
         }
 
-        void Start()
-        {
-        
-        }
-
         #endregion
 
         #region Events

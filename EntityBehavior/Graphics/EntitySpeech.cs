@@ -35,8 +35,9 @@ namespace Architome
 
         }
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             speechQueue = new();
         }
 

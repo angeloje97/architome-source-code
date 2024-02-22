@@ -125,7 +125,7 @@ public class AIBehavior : EntityProp
         }
     }
 
-    void Update()
+    public override void EUpdate()
     {
         HandleEventTriggers();
     }
@@ -149,15 +149,6 @@ public class AIBehavior : EntityProp
             combatTypeCheck = combatType;
         }
     }
-    public LineOfSight LineOfSight()
-    {
-        return GetComponentInChildren<LineOfSight>();
-    }
-    public ThreatManager ThreatManager()
-    {
-        return GetComponentInChildren<ThreatManager>();
-    }
-
     public T CreateBehavior<T>(string name = "New Behavior") where T: MonoBehaviour
     {
         var newBehaviorObject = new GameObject(name);
@@ -169,6 +160,17 @@ public class AIBehavior : EntityProp
 
 
     }
+
+    #region Properties
+    public LineOfSight LineOfSight()
+    {
+        return GetComponentInChildren<LineOfSight>();
+    }
+    public ThreatManager ThreatManager()
+    {
+        return GetComponentInChildren<ThreatManager>();
+    }
+
     public CombatBehavior CombatBehavior()
     {
         foreach(Transform child in transform)
@@ -202,4 +204,5 @@ public class AIBehavior : EntityProp
         }
         return null;
     }
+    #endregion
 }

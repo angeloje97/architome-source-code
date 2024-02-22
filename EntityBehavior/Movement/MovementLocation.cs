@@ -8,7 +8,7 @@ namespace Architome
 {
     public class MovementLocation : EntityProp
     {
-        // Start is called before the first frame update
+        #region Common Data
         public float spaceRange;
         Movement movement;
 
@@ -23,6 +23,9 @@ namespace Architome
 
         public ParticleFX particles;
 
+        #endregion
+
+        #region Initiation
         public override void GetDependencies()
         {
             transform.localScale = new Vector3(spaceRange, spaceRange, spaceRange);
@@ -33,7 +36,9 @@ namespace Architome
             movement.AddListener(eMovementEvent.OnTryMove, PlayTryMove, this);
 
         }
+        #endregion
 
+        #region Class Actions
         void StopAllParticles()
         {
             foreach (var particle in GetComponentsInChildren<ParticleSystem>())
@@ -41,12 +46,6 @@ namespace Architome
                 particle.Stop();
             }
         }
-
-        //void OnTryMove(Movement movement)
-        //{
-        //    if (particles.tryMove == null) return;
-        //    particles.tryMove.Play(true);
-        //}
 
         public void PlayTryMove(MovementEventData eventData)
         {
@@ -57,6 +56,7 @@ namespace Architome
 
         }
 
+        #endregion
 
         private void OnTriggerEnter(Collider other)
         {

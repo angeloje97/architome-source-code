@@ -44,8 +44,9 @@ namespace Architome
             
         }
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             tasks = new();
         }
 

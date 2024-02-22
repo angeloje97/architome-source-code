@@ -37,8 +37,9 @@ namespace Architome
 
         
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             info.CastingParticles = new();
             info.ChannelingParticles = new();
             info.AbilityParticles = new();

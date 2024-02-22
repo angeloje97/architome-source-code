@@ -24,8 +24,9 @@ namespace Architome
         bool doingTasks;
         public string currentTaskName;
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             previousTask = null;
             currentTask = null;
             tasks = new();

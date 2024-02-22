@@ -8,7 +8,7 @@ using System;
 
 public class Targetable : EntityProp
 {
-    // Start is called before the first frame update
+    #region Common Data
     public GameObject entityObject;
 
     public GraphicsInfo graphics;
@@ -21,6 +21,9 @@ public class Targetable : EntityProp
     public List<GameObject> hoverTargets;
 
     bool ignoreDead;
+    #endregion
+
+    #region Initiation
     public override void GetDependencies()
     {
 
@@ -40,7 +43,12 @@ public class Targetable : EntityProp
 
         SetValues(false);
     }
-
+    #endregion
+    public void OnValidate()
+    {
+        SetValues(false);
+    }
+    #region Event Listeners
     void OnMouseHover(EntityInfo entity, bool isHovering, GameObject source)
     {
         hoverTargets ??= new();
@@ -86,11 +94,7 @@ public class Targetable : EntityProp
     {
         graphicsHolding.SetActive(val);
     }
-
-    public void OnValidate()
-    {
-        SetValues(false);
-    }
+    #endregion
 
     public void SetValues(bool val)
     {

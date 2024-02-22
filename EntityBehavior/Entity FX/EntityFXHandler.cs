@@ -36,8 +36,9 @@ namespace Architome
 
         #region Initialization
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             recentTriggers = new();
             audioTypeDict = new();
         }

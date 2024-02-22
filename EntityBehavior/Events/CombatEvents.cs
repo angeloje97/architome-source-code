@@ -193,8 +193,6 @@ namespace Architome
         #region State Change Events
         public Action<List<EntityState>, List<EntityState>> OnStatesChange { get; set; }
         public Action<List<EntityState>, EntityState> OnStateNegated { get; set; }
-
-        public Action<EntityState> OnAddImmuneState { get; set; }
         public Action<EntityState> OnRemoveImmuneState { get; set; }
 
         #endregion

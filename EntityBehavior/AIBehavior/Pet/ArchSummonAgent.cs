@@ -64,14 +64,6 @@ namespace Architome
 
             sourceAbility = entityInfo.summon.sourceAbility;
 
-            
-            
-
-        }
-        protected async override void Start()
-        {
-            //await GetDependencies(DefaultExtension);
-            await Initiate();
 
             HandleEvents(true);
             DisableConflicts();
@@ -89,7 +81,6 @@ namespace Architome
             });
 
         }
-
 
 
         void HandleEvents(bool enter)

@@ -110,10 +110,6 @@ namespace Architome
 
         #region Initiation
 
-        private void Awake()
-        {
-
-        }
         public override void GetDependencies()
         {
             entityObject = entityInfo.gameObject;

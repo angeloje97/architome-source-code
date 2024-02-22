@@ -9,8 +9,6 @@ namespace Architome
 {
     public class EExperienceHandler : EntityProp
     {
-        // Start is called before the first frame update
-        
 
         public override void GetDependencies()
         {
@@ -22,6 +20,7 @@ namespace Architome
             entityInfo.OnExperienceGainOutside += OnGainExperienceOutside;
         }
 
+        #region Experience Handler Functions
         public void GainExp(float value)
         {
             if (!entityInfo.canLevel) { return; }
@@ -69,6 +68,10 @@ namespace Architome
                 entityInfo.RestoreFull();
             }
         }
+
+        #endregion
+
+        #region Listeners
         public void OnDamagePreventedFromShields(CombatEventData eventData)
         {
             GainExp(eventData.value * .25f);
@@ -103,6 +106,7 @@ namespace Architome
             GainExp(eventData.value * .25f);
         }
 
+        #endregion
 
     }
 

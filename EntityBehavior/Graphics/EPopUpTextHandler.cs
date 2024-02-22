@@ -11,10 +11,13 @@ namespace Architome
 {
     public class EPopUpTextHandler : EntityProp
     {
-        // Start is called before the first frame update
+        #region Common Data
 
         public PopupTextManager popUpManager;
         public List<EntityState> previousStates;
+        #endregion
+
+        #region Initiation
 
         public override async Task GetDependenciesTask()
         {
@@ -52,7 +55,10 @@ namespace Architome
 
             
         }
-        
+
+        #endregion
+
+        #region Event Listeners
         void OnRarityChange(EntityRarity before, EntityRarity after)
         {
             if (before == EntityRarity.Player)
@@ -252,6 +258,7 @@ namespace Architome
             popUpManager.StateChangePopUp(new(transform, $"Level {level}"));
         }
 
+        #endregion
     }
 
 }
