@@ -31,6 +31,8 @@ namespace Architome.Events
             eventDict ??= new();
             this.defaultLogic = defaultLogic;
 
+
+
             CreateSubsets();
         }
 
@@ -67,9 +69,8 @@ namespace Architome.Events
 
         #region Listener
 
-        public Action AddListener(T eventType, Action<E> action, MonoActor actor)
+        public Action AddListener(T eventType, Action<E> action, MonoActor actor, bool listenToActor = true)
         {
-            if (this.actor == null) return () => { };
 
             if (!eventDict.ContainsKey(eventType))
             {
@@ -80,7 +81,13 @@ namespace Architome.Events
 
             var unsubscribed = false;
 
-            var unsubScribeFromListener = actor.AddListener(eMonoEvent.OnDestroy, unsubscribe, this.actor);
+            Action unsubScribeFromListener = () => { };
+
+            if (listenToActor)
+            {
+                unsubScribeFromListener = actor.AddListener(eMonoEvent.OnDestroy, unsubscribe, this.actor);
+
+            }
 
             eventDict[eventType] += MiddleWare;
 
@@ -92,6 +99,8 @@ namespace Architome.Events
                 unsubScribeFromListener();
             };
 
+            Debugger.System(1042, $"Successfully added listener for {actor}");
+
             return unsubscribe;
 
             void MiddleWare(E data)
@@ -100,9 +109,9 @@ namespace Architome.Events
             }
         }
 
-        public Action AddListener(T eventType, Action action, MonoActor actor)
+        public Action AddListener(T eventType, Action action, MonoActor actor, bool listenToActor = true)
         {
-            return AddListener(eventType, (E eventData) => { action(); }, actor);
+            return AddListener(eventType, (E eventData) => { action(); }, actor, listenToActor);
         }
 
         public Action AddListener(T eventType, Action<E> action, Component listener)

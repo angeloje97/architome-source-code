@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Events;
+using System.Linq;
 
 namespace Architome
 {
@@ -31,6 +32,8 @@ namespace Architome
         public EntityInfo source { get; private set; }
         public EntityInfo target { get; private set; }
         public CatalystInfo catalyst { get; private set; }
+
+        public Augment augment { get; private set; }
         public AbilityInfo ability { get; private set; }
         public BuffInfo buff { get; private set; }
 
@@ -62,6 +65,13 @@ namespace Architome
             this.target = buff.hostInfo;
         }
 
+        public CombatEvent(Augment augment)
+        {
+            this.augment = augment;
+            this.source = augment.entity;
+            this.ability = augment.ability;
+        }
+
         public CombatEvent(EntityInfo source)
         {
             this.source = source;
@@ -69,12 +79,12 @@ namespace Architome
 
         #endregion
 
-        public void SetTarget(EntityInfo target)
+        public virtual void SetTarget(EntityInfo target)
         {
             this.target = target;
         }
 
-        public void SetSource(EntityInfo source)
+        public virtual void SetSource(EntityInfo source)
         {
             this.source = source;
         }
@@ -128,22 +138,28 @@ namespace Architome
     
     public class StateChangeEvent : CombatEvent
     {
-        public UniqueList<EntityState> beforeEventStates;
-        public UniqueList<EntityState> afterEventStates;
-        public UniqueList<EntityState> statesInAction;
+        public List<EntityState> beforeEventStates { get; private set; }
+        public List<EntityState> afterEventStates { get; private set; }
+        public List<EntityState> statesInAction { get; private set; }
 
-        public StateChangeEvent(BuffInfo buffInfo, IEnumerable<EntityState> statesInAction ) : base(buffInfo)
+        public StateChangeEvent(BuffInfo buffInfo, List<EntityState> statesInAction ) : base(buffInfo)
         {
-            beforeEventStates = new(target, target.states);
-            this.statesInAction = new(target, statesInAction);
+            beforeEventStates = target.states;
+            this.statesInAction = statesInAction;
         }
 
-        public StateChangeEvent(BuffInfo buffInfo, EntityState stateInAction) : base(buffInfo)
+        public StateChangeEvent(Augment augment, EntityInfo target, List<EntityState> statesInAction) : base(augment)
         {
-            statesInAction = new(target);
-            statesInAction.Add(stateInAction);
+            beforeEventStates = target.states;
+            this.statesInAction = statesInAction;
         }
 
+
+        public override void SetTarget(EntityInfo target)
+        {
+            base.SetTarget(target);
+            beforeEventStates = target.states;
+        }
     }
     #endregion
 
@@ -192,8 +208,6 @@ namespace Architome
 
         #region State Change Events
         public Action<List<EntityState>, List<EntityState>> OnStatesChange { get; set; }
-        public Action<List<EntityState>, EntityState> OnStateNegated { get; set; }
-        public Action<EntityState> OnRemoveImmuneState { get; set; }
 
         #endregion
 

@@ -53,8 +53,7 @@ namespace Architome
 
         public void ApplyBuff()
         {
-            applied = buffInfo.hostInfo.AddState(stateToChange);
-
+            applied = buffInfo.hostInfo.AddState(stateToChange, new(buffInfo, new() { stateToChange }));
         }
 
         // Update is called once per frame

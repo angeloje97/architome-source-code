@@ -13,7 +13,7 @@ namespace Architome
 {
     [Serializable]
     [RequireComponent(typeof(TargetableEntity))]
-    public class EntityInfo : MonoBehaviour
+    public class EntityInfo : MonoActor
     {
         #region Identity
         [SerializeField] int id;
@@ -57,7 +57,6 @@ namespace Architome
         [SerializeField] public NPCType npcType;
         [Header("Entity Properties")]
 
-        public List<EntityState> stateImmunities;
         public EntityRarity rarity;
         public List<string> objectives;
         public bool isAlive;
@@ -70,6 +69,7 @@ namespace Architome
         public EntityInfo combatTarget;
         public Role role;
         public RoomInfo currentRoom;
+        public List<EntityState> stateImmunities;
         public List<EntityState> states;
         public WorkerState workerState;
 
@@ -207,8 +207,9 @@ namespace Architome
 
         #region Initialization
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             abilityEvents ??= new();
             infoEvents.Initiate(this);
             combatEvents.Initiate(this);
@@ -713,13 +714,15 @@ namespace Architome
                 source.OnHealingDone?.Invoke(combatData);
             }
         }
-        public bool AddState(EntityState state)
+        public bool AddState(EntityState state, StateChangeEvent eventData)
         {
             if (stateImmunities.Contains(state) || states.Contains(EntityState.Immune))
             {
-                combatEvents.OnStateNegated?.Invoke(states, state);
+                Debugger.Combat(8341, $"State negated: {state}");
+                combatEvents.InvokeStateEvent(eStateEvent.OnStatesNegated, eventData);
                 return false;
             }
+
             var previousStates = states.ToList();
 
             states.Add(state);

@@ -44,13 +44,13 @@ namespace Architome
                     }
 
                     entityInfo.infoEvents.OnRarityChange += OnRarityChange;
-
-                    entityInfo.combatEvents.OnStateNegated += OnStateNegated;
                     entityInfo.combatEvents.OnStatesChange += OnStatesChange;
 
-                    combatEvents.AddListenerStateEvent(eStateEvent.OnAddImmuneState, OnAddImmuneState, this);
 
-                    entityInfo.combatEvents.OnRemoveImmuneState += OnRemoveImmuneState;
+
+                    combatEvents.AddListenerStateEvent(eStateEvent.OnStatesNegated, OnStateNegated, this);
+                    combatEvents.AddListenerStateEvent(eStateEvent.OnAddImmuneState, OnAddImmuneState, this);
+                    combatEvents.AddListenerStateEvent(eStateEvent.OnRemoveImmuneState, OnRemoveImmuneState, this);
                 }
 
             
@@ -210,11 +210,16 @@ namespace Architome
             popUpManager.DamagePopUp(new(transform, $"Immune"), DamageType.True);
         }
 
-        void OnStateNegated(List<EntityState> currentState, EntityState negatedState)
+        async void OnStateNegated(StateChangeEvent eventData)
         {
             if (popUpManager == null) return;
+            Debugger.UI(8342, $"{eventData.statesInAction.Count}");
+            foreach(var state in eventData.statesInAction)
+            {
+                popUpManager.StateChangeImmunityPopUp(new( transform, state.ToString() ));
+                await Task.Delay(250);
 
-            popUpManager.StateChangeImmunityPopUp(new( transform, negatedState.ToString() ));
+            }
         }
 
         async void OnAddImmuneState(StateChangeEvent eventData)
@@ -229,10 +234,16 @@ namespace Architome
         }
 
 
-        void OnRemoveImmuneState(EntityState removedState)
+        async void OnRemoveImmuneState(StateChangeEvent eventData)
         {
+
             if (popUpManager == null) return;
-            popUpManager.StateChangePopUp(new(transform, $"Removed immunity to {removedState}"));
+            
+            foreach(var state in eventData.statesInAction)
+            {
+                popUpManager.StateChangePopUp(new(transform, $"Removed immunity to {state}"));
+                await Task.Delay(250);
+            }
         }
 
         void OnLifeChange(bool isAlive)

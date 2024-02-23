@@ -24,19 +24,19 @@ namespace Architome
 
         void ApplyBuff()
         {
+            var activeStates = new List<EntityState>();
+
 
             for(int i = 0; i < statesImmuneTo.Count; i++)
             {
                 var state = statesImmuneTo[i];
                 buffInfo.hostInfo.stateImmunities.Add(state);
+                activeStates.Add(state);
+            }
 
-                if (triggerEvents)
-                {
-                    ArchAction.Delay(() => {
-                        hostCombatEvent.InvokeStateEvent(eStateEvent.OnAddImmuneState, new(buffInfo, state));
-                    }, i * .25f);
-
-                }
+            if (triggerEvents)
+            {
+                hostCombatEvent.InvokeStateEvent(eStateEvent.OnAddImmuneState, new(buffInfo, activeStates));
             }
 
             buffInfo.buffsManager.CleanseImmunity();
@@ -99,6 +99,8 @@ namespace Architome
                 removeDict.Add(immunity, false);
             }
 
+            var removedStates = new List<EntityState>();
+
             for(int i = 0; i < buffInfo.hostInfo.stateImmunities.Count; i++)
             {
                 var state = buffInfo.hostInfo.stateImmunities[i];
@@ -107,16 +109,17 @@ namespace Architome
                 if (removeDict[state]) continue;
                 removeDict[state] = true;
 
-                if (triggerEvents)
-                {
-                    ArchAction.Delay(() => {
-                        buffInfo.hostInfo.combatEvents.OnRemoveImmuneState?.Invoke(state);
-                    }, i * .25f);
-                }
+                removedStates.Add(state);
 
                 buffInfo.hostInfo.stateImmunities.RemoveAt(i);
                 i--;
             }
+
+            if (triggerEvents)
+            {
+                hostCombatEvent.InvokeStateEvent(eStateEvent.OnRemoveImmuneState, new(buffInfo, removedStates));
+            }
+
             //for (int i = 0; i < buffInfo.hostInfo.stateImmunities.Count; i++)
             //{
             //    if (statesImmuneTo.Contains(buffInfo.hostInfo.stateImmunities[i]))

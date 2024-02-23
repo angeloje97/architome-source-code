@@ -21,6 +21,11 @@ namespace Architome
             HandleDebug(listener);
         }
 
+        public UniqueList()
+        {
+            items = new();
+        }
+
         public UniqueList(Component listener, IEnumerable<T> startingValues)
         {
             items = new();

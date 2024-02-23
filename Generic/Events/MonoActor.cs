@@ -64,7 +64,7 @@ namespace Architome
         }
         public Action AddListener(eMonoEvent trigger, Action action, MonoActor otherActor)
         {
-            return monoEvents.AddListener(trigger, action, otherActor);
+            return monoEvents.AddListener(trigger, action, otherActor, false);
         }
 
         #endregion
