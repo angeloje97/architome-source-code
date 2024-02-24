@@ -9,7 +9,7 @@ using UnityEditor;
 
 namespace Architome.Tutorial
 {
-    public class EventListener : MonoBehaviour
+    public class EventListener : MonoActor
     {
         public bool completed;
         public string title;

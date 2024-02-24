@@ -11,7 +11,7 @@ namespace Architome
 {
 
 
-    public class Augment : EntityProp
+    public class Augment : MonoActor
     {
         int id;
 
@@ -43,7 +43,7 @@ namespace Architome
 
 
         public Action<CatalystInfo> OnNewCatalyst;
-        public Action<Augment> OnRemove;
+        public Action<Augment> OnRemove { get; set; }
         ArchEventHandler<AugmentEvent, AugmentEventData> events { get; set; }
         Augment FirstAugment
         {
@@ -70,10 +70,9 @@ namespace Architome
             HandleRestrictions();
         }
 
-
-
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             events = new(this);
 
         }

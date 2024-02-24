@@ -206,14 +206,7 @@ namespace Architome
 
         public Action<CombatEventData, bool> OnFixate;
 
-        public Action<ThreatManager.ThreatInfo, float> OnGenerateThreat;
-        public Action<EntityInfo, float> OnPingThreat { get; set; }
         public Action<EntityInfo> OnSummonEntity;
-
-        #region State Change Events
-        public Action<List<EntityState>, List<EntityState>> OnStatesChange { get; set; }
-
-        #endregion
 
         #region Health Change Events
         public Action<CombatEventData> OnImmuneDamage { get; set; }
@@ -228,17 +221,20 @@ namespace Architome
         public Action<EntityInfo, List<Func<float>>> OnUpdateHealAbsorbShield;
         #endregion
 
+        #region Thread Events
+        public Action<EntityInfo, float> OnPingThreat { get; set; }
+        public Action<ThreatManager.ThreatInfo, float> OnGenerateThreat;
+        public Action<ThreatManager.ThreatInfo> OnFirstThreatWithPlayer { get; set; }
+        #endregion
+
+        #region Generic
 
         public Action<EntityInfo, EntityInfo> OnNewCombatTarget { get; set; }
         public Action<EntityInfo, List<bool>> OnCanAttackCheck { get; set; }
         public Action<EntityInfo, List<bool>> OnCanHelpCheck { get; set; }
         public Action<List<bool>> OnCanBeAttackedCheck { get; set; }
         public Action<List<bool>> OnCanBeHelpedCheck { get; set; }
-        public Action<ThreatManager.ThreatInfo> OnFirstThreatWithPlayer { get; set; }
-       
-
-        
-
+        #endregion
     }
 
     #endregion

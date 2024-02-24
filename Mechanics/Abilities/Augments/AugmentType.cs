@@ -8,8 +8,9 @@ using Architome.Enums;
 
 namespace Architome
 {
-    public class AugmentType : MonoBehaviour
+    public class AugmentType : MonoActor
     {
+        #region Common Data
         [Header("AugmentType Properties")]
         public Augment augment;
         protected AbilityInfo ability => augment.ability;
@@ -22,6 +23,10 @@ namespace Architome
 
         [SerializeField] protected bool ignoreDescription;
 
+
+        public CombatEvents combatEvents => augment.entity.combatEvents;
+
+        #endregion
 
         protected virtual void Start()
         {
@@ -84,18 +89,15 @@ namespace Architome
                 EntityState.Stunned,
             };
 
-            Action<List<EntityState>, List<EntityState>> action = (List<EntityState> beforeStates, List<EntityState> afterStates) => {
-                if (afterStates.Intersect(interruptableStates).ToList().Count > 0)
+            Action<StateChangeEvent> action = (eventData) => {
+
+                if (eventData.afterEventStates.Intersect(interruptableStates).ToList().Count > 0)
                 {
                     HandleCancelAbility(this);
                 }
             };
 
-            augment.entity.combatEvents.OnStatesChange += action;
-
-            augment.OnRemove += (Augment augment) => {
-                augment.entity.combatEvents.OnStatesChange -= action;
-            };
+            combatEvents.AddListenerStateEvent(eStateEvent.OnStatesChange, action, this);
         }
         protected void EnableCasting()
         {

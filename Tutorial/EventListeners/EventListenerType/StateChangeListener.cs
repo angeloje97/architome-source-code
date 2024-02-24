@@ -27,7 +27,11 @@ namespace Architome.Tutorial
             
             foreach (var target in targetEntities)
             {
-                target.combatEvents.OnStatesChange += HandleStateChange;
+                //target.combatEvents.OnStatesChange += HandleStateChange;
+                var unsubScribe = target.combatEvents.AddListenerStateEvent(eStateEvent.OnStatesChange, HandleStateChange, this);
+                OnSuccessfulEvent += (EventListener listener) => {
+                    unsubScribe();
+                };
             }
 
             if (!sourceAbility)
@@ -37,27 +41,24 @@ namespace Architome.Tutorial
             else
             {
                 sourceAbility.OnSuccessfulCast += HandleSuccesfulCast;
+
+                OnSuccessfulEvent += (EventListener listener) => {
+                    if (sourceAbility)
+                    {
+                        sourceAbility.OnSuccessfulCast -= HandleSuccesfulCast;
+                    }
+                };
             }
 
 
 
-            OnSuccessfulEvent += (EventListener listener) => {
-                foreach (var target in targetEntities)
-                {
-                    target.combatEvents.OnStatesChange -= HandleStateChange;
-                }
-
-                if (sourceAbility)
-                {
-                    sourceAbility.OnSuccessfulCast -= HandleSuccesfulCast;
-                }
-            };
+            
 
 
-            void HandleStateChange(List<EntityState> beforeStates, List<EntityState> afterStates)
+            void HandleStateChange(StateChangeEvent eventData)
             {
                 if (!castedAbility) return;
-                if (afterStates.Contains(validState))
+                if (eventData.afterEventStates.Contains(validState))
                 {
                     CompleteEventListener();
                 }
