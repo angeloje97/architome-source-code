@@ -723,14 +723,13 @@ namespace Architome
                 return false;
             }
 
-            var previousStates = states.ToList();
-
             states.Add(state);
-            combatEvents.OnStatesChange?.Invoke(previousStates, states);
-
+            
+            eventData.SetAfterStates(states);
+            combatEvents.InvokeStateEvent(eStateEvent.OnStatesChange, eventData);
             return true;
         }
-        public bool RemoveState(EntityState state)
+        public bool RemoveState(EntityState state, StateChangeEvent eventData)
         {
 
             bool removed = false;
@@ -747,9 +746,8 @@ namespace Architome
 
             if (removed)
             {
-                var previousStates = states.ToList();
-                combatEvents.OnStatesChange?.Invoke(previousStates, states);
-
+                eventData.SetAfterStates(states);
+                combatEvents.InvokeStateEvent(eStateEvent.OnStatesChange, eventData);
             }
             return removed;
         }

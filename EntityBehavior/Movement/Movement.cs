@@ -125,7 +125,7 @@ namespace Architome
 
             entityInfo.OnChangeStats += OnChangeStats;
             entityInfo.OnLifeChange += OnLifeCheck;
-            entityInfo.combatEvents.OnStatesChange += OnStatesChange;
+            combatEvents.AddListenerStateEvent(eStateEvent.OnStatesChange, OnStatesChange, this);
             entityInfo.infoEvents.OnSignificantMovementChange += OnSignificantMovementChange;
 
             if (destinationSetter.target == null)
@@ -286,10 +286,11 @@ namespace Architome
             EntityState.Stunned,
             EntityState.Immobalized
         };
-        public void OnStatesChange(List<EntityState> previous, List<EntityState> states)
+        public void OnStatesChange(StateChangeEvent eventData)
         {
             if (!entityInfo.isAlive) { return; }
 
+            var states = eventData.afterEventStates;
             var intersection = states.Intersect(immobilizedStates).ToList();
 
             if (intersection.Count > 0)

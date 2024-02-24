@@ -10,7 +10,7 @@ using JetBrains.Annotations;
 namespace Architome
 {
     [RequireComponent(typeof(AbilityFXHandler))]
-    public class AbilityManager : MonoBehaviour
+    public class AbilityManager : EntityProp
     {
 
         [Serializable]
@@ -38,7 +38,6 @@ namespace Architome
         [Header("In Game Properties")]
 
         public GameObject entityObject;
-        public EntityInfo entityInfo;
 
         public List<AbilityInfo> abilities;
         public HashSet<AbilityInfo> abilityMap;
@@ -108,22 +107,18 @@ namespace Architome
         bool isCasting;
         EquipmentSlot[] equipmentSlots;
 
-        public void GetDependencies()
+        public override void GetDependencies()
         {
-            entityInfo = GetComponentInParent<EntityInfo>();
 
 
-            if (entityInfo)
-            {
-                entityObject = entityInfo.gameObject;
+            entityObject = entityInfo.gameObject;
 
-                entityInfo.OnLifeChange += OnLifeChange;
-                entityInfo.combatEvents.OnStatesChange += OnStatesChange;
-                entityInfo.OnChangeStats += OnChangeStats;
-                character = entityInfo.GetComponentInChildren<CharacterInfo>();
-                var movement = entityInfo.Movement();
+            entityInfo.OnLifeChange += OnLifeChange;
+            combatEvents.AddListenerStateEvent(eStateEvent.OnStatesChange, OnStatesChange, this);
 
-            }
+            entityInfo.OnChangeStats += OnChangeStats;
+            character = entityInfo.GetComponentInChildren<CharacterInfo>();
+            var movement = entityInfo.Movement();
 
             equipmentSlots = new EquipmentSlot[0];
 
@@ -157,11 +152,6 @@ namespace Architome
             }
 
 
-
-        }
-        void Start()
-        {
-            GetDependencies();
             HandleUseWeaponAbility(null);
             HandleUseAuto();
         }
@@ -200,7 +190,7 @@ namespace Architome
 
         }
 
-        private void Update()
+        public override void EUpdate()
         {
             if (isCasting != (currentlyCasting != null))
             {
@@ -228,7 +218,7 @@ namespace Architome
                 await Task.Yield();
             }
         }
-        public void OnStatesChange(List<EntityState> previous, List<EntityState> states)
+        public void OnStatesChange(StateChangeEvent eventData)
         {
             if(!entityInfo.isAlive) { return; }
             var interruptStates = new List<EntityState>() 
@@ -236,6 +226,8 @@ namespace Architome
             EntityState.Stunned,
             EntityState.Silenced
             };
+
+            var states = eventData.afterEventStates;
 
             var intersection = states.Intersect(interruptStates).ToList();
 

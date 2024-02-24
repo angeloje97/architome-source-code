@@ -57,7 +57,7 @@ public class AIBehavior : EntityProp
                 var abilityManager = entityInfo.AbilityManager();
             }
 
-            entityInfo.combatEvents.OnStatesChange += OnStatesChange;
+            combatEvents.AddListenerStateEvent(eStateEvent.OnStatesChange, OnStatesChange, this);
 
             if (entityInfo.npcType == NPCType.Hostile)
             {
@@ -106,8 +106,10 @@ public class AIBehavior : EntityProp
     }
 
 
-    public void OnStatesChange(List<EntityState> previous, List<EntityState> states)
+    public void OnStatesChange(StateChangeEvent stateEventData)
     {
+        var states = stateEventData.afterEventStates;
+
         var effectedBy = new List<EntityState>()
         {
             EntityState.Taunted 

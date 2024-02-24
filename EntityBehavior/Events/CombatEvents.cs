@@ -144,16 +144,20 @@ namespace Architome
 
         public StateChangeEvent(BuffInfo buffInfo, List<EntityState> statesInAction ) : base(buffInfo)
         {
-            beforeEventStates = target.states;
+            beforeEventStates = target.states.ToList();
             this.statesInAction = statesInAction;
         }
 
         public StateChangeEvent(Augment augment, EntityInfo target, List<EntityState> statesInAction) : base(augment)
         {
-            beforeEventStates = target.states;
+            beforeEventStates = target.states.ToList();
             this.statesInAction = statesInAction;
         }
 
+        public void SetAfterStates(List<EntityState> afterEventStates)
+        {
+            this.afterEventStates = afterEventStates.ToList();
+        }
 
         public override void SetTarget(EntityInfo target)
         {

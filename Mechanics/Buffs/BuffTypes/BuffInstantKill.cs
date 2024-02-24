@@ -37,7 +37,8 @@ namespace Architome
 
             if (host.states.Contains(EntityState.Immune))
             {
-                host.RemoveState(EntityState.Immune);
+                var stateEventData = new StateChangeEvent(buffInfo, new() { EntityState.Immune });
+                host.RemoveState(EntityState.Immune, stateEventData);
             }
 
             var combatEventData = new CombatEventData(buffInfo, host.health);

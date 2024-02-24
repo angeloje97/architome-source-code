@@ -66,7 +66,7 @@ namespace Architome
         {
             if (!applied) return;
 
-            buffInfo.hostInfo.RemoveState(stateToChange);
+            buffInfo.hostInfo.RemoveState(stateToChange, new(buff, new() { stateToChange }));
 
             OnStateChangerEnd?.Invoke(this, stateToChange);
         }

@@ -106,7 +106,7 @@ namespace Architome
                 if (augmentMovementType != AugmentMovementType.LockMovement) return;
                 augment.entity.AddState(EntityState.Immobalized, new(augment, augment.entity, new() { EntityState.Immobalized }));
                 await endActivation();
-                augment.entity.RemoveState(EntityState.Immobalized);
+                augment.entity.RemoveState(EntityState.Immobalized, new(augment, augment.entity, new() { EntityState.Immobalized }));
             }
 
             async Task HandleCancelOnMove()

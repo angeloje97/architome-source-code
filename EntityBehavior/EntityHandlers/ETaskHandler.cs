@@ -43,7 +43,7 @@ namespace Architome
                 movement = entityInfo.Movement();
             }
 
-            entityInfo.combatEvents.OnStatesChange += OnEntityStateChanged;
+            combatEvents.AddListenerStateEvent(eStateEvent.OnStatesChange, OnEntityStateChanged, this);
 
             buffManager = entityInfo.Buffs();
 
@@ -51,9 +51,10 @@ namespace Architome
             entityInfo.OnDamageTaken += OnDamageTaken;
         }
 
-        void OnEntityStateChanged(List<EntityState> previous, List<EntityState> current)
+        void OnEntityStateChanged(StateChangeEvent eventData)
         {
             if (currentTask == null) return;
+            var current = eventData.afterEventStates;
 
             var interruptionStates = new List<EntityState>()
             {

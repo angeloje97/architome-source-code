@@ -11,7 +11,7 @@ namespace Architome
 {
 
 
-    public class Augment : MonoBehaviour
+    public class Augment : EntityProp
     {
         int id;
 
@@ -69,6 +69,8 @@ namespace Architome
             }
             HandleRestrictions();
         }
+
+
 
         private void Awake()
         {

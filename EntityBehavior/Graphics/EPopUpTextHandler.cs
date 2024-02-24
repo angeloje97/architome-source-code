@@ -44,10 +44,9 @@ namespace Architome
                     }
 
                     entityInfo.infoEvents.OnRarityChange += OnRarityChange;
-                    entityInfo.combatEvents.OnStatesChange += OnStatesChange;
 
 
-
+                    combatEvents.AddListenerStateEvent(eStateEvent.OnStatesChange, OnStatesChange, this);
                     combatEvents.AddListenerStateEvent(eStateEvent.OnStatesNegated, OnStateNegated, this);
                     combatEvents.AddListenerStateEvent(eStateEvent.OnAddImmuneState, OnAddImmuneState, this);
                     combatEvents.AddListenerStateEvent(eStateEvent.OnRemoveImmuneState, OnRemoveImmuneState, this);
@@ -88,9 +87,11 @@ namespace Architome
         }
 
 
-        async void OnStatesChange(List<EntityState> previous, List<EntityState> after)
+        async void OnStatesChange(StateChangeEvent eventData)
         {
             if (popUpManager == null) return;
+            var previous = eventData.beforeEventStates;
+            var after = eventData.afterEventStates;
 
             var removedStates = previous.Except(after).ToList();
             var newStates = after.Except(previous).ToList();
