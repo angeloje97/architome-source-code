@@ -31,6 +31,7 @@ namespace Architome
         #region Common Data
         public EntityInfo source { get; private set; }
         public EntityInfo target { get; private set; }
+        public EntityInfo previousTarget { get; set; }
         public CatalystInfo catalyst { get; private set; }
 
         public Augment augment { get; private set; }
@@ -72,9 +73,11 @@ namespace Architome
             this.ability = augment.ability;
         }
 
-        public CombatEvent(EntityInfo source)
+        public CombatEvent(EntityInfo source, EntityInfo previousTarget, EntityInfo target)
         {
             this.source = source;
+            this.previousTarget = previousTarget;
+            this.target = target;
         }
 
         #endregion
@@ -204,9 +207,6 @@ namespace Architome
             stateChange = new(source);
         }
 
-        public Action<CombatEventData, bool> OnFixate;
-
-        public Action<EntityInfo> OnSummonEntity;
 
         #region Health Change Events
         public Action<CombatEventData> OnImmuneDamage { get; set; }
@@ -229,6 +229,9 @@ namespace Architome
 
         #region Generic
 
+        public Action<CombatEventData, bool> OnFixate;
+
+        public Action<EntityInfo> OnSummonEntity;
         public Action<EntityInfo, EntityInfo> OnNewCombatTarget { get; set; }
         public Action<EntityInfo, List<bool>> OnCanAttackCheck { get; set; }
         public Action<EntityInfo, List<bool>> OnCanHelpCheck { get; set; }

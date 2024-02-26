@@ -7,7 +7,7 @@ using Architome;
 using System.Threading.Tasks;
 using DungeonArchitect;
 
-public class CombatInfo : MonoBehaviour
+public class CombatInfo : EntityProp
 {
     // Start is called before the first frame update
     public EntityInfo entityInfo;
@@ -233,24 +233,22 @@ public class CombatInfo : MonoBehaviour
     public Action<CombatInfo, bool> OnIsBeingAttackedChange;
 
     bool isBeingAttackedCheck;
-   
 
-    void Start()
+    public override void GetDependencies()
     {
-        entityInfo = GetComponentInParent<EntityInfo>();
         combatBehavior = GetComponent<CombatBehavior>();
-        
+
         castedBy = new();
         targetedBy = new();
-        if(entityInfo)
-        {
-            combatLogs = new CombatLogs();
-            combatLogs.ProcessEntity(entityInfo);
-            abilityManager = entityInfo.AbilityManager();
-            entityInfo.combatEvents.OnNewCombatTarget += OnNewTarget;
-        }
+        combatLogs = new CombatLogs();
+        combatLogs.ProcessEntity(entityInfo);
+        abilityManager = entityInfo.AbilityManager();
+        combatEvents.AddListenerGeneral(eCombatEvent.OnNewCombatTarget, OnNewTarget, this);
 
-        if(combatBehavior)
+        entityInfo.OnLifeChange += OnLifeChange;
+
+
+        if (combatBehavior)
         {
             combatBehavior = GetComponent<CombatBehavior>();
         }
@@ -259,14 +257,9 @@ public class CombatInfo : MonoBehaviour
         {
             abilityManager.OnAbilityStart += OnAbilityStart;
         }
-
-        if (entityInfo)
-        {
-            entityInfo.OnLifeChange += OnLifeChange;
-        }
     }
 
-    private void Update()
+    public override void EUpdate()
     {
         
         if(isBeingAttacked != isBeingAttackedCheck)
@@ -311,8 +304,10 @@ public class CombatInfo : MonoBehaviour
 
         return;
     }
-    public void OnNewTarget(EntityInfo previousInfo, EntityInfo newInfo)
+    public void OnNewTarget(CombatEvent eventData)
     {
+        var newInfo = eventData.target;
+        var previousInfo = eventData.previousTarget;
         currentTarget = newInfo;
 
         if(previousInfo != null)

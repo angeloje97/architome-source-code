@@ -484,7 +484,7 @@ namespace Architome
 
             if (combatTargetCheck != combatTarget)
             {
-                combatEvents.OnNewCombatTarget?.Invoke(combatTargetCheck, combatTarget);
+                combatEvents.InvokeGeneral(eCombatEvent.OnNewCombatTarget, new(this, combatTargetCheck, combatTarget));
                 combatTargetCheck = combatTarget;
             }
 
