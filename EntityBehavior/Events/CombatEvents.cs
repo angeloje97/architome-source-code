@@ -20,6 +20,9 @@ namespace Architome
         OnDeath,
         OnKill,
         OnNewCombatTarget,
+
+        //Can Help Can Attack
+
         OnCanAttackCheck,
         OnCanHelpCheck,
         OnCanBeAttackedCheck,
@@ -71,6 +74,23 @@ namespace Architome
             this.augment = augment;
             this.source = augment.entity;
             this.ability = augment.ability;
+        }
+
+        public CombatEvent(EntityInfo target, EntityProp sourceProp)
+        {
+            this.target = target;
+            this.source = sourceProp.entityInfo;
+        }
+
+        public CombatEvent(EntityInfo target)
+        {
+            this.target = target;
+        }
+
+        public CombatEvent(EntityInfo source, EntityInfo target)
+        {
+            this.target = target;
+            this.source = source;
         }
 
         public CombatEvent(EntityInfo source, EntityInfo previousTarget, EntityInfo target)
@@ -177,15 +197,26 @@ namespace Architome
     {
 
         #region General Combat Events
-        public ArchEventHandler<eCombatEvent, CombatEvent> general { get; set; }
+        ArchEventHandler<eCombatEvent, CombatEvent> general { get; set; }
 
         public Action AddListenerGeneral(eCombatEvent trigger, Action<CombatEvent> action, MonoActor actor) => general.AddListener(trigger, action, actor);
+
+        public Action AddListenerGeneralCheck(eCombatEvent trigger, Action<CombatEvent, List<bool>> action, MonoActor actor)
+        {
+            return general.AddListenerCheck(trigger, action, actor);
+        }
+
+        public bool InvokeCheckGeneral(eCombatEvent trigger, CombatEvent eventData)
+        {
+            return general.InvokeCheck(trigger, eventData);
+        }
+
         public void InvokeGeneral(eCombatEvent trigger, CombatEvent eventData) => general.Invoke(trigger, eventData);
 
         #endregion
 
         #region Health Events
-        public ArchEventHandler<eHealthEvent, HealthCombatEvent> healthEvents { get; set; }
+        ArchEventHandler<eHealthEvent, HealthCombatEvent> healthEvents { get; set; }
 
         public Action AddListenerHealth(eHealthEvent trigger, Action<HealthCombatEvent> action, MonoActor actor) => healthEvents.AddListener(trigger, action, actor);
 
@@ -194,7 +225,7 @@ namespace Architome
         #endregion
 
         #region State Events
-        public ArchEventHandler<eStateEvent, StateChangeEvent> stateChange { get; set; }
+        ArchEventHandler<eStateEvent, StateChangeEvent> stateChange { get; set; }
 
         public Action AddListenerStateEvent(eStateEvent trigger, Action<StateChangeEvent> action, MonoActor actor) => stateChange.AddListener(trigger, action, actor);
 
@@ -221,7 +252,7 @@ namespace Architome
         public Action<EntityInfo, List<Func<float>>> OnUpdateHealAbsorbShield;
         #endregion
 
-        #region Thread Events
+        #region Threat Events
         public Action<EntityInfo, float> OnPingThreat { get; set; }
         public Action<ThreatManager.ThreatInfo, float> OnGenerateThreat;
         public Action<ThreatManager.ThreatInfo> OnFirstThreatWithPlayer { get; set; }
@@ -229,14 +260,11 @@ namespace Architome
 
         #region Generic
 
-        public Action<CombatEventData, bool> OnFixate;
+        public Action<CombatEventData, bool> OnFixate { get; set; }
 
-        public Action<EntityInfo> OnSummonEntity;
-        public Action<EntityInfo, EntityInfo> OnNewCombatTarget { get; set; }
+        public Action<EntityInfo> OnSummonEntity { get; set; }
         public Action<EntityInfo, List<bool>> OnCanAttackCheck { get; set; }
         public Action<EntityInfo, List<bool>> OnCanHelpCheck { get; set; }
-        public Action<List<bool>> OnCanBeAttackedCheck { get; set; }
-        public Action<List<bool>> OnCanBeHelpedCheck { get; set; }
         #endregion
     }
 

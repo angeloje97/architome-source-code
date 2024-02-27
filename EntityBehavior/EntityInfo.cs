@@ -1064,6 +1064,53 @@ namespace Architome
 
 
         #region Event Flags
+
+        #region Can Interact With Items
+        public bool CanDrop(ItemData item)
+        {
+            var checks = new List<bool>();
+
+            infoEvents.OnCanDropCheck?.Invoke(item, checks);
+
+            foreach(var check in checks)
+            {
+                if (!check) return false;
+            }
+
+            return true;
+        }
+        public bool CanSpend(Currency currency, int amount)
+        {
+            var checks = new List<bool>();
+
+            infoEvents.OnCanSpendCheck?.Invoke(currency, amount, checks);
+
+            foreach (var check in checks)
+            {
+                if (check)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        public bool CanPickUp(ItemData itemData)
+        {
+            var checks = new List<bool>();
+            infoEvents.OnCanPickUpCheck?.Invoke(itemData, checks);
+
+            foreach (var check in checks)
+            {
+                if (!check) continue;
+                return true;
+            }
+            return false;
+        }
+        #endregion
+
+        #region Can Help/Attack Properties
+
         public bool CanAttack(EntityInfo target)
         {
             if (target == null) return false;
@@ -1114,47 +1161,7 @@ namespace Architome
 
             return true;
         }
-        public bool CanDrop(ItemData item)
-        {
-            var checks = new List<bool>();
 
-            infoEvents.OnCanDropCheck?.Invoke(item, checks);
-
-            foreach(var check in checks)
-            {
-                if (!check) return false;
-            }
-
-            return true;
-        }
-        public bool CanSpend(Currency currency, int amount)
-        {
-            var checks = new List<bool>();
-
-            infoEvents.OnCanSpendCheck?.Invoke(currency, amount, checks);
-
-            foreach (var check in checks)
-            {
-                if (check)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-        public bool CanPickUp(ItemData itemData)
-        {
-            var checks = new List<bool>();
-            infoEvents.OnCanPickUpCheck?.Invoke(itemData, checks);
-
-            foreach (var check in checks)
-            {
-                if (!check) continue;
-                return true;
-            }
-            return false;
-        }
         public bool CanAttack(GameObject target)
         {
             if(target == null) { return false; }
@@ -1195,19 +1202,15 @@ namespace Architome
         }
         public bool CanBeAttacked()
         {
-            var checks = new List<bool>();
-
-            combatEvents.OnCanBeAttackedCheck?.Invoke(checks);
-
-            foreach(var check in checks)
-            {
-                if (!check)
-                {
-                    return false;
-                }
-            }
-            return true;
+            return combatEvents.InvokeCheckGeneral(eCombatEvent.OnCanBeAttackedCheck, new(this));
         }
+
+        public bool CanBeHelped()
+        {
+            return combatEvents.InvokeCheckGeneral(eCombatEvent.OnCanBeHelpedCheck, new(this));
+        }
+
+        #endregion
         public bool IsPlayer()
         {
 
@@ -1222,21 +1225,7 @@ namespace Architome
 
             return false;
         }
-        public bool CanBeHelped()
-        {
-            var checks = new List<bool>();
-
-            combatEvents.OnCanBeHelpedCheck?.Invoke(checks);
-
-            foreach (var check in checks)
-            {
-                if (!check)
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
+        
         #endregion
         public ToolTipData ToolTipData()
         {

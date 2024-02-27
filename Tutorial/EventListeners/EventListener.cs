@@ -181,16 +181,16 @@ namespace Architome.Tutorial
         public void PreventEntityTargetedBeforeStart(EntityInfo entity)
         {
             if (initiated) return;
-            Action<List<bool>> action = (List<bool> checks) => {
+            Action<CombatEvent, List<bool>> action = (eventData, checks) => {
                 checks.Add(false);
             };
 
-            entity.combatEvents.OnCanBeAttackedCheck += action;
-            entity.combatEvents.OnCanBeHelpedCheck += action;
+            var unsubHealth = entity.combatEvents.AddListenerGeneralCheck(eCombatEvent.OnCanBeHelpedCheck, action, this);
+            var unsubAttack = entity.combatEvents.AddListenerGeneralCheck(eCombatEvent.OnCanBeAttackedCheck, action, this);
 
             OnStartEvent += (EventListener listener) => {
-                entity.combatEvents.OnCanBeAttackedCheck -= action;
-                entity.combatEvents.OnCanBeHelpedCheck -= action;
+                unsubHealth();
+                unsubAttack();
             };
         }
 

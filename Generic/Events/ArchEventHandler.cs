@@ -227,6 +227,14 @@ namespace Architome.Events
             }, listener);
         }
 
+        public Action AddListenerCheck(T eventType, Action<E, List<bool>> action, MonoActor listener)
+        {
+            return AddListener(eventType, (E data) => {
+                action(data, checks);
+            }, listener);
+        }
+
+
         public Action AddListenerPredicate(T eventType, Predicate<E> action, Component listener)
         {
             return AddListener(eventType, (E data) => {

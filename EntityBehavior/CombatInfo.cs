@@ -9,8 +9,6 @@ using DungeonArchitect;
 
 public class CombatInfo : EntityProp
 {
-    // Start is called before the first frame update
-    public EntityInfo entityInfo;
     public AbilityManager abilityManager;
     public CombatBehavior combatBehavior;
     public bool ignoreIndicator;
