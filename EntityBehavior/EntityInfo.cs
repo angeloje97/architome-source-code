@@ -660,6 +660,7 @@ namespace Architome
                 return inverse;
             }
         }
+
         public void Heal(CombatEventData combatData)
         {
             if (!isAlive) { return; }
@@ -1114,20 +1115,17 @@ namespace Architome
         public bool CanAttack(EntityInfo target)
         {
             if (target == null) return false;
+            var combatEvent = new CombatEvent(this, target);
 
-            var checks = new List<bool>();
 
             if (!target.CanBeAttacked()) return false;
-            combatEvents.OnCanAttackCheck?.Invoke(target, checks);
+            var checkCombatEvent = combatEvents.InvokeCheckGeneral(eCombatEvent.OnCanAttackCheck, combatEvent);
 
-            foreach (var check in checks)
-            {
-                if (!check) return false;
-            }
+            if (!checkCombatEvent) return false;
 
             if (target.npcType == NPCType.Untargetable) { return false; }
-
             if (npcType == NPCType.Neutral) { return true; }
+
 
 
             if (target.npcType != npcType) { return true; }
@@ -1137,18 +1135,14 @@ namespace Architome
         public bool CanHelp(EntityInfo target)
         {
             if (target == null) return false;
-
+            var combatEvent = new CombatEvent(this, target);
 
             if (!target.CanBeHelped()) return false;
 
-            var checks = new List<bool>();
 
-            combatEvents.OnCanHelpCheck?.Invoke(target, checks);
+            var checkCombat = combatEvents.InvokeCheckGeneral(eCombatEvent.OnCanHelpCheck, combatEvent);
 
-            foreach(var check in checks)
-            {
-                if (!check) return false;
-            }
+            if (!checkCombat) return false;
 
             if (target.npcType == NPCType.Untargetable) { return false; }
 

@@ -27,6 +27,9 @@ namespace Architome
         OnCanHelpCheck,
         OnCanBeAttackedCheck,
         OnCanBeHelpedCheck,
+
+        //Summoning
+        OnSummonEntity,
     }
 
     public class CombatEvent
@@ -111,6 +114,7 @@ namespace Architome
         {
             this.source = source;
         }
+
     }
     #endregion
 
@@ -190,6 +194,32 @@ namespace Architome
     }
     #endregion
 
+    #region Threat Event
+
+    public class ThreatEvent : CombatEvent
+    {
+        public ThreatManager.ThreatInfo threatInfo { get; private set; }
+
+        public float threatValue;
+
+        //Attacker = Source
+        //Owner = Target
+
+        public ThreatEvent(ThreatManager.ThreatInfo threat)
+        {
+            this.threatInfo = threat;
+            SetSource(threat.threatInfo);
+            SetTarget(threat.sourceInfo);
+            threatValue = threat.threatValue;
+        }
+
+        public ThreatEvent(EntityInfo source, EntityInfo target, float value) : base(source, target)
+        {
+            this.threatValue = value;
+        }
+    }
+
+    #endregion
     #endregion
 
     #region Events
@@ -230,6 +260,8 @@ namespace Architome
         public Action AddListenerStateEvent(eStateEvent trigger, Action<StateChangeEvent> action, MonoActor actor) => stateChange.AddListener(trigger, action, actor);
 
         public void InvokeStateEvent(eStateEvent trigger, StateChangeEvent data) => stateChange.Invoke(trigger, data);
+        public bool InvokeStateCheck(eStateEvent trigger, StateChangeEvent data) => stateChange.InvokeCheck(trigger, data);
+
         #endregion
         public void Initiate(EntityInfo source)
         {
@@ -237,7 +269,6 @@ namespace Architome
             healthEvents = new(source);
             stateChange = new(source);
         }
-
 
         #region Health Change Events
         public Action<CombatEventData> OnImmuneDamage { get; set; }
@@ -254,7 +285,7 @@ namespace Architome
 
         #region Threat Events
         public Action<EntityInfo, float> OnPingThreat { get; set; }
-        public Action<ThreatManager.ThreatInfo, float> OnGenerateThreat;
+        public Action<ThreatManager.ThreatInfo, float> OnGenerateThreat { get; set; }
         public Action<ThreatManager.ThreatInfo> OnFirstThreatWithPlayer { get; set; }
         #endregion
 
@@ -263,8 +294,6 @@ namespace Architome
         public Action<CombatEventData, bool> OnFixate { get; set; }
 
         public Action<EntityInfo> OnSummonEntity { get; set; }
-        public Action<EntityInfo, List<bool>> OnCanAttackCheck { get; set; }
-        public Action<EntityInfo, List<bool>> OnCanHelpCheck { get; set; }
         #endregion
     }
 
