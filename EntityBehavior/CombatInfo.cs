@@ -98,7 +98,7 @@ public class CombatInfo : EntityProp
 
         bool isRecording;
 
-        public void ProcessEntity(EntityInfo entity)
+        public void ProcessEntity(EntityInfo entity, EntityProp prop)
         {
             this.entity = entity;
             entity.OnDamageDone += OnDamageDone;
@@ -110,8 +110,8 @@ public class CombatInfo : EntityProp
             entity.OnExperienceGain += OnExperienceGain;
             entity.OnDamagePreventedFromShields += OnDamagePreventedFromShields;
 
-            entity.combatEvents.OnGenerateThreat += OnGenerateThreat;
 
+            prop.combatEvents.AddThreatListener(eThreatEvent.OnGenerateThreat, OnGenerateThreat, prop);
 
             ArchAction.Delay(() => {
                 levels = new();
@@ -208,9 +208,9 @@ public class CombatInfo : EntityProp
             values.damagePreventedFromShields += eventData.value;
         }
 
-        public void OnGenerateThreat(ThreatManager.ThreatInfo threatInfo, float value)
+        public void OnGenerateThreat(ThreatEvent eventData)
         {
-            values.threatGenerated += value;
+            values.threatGenerated += eventData.threatValue;
         }
 
     }
@@ -239,7 +239,7 @@ public class CombatInfo : EntityProp
         castedBy = new();
         targetedBy = new();
         combatLogs = new CombatLogs();
-        combatLogs.ProcessEntity(entityInfo);
+        combatLogs.ProcessEntity(entityInfo, this);
         abilityManager = entityInfo.AbilityManager();
         combatEvents.AddListenerGeneral(eCombatEvent.OnNewCombatTarget, OnNewTarget, this);
 

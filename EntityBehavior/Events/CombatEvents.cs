@@ -196,8 +196,16 @@ namespace Architome
 
     #region Threat Event
 
+    public enum eThreatEvent
+    {
+        OnPingThreat,
+        OnGenerateThreat,
+        OnFirstThreatWithPlayer,
+    }
+
     public class ThreatEvent : CombatEvent
     {
+
         public ThreatManager.ThreatInfo threatInfo { get; private set; }
 
         public float threatValue;
@@ -263,11 +271,22 @@ namespace Architome
         public bool InvokeStateCheck(eStateEvent trigger, StateChangeEvent data) => stateChange.InvokeCheck(trigger, data);
 
         #endregion
+
+        #region Threat Events
+
+        ArchEventHandler<eThreatEvent, ThreatEvent> threatEvents;
+
+        public Action AddThreatListener(eThreatEvent trigger, Action<ThreatEvent> action, MonoActor actor) => threatEvents.AddListener(trigger, action, actor);
+
+        public void InvokeThreat(eThreatEvent trigger, ThreatEvent threatEvent) => threatEvents.Invoke(trigger, threatEvent);
+
+        #endregion
         public void Initiate(EntityInfo source)
         {
             general = new(source);
             healthEvents = new(source);
             stateChange = new(source);
+            threatEvents = new(source);
         }
 
         #region Health Change Events
@@ -285,7 +304,6 @@ namespace Architome
 
         #region Threat Events
         public Action<EntityInfo, float> OnPingThreat { get; set; }
-        public Action<ThreatManager.ThreatInfo, float> OnGenerateThreat { get; set; }
         public Action<ThreatManager.ThreatInfo> OnFirstThreatWithPlayer { get; set; }
         #endregion
 

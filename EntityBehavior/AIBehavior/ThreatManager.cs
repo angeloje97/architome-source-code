@@ -436,7 +436,7 @@ public class ThreatManager : MonoBehaviour
         }
 
         OnIncreaseThreat?.Invoke(threatInfo, value);
-        source.combatEvents.OnGenerateThreat?.Invoke(threatInfo, value);
+        source.combatEvents.InvokeThreat(eThreatEvent.OnGenerateThreat, new(threatInfo));
 
         CheckMaxThreat();
         CheckMaxThreatNonTargetting();
