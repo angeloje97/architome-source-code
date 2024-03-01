@@ -159,8 +159,8 @@ namespace Architome
 
                 foreach (var threat in masterThreat.threats)
                 {
-                    var value = threatManager.ThreatMultiplier(threat.threatObject.GetComponent<EntityInfo>());
-                    entityInfo.combatEvents.OnPingThreat?.Invoke(threat.threatInfo, value);
+                    var value = threatManager.ThreatMultiplier(threat.threatInfo);
+                    combatEvents.InvokeThreat(eThreatEvent.OnPingThreat, new(threat, value));
                 }
             }, .50f);
         }

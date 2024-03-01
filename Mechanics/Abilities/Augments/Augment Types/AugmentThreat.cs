@@ -15,7 +15,7 @@ namespace Architome
         public override void HandleNewCatlyst(CatalystInfo catalyst)
         {
             catalyst.OnDamage += (CatalystInfo catalyst, EntityInfo target) => {
-                target.combatEvents.OnPingThreat?.Invoke(catalyst.entityInfo, value);
+                target.combatEvents.InvokeThreat(eThreatEvent.OnPingThreat, new(catalyst.entityInfo, target, value));
             };
         }
 

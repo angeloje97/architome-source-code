@@ -63,7 +63,7 @@ namespace Architome
                     }
                 }
 
-                info.combatEvents.OnPingThreat?.Invoke(buff.hostInfo, this.value);
+                info.combatEvents.InvokeThreat(eThreatEvent.OnPingThreat, new(buff.hostInfo, info, this.value));
             }
 
         }

@@ -897,7 +897,7 @@ namespace Architome
 
         public void PingThreat(EntityInfo entity)
         {
-            combatEvents.OnPingThreat?.Invoke(entity, 20);
+            combatEvents.InvokeThreat(eThreatEvent.OnPingThreat, new(entity, this, 20));
         }
 
         public bool CanSee(Transform target)

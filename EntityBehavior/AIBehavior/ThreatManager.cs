@@ -6,11 +6,10 @@ using Architome;
 using System;
 using System.Threading.Tasks;
 using System.Linq;
-public class ThreatManager : MonoBehaviour
+public class ThreatManager : EntityProp
 {
     // Start is called before the first frame update
     public GameObject entityObject;
-    public EntityInfo entityInfo;
 
     public AIBehavior behavior;
     public AbilityManager abilityManager;
@@ -133,7 +132,7 @@ public class ThreatManager : MonoBehaviour
 
     bool sortingThreats;
     bool combatActive;
-    public void GetDependencies()
+    public override void GetDependencies()
     {
         entityInfo = GetComponentInParent<EntityInfo>();
 
@@ -153,7 +152,9 @@ public class ThreatManager : MonoBehaviour
             entityInfo.OnChangeNPCType += OnChangeNpcType;
             entityInfo.OnBuffApply += OnBuffApply;
             entityInfo.OnCombatChange += OnCombatChange;
-            entityInfo.combatEvents.OnPingThreat += OnPingThreat;
+
+
+            combatEvents.AddListenerThreat(eThreatEvent.OnPingThreat, OnPingThreat, this);
         }
 
         behavior = GetComponentInParent<AIBehavior>();
@@ -165,11 +166,9 @@ public class ThreatManager : MonoBehaviour
             
             combatInfo = behavior.GetComponentInChildren<CombatInfo>();
         }
-    }
-    void Start()
-    {
-        GetDependencies();
+
         HandleSummons();
+
     }
 
     void HandleSummons()
@@ -181,10 +180,7 @@ public class ThreatManager : MonoBehaviour
             }
         }, .25f);
     }
-    // Update is called once per frame
-    void Update()
-    {
-    }
+
     public void OnChangeNpcType(NPCType before, NPCType after)
     {
         //HandleMaxThreat();
@@ -290,8 +286,10 @@ public class ThreatManager : MonoBehaviour
         IncreaseThreat(target, 15f, true);
 
     }
-    public void OnPingThreat(EntityInfo source, float value)
+    public void OnPingThreat(ThreatEvent threatEventData)
     {
+        var value = threatEventData.threatValue;
+        var source = threatEventData.source;
         IncreaseThreat(source, value);
     }
     public void ClearThreatQueue()
@@ -435,8 +433,10 @@ public class ThreatManager : MonoBehaviour
             threatInfo.IncreaseThreat(value);
         }
 
+        var threatEvent = new ThreatEvent(threatInfo);
+
         OnIncreaseThreat?.Invoke(threatInfo, value);
-        source.combatEvents.InvokeThreat(eThreatEvent.OnGenerateThreat, new(threatInfo));
+        source.combatEvents.InvokeThreat(eThreatEvent.OnGenerateThreat, threatEvent);
 
         CheckMaxThreat();
         CheckMaxThreatNonTargetting();

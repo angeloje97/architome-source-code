@@ -221,6 +221,14 @@ namespace Architome
             threatValue = threat.threatValue;
         }
 
+        public ThreatEvent(ThreatManager.ThreatInfo threat, float newValue)
+        {
+            this.threatInfo = threat;
+            SetSource(threat.threatInfo);
+            SetTarget(threat.sourceInfo);
+            threatValue = newValue;
+        }
+
         public ThreatEvent(EntityInfo source, EntityInfo target, float value) : base(source, target)
         {
             this.threatValue = value;
@@ -276,7 +284,7 @@ namespace Architome
 
         ArchEventHandler<eThreatEvent, ThreatEvent> threatEvents;
 
-        public Action AddThreatListener(eThreatEvent trigger, Action<ThreatEvent> action, MonoActor actor) => threatEvents.AddListener(trigger, action, actor);
+        public Action AddListenerThreat(eThreatEvent trigger, Action<ThreatEvent> action, MonoActor actor) => threatEvents.AddListener(trigger, action, actor);
 
         public void InvokeThreat(eThreatEvent trigger, ThreatEvent threatEvent) => threatEvents.Invoke(trigger, threatEvent);
 
@@ -303,7 +311,6 @@ namespace Architome
         #endregion
 
         #region Threat Events
-        public Action<EntityInfo, float> OnPingThreat { get; set; }
         public Action<ThreatManager.ThreatInfo> OnFirstThreatWithPlayer { get; set; }
         #endregion
 
