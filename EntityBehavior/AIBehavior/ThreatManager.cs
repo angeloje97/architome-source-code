@@ -449,7 +449,7 @@ public class ThreatManager : EntityProp
 
             if (source.IsPlayer())
             {
-                entityInfo.combatEvents.OnFirstThreatWithPlayer?.Invoke(threatInfo);
+                combatEvents.InvokeThreat(eThreatEvent.OnFirstThreatWithPlayer, new(threatInfo));
             }
         }
         

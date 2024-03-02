@@ -1268,7 +1268,7 @@ namespace Architome
                     OnDamageTaken += (eventData) => { action(); };
                     break;
                 case EntityEvent.OnDetectPlayer:
-                    combatEvents.OnFirstThreatWithPlayer += (threatInfo) => { action(); };
+                    combatEvents.AddListenerThreat(eThreatEvent.OnFirstThreatWithPlayer, (threatEvent) => action(), this);
                     break;
                 case EntityEvent.OnKillPlayer:
                     combatEvents.OnKillPlayer += (eventData) => { action(); };
