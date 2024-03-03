@@ -18,14 +18,18 @@ namespace Architome
         {
             base.GetDependencies();
 
-            var info = buffInfo.sourceInfo;
+            var info = buffInfo.hostInfo;
 
-            info.combatEvents.BeforeHealingTaken += BeforeHostHealingTaken;
+
+            var unsubscribe = hostCombatEvent.AddListenerHealth(eHealthEvent.BeforeHealingTaken, BeforeHostHealingTaken, this);
+
             info.combatEvents.OnUpdateHealAbsorbShield += HandleUpdateAbsorbShield;
+            
+
 
             info.UpdateHealthAbsorbShield();
             buffInfo.OnBuffEnd += (BuffInfo buff) => {
-                info.combatEvents.BeforeHealingTaken -= BeforeHostHealingTaken;
+                unsubscribe();
                 info.combatEvents.OnUpdateHealAbsorbShield -= HandleUpdateAbsorbShield;
                 info.UpdateHealthAbsorbShield();
             };
@@ -37,16 +41,16 @@ namespace Architome
             nums.Add(() => value);
         }
 
-        void BeforeHostHealingTaken(CombatEventData eventData)
+        void BeforeHostHealingTaken(HealthEvent eventData)
         {
             if (value >= eventData.value)
             {
                 value -= eventData.value;
-                eventData.value = 0f;
+                eventData.SetValue(0f);
             }
             else if (value < eventData.value)
             {
-                eventData.value -= value;
+                eventData.SetValue(eventData.value - value);
                 value = 0f;
                 buffInfo.Deplete();
             }

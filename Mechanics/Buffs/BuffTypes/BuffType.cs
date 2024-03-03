@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Transactions;
 using UnityEngine;
 
 namespace Architome
 {
-    public class BuffType : MonoBehaviour
+    public class BuffType : MonoActor
     {
         #region Common Data
 
@@ -16,6 +17,10 @@ namespace Architome
 
         public EntityInfo host => buffInfo.hostInfo;
         public EntityInfo source => buffInfo.sourceInfo;
+
+        public CombatEvents hostCombatEvents => host.combatEvents;
+        public CombatEvents sourceCombatEvents => source.combatEvents;
+
 
         public CombatEvents hostCombatEvent => host.combatEvents;
 

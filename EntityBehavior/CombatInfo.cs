@@ -111,7 +111,7 @@ public class CombatInfo : EntityProp
             entity.OnDamagePreventedFromShields += OnDamagePreventedFromShields;
 
 
-            prop.combatEvents.AddThreatListener(eThreatEvent.OnGenerateThreat, OnGenerateThreat, prop);
+            prop.combatEvents.AddListenerThreat(eThreatEvent.OnGenerateThreat, OnGenerateThreat, prop);
 
             ArchAction.Delay(() => {
                 levels = new();

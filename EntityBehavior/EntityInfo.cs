@@ -665,9 +665,11 @@ namespace Architome
         {
             if (!isAlive) { return; }
             combatData.target = this;
+            var healthEvent = new HealthEvent(combatData);
             var source = combatData.source;
-            source.combatEvents.BeforeHealingDone?.Invoke(combatData);
-            combatEvents.BeforeHealingTaken?.Invoke(combatData);
+
+            combatEvents.InvokeHealthChange(eHealthEvent.BeforeHealingTaken, healthEvent);
+            source.combatEvents.InvokeHealthChange(eHealthEvent.BeforeHealingDone, healthEvent);
 
             HandleValue();
             HandleHealing();

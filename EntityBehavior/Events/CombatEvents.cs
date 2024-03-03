@@ -103,6 +103,15 @@ namespace Architome
             this.target = target;
         }
 
+        public CombatEvent(CombatEventData eventData)
+        {
+            catalyst = eventData.catalyst;
+            buff = eventData.buff;
+            ability = eventData.ability;
+            source = eventData.source;
+            target = eventData.target;
+        }
+
         #endregion
 
         public virtual void SetTarget(EntityInfo target)
@@ -133,19 +142,35 @@ namespace Architome
         OnDamagePreventedFromShields,
     }
 
-    public class HealthCombatEvent : CombatEvent
+    public class HealthEvent : CombatEvent
     {
+        public DamageType damageType { get; private set; }
         public float value { get; private set; }
-        public DamageType damageType;
 
-        public HealthCombatEvent(CatalystInfo catalyst, EntityInfo source, float value) : base(catalyst, source)
+        public float percentValue { get; private set; }
+
+        public bool critical { get; private set; }
+
+        public bool lethalDamage { get; set; }
+
+        public HealthEvent(CatalystInfo catalyst, EntityInfo source, float value) : base(catalyst, source)
         {
             this.value = value;
         }
 
-        public HealthCombatEvent(BuffInfo buffInfo, float value) : base(buffInfo)
+        public HealthEvent(BuffInfo buffInfo, float value) : base(buffInfo)
         {
             this.value = value;
+        }
+
+        public HealthEvent(CombatEventData data) : base(data)
+        {
+
+        }
+
+        public void SetValue(float newValue)
+        {
+            value = newValue;
         }
     }
 
@@ -262,11 +287,11 @@ namespace Architome
         #endregion
 
         #region Health Events
-        ArchEventHandler<eHealthEvent, HealthCombatEvent> healthEvents { get; set; }
+        ArchEventHandler<eHealthEvent, HealthEvent> healthEvents { get; set; }
 
-        public Action AddListenerHealth(eHealthEvent trigger, Action<HealthCombatEvent> action, MonoActor actor) => healthEvents.AddListener(trigger, action, actor);
+        public Action AddListenerHealth(eHealthEvent trigger, Action<HealthEvent> action, MonoActor actor) => healthEvents.AddListener(trigger, action, actor);
 
-        public void InvokeHealthChange(eHealthEvent trigger, HealthCombatEvent data) => healthEvents.Invoke(trigger, data);
+        public void InvokeHealthChange(eHealthEvent trigger, HealthEvent data) => healthEvents.Invoke(trigger, data);
 
         #endregion
 
@@ -301,17 +326,11 @@ namespace Architome
         public Action<CombatEventData> OnImmuneDamage { get; set; }
         public Action<CombatEventData> BeforeDamageTaken { get; set; }
         public Action<CombatEventData> BeforeDamageDone { get; set; }
-        public Action<CombatEventData> BeforeHealingTaken { get; set; }
-        public Action<CombatEventData> BeforeHealingDone { get; set; }
         public Action<CombatEventData> OnKillPlayer { get; set; }
 
-        public Action<EntityInfo, List<Func<float>>> OnUpdateShield;
+        public Action<EntityInfo, List<Func<float>>> OnUpdateShield { get; set; }
 
-        public Action<EntityInfo, List<Func<float>>> OnUpdateHealAbsorbShield;
-        #endregion
-
-        #region Threat Events
-        public Action<ThreatManager.ThreatInfo> OnFirstThreatWithPlayer { get; set; }
+        public Action<EntityInfo, List<Func<float>>> OnUpdateHealAbsorbShield { get; set; }
         #endregion
 
         #region Generic
