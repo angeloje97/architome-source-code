@@ -60,7 +60,9 @@ public class ProgressBarsBehavior : EntityProp, IPointerEnterHandler, IPointerEx
             entityInfo.OnLifeChange += OnLifeChange;
             entityInfo.OnChangeNPCType += OnChangeNPCType;
             entityInfo.OnCombatChange += OnCombatChange;
-            entityInfo.OnHealingTaken += OnHealingTaken;
+
+            combatEvents.AddListenerHealth(eHealthEvent.OnHealingTaken, OnHealingTaken, this);
+
             entityInfo.OnNewBuff += OnNewBuff;
             OnCombatChange(entityInfo.isInCombat);
 
@@ -301,7 +303,7 @@ public class ProgressBarsBehavior : EntityProp, IPointerEnterHandler, IPointerEx
 
 
 
-    public void OnHealingTaken(CombatEventData eventData)
+    public void OnHealingTaken(HealthEvent eventData)
     {
         UpdateCanvasTimer(2.5f);
     }

@@ -147,7 +147,9 @@ public class ThreatManager : EntityProp
             entityInfo.OnDamageDone += OnDamageDone;
             entityInfo.OnDamageTaken += OnDamageTaken;
             entityInfo.OnLifeChange += OnLifeChange;
-            entityInfo.OnHealingTaken += OnHealingTaken;
+            combatEvents.AddListenerHealth(eHealthEvent.OnHealingTaken, OnHealingTaken, this);
+
+
             entityInfo.OnNewBuff += OnNewBuff;
             entityInfo.OnChangeNPCType += OnChangeNpcType;
             entityInfo.OnBuffApply += OnBuffApply;
@@ -232,18 +234,33 @@ public class ThreatManager : EntityProp
         }
 
     }
+
+    DifficultySet currentSettings;
+    DifficultySet difficultySettings
+    {
+        get
+        {
+            if(currentSettings == null)
+            {
+                currentSettings = GMHelper.Difficulty().settings;
+            }
+
+            return currentSettings;
+        }
+    }
+
     public float ThreatMultiplier(EntityInfo target)
     {
         if (target == null) return 1f;
 
         if (target.role == Role.Tank)
         {
-            return GMHelper.Difficulty().settings.tankHealthMultiplier;
+            return difficultySettings.tankHealthMultiplier;
         }
 
         if (target.role == Role.Healer)
         {
-            return GMHelper.Difficulty().settings.healThreatMultiplier;
+            return difficultySettings.healThreatMultiplier;
         }
 
         return 1f;
@@ -263,7 +280,7 @@ public class ThreatManager : EntityProp
         AlertAllies(source, .25f);
 
     }
-    public void OnHealingTaken(CombatEventData eventData)
+    public void OnHealingTaken(HealthEvent eventData)
     {
         var source = eventData.source;
         var val = eventData.value;

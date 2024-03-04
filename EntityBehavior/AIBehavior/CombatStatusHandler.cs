@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome;
-public class CombatStatusHandler : MonoBehaviour
+public class CombatStatusHandler : EntityProp
 {
     // Start is called before the first frame update
     public EntityInfo entityInfo;
@@ -18,14 +18,17 @@ public class CombatStatusHandler : MonoBehaviour
             return entityInfo.abilityEvents;
         }
     }
-    void GetDependencies()
+    public override void GetDependencies()
     {
         entityInfo = GetComponentInParent<EntityInfo>();
         if(entityInfo)
         {
             entityInfo.ThreatManager().OnIncreaseThreat += OnIncreaseThreat;
             entityInfo.OnDamageDone += OnDamageDone;
-            entityInfo.OnHealingDone += OnHealingDone;
+            combatEvents.AddListenerHealth(eHealthEvent.OnHealingDone, OnHealingDone, this);
+
+
+
             entityInfo.OnLifeChange += OnLifeChange;
 
             var abilityManager = entityInfo.AbilityManager();
@@ -48,13 +51,8 @@ public class CombatStatusHandler : MonoBehaviour
         }
     }
 
-    void Start()
-    {
-        GetDependencies();
-    }
-
     // Update is called once per frame
-    void Update()
+    public override void EUpdate()
     {
         HandleTimers();
         HandleEvents();
@@ -152,8 +150,9 @@ public class CombatStatusHandler : MonoBehaviour
         }
     }
 
-    public void OnHealingDone(CombatEventData eventData)
+    public void OnHealingDone(HealthEvent eventData)
     {
+        if (!eventData.targetInCombat) return;
         SetCombatStatus(eventData.target.isInCombat);
     }
 

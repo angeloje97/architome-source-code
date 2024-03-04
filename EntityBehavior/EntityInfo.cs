@@ -148,8 +148,6 @@ namespace Architome
 
         public  Action<CombatEventData> OnDamageTaken { get;set; }
         public Action<CombatEventData> OnDamageDone { get; set; }
-        public Action<CombatEventData> OnHealingTaken { get; set; }
-        public Action<CombatEventData> OnHealingDone { get; set; }
         public Action<CombatEventData> OnReviveOther { get; set; }
         public Action<CombatEventData> OnReviveThis { get; set; }
         public event Action<CombatEventData> OnDeath;
@@ -661,12 +659,11 @@ namespace Architome
             }
         }
 
-        public void Heal(CombatEventData combatData)
+        public void Heal(HealthEvent healthEvent)
         {
             if (!isAlive) { return; }
-            combatData.target = this;
-            var healthEvent = new HealthEvent(combatData);
-            var source = combatData.source;
+            healthEvent.SetTarget(this);
+            var source = healthEvent.source;
 
             combatEvents.InvokeHealthChange(eHealthEvent.BeforeHealingTaken, healthEvent);
             source.combatEvents.InvokeHealthChange(eHealthEvent.BeforeHealingDone, healthEvent);
@@ -677,44 +674,47 @@ namespace Architome
 
             void HandleValue()
             {
-                combatData.value *= stats.healingReceivedMultiplier;
+                var newValue = healthEvent.value;
+                newValue *= stats.healingReceivedMultiplier;
 
                 float criticalRole = UnityEngine.Random.Range(0, 100);
 
                 if (source.stats.criticalChance * 100 > criticalRole)
                 {
-                    combatData.critical = true;
-                    combatData.value *= source.stats.criticalDamage;
+                    healthEvent.SetCritical(true);
+                    newValue *= source.stats.criticalDamage;
                 }
 
-                if (combatData.value + health > maxHealth)
+                if (newValue + health > maxHealth)
                 {
-                    combatData.value = maxHealth - health;
+                    newValue = maxHealth - health;
                 }
+
+                healthEvent.SetValue(newValue);
             }
 
             void HandleHealing()
             {
-                var healingDone = combatData.value;
-                if (health + combatData.value > maxHealth)
+                var currentValue = healthEvent.value;
+                var healingDone = currentValue;
+                if (health + currentValue > maxHealth)
                 {
                     healingDone = maxHealth - health;
                     health = maxHealth;
-                    
                 }
                 else
                 {
-                    health += combatData.value;
+                    health += currentValue;
                 }
-                combatData.value = healingDone;
+
+                healthEvent.SetValue(healingDone);
                 HandleEvents();
             }
 
             void HandleEvents()
             {
-                
-                OnHealingTaken?.Invoke(combatData);
-                source.OnHealingDone?.Invoke(combatData);
+                combatEvents.InvokeHealthChange(eHealthEvent.OnHealingTaken, healthEvent);
+                source.combatEvents.InvokeHealthChange(eHealthEvent.OnHealingDone, healthEvent);
             }
         }
         public bool AddState(EntityState state, StateChangeEvent eventData)

@@ -111,7 +111,8 @@ namespace Architome
             entityObject = entityInfo.gameObject;
             entityInfo.OnLifeChange += OnLifeChange;
             entityInfo.OnCombatChange += OnCombatChange;
-            entityInfo.OnHealingDone += OnHealingDone;
+
+            combatEvents.AddListenerHealth(eHealthEvent.OnHealingDone, OnHealingDone, this);
 
             movement = entityInfo.Movement();
 
@@ -231,7 +232,7 @@ namespace Architome
             }
         }
 
-        public void OnHealingDone(CombatEventData eventData)
+        public void OnHealingDone(HealthEvent eventData)
         {
             if (entityInfo.role != Role.Healer) return;
             if (!healSettings.clearFocusOnFullHealthTarget) return;

@@ -125,8 +125,8 @@ public class CatalystHit : MonoBehaviour
         {
             if (!CanHeal(targetHit)) { return; }
 
-            var combatData = new CombatEventData(catalystInfo, catalystInfo.entityInfo, value);
-            targetHit.Heal(combatData);
+            var healthEvent = new HealthEvent(catalystInfo, catalystInfo.entityInfo, value);
+            targetHit.Heal(healthEvent);
             catalystInfo.OnHeal?.Invoke(catalystInfo ,targetHit);
             AddAlliesHealed(targetHit);
 

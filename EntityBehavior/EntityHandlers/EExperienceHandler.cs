@@ -15,7 +15,7 @@ namespace Architome
             entityInfo.OnDamagePreventedFromShields += OnDamagePreventedFromShields;
             entityInfo.OnDamageTaken += OnDamageTaken;
             entityInfo.OnDamageDone += OnDamageDone;
-            entityInfo.OnHealingDone += OnHealingDone;
+            entityInfo.combatEvents.AddListenerHealth(eHealthEvent.OnHealingDone, OnHealingDone, this);
 
             entityInfo.OnExperienceGainOutside += OnGainExperienceOutside;
         }
@@ -101,7 +101,7 @@ namespace Architome
             }
         }
 
-        public void OnHealingDone(CombatEventData eventData)
+        public void OnHealingDone(HealthEvent eventData)
         {
             GainExp(eventData.value * .25f);
         }

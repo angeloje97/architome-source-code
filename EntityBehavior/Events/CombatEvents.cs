@@ -172,6 +172,11 @@ namespace Architome
         {
             value = newValue;
         }
+
+        public void SetCritical(bool critical)
+        {
+            this.critical = critical;
+        }
     }
 
 

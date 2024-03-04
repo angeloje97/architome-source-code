@@ -781,7 +781,7 @@ public class BuffInfo : MonoBehaviour
         void HandleHealing()
         {
             if(targettingType == BuffTargetType.Harm) { return; }
-            target.Heal(combatData);
+            target.Heal(new HealthEvent(combatData));
             OnBuffHeal?.Invoke(combatData);
         }
     }
