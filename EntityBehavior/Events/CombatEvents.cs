@@ -15,10 +15,13 @@ namespace Architome
     public enum eCombatEvent
     {
         OnCombatChange,
+
+        //Deaths
         OnGetRevive,
         OnGiveRevive,
         OnDeath,
         OnKill,
+        OnKillPlayer,
         OnNewCombatTarget,
 
         //Can Help Can Attack
@@ -331,7 +334,6 @@ namespace Architome
         public Action<CombatEventData> OnImmuneDamage { get; set; }
         public Action<CombatEventData> BeforeDamageTaken { get; set; }
         public Action<CombatEventData> BeforeDamageDone { get; set; }
-        public Action<CombatEventData> OnKillPlayer { get; set; }
 
         public Action<EntityInfo, List<Func<float>>> OnUpdateShield { get; set; }
 

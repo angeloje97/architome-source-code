@@ -152,9 +152,8 @@ namespace Architome
                 };
 
                 entityInfo.AddEventTrigger(() => {
-
                     data.ActivateEffect();
-                }, data.trigger);
+                }, data.trigger, this);
             });
         }
 

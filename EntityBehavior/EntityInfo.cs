@@ -538,6 +538,8 @@ namespace Architome
         {
             if (!isAlive) return;
             combatData.target = this;
+            var healthEvent = new HealthEvent(combatData);
+            healthEvent.SetTarget(this);
             var source = combatData.source;
             var damageType = combatData.DataDamageType();
 
@@ -637,7 +639,7 @@ namespace Architome
 
                         if (IsPlayer())
                         {
-                            combatEvents.OnKillPlayer?.Invoke(combatData);
+                            combatEvents.InvokeGeneral(eCombatEvent.OnKillPlayer, healthEvent);
                         }
                         OnDeath?.Invoke(combatData);
                         source.OnKill?.Invoke(combatData);
@@ -1253,7 +1255,7 @@ namespace Architome
             return (health, maxHealth);
         }
 
-        public void AddEventTrigger(Action action, EntityEvent trigger)
+        public void AddEventTrigger(Action action, EntityEvent trigger, EntityProp prop)
         {
             switch (trigger)
             {
@@ -1270,10 +1272,10 @@ namespace Architome
                     OnDamageTaken += (eventData) => { action(); };
                     break;
                 case EntityEvent.OnDetectPlayer:
-                    combatEvents.AddListenerThreat(eThreatEvent.OnFirstThreatWithPlayer, (threatEvent) => action(), this);
+                    combatEvents.AddListenerThreat(eThreatEvent.OnFirstThreatWithPlayer, (threatEvent) => action(), prop);
                     break;
                 case EntityEvent.OnKillPlayer:
-                    combatEvents.OnKillPlayer += (eventData) => { action(); };
+                    combatEvents.AddListenerGeneral(eCombatEvent.OnKillPlayer, (eventData) => action(), prop);
                     break;
                 case EntityEvent.OnCastStart:
                     abilityEvents.OnCastStart += (ability) => { if(!ability.isAttack) action(); };
