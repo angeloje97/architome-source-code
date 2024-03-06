@@ -18,6 +18,8 @@ namespace Architome
         public EntityInfo host => buffInfo.hostInfo;
         public EntityInfo source => buffInfo.sourceInfo;
 
+        public CombatEvents targetCombatEvent => buffInfo.targetInfo.combatEvents;
+
         public CombatEvents hostCombatEvents => host.combatEvents;
         public CombatEvents sourceCombatEvents => source.combatEvents;
 

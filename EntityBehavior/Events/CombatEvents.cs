@@ -33,6 +33,9 @@ namespace Architome
 
         //Summoning
         OnSummonEntity,
+
+        //Fixation
+        OnFixateChange,
     }
 
     public class CombatEvent
@@ -46,6 +49,8 @@ namespace Architome
         public Augment augment { get; private set; }
         public AbilityInfo ability { get; private set; }
         public BuffInfo buff { get; private set; }
+
+        public bool fixated { get; private set; }
 
         #endregion
 
@@ -127,6 +132,10 @@ namespace Architome
             this.source = source;
         }
 
+        public virtual void SetFixate(bool fixate)
+        {
+            fixated = fixate;
+        }
     }
     #endregion
 
@@ -341,8 +350,6 @@ namespace Architome
         #endregion
 
         #region Generic
-
-        public Action<CombatEventData, bool> OnFixate { get; set; }
 
         public Action<EntityInfo> OnSummonEntity { get; set; }
         #endregion

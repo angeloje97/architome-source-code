@@ -38,27 +38,29 @@ namespace Architome
 
             isFixating = true;
             combatBehavior.SetFocus(buffInfo.targetInfo, null);
-
+            var combatEventData = new CombatEvent(buffInfo);
             combatBehavior.OnCanFocusCheck += OnCanFocusCheck;
-
-            buffInfo.OnBuffEnd += delegate (BuffInfo buff)
-            {
-                combatBehavior.OnCanFocusCheck -= OnCanFocusCheck;
-                var eventData = new CombatEventData(buff, buff.properties.value);
-                buffInfo.targetInfo.combatEvents.OnFixate?.Invoke(eventData, false);
-                isFixating = false;
-                buffInfo.hostInfo.CombatBehavior().SetFocus(originalFocusTarget, $"Setting original focus target");
-
-            };
 
             if (buffInfo.hostInfo.AbilityManager().attackAbility)
             {
-                var combatEventData = new CombatEventData(buffInfo, buffInfo.properties.value);
-                buffInfo.targetInfo.combatEvents.OnFixate?.Invoke(combatEventData, true);
+                combatEventData.SetFixate(true);
+                //buffInfo.targetInfo.combatEvents.OnFixate?.Invoke(combatEventData, true);
+                targetCombatEvent.InvokeGeneral(eCombatEvent.OnFixateChange, combatEventData);
                 buffInfo.hostInfo.AbilityManager().target = buffInfo.targetInfo;
                 buffInfo.hostInfo.AbilityManager().Attack();
                 buffInfo.hostInfo.AbilityManager().target = null;
             }
+
+            buffInfo.OnBuffEnd += delegate (BuffInfo buff)
+            {
+                combatBehavior.OnCanFocusCheck -= OnCanFocusCheck;
+                combatEventData.SetFixate(false);
+                //buffInfo.targetInfo.combatEvents.OnFixate?.Invoke(eventData, false);
+                targetCombatEvent.InvokeGeneral(eCombatEvent.OnFixateChange, combatEventData);
+
+                isFixating = false;
+                buffInfo.hostInfo.CombatBehavior().SetFocus(originalFocusTarget, $"Setting original focus target");
+            };
 
             void OnCanFocusCheck(EntityInfo entity, EntityInfo target, List<bool> setFocusChecks)
             {

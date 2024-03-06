@@ -21,49 +21,52 @@ namespace Architome
 
         public override async Task GetDependenciesTask()
         {
-                popUpManager = PopupTextManager.active;
+            popUpManager = PopupTextManager.active;
 
-                if (popUpManager == null) return;
+            if (popUpManager == null) return;
 
 
-                await Task.Delay(250);
-                if (entityInfo)
+            await Task.Delay(250);
+            if (entityInfo)
+            {
+                if (entityInfo.rarity == EntityRarity.Player)
                 {
-                    if (entityInfo.rarity == EntityRarity.Player)
-                    {
-                        entityInfo.OnLifeChange += OnLifeChange;
-                        entityInfo.combatEvents.OnFixate += OnFixate;
-                        entityInfo.OnLevelUp += OnLevelUp;
-                        entityInfo.OnNewBuff += OnNewBuff;
-                    }
-                    else
-                    {
-                        entityInfo.OnDamageTaken += OnDamageTaken;
-                        entityInfo.combatEvents.OnImmuneDamage += OnImmuneDamage;
+                    entityInfo.OnLifeChange += OnLifeChange;
+                    OnRemoveFixateListener += combatEvents.AddListenerGeneral(eCombatEvent.OnFixateChange, OnFixate, this);
 
-                    }
-
-                    entityInfo.infoEvents.OnRarityChange += OnRarityChange;
-
-
-                    combatEvents.AddListenerStateEvent(eStateEvent.OnStatesChange, OnStatesChange, this);
-                    combatEvents.AddListenerStateEvent(eStateEvent.OnStatesNegated, OnStateNegated, this);
-                    combatEvents.AddListenerStateEvent(eStateEvent.OnAddImmuneState, OnAddImmuneState, this);
-                    combatEvents.AddListenerStateEvent(eStateEvent.OnRemoveImmuneState, OnRemoveImmuneState, this);
+                    entityInfo.OnLevelUp += OnLevelUp;
+                    entityInfo.OnNewBuff += OnNewBuff;
                 }
+                else
+                {
+                    entityInfo.OnDamageTaken += OnDamageTaken;
+                    entityInfo.combatEvents.OnImmuneDamage += OnImmuneDamage;
+
+                }
+
+                entityInfo.infoEvents.OnRarityChange += OnRarityChange;
+
+
+                combatEvents.AddListenerStateEvent(eStateEvent.OnStatesChange, OnStatesChange, this);
+                combatEvents.AddListenerStateEvent(eStateEvent.OnStatesNegated, OnStateNegated, this);
+                combatEvents.AddListenerStateEvent(eStateEvent.OnAddImmuneState, OnAddImmuneState, this);
+                combatEvents.AddListenerStateEvent(eStateEvent.OnRemoveImmuneState, OnRemoveImmuneState, this);
+            }
 
             
         }
 
         #endregion
 
+        Action OnRemoveFixateListener;
+
         #region Event Listeners
         void OnRarityChange(EntityRarity before, EntityRarity after)
         {
             if (before == EntityRarity.Player)
             {
+                InvokeFixateListener();
                 entityInfo.OnLifeChange -= OnLifeChange;
-                entityInfo.combatEvents.OnFixate -= OnFixate;
                 entityInfo.OnLevelUp -= OnLevelUp;
                 entityInfo.OnNewBuff -= OnNewBuff;
 
@@ -74,16 +77,19 @@ namespace Architome
             if (after == EntityRarity.Player)
             {
                 entityInfo.OnLifeChange += OnLifeChange;
-                entityInfo.combatEvents.OnFixate += OnFixate;
+                OnRemoveFixateListener += combatEvents.AddListenerGeneral(eCombatEvent.OnFixateChange, OnFixate, this);
                 entityInfo.OnLevelUp += OnLevelUp;
                 entityInfo.OnNewBuff += OnNewBuff;
 
                 entityInfo.OnDamageTaken -= OnDamageTaken;
                 entityInfo.combatEvents.OnImmuneDamage -= OnImmuneDamage;
             }
+        }
 
-
-            
+        void InvokeFixateListener()
+        {
+            OnRemoveFixateListener?.Invoke();
+            OnRemoveFixateListener = null;
         }
 
 
@@ -132,11 +138,11 @@ namespace Architome
             buff.OnBuffEnd -= OnBuffEnd;
         }
 
-        public void OnFixate(CombatEventData eventData, bool fixated)
+        public void OnFixate(CombatEvent eventData)
         {
             if (popUpManager == null) return;
 
-            var fixate = fixated ? "Fixated" : "Fixated Faded";
+            var fixate = eventData.fixated ? "Fixated" : "Fixated Faded";
             
             popUpManager.StateChangePopUp(new(transform, fixate));
         }
