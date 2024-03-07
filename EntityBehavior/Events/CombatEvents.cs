@@ -151,6 +151,7 @@ namespace Architome
         BeforeDamageDone,
         BeforeHealingTaken,
         BeforeHealingDone,
+        OnImmuneDamage,
         OnDamagePreventedFromShields,
     }
 
@@ -158,6 +159,8 @@ namespace Architome
     {
         public DamageType damageType { get; private set; }
         public float value { get; private set; }
+
+        public float shieldValue { get; private set; }
 
         public float percentValue { get; private set; }
 
@@ -178,6 +181,21 @@ namespace Architome
         public HealthEvent(CombatEventData data) : base(data)
         {
 
+        }
+
+        public DamageType DataDamageType()
+        {
+            if (buff)
+            {
+                return buff.damageType;
+            }
+
+            if (catalyst)
+            {
+                return catalyst.damageType;
+            }
+
+            return DamageType.True;
         }
 
         public void SetValue(float newValue)
@@ -342,7 +360,6 @@ namespace Architome
         #region Health Change Events
         public Action<CombatEventData> OnImmuneDamage { get; set; }
         public Action<CombatEventData> BeforeDamageTaken { get; set; }
-        public Action<CombatEventData> BeforeDamageDone { get; set; }
 
         public Action<EntityInfo, List<Func<float>>> OnUpdateShield { get; set; }
 

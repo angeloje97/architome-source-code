@@ -534,12 +534,10 @@ namespace Architome
         }
 
         #region Combat Actions
-        public void Damage(CombatEventData combatData)
+        public void Damage(HealthEvent combatData)
         {
             if (!isAlive) return;
-            combatData.target = this;
-            var healthEvent = new HealthEvent(combatData);
-            healthEvent.SetTarget(this);
+            combatData.SetTarget(this);
             var source = combatData.source;
             var damageType = combatData.DataDamageType();
 
@@ -555,10 +553,14 @@ namespace Architome
             void HandleValue()
             {
                 var originalValue = combatData.value;
+                var damageResult = combatData.value;
                 if (states.Contains(EntityState.Immune))
                 {
-                    combatData.value = 0;
-                    combatEvents.OnImmuneDamage?.Invoke(combatData);
+                    damageResult = 0;
+                    combatData.SetValue(0f);
+                    //combatEvents.OnImmuneDamage?.Invoke(combatData);
+                    combatEvents.InvokeHealthChange(eHealthEvent.OnImmuneDamage, combatData);
+
                     return;
                 }
 
@@ -570,45 +572,47 @@ namespace Architome
                     Debugger.InConsole(47438, $"Critical Role is {criticalRole} entity crit chance is {source.stats.criticalChance * 100}");
                     if (source.stats.criticalChance * 100 > criticalRole)
                     {
-                        combatData.critical = true;
-                        combatData.value *= source.stats.criticalDamage;
+                        combatData.SetCritical(true);
+                        damageResult *= source.stats.criticalDamage;
                     }
 
 
-                    combatData.value *= source.stats.damageMultiplier;
+                    damageResult *= source.stats.damageMultiplier;
                 }
 
-                combatData.value *= stats.damageTakenMultiplier;
+                damageResult *= stats.damageTakenMultiplier;
 
-                combatData.value -= combatData.value * stats.damageReduction;
+                damageResult -= combatData.value * stats.damageReduction;
 
 
                 if (damageType == DamageType.Physical)
                 {
                     var reduction = ReductionPercent(stats.armor);
 
-                    combatData.value -= combatData.value * reduction;
+                    damageResult -= combatData.value * reduction;
                 }
                 else if (damageType == DamageType.Magical)
                 {
                     var reduction = ReductionPercent(stats.magicResist);
-                    combatData.value -= combatData.value * reduction;
+                    damageResult -= combatData.value * reduction;
                 }
 
                 if (combatData.value < 0)
                 {
-                    combatData.value = 0;
+                    damageResult = 0;
                 }
                 
                 if (combatData.value < originalValue && damageType == DamageType.True)
                 {
-                    combatData.value = originalValue;
+                    damageResult = originalValue;
                 }
 
                 if (combatData.value > health + shield)
                 {
-                    combatData.value = health + shield;
+                    damageResult = health + shield;
                 }
+
+                combatData.SetValue(damageResult);
 
             }
             void HandleDamage()
@@ -620,15 +624,16 @@ namespace Architome
 
                 if (source)
                 {
-                    source.combatEvents.BeforeDamageDone?.Invoke(combatData);
+                    source.combatEvents.InvokeHealthChange(eHealthEvent.BeforeDamageDone, combatData);
                 }
-                combatEvents.BeforeDamageTaken?.Invoke(combatData);
 
+                combatEvents.InvokeHealthChange(eHealthEvent.BeforeDamageTaken, combatData);
 
                 DamageHealth();
 
-                if (source != null) source.OnDamageDone?.Invoke(combatData);
-                OnDamageTaken?.Invoke(combatData);
+                if (source != null) source.combatEvents.InvokeHealthChange(eHealthEvent.OnDamageDone, combatData);
+                //Change On Damage Done
+                combatEvents.InvokeHealthChange(eHealthEvent.OnDamageTaken, combatData);
 
                 void DamageHealth()
                 {
@@ -639,10 +644,14 @@ namespace Architome
 
                         if (IsPlayer())
                         {
-                            combatEvents.InvokeGeneral(eCombatEvent.OnKillPlayer, healthEvent);
+                            combatEvents.InvokeGeneral(eCombatEvent.OnKillPlayer, combatData);
                         }
-                        OnDeath?.Invoke(combatData);
-                        source.OnKill?.Invoke(combatData);
+
+                        combatEvents.InvokeGeneral(eCombatEvent.OnDeath, combatData);
+                        //OnDeath?.Invoke(combatData);
+                        source.combatEvents.InvokeGeneral(eCombatEvent.OnKill, combatData);
+
+                        //source.OnKill?.Invoke(combatData);
                     }
                     else
                     {

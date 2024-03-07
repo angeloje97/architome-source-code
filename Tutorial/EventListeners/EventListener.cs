@@ -200,12 +200,16 @@ namespace Architome.Tutorial
                 eventData.value = 0f;
             };
 
-            entity.combatEvents.BeforeDamageDone += action;
+            var unsubScribe = entity.combatEvents.AddListenerHealth(eHealthEvent.BeforeDamageDone, (HealthEvent eventData) => {
+                eventData.SetValue(0f);
+            }, this);
+
             entity.combatEvents.BeforeDamageTaken += action;
 
             OnEndEvent += (EventListener listener) => {
                 entity.combatEvents.BeforeDamageTaken -= action;
-                entity.combatEvents.BeforeDamageDone -= action;
+
+                unsubScribe();
             
             };
         }
