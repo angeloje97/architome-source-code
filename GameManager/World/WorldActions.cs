@@ -138,8 +138,8 @@ namespace Architome
             {
                 if (!damage) return;
                 if (value <= 0) return;
-
-                info.Damage(new(info) { value = value });
+                var healthEvent = new HealthEvent(info, info, value);
+                info.Damage(healthEvent);
             }
         }
 

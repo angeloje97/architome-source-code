@@ -183,6 +183,11 @@ namespace Architome
 
         }
 
+        public HealthEvent(EntityInfo source, EntityInfo target, float value) : base(source, target)
+        {
+            this.value = value;
+        }
+
         public DamageType DataDamageType()
         {
             if (buff)

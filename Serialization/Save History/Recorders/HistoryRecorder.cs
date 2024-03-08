@@ -128,7 +128,7 @@ namespace Architome
             if (entityDeathHandler == null) return;
 
 
-            entityDeathHandler.OnEntityDeath += (CombatEventData eventData) =>
+            entityDeathHandler.OnEntityDeath += (CombatEvent eventData) =>
             {
                 var target = eventData.target;
                 if (target.IsPlayer())

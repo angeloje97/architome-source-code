@@ -140,7 +140,7 @@ public class CatalystHit : MonoBehaviour
         {
             if(!CanHarm(targetHit)) { return; }
 
-            var combatData = new CombatEventData(catalystInfo, catalystInfo.entityInfo, value);
+            var combatData = new HealthEvent(catalystInfo, catalystInfo.entityInfo, value);
             targetHit.Damage(combatData);
             catalystInfo.OnDamage?.Invoke(catalystInfo, targetHit);
             ApplyBuff(targetHit, BuffTargetType.Harm);

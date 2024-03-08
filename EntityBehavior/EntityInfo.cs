@@ -557,7 +557,7 @@ namespace Architome
                 if (states.Contains(EntityState.Immune))
                 {
                     damageResult = 0;
-                    combatData.SetValue(0f);
+                    combatData.SetValue(damageResult);
                     //combatEvents.OnImmuneDamage?.Invoke(combatData);
                     combatEvents.InvokeHealthChange(eHealthEvent.OnImmuneDamage, combatData);
 
@@ -994,10 +994,8 @@ namespace Architome
             int tries = 3;
             while (isAlive)
             {
-                Damage(new(source? source: this)
-                {
-                    value = maxHealth + shield
-                });
+                var healthEvent = new HealthEvent(source, this, maxHealth + shield);
+                Damage(healthEvent);
 
                 await Task.Yield();
 

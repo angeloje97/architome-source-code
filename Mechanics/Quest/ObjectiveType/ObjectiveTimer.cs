@@ -69,7 +69,7 @@ namespace Architome
             if (!enableMemberDeaths) return;
             var deathHandler = EntityDeathHandler.active;
 
-            deathHandler.OnPlayableEntityDeath += (CombatEventData eventData) => { 
+            deathHandler.OnPlayableEntityDeath += (CombatEvent eventData) => { 
                 entityDeaths++;
                 timer -= deathTimerPenalty;
                 Debugger.Environment(1095, $"Timer: {timer} after taking off {deathTimerPenalty}");

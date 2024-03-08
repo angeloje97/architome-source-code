@@ -42,7 +42,7 @@ namespace Architome
             SetCatalyst(catalyst, true);
             var hit = catalyst.GetComponent<CatalystHit>();
 
-            var combatData = new CombatEventData(catalyst, augment.entity, entity.maxHealth);
+            var combatData = new HealthEvent(catalyst, augment.entity, entity.maxHealth);
             entity.Damage(combatData);
             catalyst.ReduceTicks();
             catalyst.OnDamage?.Invoke(catalyst, entity);

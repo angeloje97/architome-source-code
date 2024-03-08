@@ -119,7 +119,7 @@ namespace Architome
             objectives.Add(prompt);
         }
 
-        public void OnEntityDeath(CombatEventData eventData)
+        public void OnEntityDeath(CombatEvent eventData)
         {
             if (!isActive) return;
             if (!entitiesToKill.Contains(eventData.target.entityName)) return;

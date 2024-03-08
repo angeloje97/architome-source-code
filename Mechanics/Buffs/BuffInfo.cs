@@ -204,8 +204,8 @@ public class BuffInfo : MonoBehaviour
     public Action<BuffInfo> OnBuffInterval;
     public Action<BuffInfo> OnBuffDeplete;
     public Action<BuffInfo> OnBuffEnd;
-    public Action<CombatEventData> OnBuffDamage;
-    public Action<CombatEventData> OnBuffHeal;
+    public Action<HealthEvent> OnBuffDamage { get; set; }
+    public Action<HealthEvent> OnBuffHeal { get; set; }
     public Action<BuffInfo, int, float> OnStack;
     public Action<BuffInfo, float, float> OnChangeValue;
     #endregion
@@ -748,8 +748,9 @@ public class BuffInfo : MonoBehaviour
     }
     public void HandleTargetHealth(EntityInfo target, float val, BuffTargetType targettingType)
     {
-        var combatData = new CombatEventData(this, val);
-        combatData.target = target;
+        var combatData = new HealthEvent(this, val);
+        
+        combatData.SetTarget(target);
 
         HandleNeutral();
         HandleDamage();
@@ -781,7 +782,7 @@ public class BuffInfo : MonoBehaviour
         void HandleHealing()
         {
             if(targettingType == BuffTargetType.Harm) { return; }
-            target.Heal(new HealthEvent(combatData));
+            target.Heal(combatData);
             OnBuffHeal?.Invoke(combatData);
         }
     }
