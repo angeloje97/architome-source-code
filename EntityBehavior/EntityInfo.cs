@@ -147,7 +147,6 @@ namespace Architome
         }
 
         public  Action<CombatEventData> OnDamageTaken { get;set; }
-        public Action<CombatEventData> OnDamageDone { get; set; }
         public Action<CombatEventData> OnReviveOther { get; set; }
         public Action<CombatEventData> OnReviveThis { get; set; }
         public event Action<CombatEventData> OnDeath;

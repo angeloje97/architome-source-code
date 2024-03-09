@@ -144,7 +144,7 @@ public class ThreatManager : EntityProp
             abilityManager = entityInfo.AbilityManager();
 
             entityInfo.OnKill += OnKill;
-            entityInfo.OnDamageDone += OnDamageDone;
+            combatEvents.AddListenerHealth(eHealthEvent.OnDamageDone, OnDamageDone, this);
             entityInfo.OnDamageTaken += OnDamageTaken;
             entityInfo.OnLifeChange += OnLifeChange;
             combatEvents.AddListenerHealth(eHealthEvent.OnHealingTaken, OnHealingTaken, this);
@@ -188,7 +188,7 @@ public class ThreatManager : EntityProp
         //HandleMaxThreat();
         ResetThreats();
     }
-    public void OnDamageDone(CombatEventData eventData)
+    public void OnDamageDone(HealthEvent eventData)
     {
         var target = eventData.target;
         if(Threat(target) == null)

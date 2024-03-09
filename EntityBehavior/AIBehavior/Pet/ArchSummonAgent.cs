@@ -60,7 +60,7 @@ namespace Architome
             combat = behavior.GetComponentInChildren<CombatBehavior>();
             threatManager = behavior.GetComponentInChildren<ThreatManager>();
 
-            entityInfo.OnDamageDone += OnDamageDone;
+            combatEvents.AddListenerHealth(eHealthEvent.OnDamageDone, OnDamageDone, this);
 
             sourceAbility = entityInfo.summon.sourceAbility;
 
@@ -134,9 +134,10 @@ namespace Architome
             if (noCombat) noCombat.enabled = false;
         }
 
-        void OnDamageDone(CombatEventData eventData)
+        void OnDamageDone(HealthEvent eventData)
         {
-            master.OnDamageDone?.Invoke(eventData);
+
+            master.combatEvents.InvokeHealthChange(eHealthEvent.OnDamageDone, eventData);
         }
 
         void OnMasterLifeChange(bool isAlive)

@@ -13,9 +13,10 @@ namespace Architome
         public override void GetDependencies()
         {
             entityInfo.OnDamagePreventedFromShields += OnDamagePreventedFromShields;
-            entityInfo.OnDamageTaken += OnDamageTaken;
-            entityInfo.OnDamageDone += OnDamageDone;
-            entityInfo.combatEvents.AddListenerHealth(eHealthEvent.OnHealingDone, OnHealingDone, this);
+
+            combatEvents.AddListenerHealth(eHealthEvent.OnDamageTaken, OnDamageTaken, this);
+            combatEvents.AddListenerHealth(eHealthEvent.OnDamageDone, OnDamageDone, this);
+            combatEvents.AddListenerHealth(eHealthEvent.OnHealingDone, OnHealingDone, this);
 
             entityInfo.OnExperienceGainOutside += OnGainExperienceOutside;
         }
@@ -83,12 +84,12 @@ namespace Architome
         }
 
 
-        public void OnDamageTaken(CombatEventData eventData)
+        public void OnDamageTaken(HealthEvent eventData)
         {
             GainExp(eventData.value * .0625f);
         }
 
-        public void OnDamageDone(CombatEventData eventData)
+        public void OnDamageDone(HealthEvent eventData)
         {
             if (!IsValidtarget()) return;
 

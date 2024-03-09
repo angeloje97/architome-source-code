@@ -103,8 +103,8 @@ public class CombatInfo : EntityProp
         public void ProcessEntity(EntityInfo entity, EntityProp prop)
         {
             this.entity = entity;
-            entity.OnDamageDone += OnDamageDone;
-            entity.OnDamageTaken += OnDamageTaken;
+            combatEvents.AddListenerHealth(eHealthEvent.OnDamageDone, OnDamageDone, prop);
+            combatEvents.AddListenerHealth(eHealthEvent.OnDamageTaken, OnDamageTaken, prop);
 
             combatEvents.AddListenerHealth(eHealthEvent.OnHealingDone, OnHealingDone, prop);
             combatEvents.AddListenerHealth(eHealthEvent.OnHealingTaken, OnHealingTaken, prop);
@@ -157,7 +157,7 @@ public class CombatInfo : EntityProp
             }
         }
 
-        public void OnDamageDone(CombatEventData eventData)
+        public void OnDamageDone(HealthEvent eventData)
         {
 
             values.damageDone += eventData.value;
@@ -187,7 +187,7 @@ public class CombatInfo : EntityProp
             }
         }
 
-        public void OnDamageTaken(CombatEventData eventData)
+        public void OnDamageTaken(HealthEvent eventData)
         {
             values.damageTaken += eventData.value;
         }

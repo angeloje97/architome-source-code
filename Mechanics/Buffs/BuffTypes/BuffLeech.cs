@@ -28,14 +28,14 @@ namespace Architome
 
             var info = leechSource == LeechSource.Host ? buffInfo.hostInfo : buffInfo.sourceInfo;
 
-            info.OnDamageDone += OnDamageDone;
+            var unsubscribe = info.combatEvents.AddListenerHealth(eHealthEvent.OnDamageDone, OnDamageDone, this);
 
             buffInfo.OnBuffEnd += (BuffInfo buff) => {
-                info.OnDamageDone -= OnDamageDone;
+                unsubscribe();
             };
         }
 
-        void OnDamageDone(CombatEventData eventData)
+        void OnDamageDone(HealthEvent eventData)
         {
             var leechAmount = eventData.value * leechPercentage;
 

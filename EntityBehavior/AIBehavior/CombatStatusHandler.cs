@@ -5,7 +5,6 @@ using Architome;
 public class CombatStatusHandler : EntityProp
 {
     // Start is called before the first frame update
-    public EntityInfo entityInfo;
     public ThreatManager threatManager;
     public float combatTime = 10f;
     public float combatTimer;
@@ -24,7 +23,7 @@ public class CombatStatusHandler : EntityProp
         if(entityInfo)
         {
             entityInfo.ThreatManager().OnIncreaseThreat += OnIncreaseThreat;
-            entityInfo.OnDamageDone += OnDamageDone;
+            combatEvents.AddListenerHealth(eHealthEvent.OnDamageDone, OnDamageDone, this);
             combatEvents.AddListenerHealth(eHealthEvent.OnHealingDone, OnHealingDone, this);
 
 
@@ -105,7 +104,7 @@ public class CombatStatusHandler : EntityProp
 
     }
 
-    public void OnDamageDone(CombatEventData eventData)
+    public void OnDamageDone(HealthEvent eventData)
     {
         if (threatManager.threats == null || threatManager.threats.Count == 0) return;
         SetCombatStatus(true);

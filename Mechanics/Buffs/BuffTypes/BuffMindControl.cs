@@ -34,7 +34,11 @@ public class BuffMindControl : BuffStateChanger
         var host = buffInfo.hostInfo;
         var source = buffInfo.sourceInfo;
 
-        host.OnDamageDone += OnDamageDone;
+        var unsubscribe = hostCombatEvent.AddListenerHealth(eHealthEvent.OnDamageDone, OnDamageDone, this);
+
+        buffInfo.OnBuffEnd += (BuffInfo buff) => {
+            unsubscribe();
+        };
 
         base.ApplyBuff();
 
@@ -87,9 +91,9 @@ public class BuffMindControl : BuffStateChanger
         return "Control an enemy to switch them over to the caster's side.";
     }
 
-    void OnDamageDone(CombatEventData eventData)
+    void OnDamageDone(HealthEvent eventData)
     {
-        buffInfo.sourceInfo.OnDamageDone?.Invoke(eventData);
+        sourceCombatEvents.InvokeHealthChange(eHealthEvent.OnDamageDone, eventData);
     }
 
     void CleanseTaunts()
@@ -164,7 +168,6 @@ public class BuffMindControl : BuffStateChanger
         if (!applied) return;
         HandleRemoveState(buffInfo);
         buffInfo.hostInfo.ChangeBehavior(originalNPCType, originalBehaviorType);
-        buffInfo.hostInfo.OnDamageDone -= OnDamageDone;
         combatBehavior.SetFocus(originalFocus);
 
         ArchAction.Delay(() => 
