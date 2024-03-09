@@ -279,7 +279,10 @@ namespace Architome
             var randomPosition = lastSpawnBeacon.RandomPosition();
 
             Revive(entityInfo, randomPosition, .25f, .25f);
-            entityInfo.OnReviveThis?.Invoke(new(lastSpawnBeacon) { percentValue = .25f });
+            var healthEvent = new HealthEvent(lastSpawnBeacon, entityInfo, 0f);
+            healthEvent.SetPercentValue(.25f);
+
+            entityInfo.combatEvents.InvokeHealthChange(eHealthEvent.OnGetRevive, healthEvent);
 
             lastSpawnBeacon.spawnEvents.OnSpawnEntity?.Invoke(entityInfo);
         }

@@ -146,20 +146,23 @@ namespace Architome
             public Action<string> OnTransferScene { get; set; }
         }
 
-        public  Action<CombatEventData> OnDamageTaken { get;set; }
-        public Action<CombatEventData> OnReviveOther { get; set; }
-        public Action<CombatEventData> OnReviveThis { get; set; }
-        public event Action<CombatEventData> OnDeath;
-        public event Action<CombatEventData> OnKill;
-        public Action<CombatEventData> OnDamagePreventedFromShields;
-        public Action<BuffInfo, EntityInfo> OnNewBuff;
-        public Action<BuffInfo, EntityInfo> OnBuffApply;
-        public Action<float> OnExperienceGain;
-        public Action<object, float> OnExperienceGainOutside;
-        public Action<int> OnLevelUp;
+        #region Events that need to change to using archeventHandler
+        public Action<CombatEventData> OnDamageTaken { get;set; }
+        public Action<CombatEventData> OnDeath { get; set; }
+        public Action<CombatEventData> OnDamagePreventedFromShields { get; set; }
+
+        #endregion
+
+        public Action<BuffInfo, EntityInfo> OnNewBuff { get; set; }
+        public Action<BuffInfo, EntityInfo> OnBuffApply { get; set; }
+        public Action<float> OnExperienceGain { get; set; }
+        public Action<object, float> OnExperienceGainOutside { get; set; }
+        public Action<int> OnLevelUp { get; set; }
         public Action<float, float, float> OnHealthChange { get; set; }
-        public Action<float, float> OnManaChange;
-        public Action<bool> OnCombatChange;
+
+        public Action<float, float> OnManaChange { get; set; }
+
+        public Action<bool> OnCombatChange { get; set; }
         public Action<bool> OnLifeChange { get; set; }
         public Action<bool> OnHiddenChange { get; set; }
         //public Action<SocialEventData> OnReceiveInteraction;
@@ -437,7 +440,6 @@ namespace Architome
             };
         }
 
-        
         public void GainExperience(object sender, float amount)
         {
             OnExperienceGainOutside?.Invoke(sender, amount);
@@ -643,12 +645,12 @@ namespace Architome
 
                         if (IsPlayer())
                         {
-                            combatEvents.InvokeGeneral(eCombatEvent.OnKillPlayer, combatData);
+                            combatEvents.InvokeHealthChange(eHealthEvent.OnKillPlayer, combatData);
                         }
 
                         combatEvents.InvokeGeneral(eCombatEvent.OnDeath, combatData);
                         //OnDeath?.Invoke(combatData);
-                        source.combatEvents.InvokeGeneral(eCombatEvent.OnKill, combatData);
+                        source.combatEvents.InvokeHealthChange(eHealthEvent.OnKill, combatData);
 
                         //source.OnKill?.Invoke(combatData);
                     }
@@ -804,8 +806,6 @@ namespace Architome
             return true;
         }
 
-
-        
         public bool IsEnemy(GameObject target)
         {
             if (!target.GetComponent<EntityInfo>()) return false;
@@ -1007,10 +1007,10 @@ namespace Architome
             health = 0;
             isAlive = false;
         }
-        public void Revive(CombatEventData combatData)
+        public void Revive(HealthEvent combatData)
         {
-            combatData.value = maxHealth * combatData.percentValue;
-            combatData.target = this;
+            combatData.SetValue(maxHealth * combatData.percentValue);
+            combatData.SetTarget(this);
             this.health = combatData.value;
             var source = combatData.source;
             isAlive = true;
@@ -1018,10 +1018,12 @@ namespace Architome
 
             if(source)
             {
-                source.OnReviveOther?.Invoke(combatData);
+                //source.OnReviveOther?.Invoke(combatData);
+                source.combatEvents.InvokeHealthChange(eHealthEvent.OnGiveRevive, combatData);
             }
-            
-            OnReviveThis?.Invoke(combatData);
+
+            //OnReviveThis?.Invoke(combatData);
+            combatEvents.InvokeHealthChange(eHealthEvent.OnGetRevive, combatData);
         }
         public void CompleteQuest(Quest quest)
         {
@@ -1269,7 +1271,7 @@ namespace Architome
                     OnDeath += (eventData) => { action(); };
                     break;
                 case EntityEvent.OnRevive:
-                    OnReviveThis += (eventData) => { action(); };
+                    combatEvents.AddListenerHealth(eHealthEvent.OnGetRevive, (eventData) => action(), prop);
                     break;
                 case EntityEvent.OnLevelUp:
                     OnLevelUp += (newLevel) => { action(); };
@@ -1281,7 +1283,7 @@ namespace Architome
                     combatEvents.AddListenerThreat(eThreatEvent.OnFirstThreatWithPlayer, (threatEvent) => action(), prop);
                     break;
                 case EntityEvent.OnKillPlayer:
-                    combatEvents.AddListenerGeneral(eCombatEvent.OnKillPlayer, (eventData) => action(), prop);
+                    combatEvents.AddListenerHealth(eHealthEvent.OnKillPlayer, (eventData) => action(), prop);
                     break;
                 case EntityEvent.OnCastStart:
                     abilityEvents.OnCastStart += (ability) => { if(!ability.isAttack) action(); };

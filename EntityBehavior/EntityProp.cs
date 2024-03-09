@@ -1,3 +1,4 @@
+using Architome.Events;
 using Pathfinding;
 using System;
 using System.Collections;
@@ -18,6 +19,7 @@ namespace Architome
 
         public CombatEvents combatEvents => entityInfo.combatEvents;
         public InfoEvents infoEvents => entityInfo.infoEvents;
+
 
         #endregion
 
@@ -90,6 +92,24 @@ namespace Architome
 
         }
         #endregion
+
+        #region Events
+
+        ArchEventHandler<ePropEvent, EntityProp> propertyEventHandler;
+
+        public Action AddPropListener(ePropEvent trigger, Action<EntityProp> action, MonoActor actor) => propertyEventHandler.AddListener(trigger, action, actor);
+
+        public void InvokeProp(ePropEvent trigger, EntityProp data) => propertyEventHandler.Invoke(trigger, data);
+
+        public Action AddPropListenerCheck(ePropEvent trigger, Action<EntityProp, List<bool>> action, MonoActor actor) => propertyEventHandler.AddListenerCheck(trigger, action, actor);
+
+        public bool InvokeCheck(ePropEvent trigger, EntityProp data) => propertyEventHandler.InvokeCheck(trigger, data);
+
+        #endregion
     }
 
+    public enum ePropEvent
+    {
+        OnCanUpdateCheck,
+    }
 }

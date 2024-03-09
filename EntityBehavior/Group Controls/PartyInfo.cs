@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Architome
 {
-    public class PartyInfo : MonoBehaviour
+    public class PartyInfo : MonoActor
     {
         // Start is called before the first frame update
         public bool loadEntitiesFromSave;
@@ -143,21 +143,22 @@ namespace Architome
         void ProcessMember(EntityInfo info)
         {
             info.entityControlType = partyControl;
-            
 
 
+            Action unsubscribe = () => { }; 
 
             info.OnDeath += OnEntityDeath;
-            info.OnReviveThis += OnEntityRevive;
+            unsubscribe += info.combatEvents.AddListenerHealth(eHealthEvent.OnGetRevive, OnEntityRevive, this);
+
             info.OnLifeChange += OnEntityLifeChange;
             info.OnCombatChange += OnEntityCombatChange;
 
             events.OnRemoveMember += (EntityInfo member) => {
                 info.OnDeath -= OnEntityDeath;
-                info.OnReviveThis -= OnEntityRevive;
-                info.OnLifeChange -= OnEntityLifeChange;
                 info.OnCombatChange -= OnEntityCombatChange;
+                info.OnLifeChange -= OnEntityLifeChange;
 
+                unsubscribe?.Invoke();
             };
         }
 
@@ -303,7 +304,7 @@ namespace Architome
         void OnEntityDeath(CombatEventData eventData)
         {
         }
-        void OnEntityRevive(CombatEventData eventData)
+        void OnEntityRevive(HealthEvent eventData)
         {
         }
         void OnEntityLifeChange(bool isAlive)

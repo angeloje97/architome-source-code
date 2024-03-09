@@ -143,7 +143,7 @@ public class ThreatManager : EntityProp
 
             abilityManager = entityInfo.AbilityManager();
 
-            entityInfo.OnKill += OnKill;
+            combatEvents.AddListenerHealth(eHealthEvent.OnKill, OnKill, this);
             combatEvents.AddListenerHealth(eHealthEvent.OnDamageDone, OnDamageDone, this);
             entityInfo.OnDamageTaken += OnDamageTaken;
             entityInfo.OnLifeChange += OnLifeChange;
@@ -392,7 +392,7 @@ public class ThreatManager : EntityProp
     {
         ClearThreats();
     }
-    public void OnKill(CombatEventData eventData)
+    public void OnKill(HealthEvent eventData)
     {
         //var target = eventData.target;
 

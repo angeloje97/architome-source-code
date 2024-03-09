@@ -54,11 +54,14 @@ public class BuffRevive : BuffType
     {
         hostInfo.transform.position = position;
 
-        var combatData = new CombatEventData(buffInfo.sourceInfo)
-        {
-            buff = buffInfo,
-            percentValue = healthRevivePercent,
-        };
+        var combatData = new HealthEvent(buffInfo, value);
+        //{
+        //    buff = buffInfo,
+        //    percentValue = healthRevivePercent,
+        //};
+
+        combatData.SetPercentValue(healthRevivePercent);
+
 
         hostInfo.Revive(combatData);
         hostInfo.currentRoom = hostInfo.CurrentRoom();

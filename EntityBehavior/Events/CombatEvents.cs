@@ -17,11 +17,7 @@ namespace Architome
         OnCombatChange,
 
         //Deaths
-        OnGetRevive,
-        OnGiveRevive,
         OnDeath,
-        OnKill,
-        OnKillPlayer,
         OnNewCombatTarget,
 
         //Can Help Can Attack
@@ -153,6 +149,10 @@ namespace Architome
         BeforeHealingDone,
         OnImmuneDamage,
         OnDamagePreventedFromShields,
+        OnKill,
+        OnKillPlayer,
+        OnGetRevive,
+        OnGiveRevive,
     }
 
     public class HealthEvent : CombatEvent
@@ -211,6 +211,11 @@ namespace Architome
         public void SetCritical(bool critical)
         {
             this.critical = critical;
+        }
+
+        public void SetPercentValue(float value)
+        {
+            this.percentValue = value;
         }
     }
 
