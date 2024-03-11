@@ -12,16 +12,18 @@ public class CombatReactions
     public Animator animator;
     public EntityInfo entityInfo;
 
+    CombatEvents combatEvents => entityInfo.combatEvents;
+
 
     public void ProcessData(EntityInfo entity, Anim anim)
     {
-        entity.OnDamageTaken += OnDamageTaken;
         entity.OnLifeChange += OnLifeChange;
-        anim.combatEvents.AddListenerStateEvent(eStateEvent.OnStatesChange, OnStatesChange, anim);
+        combatEvents.AddListenerHealth(eHealthEvent.OnDamageTaken, OnDamageTaken, anim);
+        combatEvents.AddListenerStateEvent(eStateEvent.OnStatesChange, OnStatesChange, anim);
         this.animator = anim.anim;
     }
 
-    public void OnDamageTaken(CombatEventData eventData)
+    public void OnDamageTaken(HealthEvent eventData)
     {
         animator.SetTrigger("TakeDamage");
     }

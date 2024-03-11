@@ -48,6 +48,9 @@ namespace Architome
 
         public bool fixated { get; private set; }
 
+        public bool targetInCombat => target.isInCombat;
+        public bool sourceInCombat => source.isInCombat;
+
         #endregion
 
         #region Properties
@@ -118,6 +121,7 @@ namespace Architome
 
         #endregion
 
+        #region Setters
         public virtual void SetTarget(EntityInfo target)
         {
             this.target = target;
@@ -132,6 +136,8 @@ namespace Architome
         {
             fixated = fixate;
         }
+
+        #endregion
     }
     #endregion
 

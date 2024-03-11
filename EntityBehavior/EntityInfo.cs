@@ -1075,7 +1075,6 @@ namespace Architome
             return entityName;
         }
 
-
         #region Event Flags
 
         #region Can Interact With Items

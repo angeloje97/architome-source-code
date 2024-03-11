@@ -53,7 +53,7 @@ namespace Architome
             }
 
             entityInfo.OnLifeChange += OnLifeChange;
-            entityInfo.OnDamageTaken += OnDamageTaken;
+            combatEvents.AddListenerHealth(eHealthEvent.OnDamageTaken, OnDamageTaken, this);
             entityInfo.OnCombatChange += OnCombatChange;
 
             HandleTaskAnimation();
@@ -112,7 +112,7 @@ namespace Architome
             
         }
 
-        private void OnDamageTaken(CombatEventData eventData)
+        private void OnDamageTaken(HealthEvent eventData)
         {
             animator.SetTrigger("TakeDamage");
         }

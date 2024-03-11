@@ -11,6 +11,7 @@ namespace Architome
     [Serializable]
     public class BehaviorStateManager
     {
+        #region Transitions and StateMachine
         public enum Transition
         {
             OnLifeChange,
@@ -92,12 +93,15 @@ namespace Architome
                 behavior.behaviorState = toState;
             }
         }
+        #endregion
 
         public SimpleStateMachine stateMachine;
         public EntityInfo entityInfo;
         public AIBehavior behavior;
         public AbilityManager abilityManager;
         public Movement movement;
+
+        CombatEvents combatEvents => behavior.combatEvents;
 
         private bool wantsToCast;
         private bool fleeingIsActive;
@@ -114,7 +118,7 @@ namespace Architome
             {
                 entityInfo.OnLifeChange += OnLifeChange;
                 entityInfo.OnChangeNPCType += OnChangeNPCType;
-                entityInfo.OnDamageTaken += OnDamageTaken;
+                combatEvents.AddListenerHealth(eHealthEvent.OnDamageTaken, OnDamageTaken, behavior);
 
                 movement = entityInfo.Movement();
                 abilityManager = entityInfo.AbilityManager();
@@ -273,7 +277,7 @@ namespace Architome
             }
         }
 
-        public void OnDamageTaken(CombatEventData eventData)
+        public void OnDamageTaken(HealthEvent eventData)
         {
             var source = eventData.source;
 

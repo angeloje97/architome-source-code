@@ -145,7 +145,7 @@ public class ThreatManager : EntityProp
 
             combatEvents.AddListenerHealth(eHealthEvent.OnKill, OnKill, this);
             combatEvents.AddListenerHealth(eHealthEvent.OnDamageDone, OnDamageDone, this);
-            entityInfo.OnDamageTaken += OnDamageTaken;
+            combatEvents.AddListenerHealth(eHealthEvent.OnDamageTaken, OnDamageTaken, this);
             entityInfo.OnLifeChange += OnLifeChange;
             combatEvents.AddListenerHealth(eHealthEvent.OnHealingTaken, OnHealingTaken, this);
 
@@ -196,7 +196,7 @@ public class ThreatManager : EntityProp
             IncreaseThreat(target, 1);
         }
     }
-    public void OnDamageTaken(CombatEventData eventData)
+    public void OnDamageTaken(HealthEvent eventData)
     {
         if(eventData.source == null) { return; }
         var val = eventData.value;
