@@ -32,14 +32,14 @@ namespace Architome
                 if (entityInfo.rarity == EntityRarity.Player)
                 {
                     entityInfo.OnLifeChange += OnLifeChange;
-                    OnRemoveFixateListener += combatEvents.AddListenerGeneral(eCombatEvent.OnFixateChange, OnFixate, this);
+                    OnBeforeIsPlayer += combatEvents.AddListenerGeneral(eCombatEvent.OnFixateChange, OnFixate, this);
 
                     entityInfo.OnLevelUp += OnLevelUp;
                     entityInfo.OnNewBuff += OnNewBuff;
                 }
                 else
                 {
-                    entityInfo.OnDamageTaken += OnDamageTaken;
+                    OnAfterIsPlayer += combatEvents.AddListenerHealth(eHealthEvent.OnDamageTaken, OnDamageTaken, this);
                     entityInfo.combatEvents.OnImmuneDamage += OnImmuneDamage;
 
                 }
@@ -58,38 +58,50 @@ namespace Architome
 
         #endregion
 
-        Action OnRemoveFixateListener;
+        Action OnBeforeIsPlayer;
+        Action OnAfterIsPlayer;
 
         #region Event Listeners
         void OnRarityChange(EntityRarity before, EntityRarity after)
         {
             if (before == EntityRarity.Player)
             {
-                InvokeFixateListener();
+                InvokePlayerChange(false);
+                OnAfterIsPlayer += combatEvents.AddListenerHealth(eHealthEvent.OnDamageTaken, OnDamageTaken, this);
+
                 entityInfo.OnLifeChange -= OnLifeChange;
                 entityInfo.OnLevelUp -= OnLevelUp;
                 entityInfo.OnNewBuff -= OnNewBuff;
 
-                entityInfo.OnDamageTaken += OnDamageTaken;
+
                 entityInfo.combatEvents.OnImmuneDamage += OnImmuneDamage;
             }
 
             if (after == EntityRarity.Player)
             {
+                InvokePlayerChange(true);
+                OnBeforeIsPlayer += combatEvents.AddListenerGeneral(eCombatEvent.OnFixateChange, OnFixate, this);
+
                 entityInfo.OnLifeChange += OnLifeChange;
-                OnRemoveFixateListener += combatEvents.AddListenerGeneral(eCombatEvent.OnFixateChange, OnFixate, this);
                 entityInfo.OnLevelUp += OnLevelUp;
                 entityInfo.OnNewBuff += OnNewBuff;
 
-                entityInfo.OnDamageTaken -= OnDamageTaken;
                 entityInfo.combatEvents.OnImmuneDamage -= OnImmuneDamage;
             }
         }
 
-        void InvokeFixateListener()
+        public void InvokePlayerChange(bool afterIsPlayer)
         {
-            OnRemoveFixateListener?.Invoke();
-            OnRemoveFixateListener = null;
+            if (afterIsPlayer)
+            {
+                OnAfterIsPlayer?.Invoke();
+                OnAfterIsPlayer = null;
+            }
+            else
+            {
+                OnBeforeIsPlayer?.Invoke();
+                OnBeforeIsPlayer = null;
+            }
         }
 
 
@@ -154,7 +166,7 @@ namespace Architome
         bool initializedDamageType = false;
         float previousAngle = 0f;
 
-        void OnDamageTaken(CombatEventData eventData)
+        void OnDamageTaken(HealthEvent eventData)
         {
             if (eventData.value <= 0) return;
             var value = eventData.value;

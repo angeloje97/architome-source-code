@@ -44,11 +44,10 @@ namespace Architome
             }
 
             combatEvents.AddListenerStateEvent(eStateEvent.OnStatesChange, OnEntityStateChanged, this);
-
+            combatEvents.AddListenerHealth(eHealthEvent.OnDamageTaken, OnDamageTaken, this);
             buffManager = entityInfo.Buffs();
 
             entityInfo.taskEvents.OnNewTask += OnNewTask;
-            entityInfo.OnDamageTaken += OnDamageTaken;
         }
 
         void OnEntityStateChanged(StateChangeEvent eventData)
@@ -120,7 +119,7 @@ namespace Architome
             currentState = WorkerState.Idle;
         }
 
-        public void OnDamageTaken(CombatEventData eventData)
+        public void OnDamageTaken(HealthEvent eventData)
         {
             if (currentTask == null) return;
             if (currentTask.properties.damageCancelsTask)

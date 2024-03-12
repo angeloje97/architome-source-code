@@ -48,8 +48,6 @@ namespace Architome
 
         public bool fixated { get; private set; }
 
-        public bool targetInCombat => target.isInCombat;
-        public bool sourceInCombat => source.isInCombat;
 
         #endregion
 
@@ -156,6 +154,7 @@ namespace Architome
         OnImmuneDamage,
         OnDamagePreventedFromShields,
         OnKill,
+        OnDeath,
         OnKillPlayer,
         OnGetRevive,
         OnGiveRevive,

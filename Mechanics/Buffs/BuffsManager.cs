@@ -32,8 +32,8 @@ namespace Architome
                 entityInfo.OnLifeChange += OnLifeChange;
                 entityInfo.OnChangeNPCType += OnChangeNPCType;
                 entityInfo.OnCombatChange += OnCombatChange;
-                entityInfo.OnDamageTaken += OnDamageTaken;
 
+                combatEvents.AddListenerHealth(eHealthEvent.OnDamageTaken, OnDamageTaken, this);
 
             }
 
@@ -89,7 +89,7 @@ namespace Architome
                 buff.Cleanse();
             }
         }
-        public void OnDamageTaken(CombatEventData eventData)
+        public void OnDamageTaken(HealthEvent eventData)
         {
             foreach (Transform child in transform)
             {

@@ -36,7 +36,7 @@ public class BuffProperties
 #region BuffInfo
 
 [RequireComponent(typeof(BuffFXHandler))]
-public class BuffInfo : MonoBehaviour
+public class BuffInfo : MonoActor
 {
     #region Common Data
     [SerializeField] int id;
@@ -66,10 +66,13 @@ public class BuffInfo : MonoBehaviour
     public AbilityInfo sourceAbility;
     public CatalystInfo sourceCatalyst;
     public Item sourceItem;
+    public CombatEvents sourceCombatEvents => sourceInfo.combatEvents;
+
 
     [Header("Host")]
     public GameObject hostObject;
     public EntityInfo hostInfo;
+    public CombatEvents hostCombatEvents => hostInfo.combatEvents;
     
     public GameObject targetObject { get; private set; }
     public EntityInfo targetInfo { get; private set; }
@@ -110,7 +113,7 @@ public class BuffInfo : MonoBehaviour
 
         BuffInfo buff;
 
-        EntityInfo entity => buff.sourceInfo;
+        EntityInfo entity => buff.hostInfo;
         public void InitiateCleanseConditions(BuffInfo buff)
         {
             return;
@@ -131,10 +134,11 @@ public class BuffInfo : MonoBehaviour
 
             if (damageTaken)
             {
-                entity.OnDamageTaken += (CombatEventData eventData) => {
+                buff.hostCombatEvents.AddListenerHealth(eHealthEvent.OnDamageTaken, (HealthEvent eventData) =>
+                {
                     if (eventData.value <= 0) return;
                     buff.Cleanse();
-                };
+                }, buff);
             }
 
             if (isMoving)
@@ -215,8 +219,9 @@ public class BuffInfo : MonoBehaviour
     public static List<BuffInfo> buffs;
 
     bool powerSet;
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
         GetDependencies();
     }
 
@@ -319,6 +324,8 @@ public class BuffInfo : MonoBehaviour
     }
 
 
+    bool dependenciesAcquired = false;
+
     void GetDependencies()
     {
         buffTimeComplete = false;
@@ -336,6 +343,13 @@ public class BuffInfo : MonoBehaviour
             entityLayer = layerMasksData.entityLayerMask;
             structureLayer = layerMasksData.structureLayerMask;
         }
+
+        dependenciesAcquired = true;
+    }
+
+    public async Task UntilAcquiredDependencies()
+    {
+        await ArchAction.WaitUntil(() => dependenciesAcquired, true);
     }
     public void ApplyBaseValue(float value)
     {
@@ -625,6 +639,11 @@ public class BuffInfo : MonoBehaviour
             action();
         };
 
+        Action<HealthEvent> healthAction = (HealthEvent eventData) =>
+        {
+            action();
+        };
+
         if (buffTimeComplete && trigger != BuffEvents.OnEnd) return;
 
         switch (trigger)
@@ -639,8 +658,8 @@ public class BuffInfo : MonoBehaviour
                 OnBuffCompletion += (BuffInfo buff) => { action(); };
                 break;
             case BuffEvents.OnDamageTaken:
-                hostInfo.OnDamageTaken += combatAction;
-                OnBuffEnd += (BuffInfo buff) => { hostInfo.OnDamageTaken -= combatAction; };
+
+                OnBuffEnd += (BuffInfo buff) => hostCombatEvents.AddListenerHealth(eHealthEvent.OnDamageTaken, healthAction, this);
                 break;
             case BuffEvents.OnDamageImmune:
                 hostInfo.combatEvents.OnImmuneDamage += combatAction;

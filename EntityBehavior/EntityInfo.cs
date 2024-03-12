@@ -147,7 +147,6 @@ namespace Architome
         }
 
         #region Events that need to change to using archeventHandler
-        public Action<CombatEventData> OnDamageTaken { get;set; }
         public Action<CombatEventData> OnDeath { get; set; }
         public Action<CombatEventData> OnDamagePreventedFromShields { get; set; }
 
@@ -334,8 +333,6 @@ namespace Architome
                 }
             }
         }
-
-        
 
         #region Mouse Over Events
 
@@ -1264,6 +1261,7 @@ namespace Architome
 
         public void AddEventTrigger(Action action, EntityEvent trigger, EntityProp prop)
         {
+
             switch (trigger)
             {
                 case EntityEvent.OnDeath:
@@ -1276,7 +1274,7 @@ namespace Architome
                     OnLevelUp += (newLevel) => { action(); };
                     break;
                 case EntityEvent.OnDamageTaken:
-                    OnDamageTaken += (eventData) => { action(); };
+                    combatEvents.AddListenerHealth(eHealthEvent.OnDamageTaken, (eventData) => action(), prop);
                     break;
                 case EntityEvent.OnDetectPlayer:
                     combatEvents.AddListenerThreat(eThreatEvent.OnFirstThreatWithPlayer, (threatEvent) => action(), prop);
