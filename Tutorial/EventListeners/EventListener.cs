@@ -196,21 +196,16 @@ namespace Architome.Tutorial
 
         public void PreventEntityDamage(EntityInfo entity)
         {
-            Action<CombatEventData> action = (CombatEventData eventData) => {
-                eventData.value = 0f;
+            Action<HealthEvent> action = (HealthEvent eventData) => {
+                eventData.SetValue(0f);
             };
 
-            var unsubScribe = entity.combatEvents.AddListenerHealth(eHealthEvent.BeforeDamageDone, (HealthEvent eventData) => {
-                eventData.SetValue(0f);
-            }, this);
+            var unsubScribe = entity.combatEvents.AddListenerHealth(eHealthEvent.BeforeDamageDone, action, this);
 
-            entity.combatEvents.BeforeDamageTaken += action;
+            unsubScribe += entity.combatEvents.AddListenerHealth(eHealthEvent.BeforeDamageTaken, action, this);
 
             OnEndEvent += (EventListener listener) => {
-                entity.combatEvents.BeforeDamageTaken -= action;
-
                 unsubScribe();
-            
             };
         }
 

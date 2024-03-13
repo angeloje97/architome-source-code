@@ -374,7 +374,6 @@ namespace Architome
 
         #region Health Change Events
         public Action<CombatEventData> OnImmuneDamage { get; set; }
-        public Action<CombatEventData> BeforeDamageTaken { get; set; }
 
         public Action<EntityInfo, List<Func<float>>> OnUpdateShield { get; set; }
 

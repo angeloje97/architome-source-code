@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,12 +12,14 @@ namespace Architome
         public float healthPercent = .25f;
 
         bool activated;
+
+        Action OnRemoveBeforeHostTakesDamage;
         new void GetDependencies()
         {
             base.GetDependencies();
             if (buffInfo.hostInfo)
             {
-                buffInfo.hostInfo.combatEvents.BeforeDamageTaken += BeforeHostTakesDamage;
+                OnRemoveBeforeHostTakesDamage += hostCombatEvent.AddListenerHealth(eHealthEvent.BeforeDamageTaken, BeforeHostTakesDamage, this);
                 Debugger.Combat(2895, $"Applied events on {this}");
             }
         }
@@ -94,7 +97,7 @@ namespace Architome
         {
             GetDependencies();
         }
-        void BeforeHostTakesDamage(CombatEventData eventData)
+        void BeforeHostTakesDamage(HealthEvent eventData)
         {
             //if (activated) return;
             if (eventData.target == null) return;
@@ -103,13 +106,13 @@ namespace Architome
 
             Debugger.Combat(2894, $"Prevented {eventData.value} damage");
             //activated = true;
-            eventData.value = 0f;
+            eventData.SetValue(0f);
             
 
             eventData.target.health = eventData.target.maxHealth * healthPercent;
 
             ArchAction.Yield(() => buffInfo.Cleanse());
-            buffInfo.sourceInfo.combatEvents.BeforeDamageTaken -= BeforeHostTakesDamage;
+            OnRemoveBeforeHostTakesDamage?.Invoke();
 
             var buffsManager = eventData.target.Buffs();
 

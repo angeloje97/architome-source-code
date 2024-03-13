@@ -1,3 +1,4 @@
+using PixelCrushers.DialogueSystem.UnityGUI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -56,15 +57,17 @@ namespace Architome
                 if (entity)
                 {
                     entity.combatEvents.OnUpdateShield += HandleUpdateShield;
-                    entity.combatEvents.BeforeDamageTaken += HandleBeforeDamageTaken;
+                    var unsubscribe = hostCombatEvent.AddListenerHealth(eHealthEvent.BeforeDamageTaken, HandleBeforeDamageTaken, this);
+
+                    buffInfo.OnBuffEnd += (BuffInfo buff) => {
+                        value = 0f;
+                        entity.combatEvents.OnUpdateShield -= HandleUpdateShield;
+                        unsubscribe();
+                        entity.UpdateShield();
+                    };
                 }
 
-                buffInfo.OnBuffEnd += (BuffInfo buff) => {
-                    value = 0f;
-                    entity.combatEvents.OnUpdateShield -= HandleUpdateShield;
-                    entity.combatEvents.BeforeDamageTaken -= HandleBeforeDamageTaken;
-                    entity.UpdateShield();
-                };
+                
 
                 ApplyBuff();
             }
@@ -108,7 +111,7 @@ namespace Architome
         {
         }
 
-        void HandleBeforeDamageTaken(CombatEventData eventData)
+        void HandleBeforeDamageTaken(HealthEvent eventData)
         {
             if (eventData.value == 0) return;
 
@@ -116,11 +119,11 @@ namespace Architome
             if(value >= eventData.value)
             {
                 value -= eventData.value;
-                eventData.value = 0f;
+                eventData.SetValue(0f);
             }
             else
             {
-                eventData.value -= value;
+                eventData.SetValue(eventData.value - value);
                 value = 0f;
                 buffInfo.Deplete();
             }
