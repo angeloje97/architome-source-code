@@ -12,8 +12,8 @@ namespace Architome
 
         public override void GetDependencies()
         {
-            entityInfo.OnDamagePreventedFromShields += OnDamagePreventedFromShields;
 
+            combatEvents.AddListenerHealth(eHealthEvent.OnDamagePreventedFromShields, OnDamagePreventedFromShields, this);
             combatEvents.AddListenerHealth(eHealthEvent.OnDamageTaken, OnDamageTaken, this);
             combatEvents.AddListenerHealth(eHealthEvent.OnDamageDone, OnDamageDone, this);
             combatEvents.AddListenerHealth(eHealthEvent.OnHealingDone, OnHealingDone, this);
@@ -73,7 +73,7 @@ namespace Architome
         #endregion
 
         #region Listeners
-        public void OnDamagePreventedFromShields(CombatEventData eventData)
+        public void OnDamagePreventedFromShields(HealthEvent eventData)
         {
             GainExp(eventData.value * .25f);
         }

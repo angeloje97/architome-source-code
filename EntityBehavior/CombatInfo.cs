@@ -108,11 +108,11 @@ public class CombatInfo : EntityProp
 
             combatEvents.AddListenerHealth(eHealthEvent.OnHealingDone, OnHealingDone, prop);
             combatEvents.AddListenerHealth(eHealthEvent.OnHealingTaken, OnHealingTaken, prop);
+            combatEvents.AddListenerHealth(eHealthEvent.OnDamagePreventedFromShields, OnDamagePreventedFromShields, prop);
 
             entity.OnLifeChange += OnLifeChange;
             entity.OnCombatChange += OnCombatChange;
             entity.OnExperienceGain += OnExperienceGain;
-            entity.OnDamagePreventedFromShields += OnDamagePreventedFromShields;
 
 
             prop.combatEvents.AddListenerThreat(eThreatEvent.OnGenerateThreat, OnGenerateThreat, prop);
@@ -207,9 +207,9 @@ public class CombatInfo : EntityProp
             values.experienceGained += experience;
         }
 
-        public void OnDamagePreventedFromShields(CombatEventData eventData)
+        public void OnDamagePreventedFromShields(HealthEvent eventData)
         {
-            values.damagePreventedFromShields += eventData.value;
+            values.damagePreventedFromShields += eventData.damagePreventedFromShield;
         }
 
         public void OnGenerateThreat(ThreatEvent eventData)

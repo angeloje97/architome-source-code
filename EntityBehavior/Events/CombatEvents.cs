@@ -165,11 +165,15 @@ namespace Architome
         public DamageType damageType { get; private set; }
         public float value { get; private set; }
 
-        public float shieldValue { get; private set; }
+        public float damagePreventedFromShield { get; private set; }
+
+        public float healPreventedFromHealAbsorb { get; private set; }
 
         public float percentValue { get; private set; }
 
         public bool critical { get; private set; }
+
+
 
         public bool lethalDamage { get; set; }
 
@@ -221,6 +225,11 @@ namespace Architome
         public void SetPercentValue(float value)
         {
             this.percentValue = value;
+        }
+
+        public void SetDamagePreventedFromShield(float value)
+        {
+            this.damagePreventedFromShield = value;
         }
     }
 

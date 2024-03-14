@@ -148,7 +148,6 @@ namespace Architome
 
         #region Events that need to change to using archeventHandler
         public Action<CombatEventData> OnDeath { get; set; }
-        public Action<CombatEventData> OnDamagePreventedFromShields { get; set; }
 
         #endregion
 

@@ -114,19 +114,27 @@ namespace Architome
         void HandleBeforeDamageTaken(HealthEvent eventData)
         {
             if (eventData.value == 0) return;
-
+            float totalDamagePrevented = 0f;
 
             if(value >= eventData.value)
             {
+                totalDamagePrevented = eventData.value;
                 value -= eventData.value;
                 eventData.SetValue(0f);
             }
             else
             {
+                totalDamagePrevented = value;
                 eventData.SetValue(eventData.value - value);
                 value = 0f;
                 buffInfo.Deplete();
             }
+
+
+            eventData.SetDamagePreventedFromShield(totalDamagePrevented);
+
+            hostCombatEvent.InvokeHealthChange(eHealthEvent.OnDamagePreventedFromShields, eventData);
+
 
             eventData.target.UpdateShield();
         }
