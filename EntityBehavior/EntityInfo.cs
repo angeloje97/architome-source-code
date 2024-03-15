@@ -1264,7 +1264,7 @@ namespace Architome
             switch (trigger)
             {
                 case EntityEvent.OnDeath:
-                    OnDeath += (eventData) => { action(); };
+                    combatEvents.AddListenerHealth(eHealthEvent.OnDeath, (eventData) => action(), prop);
                     break;
                 case EntityEvent.OnRevive:
                     combatEvents.AddListenerHealth(eHealthEvent.OnGetRevive, (eventData) => action(), prop);

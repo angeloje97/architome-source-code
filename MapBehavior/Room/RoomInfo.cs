@@ -11,7 +11,7 @@ using PixelCrushers.DialogueSystem.UnityGUI;
 namespace Architome
 {
     [RequireComponent(typeof(RoomInfoTool))]
-    public class RoomInfo : MonoBehaviour
+    public class RoomInfo : MonoActor
     {
         [SerializeField] int id;
         [SerializeField] bool idSet;
@@ -218,9 +218,6 @@ namespace Architome
         //Private properties
         [SerializeField] float percentReveal;
 
-        private void Awake()
-        {
-        }
         void Start()
         {
             //var badSpawn = await CheckBadSpawn();

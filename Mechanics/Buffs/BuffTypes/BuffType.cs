@@ -24,7 +24,6 @@ namespace Architome
         public CombatEvents sourceCombatEvents => source.combatEvents;
 
 
-        public CombatEvents hostCombatEvent => host.combatEvents;
 
         #endregion
         public void GetDependencies()

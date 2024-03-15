@@ -57,7 +57,7 @@ namespace Architome
                 if (entity)
                 {
                     entity.combatEvents.OnUpdateShield += HandleUpdateShield;
-                    var unsubscribe = hostCombatEvent.AddListenerHealth(eHealthEvent.BeforeDamageTaken, HandleBeforeDamageTaken, this);
+                    var unsubscribe = hostCombatEvents.AddListenerHealth(eHealthEvent.BeforeDamageTaken, HandleBeforeDamageTaken, this);
 
                     buffInfo.OnBuffEnd += (BuffInfo buff) => {
                         value = 0f;
@@ -114,7 +114,7 @@ namespace Architome
         void HandleBeforeDamageTaken(HealthEvent eventData)
         {
             if (eventData.value == 0) return;
-            float totalDamagePrevented = 0f;
+            float totalDamagePrevented;
 
             if(value >= eventData.value)
             {
@@ -133,7 +133,7 @@ namespace Architome
 
             eventData.SetDamagePreventedFromShield(totalDamagePrevented);
 
-            hostCombatEvent.InvokeHealthChange(eHealthEvent.OnDamagePreventedFromShields, eventData);
+            hostCombatEvents.InvokeHealthChange(eHealthEvent.OnDamagePreventedFromShields, eventData);
 
 
             eventData.target.UpdateShield();

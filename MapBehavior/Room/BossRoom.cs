@@ -62,7 +62,7 @@ namespace Architome
                 if (entity.rarity != EntityRarity.Boss) continue;
                 bosses++;
                 entity.OnCombatChange += OnBossCombatChange;
-                entity.OnDeath += OnBossDeath;
+                entity.combatEvents.AddListenerHealth(eHealthEvent.OnDeath, OnBossDeath, this);
 
             }
 
@@ -73,7 +73,7 @@ namespace Architome
             SetPaths(!isInCombat);
         }
 
-        public void OnBossDeath(CombatEventData eventData)
+        public void OnBossDeath(HealthEvent eventData)
         {
             if (chestPos == null) return;
             if (pool == null) return;

@@ -19,7 +19,7 @@ namespace Architome
             base.GetDependencies();
             if (buffInfo.hostInfo)
             {
-                OnRemoveBeforeHostTakesDamage += hostCombatEvent.AddListenerHealth(eHealthEvent.BeforeDamageTaken, BeforeHostTakesDamage, this);
+                OnRemoveBeforeHostTakesDamage += hostCombatEvents.AddListenerHealth(eHealthEvent.BeforeDamageTaken, BeforeHostTakesDamage, this);
                 Debugger.Combat(2895, $"Applied events on {this}");
             }
         }

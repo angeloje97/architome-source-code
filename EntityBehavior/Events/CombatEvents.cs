@@ -153,6 +153,7 @@ namespace Architome
         BeforeHealingDone,
         OnImmuneDamage,
         OnDamagePreventedFromShields,
+        OnHealPreventedFromAbsorbShield,
         OnKill,
         OnDeath,
         OnKillPlayer,
@@ -227,13 +228,16 @@ namespace Architome
             this.percentValue = value;
         }
 
+        public void SetHealPreventedFromHealAbsorb(float value)
+        {
+            this.healPreventedFromHealAbsorb = value;
+        }
+
         public void SetDamagePreventedFromShield(float value)
         {
             this.damagePreventedFromShield = value;
         }
     }
-
-
 
     #endregion
 

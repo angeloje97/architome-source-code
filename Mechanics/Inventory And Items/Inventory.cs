@@ -42,7 +42,7 @@ namespace Architome
 
                 if (dropItemsOnDeath)
                 {
-                    entityInfo.OnDeath += OnEntityDeath;
+                    combatEvents.AddListenerHealth(eHealthEvent.OnDeath, OnEntityDeath, this);
                 }
             }
 
@@ -155,7 +155,7 @@ namespace Architome
         
 
 
-        void OnEntityDeath(CombatEventData eventData)
+        void OnEntityDeath(HealthEvent eventData)
         {
             DropInventory();
         }

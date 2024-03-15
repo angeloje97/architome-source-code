@@ -21,7 +21,7 @@ namespace Architome
             var info = buffInfo.hostInfo;
 
 
-            var unsubscribe = hostCombatEvent.AddListenerHealth(eHealthEvent.BeforeHealingTaken, BeforeHostHealingTaken, this);
+            var unsubscribe = hostCombatEvents.AddListenerHealth(eHealthEvent.BeforeHealingTaken, BeforeHostHealingTaken, this);
 
             info.combatEvents.OnUpdateHealAbsorbShield += HandleUpdateAbsorbShield;
             
@@ -43,17 +43,23 @@ namespace Architome
 
         void BeforeHostHealingTaken(HealthEvent eventData)
         {
+            var totalHealAbsorb = 0f;
             if (value >= eventData.value)
             {
                 value -= eventData.value;
+                totalHealAbsorb = eventData.value;
                 eventData.SetValue(0f);
             }
             else if (value < eventData.value)
             {
+                totalHealAbsorb = value;
                 eventData.SetValue(eventData.value - value);
                 value = 0f;
                 buffInfo.Deplete();
             }
+
+            eventData.SetHealPreventedFromHealAbsorb(totalHealAbsorb);
+            hostCombatEvents.InvokeHealthChange(eHealthEvent.OnHealPreventedFromAbsorbShield, eventData);
 
             eventData.target.UpdateHealthAbsorbShield();
         }
