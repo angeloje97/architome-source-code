@@ -356,6 +356,8 @@ namespace Architome
 
         public void InvokeHealthChange(eHealthEvent trigger, HealthEvent data) => healthEvents.Invoke(trigger, data);
 
+        public Action AddListenerHealthLimit(eHealthEvent trigger, Action<HealthEvent> action, MonoActor actor, int count = 1) => healthEvents.AddListenerLimit(trigger, action, actor, count);
+
         #endregion
 
         #region State Events

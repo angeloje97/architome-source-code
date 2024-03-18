@@ -147,14 +147,14 @@ namespace Architome
 
             Action unsubscribe = () => { }; 
 
-            info.OnDeath += OnEntityDeath;
+
+            unsubscribe += info.combatEvents.AddListenerHealth(eHealthEvent.OnDeath, OnEntityDeath, this);
             unsubscribe += info.combatEvents.AddListenerHealth(eHealthEvent.OnGetRevive, OnEntityRevive, this);
 
             info.OnLifeChange += OnEntityLifeChange;
             info.OnCombatChange += OnEntityCombatChange;
 
             events.OnRemoveMember += (EntityInfo member) => {
-                info.OnDeath -= OnEntityDeath;
                 info.OnCombatChange -= OnEntityCombatChange;
                 info.OnLifeChange -= OnEntityLifeChange;
 
@@ -301,7 +301,7 @@ namespace Architome
             
             center.transform.position = midPoint;
         }
-        void OnEntityDeath(CombatEventData eventData)
+        void OnEntityDeath(HealthEvent eventData)
         {
         }
         void OnEntityRevive(HealthEvent eventData)

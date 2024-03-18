@@ -46,16 +46,14 @@ namespace Architome.Tutorial
                 {
                     targetCounts++;
 
-                    target.OnDeath += OnDeath;
-
+                    target.combatEvents.AddListenerHealthLimit(eHealthEvent.OnDeath, OnDeath, this);
                 }
             }
 
-            void OnDeath(CombatEventData eventData)
+            void OnDeath(HealthEvent eventData)
             {
                 if (deadTargets.Contains(eventData.target)) return;
                 deadTargets.Add(eventData.target);
-                eventData.target.OnDeath -= OnDeath;
 
                 if (deadTargets.Count != targetCounts) return;
 

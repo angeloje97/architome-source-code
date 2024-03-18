@@ -22,7 +22,7 @@ namespace Architome
 
             if (targetEntity == null) return;
 
-            targetEntity.OnDeath += OnEntityDeath;
+            targetEntity.combatEvents.AddListenerHealth(eHealthEvent.OnDeath, OnEntityDeath, this);
             targetEntity.infoEvents.OnUpdateObjectives += OnEntityObjectiveCheck;
             questInfo.rewards.experience += targetEntity.maxHealth * .25f;
 
@@ -70,7 +70,7 @@ namespace Architome
         //    objectives.Add(prompt);
         //}
 
-        public void OnEntityDeath(CombatEventData eventData)
+        public void OnEntityDeath(HealthEvent eventData)
         {
             if (!isActive) return;
 

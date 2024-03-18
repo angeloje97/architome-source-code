@@ -6,7 +6,7 @@ using Architome.Enums;
 
 namespace Architome
 {
-    public class Objective : MonoBehaviour
+    public class Objective : MonoActor
     {
         // Start is called before the first frame update
         public string prompt;
