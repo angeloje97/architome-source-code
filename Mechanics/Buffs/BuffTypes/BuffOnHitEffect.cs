@@ -51,8 +51,8 @@ namespace Architome
 
             if (buffInfo.hostInfo)
             {
-                var unsubscribeDamage = hostCombatEvent.AddListenerHealth(eHealthEvent.OnDamageDone, OnHitEffect, this);
-                var unsubScribeHeal = hostCombatEvent.AddListenerHealth(eHealthEvent.OnHealingDone, OnHitEffect, this);
+                var unsubscribeDamage = hostCombatEvents.AddListenerHealth(eHealthEvent.OnDamageDone, OnHitEffect, this);
+                var unsubScribeHeal = hostCombatEvents.AddListenerHealth(eHealthEvent.OnHealingDone, OnHitEffect, this);
 
 
                 buffInfo.OnBuffEnd += (BuffInfo) =>
@@ -119,20 +119,6 @@ namespace Architome
             return result;
         }
 
-
-        //void OnHealingDone(CombatEventData eventData)
-        //{
-        //    if (eventData.ability == null) return;
-        //    if (eventData.ability.abilityType2 != AbilityType2.AutoAttack) return;
-
-        //    ApplyOnHit(eventData.target);
-        //}
-        //void OnDamageDone(CombatEventData eventData)
-        //{
-        //    if (eventData.ability == null) return;
-        //    if (eventData.ability.abilityType2 != AbilityType2.AutoAttack) return;
-        //    ApplyOnHit(eventData.target);
-        //}
 
         void OnHitEffect(HealthEvent eventData)
         {

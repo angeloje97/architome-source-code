@@ -340,6 +340,8 @@ namespace Architome
             return general.AddListenerCheck(trigger, action, actor);
         }
 
+        public Action AddListenerGeneralLimit(eCombatEvent trigger, Action<CombatEvent> action, MonoActor actor, int limit = 1) => general.AddListenerLimit(trigger, action, actor, limit);
+
         public bool InvokeCheckGeneral(eCombatEvent trigger, CombatEvent eventData)
         {
             return general.InvokeCheck(trigger, eventData);
@@ -364,6 +366,8 @@ namespace Architome
         ArchEventHandler<eStateEvent, StateChangeEvent> stateChange { get; set; }
 
         public Action AddListenerStateEvent(eStateEvent trigger, Action<StateChangeEvent> action, MonoActor actor) => stateChange.AddListener(trigger, action, actor);
+
+        public Action AddListenerStateLimit(eStateEvent trigger, Action<StateChangeEvent> action, MonoActor actor, int limit = 1) => stateChange.AddListenerLimit(trigger, action, actor, limit);
 
         public void InvokeStateEvent(eStateEvent trigger, StateChangeEvent data) => stateChange.Invoke(trigger, data);
         public bool InvokeStateCheck(eStateEvent trigger, StateChangeEvent data) => stateChange.InvokeCheck(trigger, data);

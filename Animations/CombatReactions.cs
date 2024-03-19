@@ -17,6 +17,7 @@ public class CombatReactions
 
     public void ProcessData(EntityInfo entity, Anim anim)
     {
+        this.entityInfo = entity;
         entity.OnLifeChange += OnLifeChange;
         combatEvents.AddListenerHealth(eHealthEvent.OnDamageTaken, OnDamageTaken, anim);
         combatEvents.AddListenerStateEvent(eStateEvent.OnStatesChange, OnStatesChange, anim);

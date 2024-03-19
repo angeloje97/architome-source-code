@@ -80,15 +80,6 @@ public class CharacterInfo : EntityProp
             entityInfo.OnHiddenChange += OnHiddenChange;
         }
 
-        if (movement)
-        {
-
-        }
-
-        if (abilityManager)
-        {
-
-        }
         abilityHandler.SetCharacter(this);
 
         taskHandler.SetCharacter(this);

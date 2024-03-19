@@ -2,6 +2,7 @@ using Architome.Events;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Architome
@@ -21,14 +22,20 @@ namespace Architome
 
         ArchEventHandler<eMonoEvent, MonoActor> monoEvents;
 
+
         #endregion
 
         #region Initiation
 
+        bool initiated = false;
+
         protected virtual void Awake()
         {
             monoEvents = new(this);
+            initiated = true;
         }
+
+        async Task UnitilInitiated() => await ArchAction.WaitUntil(() => initiated, true);
 
         #endregion
 
@@ -39,13 +46,16 @@ namespace Architome
             Invoke(eMonoEvent.OnDestroy, this);
         }
 
-        private void OnEnable()
+        private async void OnEnable()
         {
+            await UnitilInitiated();
             Invoke(eMonoEvent.OnEnable, this);
+            
         }
 
-        private void OnDisable()
+        private async void OnDisable()
         {
+            await UnitilInitiated();
             Invoke(eMonoEvent.OnDisable, this);
         }
 

@@ -147,13 +147,13 @@ namespace Architome
         }
 
         #region Events that need to change to using archeventHandler
+        public Action<float> OnExperienceGain { get; set; }
+        public Action<object, float> OnExperienceGainOutside { get; set; }
 
         #endregion
 
         public Action<BuffInfo, EntityInfo> OnNewBuff { get; set; }
         public Action<BuffInfo, EntityInfo> OnBuffApply { get; set; }
-        public Action<float> OnExperienceGain { get; set; }
-        public Action<object, float> OnExperienceGainOutside { get; set; }
         public Action<int> OnLevelUp { get; set; }
         public Action<float, float, float> OnHealthChange { get; set; }
 

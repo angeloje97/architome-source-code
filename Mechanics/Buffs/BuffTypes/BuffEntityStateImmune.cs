@@ -36,7 +36,7 @@ namespace Architome
 
             if (triggerEvents)
             {
-                hostCombatEvent.InvokeStateEvent(eStateEvent.OnAddImmuneState, new(buffInfo, activeStates));
+                hostCombatEvents.InvokeStateEvent(eStateEvent.OnAddImmuneState, new(buffInfo, activeStates));
             }
 
             buffInfo.buffsManager.CleanseImmunity();
@@ -117,7 +117,7 @@ namespace Architome
 
             if (triggerEvents)
             {
-                hostCombatEvent.InvokeStateEvent(eStateEvent.OnRemoveImmuneState, new(buffInfo, removedStates));
+                hostCombatEvents.InvokeStateEvent(eStateEvent.OnRemoveImmuneState, new(buffInfo, removedStates));
             }
 
             //for (int i = 0; i < buffInfo.hostInfo.stateImmunities.Count; i++)

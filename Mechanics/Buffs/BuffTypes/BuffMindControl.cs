@@ -34,7 +34,7 @@ public class BuffMindControl : BuffStateChanger
         var host = buffInfo.hostInfo;
         var source = buffInfo.sourceInfo;
 
-        var unsubscribe = hostCombatEvent.AddListenerHealth(eHealthEvent.OnDamageDone, OnDamageDone, this);
+        var unsubscribe = hostCombatEvents.AddListenerHealth(eHealthEvent.OnDamageDone, OnDamageDone, this);
 
         buffInfo.OnBuffEnd += (BuffInfo buff) => {
             unsubscribe();
