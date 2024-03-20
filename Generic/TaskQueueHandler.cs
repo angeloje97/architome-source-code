@@ -85,4 +85,44 @@ namespace Architome
             busy = false;
         }
     }
+
+    public static class TaskListExtensions
+    {
+        public static async Task HandleTasks<E>(this List<Func<Task<E>>> tasks, TaskType taskType)
+        {
+            if(taskType == TaskType.Parallel)
+            {
+                List<Task> currentTasks = new();
+
+                foreach(var task in tasks)
+                {
+                    currentTasks.Add(task.Invoke());
+                }
+
+                await Task.WhenAll(currentTasks);
+            }
+            else
+            {
+                foreach(var task in tasks)
+                {
+                    await task.Invoke();
+                }
+            }
+        }
+
+        public static async Task HandleTasks(this List<Func<Task>> tasks, TaskType taskType)
+        {
+            var alteredTasks = new List<Func<Task<bool>>>();
+
+            foreach(var task in tasks)
+            {
+                alteredTasks.Add(async () => {
+                    await task();
+                    return true;
+                });
+            }
+
+            await HandleTasks(alteredTasks, taskType);
+        }
+    }
 }

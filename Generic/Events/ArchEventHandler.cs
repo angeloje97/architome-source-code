@@ -18,7 +18,7 @@ namespace Architome.Events
         MonoActor actor;
         Dictionary<T, Action<E>> eventDict;
 
-        List<Func<Task>> tasksToFinish;
+        List<Func<Task>> tasksToFinish { get; set; }
         List<bool> checks;
         bool doingTasks;
         LogicType defaultLogic;
@@ -234,6 +234,13 @@ namespace Architome.Events
             }, listener);
         }
 
+        public Action AddListenerCheck(T eventType, Action<E, List<bool>, List<Func<Task>>> action, MonoActor listener)
+        {
+            return AddListener(eventType, (E data) => {
+                action(data, checks, tasksToFinish);
+            }, listener);
+        }
+
 
         public Action AddListenerPredicate(T eventType, Predicate<E> action, Component listener)
         {
@@ -285,6 +292,17 @@ namespace Architome.Events
         {
             checks = new();
             Invoke(eventType, eventData);
+
+            return new ArchLogic(checks).Valid(defaultLogic);
+        }
+
+        public async Task<bool> UntilInvokeCheck(T eventType, E eventData, TaskType taskType)
+        {
+            checks = new();
+            tasksToFinish = new();
+            Invoke(eventType, eventData);
+
+            await tasksToFinish.HandleTasks(taskType);
 
             return new ArchLogic(checks).Valid(defaultLogic);
         }

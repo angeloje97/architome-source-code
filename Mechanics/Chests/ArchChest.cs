@@ -5,8 +5,7 @@ using System;
 using System.Threading.Tasks;
 using UnityEngine.Events;
 using Architome.Enums;
-
-
+using Architome.Events;
 
 namespace Architome
 {
@@ -15,9 +14,18 @@ namespace Architome
         DropItems,
         ShowModule,
     }
-    [RequireComponent(typeof(WorkInfo))]
-    public class ArchChest : MonoBehaviour
+
+    public enum eChestEvent
     {
+        OnOpen,
+        OnClose,
+        OnCanOpen,
+    }
+
+    [RequireComponent(typeof(WorkInfo))]
+    public class ArchChest : MonoActor
+    {
+        #region Common Data
 
         public InteractionType interactionType;
 
@@ -84,6 +92,19 @@ namespace Architome
         public UnityEvent OnOpen;
         public UnityEvent OnClose;
 
+        #region EventHandler
+        ArchEventHandler<eChestEvent, ArchChest> eventHandler;
+
+        public bool InvokeCheck(eChestEvent trigger, ArchChest data) => eventHandler.InvokeCheck(trigger, data);
+
+        public async Task<bool> InvokeCheckTask(eChestEvent trigger, ArchChest data, TaskType taskType) => await eventHandler.UntilInvokeCheck(trigger, data, taskType);
+
+        #endregion
+
+        #endregion
+
+        #region Initialization
+
         void GetDependencies()
         {
             info.station = GetComponent<WorkInfo>();
@@ -92,6 +113,12 @@ namespace Architome
         {
             GetDependencies();
             CreateItemsFromItemPool();
+        }
+
+        protected override void Awake()
+        {
+            base.Awake();
+            eventHandler = new(this);
         }
 
         private void OnValidate()
@@ -134,8 +161,16 @@ namespace Architome
 
             SetItems(itemsFromPool);
         }
-        public void Open(TaskEventData eventData)
+
+        #endregion
+        public async void Open(TaskEventData eventData)
         {
+            var canOpen = await CanOpen();
+            if (!canOpen)
+            {
+
+                return;
+            }
             info.entityOpened = eventData.task.CurrentWorkers[0];
 
             events.OnOpen?.Invoke(this);
@@ -154,7 +189,6 @@ namespace Architome
             }
 
         }
-
         async void DropItems()
         {
             var world = WorldActions.active;
@@ -178,6 +212,14 @@ namespace Architome
             currentModule.OnActiveChange -= OnModuleChange;
         }
 
+        async Task<bool> CanOpen()
+        {
+            var result = await InvokeCheckTask(eChestEvent.OnCanOpen, this, TaskType.Sequential);
+
+            if (!result) return false;
+
+            return true;
+        }
 
         async void ChestRoutine()
         {

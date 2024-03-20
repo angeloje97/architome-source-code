@@ -50,7 +50,6 @@ namespace Architome
         {
             await UnitilInitiated();
             Invoke(eMonoEvent.OnEnable, this);
-            
         }
 
         private async void OnDisable()
@@ -65,6 +64,7 @@ namespace Architome
 
         public void Invoke(eMonoEvent trigger, MonoActor listener)
         {
+            if (this == null) return;
             monoEvents.Invoke(trigger, this);
         }
 
