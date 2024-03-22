@@ -99,7 +99,7 @@ namespace Architome
 
             do
             {
-                time += Time.deltaTime;
+                time += World.deltaTime;
                 var lerpValue = curve.Evaluate(time / totalTime);
                 action(lerpValue);
                 await Task.Yield();
