@@ -140,6 +140,7 @@ namespace Architome
 
         public List<EntityInfo> CurrentWorkers => workers.working;
         public List<EntityInfo> CurrentLingering => workers.lingering;
+        public bool BeingWorkedOn => states.isBeingWorkedOn;
 
 
         public TaskInfo(WorkInfo station)
@@ -265,6 +266,7 @@ namespace Architome
         {
             await ArchAction.WaitUntil(() => states.isBeingWorkedOn, false);
         }
+
 
         public void HandleTaskCancel()
         {
@@ -510,6 +512,13 @@ namespace Architome
             UpdateState();
         }
 
+        public void RemoveAllWorkers()
+        {
+            foreach(var entity in workers.working)
+            {
+                RemoveWorker(entity);
+            }
+        }
 
         public void RemoveAllLingerers()
         {
