@@ -12,6 +12,7 @@ namespace Architome
     [Serializable]
     public class TaskInfo
     {
+        #region Common Data
         [Serializable]
         public struct TaskProperties
         {
@@ -86,6 +87,7 @@ namespace Architome
         struct TaskCompletionEvent
         {
             public UnityEvent<TaskEventData> OnCompleted;
+            public UnityEvent<TaskEventData> OnStartWork;
             public UnityEvent<TaskEventData> OnFailed;
             public UnityEvent<TaskEventData> WhileBeingWorkedOn;
             public UnityEvent<TaskEventData> OnLingeringStart;
@@ -109,16 +111,20 @@ namespace Architome
         
         [SerializeField]
         public TaskStates states;
-        [SerializeField]
-        TaskCompletionEvent completionEvents;
+
+        [SerializeField] TaskCompletionEvent completionEvents;
+        //[SerializeField] TaskCompletionEvent events;
 
         [SerializeField]
         TaskProgressEvents progressEvents;
         [HideInInspector] public List<(bool, string)> checks;
-        
+
+        #endregion
+
 
         public void OnValidate()
         {
+            //events = completionEvents;
         }
 
         public void Update()
@@ -177,10 +183,13 @@ namespace Architome
             if (states.isBeingWorkedOn) return;
             
             states.isBeingWorkedOn = true;
+            var taskEventData = new TaskEventData(this);
 
-            properties.station.taskEvents.OnStartTask?.Invoke(new TaskEventData(this));
+            completionEvents.OnStartWork?.Invoke(taskEventData);
+            properties.station.taskEvents.OnStartTask?.Invoke(taskEventData);
+            
             var success = await WhileWorking();
-            properties.station.taskEvents.OnEndTask?.Invoke(new TaskEventData(this));
+            properties.station.taskEvents.OnEndTask?.Invoke(taskEventData);
 
 
 

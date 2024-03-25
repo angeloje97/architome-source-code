@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Architome.Events;
+using System;
 using System.Collections;
+using System.Threading.Tasks;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
@@ -13,7 +15,8 @@ namespace Architome
         Impossible,
     }
 
-    public enum eSkillCheckDataEvent
+    #region SkillCheckData
+    public enum eSkillCheckEvent
     {
         OnHitSkillCheck,
         OnEndSkillCheck,
@@ -25,32 +28,48 @@ namespace Architome
     public class SkillCheckData
     {
         #region Common Data
+
+        public Transform target { get; private set; }
+
+        public MonoActor source { get; private set; }
+
         public float angle { get; private set; }
         public float value { get; private set; }
         public bool success { get; private set; }
-        public float range { get; set; }
-        public float offSet => range * .5f;
+        public float range { get; private set; }
+        public float offSet { get; private set; }
 
-        Action OnHitSkillCheck;
-
-        public Action<SkillCheckData> OnEndSkillCheck { get; set; }
+        public bool active;
 
 
+
+        ArchEventHandler<eSkillCheckEvent, SkillCheckData> skillCheckEventHandler;
+
+
+
+        public void Invoke(eSkillCheckEvent trigger, SkillCheckData data) => skillCheckEventHandler.Invoke(trigger, data);
+        public Action AddListener(eSkillCheckEvent trigger,Action<SkillCheckData> action, MonoActor listener) => skillCheckEventHandler.AddListener(trigger, action, listener);
 
         #endregion
 
         bool started;
 
-        public async void StartSkillCheck(Action<SkillCheckData> onEndSkillCheck, float space, float delay, float skillCheckTime)
+        public SkillCheckData(MonoActor source)
+        {
+            this.source = source;
+            skillCheckEventHandler = new(source);
+        }
+
+        public async void StartSkillCheck(Action<SkillCheckData> onEndSkillCheck, float space, float delay, float skillCheckTime, MonoActor listener)
         {
             if (started) return;
             started = true;
+            active = true;
 
-            OnEndSkillCheck += (SkillCheckData data) => {
-                onEndSkillCheck?.Invoke(data);
-            };
+            var stopListening = AddListener(eSkillCheckEvent.OnEndSkillCheck, onEndSkillCheck, listener);
 
-            range = Mathf.Clamp(space, 0f, 100f);
+            range = Mathf.Clamp(space, 0f, 1f);
+            offSet = range * .5f;
 
             CreateSkillCheck();
 
@@ -62,7 +81,7 @@ namespace Architome
 
             bool stopSkillCheck = false;
 
-            Action onHit = () => {
+            Action<SkillCheckData> onHit = (SkillCheckData data) => {
 
                 if(value < (angle + offSet) && value > (angle - offSet))
                 {
@@ -72,7 +91,7 @@ namespace Architome
                 stopSkillCheck = true;
             };
 
-            OnHitSkillCheck += onHit;
+            stopListening += AddListener(eSkillCheckEvent.OnHitSkillCheck, onHit, listener);
 
             currentTime = 0f;
 
@@ -80,77 +99,136 @@ namespace Architome
             {
                 currentTime += deltaTime;
                 var lerpValue = Mathf.Lerp(0f, 1f, currentTime / skillCheckTime);
-                value = Mathf.Lerp(0f, 100f, lerpValue);
+                value = lerpValue;
 
                 if (!stopSkillCheck)
                 {
-                    stopSkillCheck = value > 100f;
+                    stopSkillCheck = value >= 1f;
                 }
 
                 return stopSkillCheck;
             }, true);
 
-            OnHitSkillCheck -= onHit;
 
-            OnEndSkillCheck?.Invoke(this);
+            active = false;
+            Invoke(eSkillCheckEvent.OnEndSkillCheck, this);
+            stopListening();
+            
 
             void CreateSkillCheck()
             {
-                if(range >= 80f)
+                if(range >= 1f)
                 {
-                    angle = 50f;
+                    angle = .5f;
                     return;
                 }
 
-                do
-                {
-                    angle = UnityEngine.Random.Range(0f, 100f);
-                } while (angle - offSet < 0f || angle + offSet > 100f);
+                angle = UnityEngine.Random.Range(offSet, 1f - offSet);
             }
         }
 
         public void HitSkillCheck()
         {
-            OnHitSkillCheck?.Invoke();
+            Invoke(eSkillCheckEvent.OnHitSkillCheck, this);
+        }
+
+        public async Task WhileProgress(Action<SkillCheckData> action)
+        {
+            while (active)
+            {
+                action(this);
+                await Task.Yield();
+            }
         }
     }
+    #endregion
+
+    #region SkillCheckHandler
 
     public class SkillCheckHandler : MonoActor
     {
+        #region Common Data
+
         [Header("Skill Check Properties")]
         [SerializeField] float intervals = 1f;
         [SerializeField] float timeWindow;
         [SerializeField] float startDelay;
-
-        [SerializeField][Range(0f, 100f)] float defaultRange;
+        [SerializeField][Range(0f, 1f)] float defaultRange;
         [SerializeField][Range(0f, 1f)] float chance;
+
+
+        [Header("Components")]
+        [SerializeField] SkillCheckUI skillCheckUI;
+        static PopupContainer popupContainer;
+        #endregion
+
+        void Start()
+        {
+            popupContainer = PopupContainer.active;
+        }
+
+        protected override void Awake()
+        {
+            
+        }
 
         public async void HandleSkillChecks(TaskEventData eventData)
         {
-            await ArchAction.WaitUntil(() => {
-                if(!ArchGeneric.RollSuccess(chance * 100f))
-                {
-                    return eventData.task.BeingWorkedOn;
-                }
+            var timer = intervals;
 
-                CreateSkillCheck(this, (SkillCheckData data) => {
+            while (eventData.task.BeingWorkedOn)
+            {
+                if(timer >= intervals)
+                {
+                    timer = 0f;
+
+                    if (!eventData.task.BeingWorkedOn)
+                    {
+                        break;
+                    }
+                    if (!ArchGeneric.RollSuccess(chance * 100f))
+                    {
+                        continue;
+                    }
+
+                    CreateSkillCheck(this, eventData.workInfo.transform, (SkillCheckData data) => {
                     if (!data.success)
                     {
-                        eventData.task.RemoveAllWorkers();
+                        //eventData.task.RemoveAllWorkers();
                     }
                 });
-
-                return eventData.task.BeingWorkedOn;
-            }, false, intervals);
+                }
+                else
+                {
+                    timer += World.deltaTime;
+                }
+                await Task.Yield();
+            }
         }
 
-        public static SkillCheckData CreateSkillCheck(SkillCheckHandler handler, Action<SkillCheckData> onEndSkillCheck)
+        public static SkillCheckData CreateSkillCheck(SkillCheckHandler handler, Transform target, Action<SkillCheckData> onEndSkillCheck)
         {
-            var skillCheckData = new SkillCheckData();
+            var skillCheckData = new SkillCheckData(handler);
 
-            skillCheckData.StartSkillCheck(onEndSkillCheck, handler.defaultRange, handler.startDelay, handler.timeWindow);
+
+            skillCheckData.StartSkillCheck(onEndSkillCheck, handler.defaultRange, handler.startDelay, handler.timeWindow, handler);
+            CreateUI();
 
             return skillCheckData;
+
+            void CreateUI()
+            {
+                var skillCheckUI = Instantiate(handler.skillCheckUI, popupContainer.transform);
+                skillCheckUI.SetData(skillCheckData);
+
+                if(target != null)
+                {
+                    skillCheckUI.SetTarget(target);
+                }
+            }
         }
+
+
     }
+    #endregion
 }

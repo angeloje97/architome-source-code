@@ -65,7 +65,6 @@ namespace Architome
 
         public static async Task WaitUntil(Func<bool> predicate, bool expected, float delay = 0f)
         {
-            if (predicate() == expected) return;
 
             if(delay == 0)
             {

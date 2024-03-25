@@ -466,7 +466,7 @@ namespace Architome
         //will contineu to update until predicate is false
         public static async Task UpdateAction(Predicate<float> action, bool useLateUpdate = false)
         {
-
+            while (active == null) await Task.Yield();
             var world = active;
             var running = true;
 

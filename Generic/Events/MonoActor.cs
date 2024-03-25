@@ -77,11 +77,12 @@ namespace Architome
             return monoEvents.AddListener(trigger, action, otherActor, false);
         }
 
+
         #endregion
 
         void Update()
         {
-        
+
         }
     }
     #endregion

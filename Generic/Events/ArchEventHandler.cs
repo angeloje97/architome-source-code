@@ -83,7 +83,7 @@ namespace Architome.Events
 
             Action unsubScribeFromListener = () => { };
 
-            if (listenToActor)
+            if (listenToActor && actor != source)
             {
                 unsubScribeFromListener = actor.AddListener(eMonoEvent.OnDestroy, unsubscribe, this.actor);
 

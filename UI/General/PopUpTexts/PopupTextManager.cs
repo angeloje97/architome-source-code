@@ -15,11 +15,8 @@ namespace Architome
 
     public class PopupTextManager : MonoBehaviour
     {
-
         public static PopupTextManager active;
         public Preferences preferences;
-
-
 
         [Serializable]
         public struct PopUp
@@ -131,7 +128,6 @@ namespace Architome
             return popUp;
         }
 
-
         public void StateChangePopUp(PopUpParameters parameters)
         {
             if (!preferences.popUpPreferences.showCrowdControl) return;
@@ -161,8 +157,6 @@ namespace Architome
             parameters.boolean = PopupText.eAnimatorBool.HealthChange;
             popUp.SetPopUp(parameters);
         }
-
-        
 
         public PopupText GeneralPopUp(PopUpParameters parameters = null)
         {
