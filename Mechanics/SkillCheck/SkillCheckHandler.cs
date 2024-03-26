@@ -169,7 +169,7 @@ namespace Architome
 
         protected override void Awake()
         {
-            
+            base.Awake();
         }
 
         public async void HandleSkillChecks(TaskEventData eventData)
@@ -194,7 +194,7 @@ namespace Architome
                     CreateSkillCheck(this, eventData.workInfo.transform, (SkillCheckData data) => {
                     if (!data.success)
                     {
-                        //eventData.task.RemoveAllWorkers();
+                        //eventData.task.RemoveAllWorkers(); ,
                     }
                 });
                 }

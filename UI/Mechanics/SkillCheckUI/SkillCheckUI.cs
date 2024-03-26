@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,10 +13,10 @@ namespace Architome
         [SerializeField] Image ring;
         [SerializeField] Image successArea;
         [SerializeField] Image skillCheckMarker;
-        [SerializeField] CanvasGroup group;
+        [SerializeField] CanvasGroup canvasGroup;
 
 
-
+        #region Testing
 
         [Header("Testing Properties")]
         [SerializeField][Range(0f, 1f)] float range;
@@ -33,7 +34,19 @@ namespace Architome
 
             isSuccessful = value > angle - (range / 2f) && value < angle + (range / 2f);
         }
-        
+
+        #endregion
+
+        #region Initialization
+        protected override void Awake()
+        {
+            base.Awake();
+            canvasGroup.SetCanvas(false);
+        }
+
+        #endregion
+
+
         public void SetTarget(Transform target)
         {
             var popupContainer = PopupContainer.active;
@@ -43,7 +56,22 @@ namespace Architome
                 stopListening = true;
             }, this);
 
-            popupContainer.StickToTarget(transform, target, () => stopListening, true);
+            //ArchAction.Yield(() => {
+            //    canvasGroup.SetCanvas(true);
+            //});
+
+            var movedToTarget = false;
+
+            popupContainer.StickToTarget(transform, target, () => {
+
+                if (!movedToTarget)
+                {
+                    movedToTarget = true;
+                    canvasGroup.SetCanvas(true);
+                }
+
+                return stopListening; 
+            }, true);
         }
 
         public async void SetData(SkillCheckData data)
@@ -51,15 +79,20 @@ namespace Architome
             currentData = data;
 
             SetFrame(data.angle, data.range);
+                
+
+            data.AddListener(eSkillCheckEvent.OnEndSkillCheck, OnEndSkillCheck, this);
 
             await data.WhileProgress((SkillCheckData data) => {
                 UpdateValue(data.value);
             });
 
+            await Task.Delay(500);
+
             Destroy(gameObject);
         }
         
-        public void SetFrame(float angle, float range)
+        void SetFrame(float angle, float range)
         {
             successArea.fillAmount = range;
 
@@ -73,11 +106,22 @@ namespace Architome
             successArea.rectTransform.eulerAngles = new Vector3(0f, 0f, zAngle);
         }
 
-        public void UpdateValue(float value)
+        void UpdateValue(float value)
         {
             var zAngle = Mathf.Lerp(0f, 360f, value);
             skillCheckMarker.fillAmount = skillCheckMarkerSize;
             skillCheckMarker.rectTransform.eulerAngles = new Vector3(0f, 0f, zAngle + (skillCheckMarkerSize * 50f));
+        }
+
+        public void OnEndSkillCheck(SkillCheckData data)
+        {
+
+        }
+
+        public void HitSkillCheck()
+        {
+            Debugger.System(1014, "Hitting Skillcheck");
+            currentData.HitSkillCheck();
         }
     }
 }

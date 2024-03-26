@@ -18,7 +18,6 @@ namespace Architome
 
 
 
-
         private void Awake()
         {
             active = this;
