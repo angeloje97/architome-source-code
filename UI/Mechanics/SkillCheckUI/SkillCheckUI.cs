@@ -1,5 +1,8 @@
-﻿using System.Collections;
+﻿using Architome.Settings.Keybindings;
+using System.Collections;
+using System.Text;
 using System.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,6 +10,8 @@ namespace Architome
 {
     public class SkillCheckUI : MonoActor
     {
+
+        #region Common Data
         SkillCheckData currentData;
 
         [Header("Components")]
@@ -14,7 +19,12 @@ namespace Architome
         [SerializeField] Image successArea;
         [SerializeField] Image skillCheckMarker;
         [SerializeField] CanvasGroup canvasGroup;
+        [SerializeField] TextMeshProUGUI keybind;
+        [SerializeField] Animator animator;
 
+        AnimationHandler<eSkillCheckEvent> animationHandler;
+
+        #endregion
 
         #region Testing
 
@@ -42,6 +52,23 @@ namespace Architome
         {
             base.Awake();
             canvasGroup.SetCanvas(false);
+            animationHandler = new(animator);
+        }
+
+        #endregion
+
+        #region Animations
+
+        public void HandleAnimations()
+        {
+            animationHandler = new(animator);
+        }
+
+        public void HandleSkillCheckDatas(SkillCheckData data)
+        {
+            data.AddAllListeners((eSkillCheckEvent trigger, SkillCheckData data) => {
+                animationHandler.SetTrigger(trigger);
+            }, this);
         }
 
         #endregion
@@ -122,6 +149,19 @@ namespace Architome
         {
             Debugger.System(1014, "Hitting Skillcheck");
             currentData.HitSkillCheck();
+        }
+
+        public void SetKeyBindIcon(KeybindListener.ListenerEvent listener)
+        {
+            keybind.spriteAsset = SpriteAssetData.active.SpriteAsset(SpriteAssetType.KeyBindings);
+            //var finalString = new StringBuilder();
+
+            foreach(var type in listener.setTypes)
+            {
+                var spriteIndex = KeyBindings.active.SpriteIndex(type, listener.bindingName);
+                keybind.text = $"<sprite={spriteIndex}>";
+            }
+
         }
     }
 }

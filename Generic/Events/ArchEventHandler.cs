@@ -109,6 +109,22 @@ namespace Architome.Events
             }
         }
 
+        public Action AddAllListeners(Action<T, E> action, MonoActor listener, bool listenToActor = true)
+        {
+            Action unsubScribe = null;
+
+            foreach(T trigger in Enum.GetValues(typeof(T)))
+            {
+                unsubScribe += AddListener(trigger, (E data) => {
+                    action(trigger, data);
+                }, listener, listenToActor);
+            }
+
+            return () => {
+                unsubScribe?.Invoke();
+            };
+        }
+
         public Action AddListener(T eventType, Action action, MonoActor actor, bool listenToActor = true)
         {
             return AddListener(eventType, (E eventData) => { action(); }, actor, listenToActor);

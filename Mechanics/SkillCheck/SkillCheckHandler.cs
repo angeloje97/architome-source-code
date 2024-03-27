@@ -1,4 +1,5 @@
 ﻿using Architome.Events;
+using PixelCrushers.DialogueSystem.UnityGUI;
 using System;
 using System.Collections;
 using System.Threading.Tasks;
@@ -49,6 +50,8 @@ namespace Architome
 
         public void Invoke(eSkillCheckEvent trigger, SkillCheckData data) => skillCheckEventHandler.Invoke(trigger, data);
         public Action AddListener(eSkillCheckEvent trigger,Action<SkillCheckData> action, MonoActor listener) => skillCheckEventHandler.AddListener(trigger, action, listener);
+
+        public Action AddAllListeners(Action<eSkillCheckEvent, SkillCheckData> action, MonoActor listener) => skillCheckEventHandler.AddAllListeners(action, listener);
 
         #endregion
 
@@ -140,6 +143,11 @@ namespace Architome
                 await Task.Yield();
             }
         }
+
+        public async Task UntilDone()
+        {
+            await ArchAction.WaitUntil(() => active, false);
+        }
     }
     #endregion
 
@@ -191,12 +199,14 @@ namespace Architome
                         continue;
                     }
 
-                    CreateSkillCheck(this, eventData.workInfo.transform, (SkillCheckData data) => {
-                    if (!data.success)
-                    {
-                        //eventData.task.RemoveAllWorkers(); ,
-                    }
-                });
+                    var skillCheck = CreateSkillCheck(this, eventData.workInfo.transform, (SkillCheckData data) => {});
+
+                    await skillCheck.UntilDone();
+                    if (skillCheck.success) continue;
+
+                    eventData.task.RemoveAllWorkers();
+
+                    break;
                 }
                 else
                 {

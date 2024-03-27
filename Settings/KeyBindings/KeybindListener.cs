@@ -10,12 +10,16 @@ namespace Architome.Settings.Keybindings
 {
     public class KeybindListener : MonoBehaviour
     {
+        #region Common Data
         [SerializeField] List<ListenerEvent> listenerInfo;
         ArchInput archInput;
 
         List<ListenerEvent> blockedEvents;
 
         public bool listening;
+        #endregion
+
+        #region Initiation
 
         void Start()
         {
@@ -27,6 +31,12 @@ namespace Architome.Settings.Keybindings
             while (archInput == null) await Task.Yield();
             AddListeners();
         }
+
+        void GetDependencies()
+        {
+            archInput = ArchInput.active;
+        }
+        #endregion
 
         private void OnDisable()
         {
@@ -42,10 +52,7 @@ namespace Architome.Settings.Keybindings
             }
         }
 
-        void GetDependencies()
-        {
-            archInput = ArchInput.active;
-        }
+        
 
         void AddListeners()
         {
@@ -75,6 +82,7 @@ namespace Architome.Settings.Keybindings
                 var keyName = keyBindings.KeyCodeFromSetName(listener.setTypes[0], listener.bindingName).ToString();
                 keyName = ArchString.Replace(keyName, "(Alpha|ALPHA)", "");
                 listener.OnObtainKeyName?.Invoke(keyName);
+                listener.OnObtainListener?.Invoke(listener);
             }
         }
 
@@ -101,8 +109,8 @@ namespace Architome.Settings.Keybindings
             listenerInfo[index].Enable();
         }
 
-        
 
+        #region Listener Event
         [Serializable]
         public class ListenerEvent 
         {
@@ -118,6 +126,7 @@ namespace Architome.Settings.Keybindings
 
             public UnityEvent OnBinding;
             public UnityEvent<string> OnObtainKeyName;
+            public UnityEvent<ListenerEvent> OnObtainListener;
 
 
             bool blocked = false;
@@ -203,5 +212,6 @@ namespace Architome.Settings.Keybindings
                 Unsubscribe();
             }
         }
+        #endregion
     }
 }

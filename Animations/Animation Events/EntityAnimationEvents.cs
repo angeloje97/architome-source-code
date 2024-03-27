@@ -34,7 +34,6 @@ namespace Architome
             {
                 anim = GetComponent<Animator>();
             }
-
         }
         void Start()
         {
