@@ -40,6 +40,8 @@ namespace Architome
         public float range { get; private set; }
         public float offSet { get; private set; }
 
+        public float delay { get; private set; }
+
         public bool active;
 
 
@@ -68,6 +70,7 @@ namespace Architome
             if (started) return;
             started = true;
             active = true;
+            this.delay = delay;
 
             var stopListening = AddListener(eSkillCheckEvent.OnEndSkillCheck, onEndSkillCheck, listener);
 

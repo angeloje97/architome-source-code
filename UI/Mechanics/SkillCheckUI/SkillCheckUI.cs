@@ -73,6 +73,7 @@ namespace Architome
 
         #endregion
 
+        bool movedToTarget;
 
         public void SetTarget(Transform target)
         {
@@ -87,14 +88,12 @@ namespace Architome
             //    canvasGroup.SetCanvas(true);
             //});
 
-            var movedToTarget = false;
 
             popupContainer.StickToTarget(transform, target, () => {
 
                 if (!movedToTarget)
                 {
                     movedToTarget = true;
-                    canvasGroup.SetCanvas(true);
                 }
 
                 return stopListening; 
@@ -106,9 +105,15 @@ namespace Architome
             currentData = data;
 
             SetFrame(data.angle, data.range);
-                
+
+            await ArchAction.WaitUntil(() => movedToTarget, true);
+
+            var revealTime = data.delay * .5f;
+
+            await canvasGroup.SetCanvasAsync(true, revealTime);
 
             data.AddListener(eSkillCheckEvent.OnEndSkillCheck, OnEndSkillCheck, this);
+
 
             await data.WhileProgress((SkillCheckData data) => {
                 UpdateValue(data.value);

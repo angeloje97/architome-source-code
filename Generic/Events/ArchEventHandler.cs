@@ -69,6 +69,8 @@ namespace Architome.Events
 
         #region Listener
 
+        #region MonoActors
+
         public Action AddListener(T eventType, Action<E> action, MonoActor actor, bool listenToActor = true)
         {
 
@@ -129,6 +131,8 @@ namespace Architome.Events
         {
             return AddListener(eventType, (E eventData) => { action(); }, actor, listenToActor);
         }
+
+        #endregion
 
         public Action AddListener(T eventType, Action<E> action, Component listener)
         {
@@ -236,6 +240,8 @@ namespace Architome.Events
             return unsubscribe;
         }
 
+        #region Listener Checks
+
         public Action AddListenerCheck(T eventType, Action<E, List<bool>> action, Component listener)
         {
             return AddListener(eventType, (E data) => {
@@ -257,7 +263,6 @@ namespace Architome.Events
             }, listener);
         }
 
-
         public Action AddListenerPredicate(T eventType, Predicate<E> action, Component listener)
         {
             return AddListener(eventType, (E data) => {
@@ -265,6 +270,8 @@ namespace Architome.Events
                 checks.Add(action(data));
             }, listener);
         }
+        #endregion
+
         #endregion
 
         #region Invoker
@@ -280,29 +287,15 @@ namespace Architome.Events
             return tasksToFinish.ToList();
         }
 
-        public async Task InvokeAsyncParallel(T eventType, E eventData)
+        public async Task InvokeAsync(T eventType, E eventData, TaskType taskType)
         {
-            var functions = Invoke(eventType, eventData);
-            
-            foreach(var func in functions)
-            {
-                await func();
-            }
+            tasksToFinish = new();
+            Invoke(eventType, eventData);
+            await tasksToFinish.HandleTasks(taskType);
         }
 
-        public async Task InvokeAsyncSeq(T eventType, E eventData)
-        {
-            var functions = Invoke(eventType, eventData);
 
-            var tasks = new List<Task>();
-
-            foreach(var func in functions)
-            {
-                tasks.Add(func());
-            }
-
-            await Task.WhenAll(tasks);
-        }
+        #region Invoking Check
 
         public bool InvokeCheck(T eventType, E eventData)
         {
@@ -338,6 +331,7 @@ namespace Architome.Events
 
             return checks.ValidateLogic(targetValue, logicType);
         }
+        #endregion
 
         #endregion
 
