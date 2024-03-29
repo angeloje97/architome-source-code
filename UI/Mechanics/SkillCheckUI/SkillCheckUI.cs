@@ -114,7 +114,6 @@ namespace Architome
 
             data.AddListener(eSkillCheckEvent.OnEndSkillCheck, OnEndSkillCheck, this);
 
-
             await data.WhileProgress((SkillCheckData data) => {
                 UpdateValue(data.value);
             });

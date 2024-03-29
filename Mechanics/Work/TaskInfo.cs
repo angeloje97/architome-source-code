@@ -525,7 +525,9 @@ namespace Architome
         {
             foreach(var entity in workers.working)
             {
-                RemoveWorker(entity);
+                var taskHandler = entity.TaskHandler();
+
+                taskHandler.CancelAllTasks();
             }
         }
 

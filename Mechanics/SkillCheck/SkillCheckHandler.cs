@@ -23,6 +23,8 @@ namespace Architome
         OnEndSkillCheck,
         OnStartSkillCheck,
         OnStartBeforeDelay,
+        OnFailSkillCheck,
+        OnSuccessSkillCheck,
     }
 
     [Serializable]
@@ -116,7 +118,17 @@ namespace Architome
             }, true);
 
 
+
+
             active = false;
+            if (success)
+            {
+                Invoke(eSkillCheckEvent.OnSuccessSkillCheck, this);
+            }
+            else
+            {
+                Invoke(eSkillCheckEvent.OnFailSkillCheck, this);
+            }
             Invoke(eSkillCheckEvent.OnEndSkillCheck, this);
             stopListening();
             
