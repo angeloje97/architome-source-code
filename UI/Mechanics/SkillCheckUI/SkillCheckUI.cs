@@ -100,6 +100,7 @@ namespace Architome
             }, true);
         }
 
+        #region UI Updaters
         public async void SetData(SkillCheckData data)
         {
             currentData = data;
@@ -136,25 +137,6 @@ namespace Architome
             var zAngle = Mathf.Lerp(0f, 360f, (angle + offset));
             successArea.rectTransform.eulerAngles = new Vector3(0f, 0f, zAngle);
         }
-
-        void UpdateValue(float value)
-        {
-            var zAngle = Mathf.Lerp(0f, 360f, value);
-            skillCheckMarker.fillAmount = skillCheckMarkerSize;
-            skillCheckMarker.rectTransform.eulerAngles = new Vector3(0f, 0f, zAngle + (skillCheckMarkerSize * 50f));
-        }
-
-        public void OnEndSkillCheck(SkillCheckData data)
-        {
-
-        }
-
-        public void HitSkillCheck()
-        {
-            Debugger.System(1014, "Hitting Skillcheck");
-            currentData.HitSkillCheck();
-        }
-
         public void SetKeyBindIcon(KeybindListener.ListenerEvent listener)
         {
             keybind.spriteAsset = SpriteAssetData.active.SpriteAsset(SpriteAssetType.KeyBindings);
@@ -167,5 +149,25 @@ namespace Architome
             }
 
         }
+
+        void UpdateValue(float value)
+        {
+            var zAngle = Mathf.Lerp(0f, 360f, value);
+            skillCheckMarker.fillAmount = skillCheckMarkerSize;
+            skillCheckMarker.rectTransform.eulerAngles = new Vector3(0f, 0f, zAngle + (skillCheckMarkerSize * 50f));
+        }
+
+        #endregion
+        public void OnEndSkillCheck(SkillCheckData data)
+        {
+
+        }
+
+        public void HitSkillCheck()
+        {
+            Debugger.System(1014, "Hitting Skillcheck");
+            currentData.HitSkillCheck();
+        }
+
     }
 }

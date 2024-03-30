@@ -1,9 +1,7 @@
 ﻿using Architome.Events;
-using PixelCrushers.DialogueSystem.UnityGUI;
 using System;
 using System.Collections;
 using System.Threading.Tasks;
-using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
 namespace Architome
@@ -59,7 +57,6 @@ namespace Architome
 
         #endregion
 
-        bool started;
 
         public SkillCheckData(MonoActor source)
         {
@@ -67,6 +64,7 @@ namespace Architome
             skillCheckEventHandler = new(source);
         }
 
+        bool started;
         public async void StartSkillCheck(Action<SkillCheckData> onEndSkillCheck, float space, float delay, float skillCheckTime, MonoActor listener)
         {
             if (started) return;
@@ -185,6 +183,7 @@ namespace Architome
         static PopupContainer popupContainer;
         #endregion
 
+        #region Initialization
         void Start()
         {
             popupContainer = PopupContainer.active;
@@ -195,6 +194,7 @@ namespace Architome
             base.Awake();
         }
 
+        #endregion
         public async void HandleSkillChecks(TaskEventData eventData)
         {
             var timer = intervals;
