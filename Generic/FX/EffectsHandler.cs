@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using UnityEngine.Rendering;
 using Architome.Enums;
 using Architome.Events;
+using UnityEngine.Events;
 
 namespace Architome.Effects
 {
@@ -19,9 +20,12 @@ namespace Architome.Effects
         public AudioManager audioManager;
         public ParticleManager particleManager;
         public ChatBubblesManager chatBubbleManager;
+        public Animator animator;
 
         public List<E> effects;
         Dictionary<T, List<EventItemHandler<T>>> subsets;
+
+        AnimationHandler<T> animationHandler;
 
         #endregion
 
@@ -30,9 +34,12 @@ namespace Architome.Effects
         {
             effects ??= new();
             subsets = new();
+            animationHandler = new(animator);
+
+
             foreach(var fx in effects)
             {
-                fx.SetEventItem(defaultParticleSpawnTarget, audioManager, particleManager);
+                fx.SetEventItem(defaultParticleSpawnTarget, audioManager, particleManager, animator);
                 handleItem(fx);
 
                 if (!subsets.ContainsKey(fx.trigger))
@@ -74,10 +81,21 @@ namespace Architome.Effects
 
         public void Activate(T triggerName)
         {
-            if (!subsets.ContainsKey(triggerName)) return;
+            if (!subsets.ContainsKey(triggerName))
+            {
+                HandleNoEffectItemsForAnimator();
+                return;
+            }
+
             foreach (var fx in subsets[triggerName])
             {
                 fx.ActivateEffect();
+            }
+
+            void HandleNoEffectItemsForAnimator()
+            {
+                if (animator == null) return;
+                animationHandler.SetTrigger(triggerName);
             }
         }
 
@@ -105,6 +123,9 @@ namespace Architome.Effects
         protected ParticleManager particleManager;
         protected AudioManager audioManager;
         protected ChatBubblesManager chatBubbleManager;
+        protected Animator animator;
+        protected AnimationHandler<T> animationHandler;
+
 
         public T trigger;
         [Header("Particle Properties")]
@@ -139,6 +160,7 @@ namespace Architome.Effects
         public Action<EventItemHandler<T>, List<bool>> OnCanPlayCheck;
 
 
+
         bool overrideContinueCondition;
         float defaultDuration = 5;
         Func<bool> canContinuePlaying = () => {
@@ -158,11 +180,13 @@ namespace Architome.Effects
 
         #region Initiation
 
-        public void SetEventItem(Transform defaultTarget, AudioManager audioManager, ParticleManager particleManager) 
+        public void SetEventItem(Transform defaultTarget, AudioManager audioManager, ParticleManager particleManager, Animator animator) 
         {
             this.defaultTarget = defaultTarget;
             SetSoundManager(audioManager);
             this.particleManager = particleManager;
+            this.animator = animator;
+            animationHandler = new(animator);
             chatBubbleManager = ChatBubblesManager.active;
         }
 
@@ -194,11 +218,10 @@ namespace Architome.Effects
 
             var eventData = new EffectEventData<T>(this);
 
-
-
             HandleParticle(eventData);
             HandleAudioClip(eventData);
             HandlePhrase(eventData);
+            HandleAnimator(eventData);
             var startCoolDown = HandleCoolDown();
 
             await Task.Delay(62);
@@ -444,6 +467,18 @@ namespace Architome.Effects
 
         #endregion
 
+        #region Animator
+
+        public void HandleAnimator(EffectEventData<T> eventData)
+        {
+            if (animator == null) return;
+            if (animationHandler == null) return;
+
+            animationHandler.SetTrigger(eventData.trigger);
+        }
+
+        #endregion
+
         #endregion
     }
     #endregion
@@ -559,6 +594,12 @@ namespace Architome.Effects
             chatBubblePlaying = false;
 
         }
+        #endregion
+
+        #region Animator
+
+
+
         #endregion
     }
 

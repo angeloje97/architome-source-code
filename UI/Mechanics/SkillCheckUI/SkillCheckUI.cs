@@ -20,9 +20,8 @@ namespace Architome
         [SerializeField] Image skillCheckMarker;
         [SerializeField] CanvasGroup canvasGroup;
         [SerializeField] TextMeshProUGUI keybind;
-        [SerializeField] Animator animator;
 
-        AnimationHandler<eSkillCheckEvent> animationHandler;
+        public SkillCheckData skillCheckData => currentData;
 
         #endregion
 
@@ -52,26 +51,10 @@ namespace Architome
         {
             base.Awake();
             canvasGroup.SetCanvas(false);
-            animationHandler = new(animator);
         }
 
         #endregion
 
-        #region Animations
-
-        public void HandleAnimations()
-        {
-            animationHandler = new(animator);
-        }
-
-        public void HandleSkillCheckDatas(SkillCheckData data)
-        {
-            data.AddAllListeners((eSkillCheckEvent trigger, SkillCheckData data) => {
-                animationHandler.SetTrigger(trigger);
-            }, this);
-        }
-
-        #endregion
 
         bool movedToTarget;
 
@@ -83,10 +66,6 @@ namespace Architome
             AddListener(eMonoEvent.OnDestroy, () => {
                 stopListening = true;
             }, this);
-
-            //ArchAction.Yield(() => {
-            //    canvasGroup.SetCanvas(true);
-            //});
 
 
             popupContainer.StickToTarget(transform, target, () => {
@@ -113,7 +92,7 @@ namespace Architome
 
             await canvasGroup.SetCanvasAsync(true, revealTime);
 
-            data.AddListener(eSkillCheckEvent.OnEndSkillCheck, OnEndSkillCheck, this);
+            data.AddListener(eSkillCheckEvent.OnEnd, OnEndSkillCheck, this);
 
             await data.WhileProgress((SkillCheckData data) => {
                 UpdateValue(data.value);

@@ -17,12 +17,12 @@ namespace Architome
     #region SkillCheckData
     public enum eSkillCheckEvent
     {
-        OnHitSkillCheck,
-        OnEndSkillCheck,
-        OnStartSkillCheck,
+        OnHit,
+        OnEnd,
+        OnStart,
         OnStartBeforeDelay,
-        OnFailSkillCheck,
-        OnSuccessSkillCheck,
+        OnFail,
+        OnSuccess,
     }
 
     [Serializable]
@@ -72,7 +72,7 @@ namespace Architome
             active = true;
             this.delay = delay;
 
-            var stopListening = AddListener(eSkillCheckEvent.OnEndSkillCheck, onEndSkillCheck, listener);
+            var stopListening = AddListener(eSkillCheckEvent.OnEnd, onEndSkillCheck, listener);
 
             range = Mathf.Clamp(space, 0f, 1f);
             offSet = range * .5f;
@@ -97,7 +97,7 @@ namespace Architome
                 stopSkillCheck = true;
             };
 
-            stopListening += AddListener(eSkillCheckEvent.OnHitSkillCheck, onHit, listener);
+            stopListening += AddListener(eSkillCheckEvent.OnHit, onHit, listener);
 
             currentTime = 0f;
 
@@ -121,13 +121,13 @@ namespace Architome
             active = false;
             if (success)
             {
-                Invoke(eSkillCheckEvent.OnSuccessSkillCheck, this);
+                Invoke(eSkillCheckEvent.OnSuccess, this);
             }
             else
             {
-                Invoke(eSkillCheckEvent.OnFailSkillCheck, this);
+                Invoke(eSkillCheckEvent.OnFail, this);
             }
-            Invoke(eSkillCheckEvent.OnEndSkillCheck, this);
+            Invoke(eSkillCheckEvent.OnEnd, this);
             stopListening();
             
 
@@ -145,7 +145,7 @@ namespace Architome
 
         public void HitSkillCheck()
         {
-            Invoke(eSkillCheckEvent.OnHitSkillCheck, this);
+            Invoke(eSkillCheckEvent.OnHit, this);
         }
 
         public async Task WhileProgress(Action<SkillCheckData> action)
