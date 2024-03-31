@@ -261,6 +261,18 @@ namespace Architome
             }
         }
 
+        public async Task UntilAllDone()
+        {
+            while (true)
+            {
+                await Task.Delay(500);
+                foreach(var audioSource in audioSources)
+                {
+                    if (audioSource.isPlaying) continue;
+                }
+            }
+        }
+
     }
 
 }

@@ -92,6 +92,7 @@ namespace Architome
         {
             dialogueManager = ArchDialogueManager.active;
 
+            OnSendRequestData = new(this);
             optionEventsMap = new();
             if(optionEvents != null)
             {

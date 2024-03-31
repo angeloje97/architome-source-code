@@ -6,6 +6,7 @@ using System;
 using System.Threading.Tasks;
 using Architome.Enums;
 using System.Linq;
+using JetBrains.Annotations;
 
 namespace Architome
 {
@@ -13,6 +14,9 @@ namespace Architome
     public class TaskInfo
     {
         #region Common Data
+
+        #region Properties
+
         [Serializable]
         public struct TaskProperties
         {
@@ -42,6 +46,7 @@ namespace Architome
             public bool fallsOnNoWorkers;
             public float percentPerSecond;
         }
+        #endregion
 
         [Serializable]
         public class Effects
@@ -77,6 +82,11 @@ namespace Architome
             }
         }
 
+        public TaskProperties properties;
+        public Effects effects;
+
+        #region Event Structs
+
         [Serializable]
         public struct TaskStates
         {
@@ -103,20 +113,23 @@ namespace Architome
 
         }
 
-        public TaskProperties properties;
-        public Effects effects;
+        [Serializable] struct WorkerEvents
+        {
+            public UnityEvent<TaskEventData, EntityInfo> OnNewWorker, OnNewWorkerOnTheWay, OnNewLingerer;
+        }
 
-        [SerializeField]
-        TaskWorkers workers;
-        
-        [SerializeField]
-        public TaskStates states;
 
+
+        [SerializeField] TaskWorkers workers;
+        [SerializeField] public TaskStates states;
+        [SerializeField] WorkerEvents workerEvents;
         [SerializeField] TaskCompletionEvent completionEvents;
+        [SerializeField] TaskProgressEvents progressEvents;
+        
+        #endregion
+
         //[SerializeField] TaskCompletionEvent events;
 
-        [SerializeField]
-        TaskProgressEvents progressEvents;
         [HideInInspector] public List<(bool, string)> checks;
 
         #endregion
@@ -177,8 +190,9 @@ namespace Architome
             
         }
 
+        #region Main Process
 
-        async void HandleWork()
+        async void HandleWork(Action<TaskEventData> onSuccess)
         {
             if (states.isBeingWorkedOn) return;
             
@@ -191,19 +205,16 @@ namespace Architome
             var success = await WhileWorking();
             properties.station.taskEvents.OnEndTask?.Invoke(taskEventData);
 
-
-
-            
-
             if (success)
             {
+                onSuccess?.Invoke(taskEventData);
                 HandleComplete();
                 await Task.Delay(125);
                 if (properties.canRepeat)
                 {
                     properties.workDone = 0;
-
                 }
+                
             }
             else
             {
@@ -211,15 +222,42 @@ namespace Architome
             }
         }
 
+        #region Background Processes
+
+        List<Func<Task<bool>>> backgroundProcesses;
+        
+        async Task<bool> HandleBackgroundProcesses()
+        {
+            foreach(var task in backgroundProcesses)
+            {
+                var result = await task();
+                if (!result) return false;
+            }
+
+            return true;
+        }
+
+        public void AddBackgroundProcess(Func<Task<bool>> backgroundProcess)
+        {
+            backgroundProcesses ??= new();
+            backgroundProcesses.Add(backgroundProcess);
+        }
+        #endregion
         public async Task<bool> WhileWorking()
         {
             var success = false;
             var fullProgress = false;
+            backgroundProcesses = new();
 
-            while(states.isBeingWorkedOn)
+            while(true)
             {
+                if (!states.isBeingWorkedOn)
+                {
+
+                    break;
+                }
                 await Task.Yield();
-                HandleWork();
+                await HandleWork();
                 HandleWorkerEvents();
                 HandleWorkerCount();
 
@@ -227,11 +265,12 @@ namespace Architome
 
                 completionEvents.WhileBeingWorkedOn?.Invoke(new(this));
 
+
             }
 
             return success;
 
-            void HandleWork()
+            async Task HandleWork()
             {
                 if(properties.workDone < properties.workAmount)
                 {
@@ -241,6 +280,11 @@ namespace Architome
                 }
                 else if(properties.workDone >= properties.workAmount)
                 {
+                    var result = await HandleBackgroundProcesses();
+
+                    Debugger.System(4013, $"Result for background processes pass: {result}");
+                    
+
                     if (!fullProgress)
                     {
                         fullProgress = true;
@@ -249,7 +293,7 @@ namespace Architome
 
                     if (properties.noCompletion) return;
                     states.isBeingWorkedOn = false;
-                    success = true;
+                    success = result;
                 }
             }
 
@@ -269,6 +313,7 @@ namespace Architome
                     success = false;
                 }
             }
+
         }
 
         public async Task UntilDone()
@@ -340,6 +385,7 @@ namespace Architome
 
         }
 
+        #endregion
 
         public async void WhileLingering()
         {
@@ -373,11 +419,28 @@ namespace Architome
             completionEvents.OnLingeringEnd?.Invoke(taskEvent);
         }
 
+        bool HostileEntitiesInRoom()
+        {
+            var room = Entity.Room(properties.station.transform.position);
+
+            if (room == null) return false;
+
+            var hostileEntities = room.entities.HostilesInRoom;
+
+            if (hostileEntities.Count > 0)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+
+        #region Worker Functions
         public bool CanStartWork(EntityInfo entity)
         {
             return false;
         }
-
         public bool CanWork(EntityInfo entity, bool invokeEvents = true)
         {
             TaskEventData eventData = new(this);
@@ -430,23 +493,6 @@ namespace Architome
 
             }
         }
-
-        bool HostileEntitiesInRoom()
-        {
-            var room = Entity.Room(properties.station.transform.position);
-
-            if (room == null) return false;
-
-            var hostileEntities = room.entities.HostilesInRoom;
-
-            if (hostileEntities.Count > 0)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         public void AddLingering(EntityInfo entity)
         {
             if (workers.lingering == null) workers.lingering = new();
@@ -454,8 +500,9 @@ namespace Architome
             if (workers.lingering.Contains(entity)) return;
 
             workers.lingering.Add(entity);
-        }
 
+            workerEvents.OnNewLingerer?.Invoke(new TaskEventData(this), entity);
+        }
         public bool AddWorkerOnTheWay(EntityInfo entity)
         {
             if (workers.onTheWay == null)
@@ -467,12 +514,14 @@ namespace Architome
 
 
             workers.onTheWay.Add(entity);
+            var taskEvent = new TaskEventData(this);
+
+            workerEvents.OnNewWorkerOnTheWay?.Invoke(taskEvent, entity);
 
             UpdateState();
             return true;
         }
-
-        public bool AddWorker(EntityInfo entity)
+        public bool AddWorker(EntityInfo entity, Action<TaskEventData> onSuccess)
         {
             if (workers.working == null) workers.working = new();
 
@@ -486,12 +535,16 @@ namespace Architome
             workers.onTheWay.Remove(entity);
             
             workers.working.Add(entity);
-            HandleWork();
+            
+            HandleWork((eventData) => {
+                if (workers.working.Contains(entity)) onSuccess?.Invoke(eventData);
+            });
+            var taskEventData = new TaskEventData(this);
+            workerEvents.OnNewWorker?.Invoke(taskEventData, entity);
             UpdateState();
 
             return true;
         }
-
         public void RemoveWorker(EntityInfo entity)
         {
 
@@ -520,14 +573,13 @@ namespace Architome
 
             UpdateState();
         }
-
         public void RemoveAllWorkers()
         {
             foreach(var entity in workers.working)
             {
                 var taskHandler = entity.TaskHandler();
+                taskHandler.StopTask(this);
 
-                taskHandler.CancelAllTasks();
             }
         }
 
@@ -541,6 +593,11 @@ namespace Architome
                 }
             }
         }
+        public bool MaxWorkersReached()
+        {
+            return workers.Total() >= properties.maxWorkers;
+        }
+        #endregion
 
         public void UpdateState()
         {
@@ -556,10 +613,6 @@ namespace Architome
             }
         }
 
-        public bool MaxWorkersReached()
-        {
-            return workers.Total() >= properties.maxWorkers;
-        }
 
     }
 
@@ -589,16 +642,16 @@ namespace Architome
     [SerializeField]
     public struct TaskEvents
     {
-
-        public Action<TaskEventData> OnMoveToTask;
+        //For Tasks
         public Action<TaskEventData> OnStartTask;
         public Action<TaskEventData> WhileWorkingOnTask;
         public Action<TaskEventData> OnTaskComplete;
 
         //For Entities
-        public Action<TaskInfo, TaskInfo> OnNewTask;
-        public Action<TaskEventData> OnEndTask;
-        public Action<TaskEventData> OnLingeringStart;
+        public Action<TaskEventData> OnMoveToTask { get; set; }
+        public Action<TaskInfo, TaskInfo> OnNewTask { get; set; }
+        public Action<TaskEventData> OnEndTask { get; set; }
+        public Action<TaskEventData> OnLingeringStart { get; set; }
         public Action<TaskEventData> OnLingeringEnd;
         public Action<TaskEventData> OnCancelMovingToTask;
         public Action<TaskEventData, string> OnCantWorkOnTask;

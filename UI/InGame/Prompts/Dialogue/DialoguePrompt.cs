@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Architome
 {
@@ -27,7 +28,13 @@ namespace Architome
         public List<OptionData> currentOptions;
         public int currentDialogueDataIndex;
 
+        [Serializable]
+        struct EventHandling
+        {
+            public UnityEvent OnUpdateEntry;
+        }
 
+        [SerializeField] EventHandling eventHandling;
 
         void GetDependencies()
         {
@@ -95,6 +102,7 @@ namespace Architome
             await AddEntry(new(eventData.sourceEntity.ToString(), dialogueData.text), crawlText: true);
 
             currentOptions = new();
+            Dictionary<DialogueOption, OptionData> optionDict = new();
             foreach(var option in dialogueData.dialogueOptions)
             {
                 OptionData optionToAdd = new(option.text, async (OptionData promptOptionData) =>
@@ -126,16 +134,21 @@ namespace Architome
                     HandleData(eventData);
                 });
 
-                optionToAdd.SetAvailable(!option.disabled);
+                //optionToAdd.SetAvailable(!option.disabled);
 
                 options.Add(optionToAdd);
                 currentOptions.Add(optionToAdd);
+                optionDict.Add(option, optionToAdd);
             }
 
 
             promptData.options = options;
 
             prompt.SetPrompt(promptData, false);
+            foreach(KeyValuePair<DialogueOption, OptionData> pair in optionDict)
+            {
+                pair.Value.SetAvailable(!pair.Key.disabled);
+            }
         }
 
         public async Task AddEntry(DialogueEntry entry, bool addToSet = true, bool crawlText = false)
@@ -144,7 +157,9 @@ namespace Architome
 
             var newEntry = Instantiate(entryPrefab, prefabs.entryParents);
             newEntry.crawlText = crawlText;
-            await newEntry.SetEntry(entry);
+            await newEntry.SetEntry(entry, () => {
+                eventHandling.OnUpdateEntry?.Invoke();
+            });
 
             if (addToSet)
             {

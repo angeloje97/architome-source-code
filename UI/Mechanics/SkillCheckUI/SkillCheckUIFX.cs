@@ -1,6 +1,8 @@
 using Architome.Effects;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Architome
@@ -30,6 +32,13 @@ namespace Architome
             skillCheckUI.skillCheckData.AddAllListeners((eSkillCheckEvent trigger, SkillCheckData data) => {
                 effectsHandler.Activate(trigger);
             }, this);
+
+            skillCheckUI.OnHandleBackgroundProcesses += HandleBackgroundProcesses; 
+        }
+
+        void HandleBackgroundProcesses(List<Func<Task>> processes)
+        {
+            processes.Add(effectsHandler.UntilAudioManagerDone);
         }
 
         #endregion

@@ -21,12 +21,21 @@ namespace Architome
 
         public bool crawlText { get; set; }
 
-        public async Task SetEntry(DialogueEntry entry)
+        Action<DialogueEntryBehavior> onCrawlText;
+
+        public async Task SetEntry(DialogueEntry entry, Action handleCrawlText = null)
         {
             info.name.text = entry.speaker;
             info.content.text = entry.text;
 
             info.canvasGroup.SetCanvas(false);
+
+            if (handleCrawlText != null)
+            {
+                onCrawlText += (behavior) => {
+                    handleCrawlText?.Invoke();
+                };
+            }
 
             var state = false;
             gameObject.SetActive(state);
@@ -83,11 +92,15 @@ namespace Architome
                         await Task.Yield();
                         delay -= Time.deltaTime;
                     }
-
                 }
+
+                onCrawlText?.Invoke(this);
+
             }
 
             info.content.text = targetText;
+
+            onCrawlText?.Invoke(this);
 
             bool ContinueCrawl(float time)
             {

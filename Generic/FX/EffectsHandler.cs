@@ -105,6 +105,8 @@ namespace Architome.Effects
                 eventHandler.AddListener(effectItem.trigger, () => { }, listener);
             });
         }
+
+        public async Task UntilAudioManagerDone() => await audioManager.UntilAllDone();
         #endregion
     }
     #endregion  

@@ -1,6 +1,7 @@
 ﻿using Architome.Events;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -65,6 +66,12 @@ namespace Architome
         }
 
         bool started;
+        bool canceled;
+
+        public void CancelSkillCheck()
+        {
+            canceled = true;
+        }
         public async void StartSkillCheck(Action<SkillCheckData> onEndSkillCheck, float space, float delay, float skillCheckTime, MonoActor listener)
         {
             if (started) return;
@@ -111,6 +118,7 @@ namespace Architome
                 {
                     stopSkillCheck = value >= 1f;
                 }
+                if (canceled) stopSkillCheck = true;
 
                 return stopSkillCheck;
             }, true);
@@ -180,7 +188,9 @@ namespace Architome
 
         [Header("Components")]
         [SerializeField] SkillCheckUI skillCheckUI;
+        SkillCheckUI currentUI;
         static PopupContainer popupContainer;
+
         #endregion
 
         #region Initialization
@@ -195,9 +205,11 @@ namespace Architome
         }
 
         #endregion
-        public async void HandleSkillChecks(TaskEventData eventData)
+        public async void HandleSkillChecks(TaskEventData eventData, EntityInfo entity)
         {
             var timer = intervals;
+
+            entity.taskEvents.OnNewTask += HandleEntityLeavingTask;
 
             while (eventData.task.BeingWorkedOn)
             {
@@ -216,6 +228,14 @@ namespace Architome
 
                     var skillCheck = CreateSkillCheck(this, eventData.workInfo.transform, (SkillCheckData data) => {});
 
+                    eventData.task.AddBackgroundProcess(async () => {
+                        //if (skillCheck == null) return true;
+                        if (currentUI == null) return true;
+                        await skillCheck.UntilDone();
+
+                        return skillCheck.success;
+                    });
+
                     await skillCheck.UntilDone();
                     if (skillCheck.success) continue;
 
@@ -229,7 +249,24 @@ namespace Architome
                 }
                 await Task.Yield();
             }
+
+            void HandleEntityLeavingTask(TaskInfo previous, TaskInfo newTask)
+            {
+                if (currentUI)
+                {
+                    currentUI.CancelSkillCheck();
+                }
+
+
+                entity.taskEvents.OnNewTask -= HandleEntityLeavingTask;
+            }
         }
+
+        public void OnNewWorker(TaskEventData eventData, EntityInfo entity)
+        {
+            HandleSkillChecks(eventData, entity);
+        }
+
 
         public static SkillCheckData CreateSkillCheck(SkillCheckHandler handler, Transform target, Action<SkillCheckData> onEndSkillCheck)
         {
@@ -244,6 +281,8 @@ namespace Architome
             void CreateUI()
             {
                 var skillCheckUI = Instantiate(handler.skillCheckUI, popupContainer.transform);
+
+                handler.currentUI = skillCheckUI;
                 skillCheckUI.SetData(skillCheckData);
 
                 if(target != null)

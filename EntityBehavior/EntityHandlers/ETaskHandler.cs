@@ -14,7 +14,7 @@ namespace Architome
         public WorkerState currentState;
         public Movement movement;
         public WorkInfo currentStation;
-        private TaskInfo currentTask;
+        private TaskInfo currentTask { get; set; }
 
         //Event Event Triggers
         private TaskInfo previousTask;
@@ -127,9 +127,12 @@ namespace Architome
                 CancelAllTasks();
             }
         }
-        public void StopTask()
+        public void StopTask(TaskInfo particularTask = null)
         {
             if(currentTask == null) { return; }
+            if (particularTask == null) particularTask = currentTask;
+
+            if (particularTask != currentTask) return;
 
             currentTask = null;
             currentStation = null;
@@ -148,11 +151,17 @@ namespace Architome
         }
         public async Task<bool> WorkOn(TaskInfo task)
         {
-            if (!task.AddWorker(entityInfo)) { return false; }
+            var successFull = false;
+
+            if (!task.AddWorker(entityInfo, (eventData) => {
+                successFull = true;
+            })) { return false; }
 
             entityInfo.taskEvents.OnStartTask?.Invoke(new TaskEventData(task));
             currentState = WorkerState.Working;
             var newTargetPath = movement.NextPathTarget();
+
+
 
             while (currentTask == task)
             {
@@ -162,7 +171,8 @@ namespace Architome
                 await Task.Yield();
             }
 
-            return true;
+
+            return successFull;
         }
 
         async public Task FinishWorking()
@@ -283,11 +293,16 @@ namespace Architome
 
             successful= await WorkOn(task);
 
+            var successString = successful ? "successful" : "unsuccessful";
+            Debugger.System(4012, $"Task was {successString}");
+
+
             if (!successful)
             {
                 StopTask();
                 return;
             }
+
 
             await LingerAt(newTaskEvent);
 
