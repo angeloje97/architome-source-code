@@ -270,6 +270,8 @@ namespace Architome
                 {
                     if (audioSource.isPlaying) continue;
                 }
+
+                break;
             }
         }
 

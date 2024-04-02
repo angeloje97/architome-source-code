@@ -65,17 +65,20 @@ namespace Architome
 
         #region UI Updaters
 
-        public void SetTarget(Transform target)
+        public async void SetTarget(Transform target)
         {
             var popupContainer = PopupContainer.active;
             var stopListening = false;
 
-            AddListener(eMonoEvent.OnDestroy, () => {
+
+
+            AddListener(eMonoEvent.OnDestroy, () =>
+            {
                 stopListening = true;
             }, this);
 
 
-            popupContainer.StickToTarget(transform, target, () => {
+            await popupContainer.StickToTarget(transform, target, () => {
 
                 if (!movedToTarget)
                 {
@@ -83,7 +86,8 @@ namespace Architome
                 }
 
                 return stopListening; 
-            }, true);
+            }, true, new Vector3(0f, 150f, 0f));
+
         }
         void SetFrame(float angle, float range)
         {

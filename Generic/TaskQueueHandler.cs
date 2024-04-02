@@ -112,6 +112,7 @@ namespace Architome
 
         public static async Task HandleTasks(this List<Func<Task>> tasks, TaskType taskType)
         {
+            if (tasks.Count == 0) return;
             var alteredTasks = new List<Func<Task<bool>>>();
 
             foreach(var task in tasks)

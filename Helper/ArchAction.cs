@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace Architome
 {
@@ -54,23 +55,24 @@ namespace Architome
         }
 
         //Will keep running until predicate returns expected
-        public static async Task WaitUntil(Predicate<float> predicate, bool expected)
+        public static async Task WaitUntil(Predicate<float> predicate, bool expected, bool useLateUpdate = false)
         {
             if (predicate(Time.deltaTime) == expected) return;
 
-            await World.UpdateAction((float deltaTime) => {
+            await World.UpdateAction((float deltaTime) =>
+            {
                 return predicate(deltaTime) != expected;
-            });
+            }, useLateUpdate);
         }
 
-        public static async Task WaitUntil(Func<bool> predicate, bool expected, float delay = 0f)
+        public static async Task WaitUntil(Func<bool> predicate, bool expected, float delay = 0f, bool useLateupdate = false)
         {
 
             if(delay == 0)
             {
                 await World.UpdateAction((float deltaTime) => {
                     return predicate() != expected;
-                });
+                }, useLateupdate);
 
             }
             else

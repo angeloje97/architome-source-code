@@ -509,6 +509,7 @@ namespace Architome
             }
         }
 
+
         public static async Task UpdateComponent(Action<float> action, Component component)
         {
             await UpdateAction((float deltaTime) => {
