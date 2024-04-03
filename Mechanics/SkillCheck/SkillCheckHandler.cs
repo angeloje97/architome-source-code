@@ -34,6 +34,8 @@ namespace Architome
         public Transform target { get; private set; }
 
         public MonoActor source { get; private set; }
+        
+        public SkillCheckHandler sourceHandler { get; private set; }
 
         public float angle { get; private set; }
         public float value { get; private set; }
@@ -59,10 +61,16 @@ namespace Architome
         #endregion
 
 
-        public SkillCheckData(MonoActor source)
+        public SkillCheckData(SkillCheckHandler source)
         {
             this.source = source;
+            sourceHandler = source;
             skillCheckEventHandler = new(source);
+
+            skillCheckEventHandler.AddAllListeners((eSkillCheckEvent trigger, SkillCheckData data) =>
+            {
+                sourceHandler.InvokeEvent(trigger, data);
+            }, source, false);
         }
 
         bool started;
@@ -191,6 +199,9 @@ namespace Architome
         SkillCheckUI currentUI;
         static PopupContainer popupContainer;
 
+        
+
+
         #endregion
 
         #region Initialization
@@ -202,9 +213,22 @@ namespace Architome
         protected override void Awake()
         {
             base.Awake();
+
+            eventHandler = new(this);
         }
 
         #endregion
+
+        #region Event Handling
+
+        [SerializeField] ArchEventHandler<eSkillCheckEvent, SkillCheckData> eventHandler;
+
+        public void InvokeEvent(eSkillCheckEvent trigger, SkillCheckData data) => eventHandler.Invoke(trigger, data);
+
+        public Action AddListener(eSkillCheckEvent trigger, Action<SkillCheckData> action, MonoActor actor) => eventHandler.AddListener(trigger, action, actor);
+
+        #endregion 
+
         public async void HandleSkillChecks(TaskEventData eventData, EntityInfo entity)
         {
             var timer = intervals;
