@@ -240,6 +240,24 @@ namespace Architome.Events
             return unsubscribe;
         }
 
+        public Action Mimic(ArchEventHandler<T, E> otherHandler, Action<T, E> onInvoke = null)
+        {
+            Action unsubscribe = () => { };
+
+            if (this == otherHandler) return unsubscribe;
+
+            foreach(T trigger in Enum.GetValues(typeof(T)))
+            {
+                unsubscribe += otherHandler.AddListener(trigger, (data) => {
+                    Invoke(trigger, data);
+
+                    onInvoke?.Invoke(trigger, data);
+                }, actor);
+            }
+
+            return unsubscribe;
+        }
+
         #region Listener Checks
 
         public Action AddListenerCheck(T eventType, Action<E, List<bool>> action, Component listener)

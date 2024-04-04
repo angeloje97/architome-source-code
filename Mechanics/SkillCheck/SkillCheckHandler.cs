@@ -24,6 +24,7 @@ namespace Architome
         OnStartBeforeDelay,
         OnFail,
         OnSuccess,
+        BeforeCreateSkillCheck,
     }
 
     [Serializable]
@@ -67,10 +68,7 @@ namespace Architome
             sourceHandler = source;
             skillCheckEventHandler = new(source);
 
-            skillCheckEventHandler.AddAllListeners((eSkillCheckEvent trigger, SkillCheckData data) =>
-            {
-                sourceHandler.InvokeEvent(trigger, data);
-            }, source, false);
+            sourceHandler.MimicEventHandler(skillCheckEventHandler);
         }
 
         bool started;
@@ -97,7 +95,7 @@ namespace Architome
             var currentTime = 0f;
             await ArchAction.WaitUntil((float deltaTime) => {
                 currentTime += deltaTime;
-                return currentTime >= delay;
+                return currentTime >= this.delay;
             }, true);
 
             bool stopSkillCheck = false;
@@ -149,6 +147,7 @@ namespace Architome
 
             void CreateSkillCheck()
             {
+                Invoke(eSkillCheckEvent.BeforeCreateSkillCheck, this);
                 if(range >= 1f)
                 {
                     angle = .5f;
@@ -226,6 +225,8 @@ namespace Architome
         public void InvokeEvent(eSkillCheckEvent trigger, SkillCheckData data) => eventHandler.Invoke(trigger, data);
 
         public Action AddListener(eSkillCheckEvent trigger, Action<SkillCheckData> action, MonoActor actor) => eventHandler.AddListener(trigger, action, actor);
+
+        public void MimicEventHandler(ArchEventHandler<eSkillCheckEvent, SkillCheckData> eventHandler, Action<eSkillCheckEvent, SkillCheckData> action = null) => eventHandler.Mimic(eventHandler, action);
 
         #endregion 
 
