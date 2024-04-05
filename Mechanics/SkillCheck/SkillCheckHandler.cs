@@ -44,6 +44,8 @@ namespace Architome
         public float range { get; private set; }
         public float offSet { get; private set; }
 
+        public float skillCheckTime { get; private set; }
+
         public float delay { get; private set; }
 
         public bool active;
@@ -61,7 +63,6 @@ namespace Architome
 
         #endregion
 
-
         public SkillCheckData(SkillCheckHandler source)
         {
             this.source = source;
@@ -74,21 +75,15 @@ namespace Architome
         bool started;
         bool canceled;
 
-        public void CancelSkillCheck()
-        {
-            canceled = true;
-        }
         public async void StartSkillCheck(Action<SkillCheckData> onEndSkillCheck, float space, float delay, float skillCheckTime, MonoActor listener)
         {
             if (started) return;
             started = true;
             active = true;
-            this.delay = delay;
+
+            UpdateValues(space, delay, skillCheckTime);
 
             var stopListening = AddListener(eSkillCheckEvent.OnEnd, onEndSkillCheck, listener);
-
-            range = Mathf.Clamp(space, 0f, 1f);
-            offSet = range * .5f;
 
             CreateSkillCheck();
 
@@ -117,7 +112,7 @@ namespace Architome
             await ArchAction.WaitUntil((float deltaTime) =>
             {
                 currentTime += deltaTime;
-                var lerpValue = Mathf.Lerp(0f, 1f, currentTime / skillCheckTime);
+                var lerpValue = Mathf.Lerp(0f, 1f, currentTime / this.skillCheckTime);
                 value = lerpValue;
 
                 if (!stopSkillCheck)
@@ -128,9 +123,6 @@ namespace Architome
 
                 return stopSkillCheck;
             }, true);
-
-
-
 
             active = false;
             if (success)
@@ -148,6 +140,7 @@ namespace Architome
             void CreateSkillCheck()
             {
                 Invoke(eSkillCheckEvent.BeforeCreateSkillCheck, this);
+
                 if(range >= 1f)
                 {
                     angle = .5f;
@@ -157,12 +150,24 @@ namespace Architome
                 angle = UnityEngine.Random.Range(offSet, 1f - offSet);
             }
         }
-
+        public void CancelSkillCheck()
+        {
+            canceled = true;
+        }
         public void HitSkillCheck()
         {
             Invoke(eSkillCheckEvent.OnHit, this);
         }
-
+        public void UpdateValues(float space = -1, float delay = -1, float skillCheckTime = -1)
+        {
+            if (space != -1) 
+            {
+                range = Mathf.Clamp(space, .01f, 1f);
+                offSet = range * .5f;
+            }
+            if (delay != -1) this.delay = delay;
+            if (skillCheckTime != -1) this.skillCheckTime = skillCheckTime;
+        }
         public async Task WhileProgress(Action<SkillCheckData> action)
         {
             while (active)
@@ -171,11 +176,11 @@ namespace Architome
                 await Task.Yield();
             }
         }
-
         public async Task UntilDone()
         {
             await ArchAction.WaitUntil(() => active, false);
         }
+
     }
     #endregion
 
