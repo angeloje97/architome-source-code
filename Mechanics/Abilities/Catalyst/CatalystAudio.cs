@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using Architome.Enums;
+using System.Threading.Tasks;
 
 namespace Architome
 {
@@ -45,7 +46,7 @@ namespace Architome
         }
 
 
-        public void OnCatalystDestroy(CatalystDeathCondition deathCondition)
+        public async void OnCatalystDestroy(CatalystDeathCondition deathCondition)
         {
             destroyCatalyst = true;
             isActive = false;
@@ -54,19 +55,22 @@ namespace Architome
             transform.SetParent(CatalystManager.active.transform);
             catalystInfo.OnCatalystDestroy -= OnCatalystDestroy;
 
-            ArchAction.Delay(() => {
-                //destroyCatalyst = true;
-                //isActive = false;
+            await StopLoops();
+            HandleDestroy();
 
-                StopLoops();
-                //transform.SetParent(CatalystManager.active.transform);
+            //ArchAction.Delay(() => {
+            //    //destroyCatalyst = true;
+            //    //isActive = false;
 
-                HandleDestroy();
+            //    StopLoops();
+            //    //transform.SetParent(CatalystManager.active.transform);
+
+            //    HandleDestroy();
             
-            }, .25f);
+            //}, .25f);
         }
 
-        public void StopLoops()
+        public async Task StopLoops()
         {
             var effects = catalystInfo.effects.catalystsEffects;
 
@@ -79,6 +83,8 @@ namespace Architome
 
                 if (source) source.Stop();
             }
+
+            await audioManager.UntilAllDone();
         }
 
         public void OnEmptyAudio(AudioManager audioManager)
