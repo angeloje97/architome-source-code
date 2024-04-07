@@ -184,7 +184,7 @@ namespace Architome.Settings
             QualitySettings.renderPipeline = qualityLevels[settings.qualityLevel];
             QualitySettings.vSyncCount = settings.vsync ? 1 : 0;
 
-            var maxFps = settings.limitFPS ? settings.maxFPS : 1000;
+            var maxFps = settings.limitFPS ? settings.maxFPS : -1;
 
             Screen.SetResolution(settings.resolution.width, settings.resolution.height, settings.fullScreenMode, maxFps);
         }
