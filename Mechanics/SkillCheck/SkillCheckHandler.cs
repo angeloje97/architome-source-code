@@ -168,6 +168,7 @@ namespace Architome
             if (delay != -1) this.delay = delay;
             if (skillCheckTime != -1) this.skillCheckTime = skillCheckTime;
         }
+
         public async Task WhileProgress(Action<SkillCheckData> action)
         {
             while (active)
