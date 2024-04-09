@@ -58,9 +58,9 @@ namespace Architome
 
         public void Invoke(eSkillCheckEvent trigger, SkillCheckData data) => skillCheckEventHandler.Invoke(trigger, data);
         public Action AddListener(eSkillCheckEvent trigger,Action<SkillCheckData> action, MonoActor listener) => skillCheckEventHandler.AddListener(trigger, action, listener);
-
         public Action AddAllListeners(Action<eSkillCheckEvent, SkillCheckData> action, MonoActor listener) => skillCheckEventHandler.AddAllListeners(action, listener);
 
+        public Action AddListenerLimit(eSkillCheckEvent trigger, Action<SkillCheckData> action, MonoActor listener, int amount = 1) => skillCheckEventHandler.AddListenerLimit(trigger, action, listener, amount);
         #endregion
 
         public SkillCheckData(SkillCheckHandler source)
@@ -83,7 +83,7 @@ namespace Architome
 
             UpdateValues(space, delay, skillCheckTime);
 
-            var stopListening = AddListener(eSkillCheckEvent.OnEnd, onEndSkillCheck, listener);
+            var stopListening = AddListenerLimit(eSkillCheckEvent.OnEnd, onEndSkillCheck, listener);
 
             CreateSkillCheck();
 
@@ -134,8 +134,6 @@ namespace Architome
                 Invoke(eSkillCheckEvent.OnFail, this);
             }
             Invoke(eSkillCheckEvent.OnEnd, this);
-            stopListening();
-            
 
             void CreateSkillCheck()
             {
