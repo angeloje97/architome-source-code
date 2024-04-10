@@ -35,6 +35,8 @@ namespace Architome
         public Transform target { get; private set; }
 
         public MonoActor source { get; private set; }
+
+        public EntityInfo skillCheckUser { get; private set; }
         
         public SkillCheckHandler sourceHandler { get; private set; }
 
@@ -70,6 +72,11 @@ namespace Architome
             skillCheckEventHandler = new(source);
 
             sourceHandler.MimicEventHandler(skillCheckEventHandler);
+        }
+
+        public void SetUser(EntityInfo entity)
+        {
+            this.skillCheckUser = entity;
         }
 
         bool started;
@@ -255,7 +262,7 @@ namespace Architome
                         continue;
                     }
 
-                    var skillCheck = CreateSkillCheck(this, eventData.workInfo.transform, (SkillCheckData data) => {});
+                    var skillCheck = CreateSkillCheck(this, eventData.workInfo.transform, entity, (SkillCheckData data) => {});
 
                     eventData.task.AddBackgroundProcess(async () => {
                         //if (skillCheck == null) return true;
@@ -297,9 +304,10 @@ namespace Architome
         }
 
 
-        public static SkillCheckData CreateSkillCheck(SkillCheckHandler handler, Transform target, Action<SkillCheckData> onEndSkillCheck)
+        public static SkillCheckData CreateSkillCheck(SkillCheckHandler handler, Transform target, EntityInfo user, Action<SkillCheckData> onEndSkillCheck)
         {
             var skillCheckData = new SkillCheckData(handler);
+            skillCheckData.SetUser(user);
 
 
             skillCheckData.StartSkillCheck(onEndSkillCheck, handler.defaultRange, handler.startDelay, handler.timeWindow, handler);
