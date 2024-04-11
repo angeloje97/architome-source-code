@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 //Cheat Commit
 
-namespace Architome
+namespace Architome.SkillCheck
 {
     public class SkillCheckUI : MonoActor
     {
