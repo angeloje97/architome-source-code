@@ -39,16 +39,26 @@ namespace Architome.SkillCheck
 
         #region Initiation
 
+
         private void Start()
         {
+            UpdateCurrentOffsets();
             ListenToHandler();
         }
+
+        
 
         void ListenToHandler()
         {
             if (handler == null) return;
 
             handler.AddListener(eSkillCheckEvent.BeforeCreateSkillCheck, HandleBeforeStartSkillCheck, this);
+        }
+
+        void UpdateCurrentOffsets()
+        {
+            var difficultySettings = DifficultyModifications.active;
+            currentOffsets = difficultySettings.settings.skillCheckOffsets;
         }
 
         #endregion

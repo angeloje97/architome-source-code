@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using Architome.Enums;
-using JetBrains.Annotations;
+using Architome.SkillCheck;
 using System.Linq;
 
 namespace Architome
@@ -164,6 +164,9 @@ namespace Architome
         public float dungeonCoreMultiplier = .15f;
         [Range(0, 1)]
         public float minimumEnemyForces = .90f;
+
+        [Header("Misc Difficulty Settings")]
+        public SkillCheckOffsets skillCheckOffsets;
 
 
 
