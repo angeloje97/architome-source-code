@@ -5,9 +5,16 @@ using System;
 using Architome.Enums;
 using Architome.SkillCheck;
 using System.Linq;
+using Architome.Events;
 
 namespace Architome
 {
+    public enum eDifficultyEvents
+    {
+        OnApplyChanges,
+    }
+
+
     public class DifficultyModifications : MonoBehaviour
     {
         // Start is called before the first frame update
@@ -19,8 +26,17 @@ namespace Architome
         public Dictionary<Difficulty, DifficultySet> difficultyDict { get; set; }
         public Dictionary<string, DifficultySet> difficultyDictString { get; set; }
         public DifficultySet settings { get; private set; }
-        
 
+        #region EventHandling
+
+
+        ArchEventHandler<eDifficultyEvents, DifficultyModifications> eventHandler;
+
+        public void Invoke(eDifficultyEvents trigger, DifficultyModifications data) => eventHandler.Invoke(trigger, data);
+
+        public void AddListener(eDifficultyEvents trigger, Action<DifficultyModifications> action, MonoActor listener) => eventHandler.AddListener(trigger, action, listener);
+
+        #endregion
 
         public void DetermineSettings()
         {
@@ -56,6 +72,8 @@ namespace Architome
             {
                 gameDifficulty = Core.currentSave.gameSettings.difficulty;
             }
+
+            eventHandler = new(this);
 
             difficultySets = SerializedSets.GetSavedSets(difficultySets).difficultySets;
 
