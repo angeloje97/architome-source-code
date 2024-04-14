@@ -4,6 +4,8 @@ using UnityEngine;
 
 namespace Architome.SkillCheck
 {
+    #region SkillCheckOffsets
+
     [Serializable]
     public class SkillCheckOffsets
     {
@@ -25,11 +27,14 @@ namespace Architome.SkillCheck
             data.UpdateValues(newRange, newDelay, newDuration);
         }
     }
+    #endregion
 
     public class SkillCheckDifficultyHandler : MonoActor
     {
-        [SerializeField] SkillCheckOffsets currentOffsets;
 
+        #region Common Data
+
+        [SerializeField] SkillCheckOffsets currentOffsets;
 
         [Header("Components")]
         [SerializeField] SkillCheckHandler handler;
@@ -37,22 +42,19 @@ namespace Architome.SkillCheck
         [Header("Properties")]
         [SerializeField][Range(0f, 100f)]float difficultyValue;
 
+        #endregion
+
         #region Initiation
-
-
         private void Start()
         {
             UpdateCurrentOffsets();
             ListenToHandler();
         }
-
-        
-
         void ListenToHandler()
         {
             if (handler == null) return;
-
             handler.AddListener(eSkillCheckEvent.BeforeCreateSkillCheck, HandleBeforeStartSkillCheck, this);
+
         }
 
         void UpdateCurrentOffsets()

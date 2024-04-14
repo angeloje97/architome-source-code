@@ -133,6 +133,7 @@ namespace Architome
         public void SaveCurrentSet()
         {
             SerializedSets.SaveSets(new(difficultySets));
+            Invoke(eDifficultyEvents.OnApplyChanges, this);
         }
     }
 

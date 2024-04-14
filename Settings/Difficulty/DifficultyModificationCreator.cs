@@ -12,6 +12,9 @@ namespace Architome
 {
     public class DifficultyModificationCreator : ArchSettings
     {
+
+        #region Common Data
+
         [Header("Difficulty Modification Properties")]
         DifficultyModifications modifications;
         DifficultySet current;
@@ -38,6 +41,9 @@ namespace Architome
         Prefabs prefabs;
         Components components;
 
+        #endregion
+
+        #region Initialization
 
         private void Start()
         {
@@ -58,6 +64,8 @@ namespace Architome
             modifications = DifficultyModifications.active;
             SetSet(modifications.settings);
         }
+
+        #endregion
 
         void UpdateSetSelector()
         {
@@ -101,8 +109,6 @@ namespace Architome
             onUpdateFields?.Invoke();
             SetDirty(false);
         }
-
-
         void UpdateFields()
         {
             if (modifications == null) return;
