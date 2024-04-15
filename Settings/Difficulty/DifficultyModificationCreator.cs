@@ -67,6 +67,7 @@ namespace Architome
 
         #endregion
 
+        #region Updating Fields
         void UpdateSetSelector()
         {
             var dropDown = components.setSelector;
@@ -87,13 +88,11 @@ namespace Architome
                 SetSet(modifications.difficultySets[index]);
             });
         }
-
         void ResetFields()
         {
             SetSet(current);
 
         }
-
         public void SaveFields()
         {
             SetSet(temp);
@@ -101,7 +100,6 @@ namespace Architome
             modifications.SaveCurrentSet();
             UpdateSetSelector();
         }
-
         public void SetSet(DifficultySet set)
         {
             ArchGeneric.CopyClassValue(set, current);
@@ -210,11 +208,12 @@ namespace Architome
                 };
             }
         }
-
         void SetDirty(bool newValue)
         {
             dirty = newValue;
         }
+
+        #endregion
 
         #region ArchSettings Functions
         public override void HandleChooseApply() => SaveFields();
