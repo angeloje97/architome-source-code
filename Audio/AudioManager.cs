@@ -155,43 +155,45 @@ namespace Architome
         {
             return PlaySound(audioClip);
         }
-        public AudioSource PlaySound(AudioClip clip, float volume = 1f)
+        public AudioSource PlaySound(AudioClip clip, float volume = 1f, bool createChild = false)
         {
             audioSources ??= new();
 
             var pitch = UnityEngine.Random.Range(1f - pitchRandomRange, 1f + pitchRandomRange);
 
-            foreach (AudioSource source in audioSources)
+            if (!createChild)
             {
-                if (singleAudioSource)
+                foreach (AudioSource source in audioSources)
                 {
-                    if (source.isPlaying)
+                    if (singleAudioSource)
                     {
-                        source.Stop();
+                        if (source.isPlaying)
+                        {
+                            source.Stop();
+                        }
+
+                        source.clip = clip;
+                        source.loop = false;
+                        source.volume = volume;
+                        source.pitch = pitch;
+                        source.Play();
+                        return source;
                     }
 
-                    source.clip = clip;
-                    source.loop = false;
-                    source.volume = volume;
-                    source.pitch = pitch;
-                    source.Play();
-                    return source;
-                }
-
-                if (!source.isPlaying)
-                {
-                    source.clip = clip;
-                    source.loop = false;
-                    source.volume = volume;
-                    source.pitch = pitch;
-                    source.Play();
-                    //source.PlayOneShot(clip);
-                    return source;
+                    if (!source.isPlaying)
+                    {
+                        source.clip = clip;
+                        source.loop = false;
+                        source.volume = volume;
+                        source.pitch = pitch;
+                        source.Play();
+                        //source.PlayOneShot(clip);
+                        return source;
+                    }
                 }
             }
 
-            //var newAudioSource = gameObject.AddComponent<AudioSource>();
-            var newAudioSource = ArchGeneric.CopyComponent(presetAudio, gameObject);
+            var newAudioSource = NewAudioSource(createChild);
             if (mixerGroup)
             {
                 newAudioSource.outputAudioMixerGroup = mixerGroup;
@@ -212,6 +214,23 @@ namespace Architome
 
 
             return newAudioSource;
+        }
+
+        public AudioSource NewAudioSource(bool createChild = false)
+        {
+            if (createChild)
+            {
+                var childObject = new GameObject();
+                childObject.transform.SetParent(transform, false);
+
+                var newAudioSource = ArchGeneric.CopyComponent(presetAudio, childObject);
+                return newAudioSource;
+            }
+            else
+            {
+                var newAudioSource = ArchGeneric.CopyComponent(presetAudio, gameObject);
+                return newAudioSource;
+            }
         }
         public AudioSource PlayRandomSound(List<AudioClip> clips)
         {
