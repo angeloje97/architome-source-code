@@ -12,7 +12,7 @@ namespace Architome
     [RequireComponent(typeof(AudioSource))]
     public class AudioManager : MonoBehaviour
     {
-
+        #region CommonData
         public List<AudioSource> audioSources;
         public AudioSource presetAudio;
         public AudioMixerGroup mixerGroup;
@@ -30,6 +30,9 @@ namespace Architome
 
 
         public Action<AudioManager> OnEmptyAudio { get; set; }
+        #endregion
+
+        #region Initiation
 
         void Start()
         {
@@ -39,14 +42,6 @@ namespace Architome
             
         }
 
-        public void UpdateMixerGroup()
-        {
-            var audioMixerGroups = AudioMixerGroups.active;
-            mixerGroup = audioMixerGroups.MixerGroup(audioMixerType);
-        }
-
-        
-
         public void OnValidate()
         {
             //spatialBlend = .5f;
@@ -54,6 +49,13 @@ namespace Architome
             {
                 presetAudio = GetComponent<AudioSource>();
             }
+        }
+
+        #endregion
+        public void UpdateMixerGroup()
+        {
+            var audioMixerGroups = AudioMixerGroups.active;
+            mixerGroup = audioMixerGroups.MixerGroup(audioMixerType);
         }
 
         // Update is called once per frame
