@@ -10,7 +10,7 @@ using Architome.Enums;
 namespace Architome
 {
     [RequireComponent(typeof(AudioSource))]
-    public class AudioManager : MonoBehaviour
+    public class AudioManager : MonoActor
     {
         #region CommonData
         public List<AudioSource> audioSources;
@@ -56,11 +56,6 @@ namespace Architome
         {
             var audioMixerGroups = AudioMixerGroups.active;
             mixerGroup = audioMixerGroups.MixerGroup(audioMixerType);
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
         }
 
         void CopyPresetFor(AudioSource source)
@@ -153,6 +148,8 @@ namespace Architome
                 }
             }
         }
+
+        #region Creating AudioSources
         public AudioSource PlayAudioClip(AudioClip audioClip)
         {
             return PlaySound(audioClip);
@@ -260,6 +257,9 @@ namespace Architome
 
             return PlaySoundLoop(ArchGeneric.RandomItem(clips), maxLength);
         }
+        #endregion
+
+        #region Background Functions
         public void StopLoops()
         {
             //foreach(var source in audioSources)
@@ -295,6 +295,7 @@ namespace Architome
                 break;
             }
         }
+        #endregion
 
     }
 
