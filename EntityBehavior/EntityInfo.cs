@@ -46,6 +46,7 @@ namespace Architome
         #endregion
 
         #region Common Data
+
         public string entityName;
         [Multiline]
         public string entityDescription;
@@ -73,7 +74,6 @@ namespace Architome
         public List<EntityState> states;
         public WorkerState workerState;
 
-        #endregion
 
 
         [Serializable]
@@ -127,6 +127,7 @@ namespace Architome
         [SerializeField]
         ComponentManager components;
 
+        #endregion
 
         #region Events
         public struct PartyEvents
@@ -795,38 +796,6 @@ namespace Architome
             return target;
         }
 
-        public bool SetTarget(Transform target)
-        {
-            this.target = target;
-            return true;
-        }
-
-        public bool IsEnemy(GameObject target)
-        {
-            if (!target.GetComponent<EntityInfo>()) return false;
-            var targetNPCType = target.GetComponent<EntityInfo>().npcType;
-
-            if (npcType == NPCType.Friendly && targetNPCType == NPCType.Hostile) return true;
-            if (npcType == NPCType.Hostile && targetNPCType == NPCType.Friendly) return true;
-            return false;
-
-        }
-
-        public bool CanMove()
-        {
-            if (!isAlive) return false;
-
-            checks = new();
-
-            infoEvents.OnCanMoveCheck?.Invoke(this, checks);
-
-            foreach(var check in checks)
-            {
-                if (!check) return false;
-            }
-
-            return true;
-        }
         public void ReactToSocial(SocialEventData eventData)
         {
             if (eventData.target == this)
@@ -907,19 +876,6 @@ namespace Architome
             combatEvents.InvokeThreat(eThreatEvent.OnPingThreat, new(entity, this, 20));
         }
 
-        public bool CanSee(Transform target)
-        {
-            checks = new();
-
-            infoEvents.OnCanSeeCheck?.Invoke(this, target);
-
-            foreach(var check in checks)
-            {
-                if (check) return true;
-            }
-
-            return false;
-        }
         public NPCType EnemyType()
         {
             if (npcType == NPCType.Hostile)
@@ -1116,8 +1072,53 @@ namespace Architome
         }
         #endregion
 
-        #region Can Help/Attack Properties
+        #region Dynamic Properties (CanAttack/CanHelp)
 
+        public bool SetTarget(Transform target)
+        {
+            this.target = target;
+            return true;
+        }
+
+        public bool IsEnemy(GameObject target)
+        {
+            if (!target.GetComponent<EntityInfo>()) return false;
+            var targetNPCType = target.GetComponent<EntityInfo>().npcType;
+
+            if (npcType == NPCType.Friendly && targetNPCType == NPCType.Hostile) return true;
+            if (npcType == NPCType.Hostile && targetNPCType == NPCType.Friendly) return true;
+            return false;
+
+        }
+        public bool CanSee(Transform target)
+        {
+            checks = new();
+
+            infoEvents.OnCanSeeCheck?.Invoke(this, target);
+
+            foreach(var check in checks)
+            {
+                if (check) return true;
+            }
+
+            return false;
+        }
+
+        public bool CanMove()
+        {
+            if (!isAlive) return false;
+
+            checks = new();
+
+            infoEvents.OnCanMoveCheck?.Invoke(this, checks);
+
+            foreach(var check in checks)
+            {
+                if (!check) return false;
+            }
+
+            return true;
+        }
         public bool CanAttack(EntityInfo target)
         {
             if (target == null) return false;
