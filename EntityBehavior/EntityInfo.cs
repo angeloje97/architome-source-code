@@ -791,6 +791,26 @@ namespace Architome
 
             return true;
         }
+
+        public bool SetRandomRarity()
+        {
+            bool isDifferent = false;
+            var tries = 0;
+            var maxTries = 10;
+            do
+            {
+                var rarityList = Enum.GetValues(typeof(EntityRarity));
+                var newRarity = ArchGeneric.RandomItem((IEnumerable<EntityRarity>) rarityList);
+
+                if(newRarity != this.rarity)
+                {
+                    isDifferent = true;
+                    this.rarity = newRarity;
+                }
+            } while (!isDifferent || tries >= maxTries);
+
+            return isDifferent;
+        }
         public Transform Target()
         {
             return target;

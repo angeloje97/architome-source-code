@@ -6,6 +6,7 @@ using Architome.Enums;
 using System.Threading.Tasks;
 using System.Linq;
 using Microsoft.Win32.SafeHandles;
+using Language.Lua;
 
 namespace Architome
 {
@@ -42,6 +43,23 @@ namespace Architome
             var randomIndex = UnityEngine.Random.Range(0, items.Count);
 
             return items[randomIndex];
+        }
+
+        public static T RandomItem<T>(IEnumerable<T> items)
+        {
+            var randomIndex =  UnityEngine.Random.Range(0, items.Count());
+            var index = 0;
+            foreach(var item in items)
+            {
+                if(index == randomIndex)
+                {
+                    return item;
+                }
+
+                index++;
+            }
+
+            return default(T);
         }
 
         public static T GetTopMostComponent<T>(this Component behavior) where T: Component
