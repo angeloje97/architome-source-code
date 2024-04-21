@@ -62,6 +62,7 @@ namespace Architome
             return default(T);
         }
 
+
         public static T GetTopMostComponent<T>(this Component behavior) where T: Component
         {
             var current = behavior;

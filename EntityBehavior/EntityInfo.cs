@@ -807,7 +807,7 @@ namespace Architome
                     isDifferent = true;
                     this.rarity = newRarity;
                 }
-            } while (!isDifferent || tries >= maxTries);
+            } while (!isDifferent && tries < maxTries);
 
             return isDifferent;
         }

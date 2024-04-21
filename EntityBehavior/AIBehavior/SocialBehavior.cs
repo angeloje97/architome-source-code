@@ -3,10 +3,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome;
-public class SocialBehavior : MonoBehaviour
+using Architome.Events;
+
+public enum eSocialEvent
+{
+    OnReceiveInteraction,
+    OnReactToInteraction,
+    OnTalkTo
+}
+
+public class SocialBehavior : EntityProp
 {
     // Start is called before the first frame update
-    public EntityInfo entityInfo;
     public Movement movement;
     public LineOfSight lineOfSight;
     public CharacterInfo character;
@@ -14,10 +22,17 @@ public class SocialBehavior : MonoBehaviour
     public bool isListening;
     bool isInCombat;
     bool isMoving;
-    
-    public void GetDependencies()
+
+    ArchEventHandler<eSocialEvent, SocialEventData> eventHandler;
+
+    protected override void Awake()
     {
-        entityInfo = GetComponentInParent<EntityInfo>();
+        base.Awake();
+        eventHandler = new(this);
+    }
+
+    public override void GetDependencies()
+    {
         
         if(entityInfo)
         {
@@ -36,18 +51,10 @@ public class SocialBehavior : MonoBehaviour
             movement.AddListener(eMovementEvent.OnEndMove, OnEndMove, this);
             movement.AddListener(eMovementEvent.OnStartMove, OnStartMove, this);
         }
-    }
-    void Start()
-    {
-        GetDependencies();
+
         StartCoroutine(SocialRoutine());
-    }
 
-    // Update is called once per frame
-    void Update()
-    {
     }
-
 
     public void OnCombatChange(bool val)
     {
@@ -125,7 +132,6 @@ public class SocialBehavior : MonoBehaviour
     public void LookAt(EntityInfo entity)
     {
         var allyPosition = entity.transform.position;
-        //allyPosition.y = entityInfo.CharacterInfo().transform.position.y;
         character.LookAt(allyPosition);
     }
     
@@ -133,7 +139,6 @@ public class SocialBehavior : MonoBehaviour
     {
         var layerMask = LayerMasksData.active.entityLayerMask;
         Collider[] listeners = Physics.OverlapSphere(entityInfo.transform.position, 10, layerMask);
-        //var structureLayer = LayerMasksData.active.structureLayerMask;
 
         var newInteraction = new SocialEventData(entityInfo, entity);
 
