@@ -14,7 +14,7 @@ public enum eSocialEvent
 
 public class SocialBehavior : EntityProp
 {
-    // Start is called before the first frame update
+    #region Common Data
     public Movement movement;
     public LineOfSight lineOfSight;
     public CharacterInfo character;
@@ -23,12 +23,12 @@ public class SocialBehavior : EntityProp
     bool isInCombat;
     bool isMoving;
 
-    ArchEventHandler<eSocialEvent, SocialEventData> eventHandler;
+    #endregion
+
 
     protected override void Awake()
     {
         base.Awake();
-        eventHandler = new(this);
     }
 
     public override void GetDependencies()
@@ -41,8 +41,8 @@ public class SocialBehavior : EntityProp
             character = entityInfo.CharacterInfo();
 
             entityInfo.OnCombatChange += OnCombatChange;
-            entityInfo.socialEvents.OnReceiveInteraction += OnReceiveInteraction;
-            entityInfo.socialEvents.OnReactToInteraction += OnReactToInteraction;
+            infoEvents.AddListenerSocial(eSocialEvent.OnReceiveInteraction, OnReceiveInteraction, this);
+            infoEvents.AddListenerSocial(eSocialEvent.OnReactToInteraction, OnReactToInteraction, this);
             
         }
 
@@ -142,7 +142,7 @@ public class SocialBehavior : EntityProp
 
         var newInteraction = new SocialEventData(entityInfo, entity);
 
-        entityInfo.socialEvents.OnTalkTo?.Invoke(newInteraction);
+        infoEvents.InvokeSocial(eSocialEvent.OnTalkTo, newInteraction);
 
         foreach(Collider listener in listeners)
         {

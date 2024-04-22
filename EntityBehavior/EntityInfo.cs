@@ -183,7 +183,6 @@ namespace Architome
         public CombatEvents combatEvents = new();
         public PortalEvents portalEvents;
         public SceneEvents sceneEvents;
-        public SocialEvents socialEvents;
         public RoomInfo.Events roomEvents;
 
         //Non Player Events
@@ -820,11 +819,11 @@ namespace Architome
         {
             if (eventData.target == this)
             {
-                socialEvents.OnReceiveInteraction?.Invoke(eventData);
+                infoEvents.InvokeSocial(eSocialEvent.OnReceiveInteraction, eventData);
             }
             else
             {
-                socialEvents.OnReactToInteraction?.Invoke(eventData);
+                infoEvents.InvokeSocial(eSocialEvent.OnReactToInteraction, eventData);
             }
         }
         public void Use(float value)

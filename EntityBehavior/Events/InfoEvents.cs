@@ -15,6 +15,7 @@ namespace Architome
         {
             this.entity = entity;
             movementEvents = new(entity);
+            this.socialEvents = new(entity);
         }
 
         public enum EventType
@@ -23,9 +24,21 @@ namespace Architome
             IsFemaleCheck,
         }
 
-
+        #region Movement Events
         public ArchEventHandler<eMovementEvent, MovementEventData> movementEvents { get; set; }
 
+        #endregion
+
+        #region Social Events
+
+        ArchEventHandler<eSocialEvent, SocialEventData> socialEvents;
+
+        public void InvokeSocial(eSocialEvent trigger, SocialEventData data) => socialEvents.Invoke(trigger, data);
+
+        public Action AddListenerSocial(eSocialEvent trigger, Action<SocialEventData> action, MonoActor listener) => socialEvents.AddListener(trigger, action, listener);
+
+
+        #endregion
 
         public Dictionary<EventType, Action<EntityInfo, object, List<bool>>> flagCheck;
 
