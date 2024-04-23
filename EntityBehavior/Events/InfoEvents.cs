@@ -7,7 +7,17 @@ using UnityEngine;
 
 namespace Architome
 {
-    
+    #region ScenEvents
+    public class EntitySceneEventData
+    {
+        public string sceneName;
+    }
+
+    public enum eEntitySceneTrigger
+    {
+        OnTransferScene,
+    }
+    #endregion
     public struct InfoEvents
     {
         EntityInfo entity;
@@ -15,6 +25,7 @@ namespace Architome
         {
             this.entity = entity;
             movementEvents = new(entity);
+            sceneEvents = new(entity);
             this.socialEvents = new(entity);
         }
 
@@ -38,6 +49,18 @@ namespace Architome
         public Action AddListenerSocial(eSocialEvent trigger, Action<SocialEventData> action, MonoActor listener) => socialEvents.AddListener(trigger, action, listener);
 
 
+        #endregion
+
+        #region SceneEvents
+
+        
+
+        ArchEventHandler<eEntitySceneTrigger, EntitySceneEventData> sceneEvents { get; set; }
+
+        public void InvokeScene(eEntitySceneTrigger trigger, EntitySceneEventData eventData) => sceneEvents.Invoke(trigger, eventData);
+
+        public Action AddListenerScene(eEntitySceneTrigger trigger, Action<EntitySceneEventData> action, MonoActor listener) => sceneEvents.AddListener(trigger, action, listener);
+             
         #endregion
 
         public Dictionary<EventType, Action<EntityInfo, object, List<bool>>> flagCheck;

@@ -138,20 +138,17 @@ public class SocialBehavior : EntityProp
     public void SociallyInteractWith(EntityInfo entity)
     {
         var layerMask = LayerMasksData.active.entityLayerMask;
-        Collider[] listeners = Physics.OverlapSphere(entityInfo.transform.position, 10, layerMask);
+        //Collider[] listeners = Physics.OverlapSphere(entityInfo.transform.position, 10, layerMask);
+        var listeners = Entity.EntitiesWithinLOS(transform.position, 10f);
 
         var newInteraction = new SocialEventData(entityInfo, entity);
 
         infoEvents.InvokeSocial(eSocialEvent.OnTalkTo, newInteraction);
 
-        foreach(Collider listener in listeners)
+        foreach(var info in listeners)
         {
-            var info = listener.GetComponent<EntityInfo>();
             if (info == null) continue;
-
-            
             info.ReactToSocial(newInteraction);
-
         }
     }
 }

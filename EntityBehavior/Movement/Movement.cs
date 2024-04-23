@@ -143,7 +143,7 @@ namespace Architome
                 }
             }
 
-            entityInfo.sceneEvents.OnTransferScene += OnTransferScene;
+            infoEvents.AddListenerScene(eEntitySceneTrigger.OnTransferScene, OnTransferScene, this);
 
 
             if (behavior == null && entityInfo && entityInfo.AIBehavior())
@@ -255,7 +255,7 @@ namespace Architome
         #endregion
 
         #region Event Listeners
-        public void OnTransferScene(string sceneName)
+        public void OnTransferScene(EntitySceneEventData eventData)
         {
             StopMoving(true);
         }

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
 using Architome;
-public class PlayerController : MonoBehaviour
+public class PlayerController : EntityProp
 {
     // Start is called before the first frame update
     public GameObject entityObject;
@@ -20,7 +20,7 @@ public class PlayerController : MonoBehaviour
     LayerMask walkableLayer;
 
     public Action<EntityInfo, AbilityInfo> OnPlayerTargetting;
-    public void GetDependencies()
+    public override void GetDependencies()
     {
         
         entityInfo = GetComponentInParent<EntityInfo>();
@@ -32,7 +32,7 @@ public class PlayerController : MonoBehaviour
             abilityManager = entityInfo.AbilityManager();
             behavior = entityInfo.AIBehavior();
 
-            entityInfo.sceneEvents.OnTransferScene += OnTransferScene;
+            infoEvents.AddListenerScene(eEntitySceneTrigger.OnTransferScene, OnTransferScene, this);
         }
 
         var layerMasksData = LayerMasksData.active;
@@ -57,7 +57,7 @@ public class PlayerController : MonoBehaviour
         
     }
     
-    public void OnTransferScene(string sceneName)
+    public void OnTransferScene(EntitySceneEventData eventData)
     {
         targetManager = ContainerTargetables.active;
         keyBindings = GMHelper.KeyBindings();

@@ -16,7 +16,7 @@ namespace Architome
         {
             entityInfo.OnPhysicsEvent += OnPhysicsEvent;
             entityInfo.OnRoomChange += OnRoomChange;
-            entityInfo.sceneEvents.OnTransferScene += OnTransferScene;
+            infoEvents.AddListenerScene(eEntitySceneTrigger.OnTransferScene, OnTransferScene, this);
 
             entityInfo.infoEvents.OnSignificantMovementChange += OnSignificantMovementChange;
 
@@ -56,7 +56,7 @@ namespace Architome
 
         }
 
-        public void OnTransferScene(string sceneName)
+        public void OnTransferScene(EntitySceneEventData eventData)
         {
             ArchAction.Delay(() => {
                 entityInfo.currentRoom = Entity.Room(entityInfo.transform.position);

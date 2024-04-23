@@ -142,10 +142,6 @@ namespace Architome
             public PartyInfo currentParty { get; set; }
         }
 
-        public struct SceneEvents
-        {
-            public Action<string> OnTransferScene { get; set; }
-        }
 
         #region Events that need to change to using archeventHandler
         public Action<float> OnExperienceGain { get; set; }
@@ -182,7 +178,6 @@ namespace Architome
         public TargetableEvents targetableEvents = new();
         public CombatEvents combatEvents = new();
         public PortalEvents portalEvents;
-        public SceneEvents sceneEvents;
         public RoomInfo.Events roomEvents;
 
         //Non Player Events
