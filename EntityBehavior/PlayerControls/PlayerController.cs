@@ -8,8 +8,6 @@ public class PlayerController : EntityProp
 {
     // Start is called before the first frame update
     public GameObject entityObject;
-
-    public EntityInfo entityInfo;
     public Movement movement;
     public AbilityManager abilityManager;
     public ContainerTargetables targetManager;
@@ -18,8 +16,9 @@ public class PlayerController : EntityProp
 
 
     LayerMask walkableLayer;
-
     public Action<EntityInfo, AbilityInfo> OnPlayerTargetting;
+
+    #region Initiation
     public override void GetDependencies()
     {
         
@@ -48,14 +47,8 @@ public class PlayerController : EntityProp
             keyBindings = GMHelper.KeyBindings();
         }
     }
-    void Start()
-    {
-        GetDependencies();
-    }
-    void Update()
-    {
-        
-    }
+
+    #endregion
     
     public void OnTransferScene(EntitySceneEventData eventData)
     {
