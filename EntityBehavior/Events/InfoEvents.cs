@@ -18,6 +18,31 @@ namespace Architome
         OnTransferScene,
     }
     #endregion
+
+    #region Portal Events
+    public enum ePortalEvents
+    {
+        OnPortalEnter,
+        OnPortalExit,
+        OnPlayerEnter,
+        OnPlayerExit,
+        OnCanEnterPortal,
+        OnAllPartyMembersInPortal,
+        OnHostilesStillInRoom,
+    }
+
+    public class PortalEventData
+    {
+        public PortalInfo portal { get; private set; }
+        public List<EntityInfo> entitiesInPortal;
+
+        public PortalEventData(PortalInfo portalInfo)
+        {
+
+        }
+    }
+
+    #endregion
     public struct InfoEvents
     {
         EntityInfo entity;
@@ -60,7 +85,10 @@ namespace Architome
         public void InvokeScene(eEntitySceneTrigger trigger, EntitySceneEventData eventData) => sceneEvents.Invoke(trigger, eventData);
 
         public Action AddListenerScene(eEntitySceneTrigger trigger, Action<EntitySceneEventData> action, MonoActor listener) => sceneEvents.AddListener(trigger, action, listener);
-             
+
+        #endregion
+
+        #region Portal Events
         #endregion
 
         public Dictionary<EventType, Action<EntityInfo, object, List<bool>>> flagCheck;
