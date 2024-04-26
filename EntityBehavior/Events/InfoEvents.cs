@@ -20,7 +20,7 @@ namespace Architome
     #endregion
 
     #region Portal Events
-    public enum ePortalEvents
+    public enum ePortalEvent
     {
         OnPortalEnter,
         OnPortalExit,
@@ -34,11 +34,17 @@ namespace Architome
     public class PortalEventData
     {
         public PortalInfo portal { get; private set; }
-        public List<EntityInfo> entitiesInPortal;
+        public ePortalEvent trigger { get; private set; }
 
-        public PortalEventData(PortalInfo portalInfo)
+        public List<EntityInfo> entitiesInPortal => portal.entitiesInPortal;
+
+        public EntityInfo targetEntity;
+
+        public PortalEventData(PortalInfo portalInfo, ePortalEvent trigger , EntityInfo targetEntity = null)
         {
-
+            this.portal = portal;
+            this.targetEntity = targetEntity;
+            this.trigger = trigger;
         }
     }
 
@@ -46,13 +52,16 @@ namespace Architome
     public struct InfoEvents
     {
         EntityInfo entity;
+        #region Initiation
         public void Initiate(EntityInfo entity)
         {
             this.entity = entity;
             movementEvents = new(entity);
             sceneEvents = new(entity);
             this.socialEvents = new(entity);
+            portalEvents = new(entity);
         }
+        #endregion
 
         public enum EventType
         {
@@ -78,8 +87,6 @@ namespace Architome
 
         #region SceneEvents
 
-        
-
         ArchEventHandler<eEntitySceneTrigger, EntitySceneEventData> sceneEvents { get; set; }
 
         public void InvokeScene(eEntitySceneTrigger trigger, EntitySceneEventData eventData) => sceneEvents.Invoke(trigger, eventData);
@@ -89,6 +96,13 @@ namespace Architome
         #endregion
 
         #region Portal Events
+
+        ArchEventHandler<ePortalEvent, PortalEventData> portalEvents;
+
+        public void InvokePortal(ePortalEvent trigger, PortalEventData eventData) => portalEvents.Invoke(trigger, eventData);
+
+        public void AddListenerPortal(ePortalEvent trigger, Action<PortalEventData> action, MonoActor listener) => portalEvents.AddListener(trigger, action, listener);
+
         #endregion
 
         public Dictionary<EventType, Action<EntityInfo, object, List<bool>>> flagCheck;
