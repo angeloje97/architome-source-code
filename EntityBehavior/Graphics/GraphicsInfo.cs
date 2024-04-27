@@ -28,9 +28,9 @@ namespace Architome
             entityInfo.OnLifeChange += OnLifeChange;
             entityInfo.OnHiddenChange += OnHiddenChange;
 
-            entityInfo.portalEvents.OnPortalEnter += OnPortalEnter;
+            infoEvents.AddListenerPortal(ePortalEvent.OnEnter, OnPortalEnter, this);
 
-            entityInfo.portalEvents.OnPortalExit += OnPortalExit;
+            infoEvents.AddListenerPortal(ePortalEvent.OnExit, OnPortalExit, this);
 
             GetChildren();
 
@@ -96,11 +96,11 @@ namespace Architome
             }
         }
 
-        public void OnPortalEnter(PortalInfo portal, GameObject obj)
+        public void OnPortalEnter(PortalEventData eventData)
         {
             ShowCanvases(false);
         }
-        public void OnPortalExit(PortalInfo portal, GameObject obj)
+        public void OnPortalExit(PortalEventData eventData)
         {
             if (isHidden) return;
             ShowCanvases(true);

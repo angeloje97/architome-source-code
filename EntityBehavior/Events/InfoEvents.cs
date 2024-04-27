@@ -19,36 +19,6 @@ namespace Architome
     }
     #endregion
 
-    #region Portal Events
-    public enum ePortalEvent
-    {
-        OnPortalEnter,
-        OnPortalExit,
-        OnPlayerEnter,
-        OnPlayerExit,
-        OnCanEnterPortal,
-        OnAllPartyMembersInPortal,
-        OnHostilesStillInRoom,
-    }
-
-    public class PortalEventData
-    {
-        public PortalInfo portal { get; private set; }
-        public ePortalEvent trigger { get; private set; }
-
-        public List<EntityInfo> entitiesInPortal => portal.entitiesInPortal;
-
-        public EntityInfo targetEntity;
-
-        public PortalEventData(PortalInfo portalInfo, ePortalEvent trigger , EntityInfo targetEntity = null)
-        {
-            this.portal = portal;
-            this.targetEntity = targetEntity;
-            this.trigger = trigger;
-        }
-    }
-
-    #endregion
     public struct InfoEvents
     {
         EntityInfo entity;

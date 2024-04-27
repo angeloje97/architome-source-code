@@ -57,7 +57,7 @@ namespace Architome
         public Info info;
         public Restrictions restrictions;
 
-        public PortalEvents events;
+        public PortalEvents events { get; set; }
         void GetDependencies()
         {
             if (GetComponent<Clickable>())
@@ -244,14 +244,42 @@ namespace Architome
     [Serializable]
     public struct PortalEvents
     {
-        public Action<PortalInfo, GameObject> OnPortalEnter;
-        public Action<PortalInfo, GameObject> OnPortalExit;
-        public Action<PortalInfo, EntityInfo> OnPlayerEnter;
-        public Action<PortalInfo, EntityInfo> OnPlayerExit;
-        public Action<PortalInfo, EntityInfo, string> OnCantEnterPortal;
+        public Action<PortalInfo, GameObject> OnPortalEnter { get; set; }
+        public Action<PortalInfo, GameObject> OnPortalExit { get; set; }
+        public Action<PortalInfo, EntityInfo> OnPlayerEnter { get; set; }
+        public Action<PortalInfo, EntityInfo> OnPlayerExit { get; set; }
+        public Action<PortalInfo, EntityInfo, string> OnCantEnterPortal { get; set; }
 
         public Action<PortalInfo, List<EntityInfo>> OnAllPartyMembersInPortal { get; set; }
-        public Action<PortalInfo, GameObject> OnHostilesStillInRoom;
-        public UnityEvent OnAllMembersInPortal;
+        public Action<PortalInfo, GameObject> OnHostilesStillInRoom { get; set; }
+        public UnityEvent OnAllMembersInPortal { get; set; }
+    }
+
+    public enum ePortalEvent
+    {
+        OnEnter,
+        OnExit,
+        OnPlayerEnter,
+        OnPlayerExit,
+        OnCanEnter,
+        OnAllPartyMembersInside,
+        OnHostilesStillInRoom,
+    }
+
+    public class PortalEventData
+    {
+        public PortalInfo portal { get; private set; }
+        public ePortalEvent trigger { get; private set; }
+
+        public List<EntityInfo> entitiesInPortal => portal.entitiesInPortal;
+
+        public EntityInfo targetEntity;
+
+        public PortalEventData(PortalInfo portalInfo, ePortalEvent trigger, EntityInfo targetEntity = null)
+        {
+            this.portal = portal;
+            this.targetEntity = targetEntity;
+            this.trigger = trigger;
+        }
     }
 }

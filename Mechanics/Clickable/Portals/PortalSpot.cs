@@ -63,11 +63,12 @@ namespace Architome
             if (info == null) return;
             if (portalInfo.entitiesInPortal.Contains(info)) return;
 
+            var eventData = new PortalEventData(portalInfo, ePortalEvent.OnEnter, info);
 
             portalInfo.entitiesInPortal.Add(info);
             portalInfo.events.OnPortalEnter?.Invoke(portalInfo, other.gameObject);
-            info.portalEvents.OnPortalEnter?.Invoke(portalInfo, info.gameObject);
 
+            info.infoEvents.InvokePortal(ePortalEvent.OnEnter, eventData);
 
             
 
@@ -78,7 +79,7 @@ namespace Architome
             {
                 if (!Entity.IsPlayer(info.gameObject)) return;
                 portalInfo.events.OnPlayerEnter?.Invoke(portalInfo, info);
-                info.portalEvents.OnPlayerEnter?.Invoke(portalInfo, info);
+                info.infoEvents.InvokePortal(ePortalEvent.OnPlayerEnter, eventData);
 
                 var playableEntities = new List<EntityInfo>();
                 foreach (var entity in portalInfo.entitiesInPortal)
@@ -105,8 +106,10 @@ namespace Architome
             portalInfo.entitiesInPortal.Remove(info);
             portalInfo.events.OnPortalExit?.Invoke(portalInfo, other.gameObject);
 
+            var eventData = new PortalEventData(portalInfo, ePortalEvent.OnExit, info);
 
-            info.portalEvents.OnPortalExit?.Invoke(portalInfo, info.gameObject);
+
+            info.infoEvents.InvokePortal(ePortalEvent.OnExit, eventData);
 
             HandlePlayer();
 
@@ -114,7 +117,7 @@ namespace Architome
             {
                 if(info.rarity != EntityRarity.Player)return;
 
-                info.portalEvents.OnPlayerExit?.Invoke(portalInfo, info);
+                info.infoEvents.InvokePortal(ePortalEvent.OnExit, eventData);
                 portalInfo.events.OnPlayerExit?.Invoke(portalInfo, info);
             }
         }

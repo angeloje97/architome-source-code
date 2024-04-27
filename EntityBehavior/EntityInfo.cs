@@ -173,11 +173,10 @@ namespace Architome
 
         public AbilityManager.Events abilityEvents { get; set; }
         public PartyEvents partyEvents;
-        public InfoEvents infoEvents { get; set; }
+        public InfoEvents infoEvents;
         public TaskEvents taskEvents = new();
         public TargetableEvents targetableEvents = new();
         public CombatEvents combatEvents { get; set; }
-        public PortalEvents portalEvents { get; set; }
         public RoomInfo.Events roomEvents;
 
         //Non Player Events
