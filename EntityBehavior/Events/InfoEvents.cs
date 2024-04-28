@@ -75,11 +75,16 @@ namespace Architome
 
         #endregion
 
+        
+
         public Dictionary<EventType, Action<EntityInfo, object, List<bool>>> flagCheck;
 
 
         public Action<List<string>> OnUpdateObjectives;
         public Action<Quest> OnQuestComplete;
+
+        #region Loot Events
+
         public Action<Inventory.LootEventData> OnLootItem { get; set; }
 
         public Action<Inventory.LootEventData> OnDropItem { get; set; }
@@ -90,6 +95,7 @@ namespace Architome
         public Action<Inventory.LootEventData> OnLootItemFromWorld { get; set; }
         public Action<ItemInfo, EntityInfo> OnTryEquip { get; set; }
 
+        #endregion
         public Action<EntityInfo, bool, GameObject> OnMouseHover { get; set; }
         public Action<EntityInfo, List<bool>> OnIsPlayerCheck { get; set; }
         public Action<Vector3> OnSignificantMovementChange { get; set; }
