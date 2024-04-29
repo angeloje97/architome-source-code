@@ -5,18 +5,22 @@ using System;
 using UnityEngine.Events;
 using Architome.Enums;
 using System.Threading.Tasks;
+using Architome.Events;
 
 namespace Architome
 {
-    public class PortalInfo : MonoBehaviour
+    public class PortalInfo : MonoActor
     {
         // Start is called before the first frame update
+
+        #region Common Data
+
         public static List<PortalInfo> portals;
         public ArchSceneManager sceneManager;
         public bool entryPortal;
         public List<PortalInfo> portalList;
         public List<EntityInfo> entitiesInPortal = new();
-        
+
         public Transform portalSpot;
         public Transform exitSpot;
         public Clickable clickable;
@@ -57,7 +61,17 @@ namespace Architome
         public Info info;
         public Restrictions restrictions;
 
+
+        #region Event Handler
         public PortalEvents events { get; set; }
+        ArchEventHandler<ePortalEvent, PortalEventData> eventHandler;
+
+        public void Invoke(ePortalEvent trigger, PortalEventData eventData) => eventHandler.Invoke(trigger, eventData);
+
+        public Action AddListener(ePortalEvent trigger, Action<PortalEventData> eventData, MonoActor listener) => eventHandler.AddListener(trigger, eventData, listener);
+        #endregion
+
+        #endregion
         void GetDependencies()
         {
             if (GetComponent<Clickable>())
@@ -91,8 +105,10 @@ namespace Architome
             }
             
         }
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
+            eventHandler = new(this);
             portals ??= new();
             if (entryPortal)
             {
