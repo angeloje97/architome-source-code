@@ -66,8 +66,8 @@ namespace Architome
             var eventData = new PortalEventData(portalInfo, ePortalEvent.OnEnter, info);
 
             portalInfo.entitiesInPortal.Add(info);
-            portalInfo.events.OnPortalEnter?.Invoke(portalInfo, other.gameObject);
 
+            portalInfo.InvokePortal(ePortalEvent.OnEnter, eventData);
             info.infoEvents.InvokePortal(ePortalEvent.OnEnter, eventData);
 
             
@@ -78,7 +78,8 @@ namespace Architome
             void HandlePlayer()
             {
                 if (!Entity.IsPlayer(info.gameObject)) return;
-                portalInfo.events.OnPlayerEnter?.Invoke(portalInfo, info);
+
+                portalInfo.InvokePortal(ePortalEvent.OnPlayerEnter, eventData);
                 info.infoEvents.InvokePortal(ePortalEvent.OnPlayerEnter, eventData);
 
                 var playableEntities = new List<EntityInfo>();
@@ -90,8 +91,7 @@ namespace Architome
 
                 if (playableEntities.Count == Entity.PlayableEntities().Count)
                 {
-
-                    portalInfo.events.OnAllPartyMembersInPortal?.Invoke(portalInfo, playableEntities);
+                    portalInfo.InvokePortal(ePortalEvent.OnAllPartyMembersInside, eventData);
                     portalInfo.events.OnAllMembersInPortal?.Invoke();
                 }
             }
@@ -104,11 +104,11 @@ namespace Architome
             if (!portalInfo.entitiesInPortal.Contains(info)) return;
             
             portalInfo.entitiesInPortal.Remove(info);
-            portalInfo.events.OnPortalExit?.Invoke(portalInfo, other.gameObject);
 
             var eventData = new PortalEventData(portalInfo, ePortalEvent.OnExit, info);
 
 
+            portalInfo.InvokePortal(ePortalEvent.OnExit, eventData);
             info.infoEvents.InvokePortal(ePortalEvent.OnExit, eventData);
 
             HandlePlayer();
@@ -118,7 +118,7 @@ namespace Architome
                 if(info.rarity != EntityRarity.Player)return;
 
                 info.infoEvents.InvokePortal(ePortalEvent.OnExit, eventData);
-                portalInfo.events.OnPlayerExit?.Invoke(portalInfo, info);
+                portalInfo.InvokePortal(ePortalEvent.OnPlayerExit, eventData);
             }
         }
     }

@@ -66,9 +66,9 @@ namespace Architome
         public PortalEvents events { get; set; }
         ArchEventHandler<ePortalEvent, PortalEventData> eventHandler;
 
-        public void Invoke(ePortalEvent trigger, PortalEventData eventData) => eventHandler.Invoke(trigger, eventData);
+        public void InvokePortal(ePortalEvent trigger, PortalEventData eventData) => eventHandler.Invoke(trigger, eventData);
 
-        public Action AddListener(ePortalEvent trigger, Action<PortalEventData> eventData, MonoActor listener) => eventHandler.AddListener(trigger, eventData, listener);
+        public Action AddListenerPortal(ePortalEvent trigger, Action<PortalEventData> eventData, MonoActor listener) => eventHandler.AddListener(trigger, eventData, listener);
         #endregion
 
         #endregion
@@ -278,6 +278,7 @@ namespace Architome
         OnPlayerEnter,
         OnPlayerExit,
         OnCanEnter,
+        OnCantEnter,
         OnAllPartyMembersInside,
         OnHostilesStillInRoom,
     }
@@ -291,11 +292,18 @@ namespace Architome
 
         public EntityInfo targetEntity;
 
+        public string message { get; private set; }
+
         public PortalEventData(PortalInfo portalInfo, ePortalEvent trigger, EntityInfo targetEntity = null)
         {
             this.portal = portal;
             this.targetEntity = targetEntity;
             this.trigger = trigger;
+        }
+
+        public void SetMessage(string message)
+        {
+            this.message = message;
         }
     }
 }
