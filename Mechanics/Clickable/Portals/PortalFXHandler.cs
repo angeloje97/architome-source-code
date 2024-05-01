@@ -6,7 +6,7 @@ using Architome.Enums;
 
 namespace Architome
 {
-    public class PortalFXHandler : MonoBehaviour
+    public class PortalFXHandler : MonoActor
     {
         public enum PortalEvents
         {
@@ -81,28 +81,29 @@ namespace Architome
             }
 
             ArchAction.Delay(() => {
-                portal.events.OnPortalEnter += OnPortalEnter;
-                portal.events.OnPortalExit += OnPortalExit;
-                portal.events.OnAllPartyMembersInPortal += OnAllPartyMembersInPortal;
+                portal.AddListenerPortal(ePortalEvent.OnEnter, OnPortalEnter, this);
+                portal.AddListenerPortal(ePortalEvent.OnExit, OnPortalExit, this);
+                portal.AddListenerPortal(ePortalEvent.OnAllPartyMembersInside, OnAllPartyMembersInPortal, this);
             }, 3f);
         }
 
-        private void OnAllPartyMembersInPortal(PortalInfo portal, List<EntityInfo> members)
+        private void OnAllPartyMembersInPortal(PortalEventData eventData)
         {
             HandleEffects(PortalEvents.OnAllPartyMembersInPortal);
         }
 
-        void OnPortalEnter(PortalInfo portal, GameObject entity)
+        void OnPortalEnter(PortalEventData eventData)
         {
-            var info = entity.GetComponent<EntityInfo>();
+            //var info = entity.GetComponent<EntityInfo>();
+            var info = eventData.targetEntity;
             currentEntity = info;
             HandleEffects(PortalEvents.OnEnter);
             ClearEntity(info);
         }
 
-        void OnPortalExit(PortalInfo portal, GameObject entity)
+        void OnPortalExit(PortalEventData eventData)
         {
-            var info = entity.GetComponent<EntityInfo>();
+            var info = eventData.targetEntity;
             currentEntity = info;
             HandleEffects(PortalEvents.OnExit);
             ClearEntity(info);

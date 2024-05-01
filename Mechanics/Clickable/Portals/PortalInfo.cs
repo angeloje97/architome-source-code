@@ -72,6 +72,31 @@ namespace Architome
         #endregion
 
         #endregion
+
+        #region Initiation
+        private void OnValidate()
+        {
+            info.room = GetComponentInParent<RoomInfo>();
+        }
+        void Start()
+        {
+            GetDependencies();
+            portalList = portals;
+            portalNum = portals.IndexOf(this);
+            HandlePortalList();
+        }
+        protected override void Awake()
+        {
+            base.Awake();
+            eventHandler = new(this);
+            portals ??= new();
+            if (entryPortal)
+            {
+                EntryPortal = this;
+            }
+            
+
+        }
         void GetDependencies()
         {
             if (GetComponent<Clickable>())
@@ -87,14 +112,8 @@ namespace Architome
 
             info.room = GetComponentInParent<RoomInfo>();
         }
+        #endregion
 
-        void Start()
-        {
-            GetDependencies();
-            portalList = portals;
-            portalNum = portals.IndexOf(this);
-            HandlePortalList();
-        }
         private void OnDestroy()
         {
             if (portalList == null) return;
@@ -104,22 +123,6 @@ namespace Architome
                 portalList.Remove(this);
             }
             
-        }
-        protected override void Awake()
-        {
-            base.Awake();
-            eventHandler = new(this);
-            portals ??= new();
-            if (entryPortal)
-            {
-                EntryPortal = this;
-            }
-            
-
-        }
-        private void OnValidate()
-        {
-            info.room = GetComponentInParent<RoomInfo>();
         }
         private void Update()
         {
@@ -257,6 +260,8 @@ namespace Architome
         }
     }
 
+
+    #region Portal Events
     [Serializable]
     public struct PortalEvents
     {
@@ -270,7 +275,6 @@ namespace Architome
         public Action<PortalInfo, GameObject> OnHostilesStillInRoom { get; set; }
         public UnityEvent OnAllMembersInPortal { get; set; }
     }
-
     public enum ePortalEvent
     {
         OnEnter,
@@ -306,4 +310,5 @@ namespace Architome
             this.message = message;
         }
     }
+    #endregion
 }
