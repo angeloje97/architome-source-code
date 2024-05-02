@@ -7,7 +7,7 @@ using Architome.Enums;
 
 namespace Architome
 {
-    public class PlayableEntitiesManager : MonoBehaviour
+    public class PlayableEntitiesManager : MonoActor
     {
         public static PlayableEntitiesManager active;
 
@@ -30,8 +30,9 @@ namespace Architome
 
 
 
-        void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             active = this;
             HandleLoadEntities();
         }
@@ -70,10 +71,6 @@ namespace Architome
             GetDependencies();
             HandleLastLevel();
             OnSceneStart();
-
-        }
-        void Update()
-        {
 
         }
 
@@ -209,21 +206,22 @@ namespace Architome
 
                     if(portal.info.portalType == PortalType.NextLevel)
                     {
-                        portal.events.OnAllPartyMembersInPortal += HandleNextLevelTransfer;
+                        portal.AddListenerPortal(ePortalEvent.OnAllPartyMembersInside, HandleNextLevelTransfer, this);
 
                     }
 
                     if(portal.info.portalType == PortalType.Entrance)
                     {
-                        portal.events.OnAllPartyMembersInPortal += HandleEntrancePortalTransfer;
+                        portal.AddListenerPortal(ePortalEvent.OnAllPartyMembersInside, HandleEntrancePortalTransfer, this);
                     }
                 }
             };
             
 
-            async void HandleNextLevelTransfer(PortalInfo info, List<EntityInfo> entities)
+            async void HandleNextLevelTransfer(PortalEventData eventData)
             {
-
+                var info = eventData.portal;
+                var entities = eventData.entitiesInPortal;
                 var options = new List<OptionData>();
 
                 if (!LastLevel())
@@ -258,9 +256,10 @@ namespace Architome
 
             }
 
-            async void HandleEntrancePortalTransfer(PortalInfo info, List<EntityInfo> entities)
+            async void HandleEntrancePortalTransfer(PortalEventData eventData)
             {
-
+                var entities = eventData.entitiesInPortal;
+                var info = eventData.portal;
                 await promptHandler.GeneralPrompt(new()
                 {
                     title = "Entrance Portal",

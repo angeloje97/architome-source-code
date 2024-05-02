@@ -300,7 +300,7 @@ namespace Architome
 
         public PortalEventData(PortalInfo portalInfo, ePortalEvent trigger, EntityInfo targetEntity = null)
         {
-            this.portal = portal;
+            this.portal = portalInfo;
             this.targetEntity = targetEntity;
             this.trigger = trigger;
         }
