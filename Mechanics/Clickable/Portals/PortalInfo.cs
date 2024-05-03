@@ -64,6 +64,8 @@ namespace Architome
 
         #region Event Handler
         public PortalEvents events { get; set; }
+
+        [SerializeField]
         ArchEventHandler<ePortalEvent, PortalEventData> eventHandler;
 
         public void InvokePortal(ePortalEvent trigger, PortalEventData eventData) => eventHandler.Invoke(trigger, eventData);
@@ -196,7 +198,10 @@ namespace Architome
                 {
                     if (restrictions.requiresNoCombat && entity.isInCombat)
                     {
-                        events.OnCantEnterPortal?.Invoke(this, entity, $"{entity} can't enter the portal because they are in combat.");
+                        var eventData = new PortalEventData(this, ePortalEvent.OnCantEnter, entity);
+                        eventData.SetMessage($"{entity} can't enter portal because they are in combat");
+                        InvokePortal(ePortalEvent.OnCantEnter, eventData);
+
                         continue;
                     }
                     var movement = entity.Movement();
