@@ -270,14 +270,6 @@ namespace Architome
     [Serializable]
     public struct PortalEvents
     {
-        public Action<PortalInfo, GameObject> OnPortalEnter { get; set; }
-        public Action<PortalInfo, GameObject> OnPortalExit { get; set; }
-        public Action<PortalInfo, EntityInfo> OnPlayerEnter { get; set; }
-        public Action<PortalInfo, EntityInfo> OnPlayerExit { get; set; }
-        public Action<PortalInfo, EntityInfo, string> OnCantEnterPortal { get; set; }
-
-        public Action<PortalInfo, List<EntityInfo>> OnAllPartyMembersInPortal { get; set; }
-        public Action<PortalInfo, GameObject> OnHostilesStillInRoom { get; set; }
         public UnityEvent OnAllMembersInPortal { get; set; }
     }
     public enum ePortalEvent

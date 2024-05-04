@@ -644,6 +644,7 @@ public class BuffInfo : MonoActor
             action();
         };
 
+
         if (buffTimeComplete && trigger != BuffEvents.OnEnd) return;
 
         switch (trigger)
@@ -662,8 +663,8 @@ public class BuffInfo : MonoActor
                 OnBuffEnd += (BuffInfo buff) => hostCombatEvents.AddListenerHealth(eHealthEvent.OnDamageTaken, healthAction, this);
                 break;
             case BuffEvents.OnDamageImmune:
-                hostInfo.combatEvents.OnImmuneDamage += combatAction;
-                OnBuffEnd += (BuffInfo buff) => { hostInfo.combatEvents.OnImmuneDamage -= combatAction; };
+
+                OnBuffEnd += (BuffInfo buff) => hostCombatEvents.AddListenerHealth(eHealthEvent.OnImmuneDamage, healthAction, this);
                 break;
             default:
                 action();

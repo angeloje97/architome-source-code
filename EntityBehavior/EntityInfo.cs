@@ -176,7 +176,7 @@ namespace Architome
         public InfoEvents infoEvents;
         public TaskEvents taskEvents = new();
         public TargetableEvents targetableEvents = new();
-        public CombatEvents combatEvents { get; set; }
+        public CombatEvents combatEvents;
         public RoomInfo.Events roomEvents;
 
         //Non Player Events
@@ -551,7 +551,6 @@ namespace Architome
                 {
                     damageResult = 0;
                     combatData.SetValue(damageResult);
-                    //combatEvents.OnImmuneDamage?.Invoke(combatData);
                     combatEvents.InvokeHealthChange(eHealthEvent.OnImmuneDamage, combatData);
 
                     return;

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace Architome
+namespace Architome.SkillCheck
 {
     public class SkillCheckUIFX : MonoActor
     {

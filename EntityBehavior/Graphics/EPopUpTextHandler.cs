@@ -29,6 +29,7 @@ namespace Architome
             await Task.Delay(250);
             if (entityInfo)
             {
+
                 if (entityInfo.rarity == EntityRarity.Player)
                 {
                     entityInfo.OnLifeChange += OnLifeChange;
@@ -40,7 +41,8 @@ namespace Architome
                 else
                 {
                     OnAfterIsPlayer += combatEvents.AddListenerHealth(eHealthEvent.OnDamageTaken, OnDamageTaken, this);
-                    entityInfo.combatEvents.OnImmuneDamage += OnImmuneDamage;
+                    //combatEvents.OnImmuneDamage += OnImmuneDamage;
+                    OnAfterIsPlayer += combatEvents.AddListenerHealth(eHealthEvent.OnImmuneDamage, OnImmuneDamage, this);
 
                 }
 
@@ -68,13 +70,13 @@ namespace Architome
             {
                 InvokePlayerChange(false);
                 OnAfterIsPlayer += combatEvents.AddListenerHealth(eHealthEvent.OnDamageTaken, OnDamageTaken, this);
+                OnAfterIsPlayer +=  combatEvents.AddListenerHealth(eHealthEvent.OnImmuneDamage, OnImmuneDamage, this);
 
                 entityInfo.OnLifeChange -= OnLifeChange;
                 entityInfo.OnLevelUp -= OnLevelUp;
                 entityInfo.OnNewBuff -= OnNewBuff;
 
 
-                entityInfo.combatEvents.OnImmuneDamage += OnImmuneDamage;
             }
 
             if (after == EntityRarity.Player)
@@ -86,7 +88,6 @@ namespace Architome
                 entityInfo.OnLevelUp += OnLevelUp;
                 entityInfo.OnNewBuff += OnNewBuff;
 
-                entityInfo.combatEvents.OnImmuneDamage -= OnImmuneDamage;
             }
         }
 
@@ -224,7 +225,7 @@ namespace Architome
             }
         }
 
-        void OnImmuneDamage(CombatEventData eventData)
+        void OnImmuneDamage(HealthEvent eventData)
         {
             popUpManager.DamagePopUp(new(transform, $"Immune"), DamageType.True);
         }
