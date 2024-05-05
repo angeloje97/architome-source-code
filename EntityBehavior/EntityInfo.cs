@@ -372,8 +372,10 @@ namespace Architome
             OnPhysicsEvent?.Invoke(this, collision.gameObject, false);
             OnCollisionEvent?.Invoke(this, collision, true);
         }
-        
+
         #endregion
+
+        #region Update Events
         async void HandleFalling()
         {
             var height = transform.position.y;
@@ -397,46 +399,6 @@ namespace Architome
                 await Task.Delay(1000);
             }
         }
-
-        public void UpdateObjectives(object sender)
-        {
-            objectives = new();
-            infoEvents.OnUpdateObjectives?.Invoke(objectives);
-        }
-
-        void UpdateResources(bool val)
-        {
-            if (role == Role.Tank && rarity == EntityRarity.Player)
-            {
-                maxHealth = stats.Vitality * 10 * GMHelper.Difficulty().settings.tankHealthMultiplier;
-                entityStats.damageReduction = .25f;
-            }
-            else
-            {
-                maxHealth = stats.Vitality * 10;
-            }
-
-            maxMana = stats.Wisdom * 10;
-
-            if (val)
-            {
-                health = maxHealth;
-                mana = maxMana;
-            }
-        }
-
-        void HandleRarityEvents()
-        {
-            infoEvents.OnRarityChange += (EntityRarity before, EntityRarity after) => {
-                ArchAction.Yield(() => UpdateHealthRegen());
-            };
-        }
-
-        public void GainExperience(object sender, float amount)
-        {
-            OnExperienceGainOutside?.Invoke(sender, amount);
-        }
-
         protected void HandleEventTriggers()
         {
             if (healthCheck != health || maxHealthCheck != maxHealth || shieldCheck != shield)
@@ -485,6 +447,45 @@ namespace Architome
 
                 npcTypeCheck = npcType;
             }
+        }
+        void HandleRarityEvents()
+        {
+            infoEvents.OnRarityChange += (EntityRarity before, EntityRarity after) => {
+                ArchAction.Yield(() => UpdateHealthRegen());
+            };
+        }
+
+        #endregion
+        public void UpdateObjectives(object sender)
+        {
+            objectives = new();
+            infoEvents.OnUpdateObjectives?.Invoke(objectives);
+        }
+
+        void UpdateResources(bool val)
+        {
+            if (role == Role.Tank && rarity == EntityRarity.Player)
+            {
+                maxHealth = stats.Vitality * 10 * GMHelper.Difficulty().settings.tankHealthMultiplier;
+                entityStats.damageReduction = .25f;
+            }
+            else
+            {
+                maxHealth = stats.Vitality * 10;
+            }
+
+            maxMana = stats.Wisdom * 10;
+
+            if (val)
+            {
+                health = maxHealth;
+                mana = maxMana;
+            }
+        }
+
+        public void GainExperience(object sender, float amount)
+        {
+            OnExperienceGainOutside?.Invoke(sender, amount);
         }
 
         public string ObjectivesDescription()
