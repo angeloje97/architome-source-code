@@ -3,11 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
+using Architome.Effects;
 
 namespace Architome
 {
     public class PortalFXHandler : MonoActor
     {
+        #region Common Data
         public enum PortalEvents
         {
             OnEnter,
@@ -38,7 +40,16 @@ namespace Architome
         [SerializeField] ParticleManager particleManager;
         [SerializeField] AudioManager audioManager;
 
+        EffectsHandler<ePortalEvent, EventItemHandler<ePortalEvent>> effectsHandler;
+
         EntityInfo currentEntity;
+        #endregion
+
+        protected override void Awake()
+        {
+            base.Awake();
+            effectsHandler = new();
+        }
 
         void Start()
         {
