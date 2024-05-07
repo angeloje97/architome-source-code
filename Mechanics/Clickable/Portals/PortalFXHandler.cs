@@ -55,6 +55,7 @@ namespace Architome
         {
             GetDependencies();
             UpdateEffectMap();
+            HandleEffects();
         }
 
         private void OnValidate()
@@ -79,6 +80,15 @@ namespace Architome
                     effectsMap.Add(effect.trigger, new() { effect });
                 }
             }
+        }
+
+        void HandleEffects()
+        {
+            effectsHandler.InitiateItemEffects((eventItem) => {
+                portal.AddListenerPortal(eventItem.trigger, (eventData) => {
+                    
+                }, this);
+            });
         }
 
         // Update is called once per frame
