@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using System.Linq;
 
 namespace Architome
 {
@@ -24,6 +25,8 @@ namespace Architome
         public Action<InventorySlot, ItemInfo, List<bool>> OnCanRemoveFromSlotCheck { get; set; }
         public Action UpdateActions;
 
+        public List<InventorySlot> inventorySlots;
+
         public bool active;
         bool lockItems = false;
         public float alpha;
@@ -38,6 +41,7 @@ namespace Architome
         }
         void GetDependencies()
         {
+            inventorySlots = new();
             if (canvasGroup == null)
             {
                 canvasGroup = GetComponent<CanvasGroup>();
@@ -49,6 +53,15 @@ namespace Architome
                 if (data.newItem == null) return;
                 data.newItem.fxHandler = fxHandler;
             };
+
+            foreach (Transform child in transform)
+            {
+                var slot = child.GetComponent<InventorySlot>();
+
+                if (slot == null) continue;
+
+                inventorySlots.Add(slot);
+            }
         }
 
         async void HandleNullModule()
@@ -72,7 +85,7 @@ namespace Architome
                     active = false;
                     OnActiveChange?.Invoke(active);
                 }
-                
+
                 if (alpha == 1f)
                 {
                     active = true;
@@ -103,7 +116,7 @@ namespace Architome
             OnChangeItem?.Invoke(eventData);
         }
 
-        public void HandleCantInsert(InventorySlot slot, ItemInfo item,  string reason)
+        public void HandleCantInsert(InventorySlot slot, ItemInfo item, string reason)
         {
             OnCantInsertToSlot?.Invoke(slot, item, reason);
         }
@@ -129,7 +142,9 @@ namespace Architome
         {
             checks.Add(false);
         }
-        
+
+        public int AvailableSlots => inventorySlots.Where(slot => slot.item == null).Count();
+
     }
 
     public struct ItemEventData

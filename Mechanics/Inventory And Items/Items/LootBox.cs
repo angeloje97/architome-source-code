@@ -22,7 +22,8 @@ namespace Architome
             var inventorySlots = data.slots;
             var itemInfo = data.itemInfo;
             var items = itemPool.ItemsFromCustom(itemPoolName, requestData);
-
+            var itemSlotHandler = data.itemInfo.GetComponentInParent<ItemSlotHandler>();
+            if (itemSlotHandler.AvailableSlots < items.Count) return;
             Debugger.UI(65491, $"Items in loot box {items.Count}");
             var newItems = new List<ItemInfo>();
             
@@ -34,6 +35,7 @@ namespace Architome
                 var success = createdItem.InsertIntoSlots(inventorySlots);
                 if (!success)
                 {
+
                     DeleteItems();
                     return;
                 }
