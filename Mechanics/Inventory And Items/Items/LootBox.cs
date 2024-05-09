@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Architome
@@ -17,41 +19,37 @@ namespace Architome
             return "Open";
         }
 
-        public override void Use(UseData data)
+        public override async void Use(UseData data)
         {
             var inventorySlots = data.slots;
             var itemInfo = data.itemInfo;
             var items = itemPool.ItemsFromCustom(itemPoolName, requestData);
             var itemSlotHandler = data.itemInfo.GetComponentInParent<ItemSlotHandler>();
-            if (itemSlotHandler.AvailableSlots < items.Count) return;
-            Debugger.UI(65491, $"Items in loot box {items.Count}");
-            var newItems = new List<ItemInfo>();
-            
-            foreach(var item in items)
+            var availableSlots = itemSlotHandler.AvailableSlots;
+            if (availableSlots < items.Count)
             {
-                var createdItem = WorldActions.active.CreateItemUI(item, data.targetParent, true);
-                newItems.Add(createdItem);
-
-                var success = createdItem.InsertIntoSlots(inventorySlots);
-                if (!success)
+                if(data.itemInfo.currentStacks == 1 && availableSlots == items.Count + 1)
                 {
 
-                    DeleteItems();
+                }
+                else
+                {
                     return;
                 }
             }
 
+            var parent = data.targetParent;
+
             itemInfo.ReduceStacks();
 
-            void DeleteItems()
-            {
-                for(int i = newItems.Count-1; i >= 0; i--)
-                {
-                    newItems[i].DestroySelf();
-                }
+            await Task.Delay(500);
 
-                newItems = null;
+            foreach (var item in items)
+            {
+                var createdItem = WorldActions.active.CreateItemUI(item, parent, true);
             }
+
+            Debugger.UI(65491, $"Items in loot box {items.Count}");
         }
 
         public override string Attributes()
