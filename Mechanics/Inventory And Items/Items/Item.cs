@@ -268,6 +268,7 @@ namespace Architome
         public GuildManager guildManager;
         public List<InventorySlot> slots;
         public Transform targetParent;
+        public ItemSlotHandler slotHandler;
         public bool triggerEvent;
         public ItemEvent eventType;
     }

@@ -21,21 +21,15 @@ namespace Architome
 
         public override async void Use(UseData data)
         {
-            var inventorySlots = data.slots;
             var itemInfo = data.itemInfo;
             var items = itemPool.ItemsFromCustom(itemPoolName, requestData);
             var itemSlotHandler = data.itemInfo.GetComponentInParent<ItemSlotHandler>();
             var availableSlots = itemSlotHandler.AvailableSlots;
+
+            if (itemInfo.currentStacks == 1) availableSlots += 1;
             if (availableSlots < items.Count)
             {
-                if(data.itemInfo.currentStacks == 1 && availableSlots == items.Count + 1)
-                {
-
-                }
-                else
-                {
-                    return;
-                }
+                return;
             }
 
             var parent = data.targetParent;
