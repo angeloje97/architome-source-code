@@ -15,8 +15,13 @@ namespace Architome
         public static void CreateIndicator(Transform target, string title = "Generic", Exception e = null)
         {
             var defectGameObject = new GameObject($"Defect: {title}");
+            if(target != null)
+            {
+                defectGameObject.transform.SetParent(target);
+            }
 
-            defectGameObject.transform.SetParent(target);
+
+
              
             defectGameObject.transform.position = new();
             var defect = defectGameObject.AddComponent<Defect>();

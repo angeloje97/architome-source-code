@@ -2,6 +2,7 @@ using Architome.Events;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -43,6 +44,7 @@ namespace Architome
 
         private void OnDestroy()
         {
+            if (this == null) return;
             Invoke(eMonoEvent.OnDestroy, this);
         }
 
@@ -64,8 +66,15 @@ namespace Architome
 
         public void Invoke(eMonoEvent trigger, MonoActor listener)
         {
-            if (this == null) return;
-            monoEvents.Invoke(trigger, this);
+            try
+            {
+                monoEvents.Invoke(trigger, this);
+
+            }catch(Exception ex)
+            {
+                Defect.CreateIndicator(transform, $"{name}: ex.Message", ex);
+                throw ex;
+            }
         }
 
         public Action AddListener(eMonoEvent trigger, Action<MonoActor> action, MonoActor otherActor)

@@ -13,6 +13,7 @@ namespace Architome
 
         protected override void Awake()
         {
+            base.Awake();
             active = this;
         }
 

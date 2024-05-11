@@ -34,6 +34,11 @@ namespace Architome
         {
             GetDependencies();
         }
+
+        private void Awake()
+        {
+            inventorySlots = new();
+        }
         private void Start()
         {
             GetDependencies();
@@ -41,7 +46,6 @@ namespace Architome
         }
         void GetDependencies()
         {
-            inventorySlots = new();
             if (canvasGroup == null)
             {
                 canvasGroup = GetComponent<CanvasGroup>();
@@ -54,14 +58,22 @@ namespace Architome
                 data.newItem.fxHandler = fxHandler;
             };
 
-            foreach (Transform child in transform)
-            {
-                var slot = child.GetComponent<InventorySlot>();
+            //foreach (Transform child in transform)
+            //{
+            //    var slot = child.GetComponent<InventorySlot>();
 
-                if (slot == null) continue;
+            //    if (slot == null) continue;
 
-                inventorySlots.Add(slot);
-            }
+            //    inventorySlots.Add(slot);
+            //}
+        }
+
+        public void HandleNewSlot(InventorySlot slot)
+        {
+
+            if (inventorySlots.Contains(slot)) return;
+
+            inventorySlots.Add(slot);
         }
 
         async void HandleNullModule()

@@ -28,7 +28,7 @@ namespace Architome
             
             if (itemInfo.currentStacks == 1)
             {
-                availableSlots.Add(itemInfo.currentSlot);
+                availableSlots.Insert(0, itemInfo.currentSlot);
             }
 
             if (availableSlots.Count < items.Count)

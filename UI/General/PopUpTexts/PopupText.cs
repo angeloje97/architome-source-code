@@ -135,6 +135,10 @@ namespace Architome
             {
                 mainCamera = MainCamera3.active;
             }
+            if(mainCamera == null)
+            {
+                mainCamera = Camera.main;
+            }
 
             return mainCamera.WorldToScreenPoint(position);
         }

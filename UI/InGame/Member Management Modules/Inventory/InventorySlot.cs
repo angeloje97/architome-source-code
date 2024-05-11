@@ -61,7 +61,7 @@ namespace Architome
             module = GetComponentInParent<ModuleInfo>();
             itemSlotHandler = GetComponentInParent<ItemSlotHandler>();
 
-
+            itemSlotHandler.HandleNewSlot(this);
         }
         void Start()
         {

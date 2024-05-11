@@ -38,6 +38,7 @@ namespace Architome.Settings
             UpdateMixers();
             HandleSliders();
             HandleDirtyConflicts();
+            ApplyMixerValues();
         }
 
         public override void HandleLeaveDirty()
@@ -62,9 +63,6 @@ namespace Architome.Settings
 
             CopyMixerValues();
         }
-
-
-
         public void RevertChanges()
         {
             CopyMixerValues();
@@ -106,8 +104,13 @@ namespace Architome.Settings
         public void ApplyMixerValues()
         {
             currentSetting.mixer = new(tempMixer.ShardsCopy());
-
             AudioSetting.SaveCurrentSettings();
+            
+            foreach(var name in AudioSetting.gameMixerNames)
+            {
+                SetMixerVolume(audioMixer, name, currentSetting.mixer.shardDict[name].volume);
+            }
+
             dirty = false;
 
         }
