@@ -25,9 +25,13 @@ namespace Architome
             var items = itemPool.ItemsFromCustom(itemPoolName, requestData);
             var itemSlotHandler = data.itemInfo.GetComponentInParent<ItemSlotHandler>();
             var availableSlots = itemSlotHandler.AvailableSlots;
+            
+            if (itemInfo.currentStacks == 1)
+            {
+                availableSlots.Add(itemInfo.currentSlot);
+            }
 
-            if (itemInfo.currentStacks == 1) availableSlots += 1;
-            if (availableSlots < items.Count)
+            if (availableSlots.Count < items.Count)
             {
                 return;
             }
@@ -38,9 +42,12 @@ namespace Architome
 
             await Task.Delay(500);
 
+            int slotPos = 0;
+
             foreach (var item in items)
             {
                 var createdItem = WorldActions.active.CreateItemUI(item, parent, true);
+                createdItem.HandleNewSlot(availableSlots[slotPos++]);
             }
 
             Debugger.UI(65491, $"Items in loot box {items.Count}");

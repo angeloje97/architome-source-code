@@ -207,8 +207,6 @@ namespace Architome
             createdItem.SetMovable(draggable);
 
             return createdItem;
-
-
         }
 
         public ItemInfo CreateItemUI(ItemData data, InventorySlot slot, ItemInfo template, bool draggable = true)

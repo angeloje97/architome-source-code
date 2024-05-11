@@ -143,7 +143,8 @@ namespace Architome
             checks.Add(false);
         }
 
-        public int AvailableSlots => inventorySlots.Where(slot => slot.item == null).Count();
+        public int AvailableSlotCount => inventorySlots.Where(slot => slot.item == null).Count();
+        public List<InventorySlot> AvailableSlots => inventorySlots.Where(slot => slot.currentItemInfo == null).ToList(); 
 
     }
 
