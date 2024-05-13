@@ -76,6 +76,21 @@ namespace Architome
             inventorySlots.Add(slot);
         }
 
+        public (Action<ItemInfo>, Action) LockInventorySlots()
+        {
+
+            return (InsertItemInfo, UnlockSlots);
+
+            void InsertItemInfo(ItemInfo itemInfo)
+            {
+
+            }
+
+            void UnlockSlots()
+            {
+
+            }
+        }
         async void HandleNullModule()
         {
             var module = GetComponentInParent<ModuleInfo>();

@@ -48,6 +48,7 @@ namespace Architome
             {
                 var createdItem = WorldActions.active.CreateItemUI(item, parent, true);
                 createdItem.HandleNewSlot(availableSlots[slotPos++]);
+                await Task.Delay(150);
             }
 
             Debugger.UI(65491, $"Items in loot box {items.Count}");
