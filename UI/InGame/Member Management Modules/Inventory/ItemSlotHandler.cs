@@ -76,19 +76,32 @@ namespace Architome
             inventorySlots.Add(slot);
         }
 
-        public (Action<ItemInfo>, Action) LockInventorySlots()
+        public (Action<ItemInfo, InventorySlot>, Action) LockInventorySlots()
         {
+            bool paused = true;
+
+            this.OnCanInsertToSlotCheck += OnCanInsertIntoSlot;
+
 
             return (InsertItemInfo, UnlockSlots);
 
-            void InsertItemInfo(ItemInfo itemInfo)
+            void InsertItemInfo(ItemInfo itemInfo, InventorySlot slot)
             {
+                paused = false;
 
+                itemInfo.HandleNewSlot(slot);
+
+                paused = true;
             }
 
             void UnlockSlots()
             {
+                OnCanInsertToSlotCheck -= OnCanInsertIntoSlot;
+            }
 
+            void OnCanInsertIntoSlot(InventorySlot slot, ItemInfo item, List<bool> checks)
+            {
+                if (paused) checks.Add(false);
             }
         }
         async void HandleNullModule()
