@@ -40,6 +40,8 @@ namespace Architome
 
             itemInfo.ReduceStacks();
 
+            var (insertItem, unlock) = itemSlotHandler.LockInventorySlots();
+
             await Task.Delay(500);
 
             int slotPos = 0;
@@ -47,9 +49,11 @@ namespace Architome
             foreach (var item in items)
             {
                 var createdItem = WorldActions.active.CreateItemUI(item, parent, true);
-                createdItem.HandleNewSlot(availableSlots[slotPos++]);
+                insertItem(createdItem, availableSlots[slotPos++]);
                 await Task.Delay(150);
             }
+
+            unlock();
 
             Debugger.UI(65491, $"Items in loot box {items.Count}");
         }

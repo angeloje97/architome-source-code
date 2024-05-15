@@ -58,10 +58,18 @@ namespace Architome
 
         protected virtual void GetDependencies()
         {
-            module = GetComponentInParent<ModuleInfo>();
-            itemSlotHandler = GetComponentInParent<ItemSlotHandler>();
+            try
+            {
+                module = GetComponentInParent<ModuleInfo>();
+                itemSlotHandler = GetComponentInParent<ItemSlotHandler>();
 
-            itemSlotHandler.HandleNewSlot(this);
+                itemSlotHandler.HandleNewSlot(this);
+
+            }
+            catch (Exception e)
+            {
+                Defect.CreateIndicator(transform, "InventorySlot Defect in InventorySlot::GetDependencies()" , e);
+            }
         }
         void Start()
         {
