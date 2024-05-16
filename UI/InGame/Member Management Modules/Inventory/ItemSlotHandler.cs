@@ -13,7 +13,7 @@ namespace Architome
     [RequireComponent(typeof(ItemFXHandler))]
     public class ItemSlotHandler : MonoBehaviour
     {
-        // Start is called before the first frame update
+        #region Common Data
         public CanvasGroup canvasGroup;
         public event Action<ItemEventData> OnChangeItem;
         public ItemFXHandler fxHandler;
@@ -30,11 +30,12 @@ namespace Architome
         public bool active;
         bool lockItems = false;
         public float alpha;
+        #endregion
+        #region Initiation
         private void OnValidate()
         {
             GetDependencies();
         }
-
         private void Awake()
         {
             inventorySlots = new();
@@ -57,16 +58,10 @@ namespace Architome
                 if (data.newItem == null) return;
                 data.newItem.fxHandler = fxHandler;
             };
-
-            //foreach (Transform child in transform)
-            //{
-            //    var slot = child.GetComponent<InventorySlot>();
-
-            //    if (slot == null) continue;
-
-            //    inventorySlots.Add(slot);
-            //}
         }
+        #endregion
+
+        #region Slot Handling
 
         public void HandleNewSlot(InventorySlot slot)
         {
@@ -104,6 +99,7 @@ namespace Architome
                 if (paused) checks.Add(false);
             }
         }
+        #endregion
         async void HandleNullModule()
         {
             var module = GetComponentInParent<ModuleInfo>();
@@ -136,6 +132,8 @@ namespace Architome
             }
         }
 
+        #region Item Functions
+
         public void ItemAction(ItemInfo item)
         {
             OnItemAction?.Invoke(item);
@@ -146,6 +144,48 @@ namespace Architome
             OnNullHover?.Invoke(item);
         }
 
+        public void InsertItemIntoSlots(ItemInfo item)
+        {
+
+        }
+
+        public bool CanInsertIntoSlots(List<ItemInfo> items, int countOffset = 0)
+        {
+            var availableCounts = countOffset;
+
+            foreach(var slot in inventorySlots)
+            {
+                if (slot.item == null)
+                {
+                    availableCounts++;
+                    continue;
+                }
+
+
+                if (items.Exists((itemInfo) => {
+
+                    if (itemInfo.Equals(slot.item))
+                    {
+                        var currentStacks = slot.currentItemInfo.currentStacks;
+                        var stacksToAdd = itemInfo.currentStacks;
+
+                        if (currentStacks + stacksToAdd <= itemInfo.item.MaxStacks)
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }))
+                {
+                    availableCounts++;
+                }
+            }
+
+            return availableCounts >= items.Count;
+        }
+
+        #endregion
         public bool SlotHandlerActive()
         {
             return canvasGroup.interactable;

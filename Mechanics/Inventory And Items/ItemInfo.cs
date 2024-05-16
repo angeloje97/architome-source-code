@@ -733,8 +733,6 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
             if (!slot.currentItemInfo.item.ValidStacks(amount + 1)) continue;
             if (!slot.currentItemInfo.SameItem(this)) continue;
 
-
-            
             items.Add(slot.currentItemInfo);
         }
 
