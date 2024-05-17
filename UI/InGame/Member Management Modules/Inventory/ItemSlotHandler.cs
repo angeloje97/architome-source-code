@@ -96,7 +96,11 @@ namespace Architome
 
             void OnCanInsertIntoSlot(InventorySlot slot, ItemInfo item, List<bool> checks)
             {
-                if (paused) checks.Add(false);
+                if (paused) 
+                {
+                    checks.Add(false);
+                    OnCantInsertToSlot(slot, item, "Inventory is currently in locked state. Check ItemSlotHandler::LockInventorySlots()");
+                }
             }
         }
         #endregion
