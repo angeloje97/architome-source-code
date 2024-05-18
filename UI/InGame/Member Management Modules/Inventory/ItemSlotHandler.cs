@@ -5,13 +5,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using System.Linq;
+using Architome.Events;
 
 namespace Architome
 {
 
     [RequireComponent(typeof(CanvasGroup))]
     [RequireComponent(typeof(ItemFXHandler))]
-    public class ItemSlotHandler : MonoBehaviour
+    public class ItemSlotHandler : MonoActor
     {
         #region Common Data
         public CanvasGroup canvasGroup;
@@ -30,15 +31,22 @@ namespace Architome
         public bool active;
         bool lockItems = false;
         public float alpha;
+
+        #region EventHandler
+
+        ArchEventHandler<eItemEvent, ItemEventData> itemEventHandler;
+
         #endregion
         #region Initiation
         private void OnValidate()
         {
             GetDependencies();
         }
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             inventorySlots = new();
+            itemEventHandler = new(this);
         }
         private void Start()
         {
@@ -232,10 +240,15 @@ namespace Architome
 
     }
 
-    public struct ItemEventData
+    public class ItemEventData
     {
         public ItemInfo previousItem { get; set; }
         public ItemInfo newItem;
         public InventorySlot itemSlot;
+    }
+
+    public enum eItemEvent
+    {
+        OnItemAction,
     }
 }
