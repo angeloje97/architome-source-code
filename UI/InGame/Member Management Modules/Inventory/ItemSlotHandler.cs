@@ -18,9 +18,10 @@ namespace Architome
         public CanvasGroup canvasGroup;
         public event Action<ItemEventData> OnChangeItem;
         public ItemFXHandler fxHandler;
-        public Action<bool> OnActiveChange;
+
+        public Action<bool> OnActiveChange { get; set; }
         public Action<ItemInfo> OnItemAction { get; set; }
-        public Action<ItemInfo> OnNullHover;
+        public Action<ItemInfo> OnNullHover { get; set; }
         public Action<InventorySlot, ItemInfo, string> OnCantInsertToSlot { get; set; }
         public Action<InventorySlot, ItemInfo, List<bool>> OnCanInsertToSlotCheck { get; set; }
         public Action<InventorySlot, ItemInfo, List<bool>> OnCanRemoveFromSlotCheck { get; set; }
@@ -35,6 +36,11 @@ namespace Architome
         #region EventHandler
 
         ArchEventHandler<eItemEvent, ItemEventData> itemEventHandler;
+
+        public Action AddListener(eItemEvent trigger, Action<ItemEventData> action, MonoActor actor) => itemEventHandler.AddListener(trigger, action, actor);
+
+        public void Invoke(eItemEvent trigger, ItemEventData eventData) => itemEventHandler.Invoke(trigger, eventData);
+        #endregion
 
         #endregion
         #region Initiation
@@ -111,6 +117,11 @@ namespace Architome
                 }
             }
         }
+        public bool SlotHandlerActive()
+        {
+            return canvasGroup.interactable;
+        }
+
         #endregion
         async void HandleNullModule()
         {
@@ -198,10 +209,6 @@ namespace Architome
         }
 
         #endregion
-        public bool SlotHandlerActive()
-        {
-            return canvasGroup.interactable;
-        }
 
         public void HandleChangeItem(ItemEventData eventData)
         {
@@ -244,7 +251,9 @@ namespace Architome
     {
         public ItemInfo previousItem { get; set; }
         public ItemInfo newItem;
+
         public InventorySlot itemSlot;
+        public ItemSlotHandler slotHandler => itemSlot.itemSlotHandler;
     }
 
     public enum eItemEvent
