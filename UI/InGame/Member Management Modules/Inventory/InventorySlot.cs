@@ -199,17 +199,25 @@ namespace Architome
 
         public virtual bool CanRemoveFromSlot(ItemInfo item)
         {
-            if (itemSlotHandler)
-            {
-                var checks = new List<bool>();
-                itemSlotHandler.OnCanRemoveFromSlotCheck?.Invoke(this, item, checks);
-                foreach (var check in checks)
-                {
-                    if (!check) return false;
-                }
-            }
+            //if (itemSlotHandler)
+            //{
+            //    var checks = new List<bool>();
+            //    itemSlotHandler.OnCanRemoveFromSlotCheck?.Invoke(this, item, checks);
+            //    foreach (var check in checks)
+            //    {
+            //        if (!check) return false;
+            //    }
 
-            return true;
+
+
+            //}
+
+            //return true;
+
+            return itemSlotHandler.InvokeCheck(eItemEvent.OnCanRemoveFromSlotCheck, new() { 
+                itemSlot = this,
+                newItem = item,
+            });
         }
 
         public Action AddListener(InventorySlotEvent trigger, Action<(InventorySlot, ItemInfo)> action, Component listener)
