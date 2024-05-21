@@ -23,7 +23,7 @@ namespace Architome
         public Action<ItemInfo> OnItemAction { get; set; }
         public Action<ItemInfo> OnNullHover { get; set; }
         public Action<InventorySlot, ItemInfo, string> OnCantInsertToSlot { get; set; }
-        public Action<InventorySlot, ItemInfo, List<bool>> OnCanInsertToSlotCheck { get; set; }
+
         public Action UpdateActions;
 
         public List<InventorySlot> inventorySlots;
@@ -94,10 +94,10 @@ namespace Architome
         {
             bool paused = true;
 
-            this.OnCanInsertToSlotCheck += OnCanInsertIntoSlot;
 
+            var unlock = AddListenerCheck(eItemEvent.OnCanInsertIntoSlot, OnCanInsertIntoSlot, this);
 
-            return (InsertItemInfo, UnlockSlots);
+            return (InsertItemInfo, unlock);
 
             void InsertItemInfo(ItemInfo itemInfo, InventorySlot slot)
             {
@@ -108,17 +108,12 @@ namespace Architome
                 paused = true;
             }
 
-            void UnlockSlots()
-            {
-                OnCanInsertToSlotCheck -= OnCanInsertIntoSlot;
-            }
-
-            void OnCanInsertIntoSlot(InventorySlot slot, ItemInfo item, List<bool> checks)
+            void OnCanInsertIntoSlot(ItemEventData eventData, List<bool> checks)
             {
                 if (paused) 
                 {
                     checks.Add(false);
-                    OnCantInsertToSlot(slot, item, "Inventory is currently in locked state. Check ItemSlotHandler::LockInventorySlots()");
+                    OnCantInsertToSlot(eventData.itemSlot, eventData.newItem, "Inventory is currently in locked state. Check ItemSlotHandler::LockInventorySlots()");
                 }
             }
         }
@@ -234,7 +229,7 @@ namespace Architome
 
             if (lockItems)
             {
-                OnUnlock += AddListenerCheck(eItemEvent.OnCanRemoveFromSlotCheck, HandleLockItems, this);
+                OnUnlock += AddListenerCheck(eItemEvent.OnCanRemoveFromSlot, HandleLockItems, this);
                 
             }
             else
@@ -267,7 +262,7 @@ namespace Architome
     public enum eItemEvent
     {
         OnItemAction,
-        OnCanInsertIntoSlotCheck,
-        OnCanRemoveFromSlotCheck,
+        OnCanInsertIntoSlot,
+        OnCanRemoveFromSlot,
     }
 }
