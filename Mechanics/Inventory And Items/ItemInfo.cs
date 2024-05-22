@@ -259,7 +259,7 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
         if (currentSlot && currentSlot.itemSlotHandler)
         {
-            currentSlot.itemSlotHandler.NullHover(this);
+            currentSlot.itemSlotHandler.NullHover(this, currentSlot);
         }
     }
     public void OnPointerDown(PointerEventData eventData)

@@ -11,7 +11,7 @@ using TMPro;
 namespace Architome
 {
     [RequireComponent(typeof(ItemSlotHandler))]
-    public class EntityInventoryUI : MonoBehaviour
+    public class EntityInventoryUI : MonoActor
     {
         // Start is called before the first frame update
         public EntityInfo entityInfo;
@@ -70,7 +70,7 @@ namespace Architome
             {
                 itemSlotHandler.OnChangeItem += OnChangeItem;
                 itemSlotHandler.OnItemAction += OnItemAction;
-                itemSlotHandler.OnNullHover += OnNullHover;
+                itemSlotHandler.AddListener(eItemEvent.OnNullHover, OnNullHover, this);
             }
         }
 
@@ -174,8 +174,9 @@ namespace Architome
             ArchAction.Yield(() => HandleExistingItems());
         }
 
-        public void OnNullHover(ItemInfo item)
+        public void OnNullHover(ItemEventData itemEvent)
         {
+            var item = itemEvent.newItem;
             var gameState = GameManager.active.GameState;
 
             HandlePlay();

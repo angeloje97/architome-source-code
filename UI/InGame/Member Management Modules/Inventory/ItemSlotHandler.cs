@@ -162,9 +162,12 @@ namespace Architome
             OnItemAction?.Invoke(item);
         }
 
-        public void NullHover(ItemInfo item)
+        public void NullHover(ItemInfo item, InventorySlot slot)
         {
-            OnNullHover?.Invoke(item);
+            Invoke(eItemEvent.OnNullHover, new() {
+                newItem = item,
+                itemSlot = slot,
+            });
         }
 
         public void InsertItemIntoSlots(ItemInfo item)
@@ -264,5 +267,6 @@ namespace Architome
         OnItemAction,
         OnCanInsertIntoSlot,
         OnCanRemoveFromSlot,
+        OnNullHover,
     }
 }
