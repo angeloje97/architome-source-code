@@ -69,7 +69,7 @@ namespace Architome
             if (itemSlotHandler)
             {
                 itemSlotHandler.OnChangeItem += OnChangeItem;
-                itemSlotHandler.OnItemAction += OnItemAction;
+                itemSlotHandler.AddListener(eItemEvent.OnItemAction, OnItemAction, this);
                 itemSlotHandler.AddListener(eItemEvent.OnNullHover, OnNullHover, this);
             }
         }
@@ -380,8 +380,9 @@ namespace Architome
             return null;
         }
 
-        async public void OnItemAction(ItemInfo info)
+        async public void OnItemAction(ItemEventData eventData)
         {
+            var info = eventData.newItem;
             var contextMenu = ContextMenu.current;
             if (contextMenu == null) return;
             var item = info.item;

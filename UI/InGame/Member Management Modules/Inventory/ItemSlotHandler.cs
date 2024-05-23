@@ -20,11 +20,9 @@ namespace Architome
         public ItemFXHandler fxHandler;
 
         public Action<bool> OnActiveChange { get; set; }
-        public Action<ItemInfo> OnItemAction { get; set; }
-        public Action<ItemInfo> OnNullHover { get; set; }
         public Action<InventorySlot, ItemInfo, string> OnCantInsertToSlot { get; set; }
 
-        public Action UpdateActions;
+        public Action UpdateActions { get; set; }
 
         public List<InventorySlot> inventorySlots;
 
@@ -159,7 +157,7 @@ namespace Architome
 
         public void ItemAction(ItemInfo item)
         {
-            OnItemAction?.Invoke(item);
+            Invoke(eItemEvent.OnItemAction, new() { newItem = item });
         }
 
         public void NullHover(ItemInfo item, InventorySlot slot)

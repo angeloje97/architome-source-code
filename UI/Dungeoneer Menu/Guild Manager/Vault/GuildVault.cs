@@ -6,7 +6,7 @@ using TMPro;
 
 namespace Architome
 {
-    public class GuildVault : MonoBehaviour
+    public class GuildVault : MonoActor
     {
         public static GuildVault active;
 
@@ -26,12 +26,13 @@ namespace Architome
             if (itemSlotHandler)
             {
                 itemSlotHandler.OnChangeItem += OnChangeItem;
-                itemSlotHandler.OnItemAction += OnItemAction;
+                itemSlotHandler.AddListener(eItemEvent.OnItemAction, OnItemAction, this);
             }
         }
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             active = this;
         }
 
@@ -116,8 +117,9 @@ namespace Architome
 
             items[index] = new(eventData.newItem);
         }
-        async void OnItemAction(ItemInfo info)
+        async void OnItemAction(ItemEventData eventData)
         {
+            var info = eventData.newItem;
             var contextMenu = ContextMenu.current;
             if (contextMenu == null) return;
 
