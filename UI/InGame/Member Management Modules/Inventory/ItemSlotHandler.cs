@@ -258,6 +258,23 @@ namespace Architome
 
         public InventorySlot itemSlot;
         public ItemSlotHandler slotHandler => itemSlot.itemSlotHandler;
+
+        public string message { get; private set; }
+
+        public void SetMessage(string message)
+        {
+            this.message = message;
+        }
+
+        public ItemEventData()
+        {
+
+        }
+
+        public ItemEventData(ItemInfo item)
+        {
+            this.newItem = item;
+        }
     }
 
     public enum eItemEvent
@@ -266,5 +283,6 @@ namespace Architome
         OnCanInsertIntoSlot,
         OnCanRemoveFromSlot,
         OnNullHover,
+        OnCantInsert,
     }
 }

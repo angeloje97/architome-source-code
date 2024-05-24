@@ -51,7 +51,9 @@ namespace Architome
             if (item.item.GetType() != typeof(AugmentItem)) return false;
             if (EntityInCombat())
             {
-                itemSlotHandler.OnCantInsertToSlot?.Invoke(this, item, "Can't insert augment during combat.");
+                var itemEventData = new ItemEventData() { newItem = item, itemSlot = this };
+                itemEventData.SetMessage("Can't insert augment during combat");
+                itemSlotHandler.Invoke(eItemEvent.OnCantInsert, itemEventData);
                 return false;
             }
 
@@ -65,7 +67,10 @@ namespace Architome
 
             if (EntityInCombat())
             {
-                itemSlotHandler.OnCantInsertToSlot?.Invoke(this, item, "Can't remove augment during combat");
+                var itemEvent = new ItemEventData(item) { itemSlot = this };
+                itemEvent.SetMessage("Can't remove augment during combat");
+
+                itemSlotHandler.Invoke(eItemEvent.OnCantInsert, itemEvent);
 
                 return false;
             }
