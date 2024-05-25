@@ -218,7 +218,9 @@ namespace Architome
 
         public void HandleCantInsert(InventorySlot slot, ItemInfo item, string reason)
         {
-            OnCantInsertToSlot?.Invoke(slot, item, reason);
+            var eventData = new ItemEventData(item) { itemSlot = slot };
+            eventData.SetMessage(reason);
+            Invoke(eItemEvent.OnCantInsert, eventData);
         }
 
         Action OnUnlock;

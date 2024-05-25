@@ -6,7 +6,7 @@ using Architome.Enums;
 
 namespace Architome
 {
-    public class ItemFXHandler : MonoBehaviour
+    public class ItemFXHandler : MonoActor
     {
         // Start is called before the first frame update
         [SerializeField] AudioManager audioManager;
@@ -38,14 +38,17 @@ namespace Architome
         void HandleCantInsertIntoSlot()
         {
             var notifications = NotificationManager.active;
-            itemSlotHandler.OnCantInsertToSlot += async delegate (InventorySlot slot, ItemInfo item, string reason)
-            {
-                var notification = await notifications.CreateNotification(new(NotificationType.Warning) {
+            itemSlotHandler.AddListener(eItemEvent.OnCantInsert, async (ItemEventData eventData) => {
+                var item = eventData.newItem;
+                var reason = eventData.message;
+
+                var notification = await notifications.CreateNotification(new(NotificationType.Warning)
+                {
                     name = item.item.itemName,
                     description = reason,
                     dismissable = true
                 });
-            };
+            }, this);
         }
         void GetDependenciesWorld()
         {
