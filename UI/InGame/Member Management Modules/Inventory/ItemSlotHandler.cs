@@ -27,19 +27,14 @@ namespace Architome
 
         public bool active;
         bool lockItems = false;
-        public float alpha;
+        public float alpha { get; set; }
 
         #region EventHandler
 
         ArchEventHandler<eItemEvent, ItemEventData> itemEventHandler;
-
         public Action AddListener(eItemEvent trigger, Action<ItemEventData> action, MonoActor actor) => itemEventHandler.AddListener(trigger, action, actor);
-
         public void Invoke(eItemEvent trigger, ItemEventData eventData) => itemEventHandler.Invoke(trigger, eventData);
-
-
         public bool InvokeCheck(eItemEvent trigger, ItemEventData eventData) => itemEventHandler.InvokeCheck(trigger, eventData);
-
         public Action AddListenerCheck(eItemEvent trigger, Action<ItemEventData, List<bool>> action, MonoActor actor) => itemEventHandler.AddListenerCheck(trigger, action, actor);
 
         #endregion
@@ -239,8 +234,6 @@ namespace Architome
             {
                 OnUnlock?.Invoke();
             }
-
-
         }
 
         void HandleLockItems(ItemEventData eventData, List<bool> checks)
@@ -276,6 +269,12 @@ namespace Architome
         public ItemEventData(ItemInfo item)
         {
             this.newItem = item;
+        }
+
+        public ItemEventData(ItemInfo previousItem, ItemInfo newItem) 
+        {
+            this.previousItem = previousItem;
+            this.newItem = newItem;
         }
     }
 
