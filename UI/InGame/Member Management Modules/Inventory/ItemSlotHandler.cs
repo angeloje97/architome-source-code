@@ -20,7 +20,6 @@ namespace Architome
         public ItemFXHandler fxHandler;
 
         public Action<bool> OnActiveChange { get; set; }
-        public Action<InventorySlot, ItemInfo, string> OnCantInsertToSlot { get; set; }
 
         public Action UpdateActions { get; set; }
 
@@ -111,7 +110,8 @@ namespace Architome
                 if (paused) 
                 {
                     checks.Add(false);
-                    OnCantInsertToSlot(eventData.itemSlot, eventData.newItem, "Inventory is currently in locked state. Check ItemSlotHandler::LockInventorySlots()");
+                    eventData.SetMessage("Inventory is currently in locked state. Check ItemSlotHandler::LockInventorySlots()");
+                    Invoke(eItemEvent.OnCantInsert, eventData);
                 }
             }
         }
