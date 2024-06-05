@@ -1,5 +1,6 @@
 using DungeonArchitect.Flow.Domains.Layout.Tasks;
 using Language.Lua;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -7,6 +8,8 @@ using UnityEngine;
 
 namespace Architome
 {
+    public delegate string StringModifier(string original);
+
     public static class ArchString 
     {
         public static Dictionary<string, Regex> stringPatterns;
@@ -125,6 +128,18 @@ namespace Architome
                 }
 
                 result += stringValue;
+            }
+
+            return result;
+        }
+
+        public static List<string> ModifyList(List<string> original,  StringModifier modifier)
+        {
+            var result = new List<string>();
+
+            foreach(var str in original)
+            {
+                result.Add(modifier(str));
             }
 
             return result;
