@@ -3,6 +3,7 @@ using Language.Lua;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
@@ -10,8 +11,15 @@ namespace Architome
 {
     public delegate string StringModifier(string original);
 
-    public static class ArchString 
+
+    public static class ArchString
     {
+
+        static string DefaultModifier(string original)
+        {
+            return original;
+        }
+
         public static Dictionary<string, Regex> stringPatterns;
         public static string CamelToTitle(string text)
         {
@@ -112,10 +120,16 @@ namespace Architome
 
             return line;
         }
+        
 
-        public static string NextLineList(List<string> stringList, int extraSpace = 0)
+        public static string NextLineList(List<string> stringList, int extraSpace = 0, StringModifier modifier = null)
         {
-            var result = "";
+            if (modifier == null)
+            {
+                modifier = DefaultModifier;
+            }
+
+            var result = new StringBuilder();
 
             foreach (var stringValue in stringList)
             {
@@ -123,14 +137,14 @@ namespace Architome
                 {
                     for (int i = 0; i < extraSpace+1; i++)
                     {
-                        result += "\n";
+                        result.Append("\n");
                     }
                 }
 
-                result += stringValue;
+                result.Append(modifier(stringValue));
             }
 
-            return result;
+            return result.ToString();
         }
 
         public static List<string> ModifyList(List<string> original,  StringModifier modifier)
