@@ -82,6 +82,8 @@ namespace Architome
             return newText;
         }
 
+        #region String List
+
         public static string StringList(List<string> strings)
         {
             if (strings == null || strings.Count == 0)
@@ -109,19 +111,6 @@ namespace Architome
 
             return list;
         }
-
-
-        public static string Spacer(string line)
-        {
-            if (line.Length > 0)
-            {
-                return $" {line}";
-            }
-
-            return line;
-        }
-        
-
         public static string NextLineList(List<string> stringList, int extraSpace = 0, StringModifier modifier = null)
         {
             if (modifier == null)
@@ -146,7 +135,6 @@ namespace Architome
 
             return result.ToString();
         }
-
         public static List<string> ModifyList(List<string> original,  StringModifier modifier)
         {
             var result = new List<string>();
@@ -158,6 +146,22 @@ namespace Architome
 
             return result;
         }
+
+        #endregion
+
+
+        public static string Spacer(string line)
+        {
+            if (line.Length > 0)
+            {
+                return $" {line}";
+            }
+
+            return line;
+        }
+        
+
+
 
         static Regex StringRegex(string pattern)
         {
@@ -185,6 +189,7 @@ namespace Architome
             return line;
         }
 
+        #region Floats and Numbers
         public static string FloatToSimple(float value, int decimalPlaces = 2)
         {
             var newText = $"{Mathg.Round(value, decimalPlaces)}";
@@ -272,6 +277,7 @@ namespace Architome
 
             return result;
         }
+        #endregion
 
         public static string GetLast(string source, int amount)
         {
