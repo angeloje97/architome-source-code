@@ -104,7 +104,6 @@ namespace Architome
                 if (Application.isPlaying)
                 {
                     Destroy(room);
-
                 }
             }
 
