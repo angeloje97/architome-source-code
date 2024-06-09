@@ -1386,11 +1386,7 @@ namespace Architome
         }
         public AIPath Path()
         {
-            if (gameObject.GetComponent<AIPath>() != null)
-            {
-                return gameObject.GetComponent<AIPath>();
-            }
-            return null;
+            return GetComponent<AIPath>();
         }
         public GraphicsInfo GraphicsInfo()
         {

@@ -62,7 +62,7 @@ namespace Architome
         public GameObject location;
 
         private AIDestinationSetter destinationSetter;
-        private AIPath path;
+        private AIPath path { get; set; }
         public Rigidbody rigidBody;
         public RigidbodyConstraints originalConstraints;
         public AbilityManager abilityManager;
@@ -514,7 +514,6 @@ namespace Architome
         }
         void MoveTo(Transform locationTransform,  float endReachDistance = 0f)
         {
-
             Invoke(new(eMovementEvent.OnTryMove, this, locationTransform));
 
             if (!entityInfo.CanMove())
@@ -530,6 +529,15 @@ namespace Architome
             {
                 destinationSetter.target = locationTransform;
             }
+            //try
+            //{
+                
+
+            //}
+            //catch(Exception exception)
+            //{
+            //    Defect.CreateIndicator(transform, "Movement::MoveTo()", exception);
+            //}
 
         }
         void MoveTo(Vector3 location, float endReachDistance = 0f)

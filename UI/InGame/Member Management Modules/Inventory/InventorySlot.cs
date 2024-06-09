@@ -55,6 +55,9 @@ namespace Architome
         public bool isHovering { get; private set; }
 
 
+        #region Event Handler Invokes
+        #endregion
+
 
         protected virtual void GetDependencies()
         {
@@ -196,10 +199,14 @@ namespace Architome
         public virtual bool CanRemoveFromSlot(ItemInfo item)
         {
 
-            return itemSlotHandler.InvokeCheck(eItemEvent.OnCanRemoveFromSlot, new() { 
+            var selfSuccess = true;
+            
+            var slotHandlerSuccess  =  itemSlotHandler != null && itemSlotHandler.InvokeCheck(eItemEvent.OnCanRemoveFromSlot, new() { 
                 itemSlot = this,
                 newItem = item,
             });
+
+            return selfSuccess && slotHandlerSuccess;
         }
 
         public Action AddListener(InventorySlotEvent trigger, Action<(InventorySlot, ItemInfo)> action, Component listener)

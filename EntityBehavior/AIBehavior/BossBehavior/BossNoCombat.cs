@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Architome
 {
-    public class BossNoCombat : MonoBehaviour
+    public class BossNoCombat : EntityProp
     {
         // Start is called before the first frame update
         [SerializeField] Movement movement;
@@ -20,7 +20,7 @@ namespace Architome
         public Transform currentPatrolSpot;
         bool patroling;
 
-        void AcquireDependencies()
+        public override void GetDependencies()
         {
             entity = GetComponentInParent<EntityInfo>();
 
@@ -30,6 +30,10 @@ namespace Architome
             }
 
             behavior = GetComponentInParent<BossBehavior>();
+
+            Subscribe();
+            OnCombatChange(false);
+            HandlePatrol();
         }
 
         void Subscribe()
@@ -58,19 +62,7 @@ namespace Architome
             }
         }
 
-        void Start()
-        {
-            AcquireDependencies();
-            Subscribe();
-            OnCombatChange(false);
-            HandlePatrol();
-        }
-
         private void OnValidate()
-        {
-        }
-        // Update is called once per frame
-        void Update()
         {
 
         }

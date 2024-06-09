@@ -278,7 +278,7 @@ namespace Architome
 
                     foreach (var path in availableRandomPaths)
                     {
-                        var newRoom = await path.SpawnRoom(skeletonRooms[0], roomList, attempt > 1);
+                        var newRoom = await path.SpawnRoom(skeletonRooms[0], roomList, false);
 
 
 
