@@ -45,7 +45,7 @@ namespace Architome
         public bool interactable = true;
 
         public Events events;
-        ArchEventHandler<InventorySlotEvent, (InventorySlot, ItemInfo)> eventHandler;
+        ArchEventHandler<InventorySlotEvent, (InventorySlot, ItemInfo)> eventHandler { get; set; }
         public Info info;
 
         [Header("Inventory Properties")]
@@ -55,8 +55,6 @@ namespace Architome
         public bool isHovering { get; private set; }
 
 
-        #region Event Handler Invokes
-        #endregion
 
 
         protected virtual void GetDependencies()
@@ -199,7 +197,7 @@ namespace Architome
         public virtual bool CanRemoveFromSlot(ItemInfo item)
         {
 
-            var selfSuccess = true;
+            var selfSuccess = InvokeCheck(InventorySlotEvent.OnCanRemoveCheck, (this, item));
             
             var slotHandlerSuccess  =  itemSlotHandler != null && itemSlotHandler.InvokeCheck(eItemEvent.OnCanRemoveFromSlot, new() { 
                 itemSlot = this,
@@ -208,6 +206,8 @@ namespace Architome
 
             return selfSuccess && slotHandlerSuccess;
         }
+
+        #region EventHandler
 
         public Action AddListener(InventorySlotEvent trigger, Action<(InventorySlot, ItemInfo)> action, Component listener)
         {
@@ -234,5 +234,8 @@ namespace Architome
             eventHandler ??= new(this);
             return eventHandler.AddListenerPredicate(trigger, data, component);
         }
+
+        public bool InvokeCheck(InventorySlotEvent trigger, (InventorySlot, ItemInfo) data) => eventHandler.InvokeCheck(trigger, data);
+        #endregion
     }
 }

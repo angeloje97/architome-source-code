@@ -69,8 +69,7 @@ namespace Architome
             if (slotType != equipment.equipmentSlotType && equipment.secondarySlotType != slotType)
             {
                 //manager.IncorrectEquipmentType(this, "Incorrect slot type for weapon.");
-                
-                itemSlotHandler.HandleCantInsert(this, info, $"{info.item.itemName} cannot be inserted into {ArchString.CamelToTitle(equipment.equipmentSlotType.ToString())} slot.");
+                itemSlotHandler.HandleCantInsert(this, info, $"{info.item.itemName} cannot be inserted into {ArchString.CamelToTitle(slotType.ToString())} slot.");
 
                 return false;
             }
