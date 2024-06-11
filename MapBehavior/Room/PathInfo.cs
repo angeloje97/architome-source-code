@@ -20,7 +20,7 @@ namespace Architome
         public Transform enableOnClose;
 
         public WalkThroughActivate pathActivator;
-        public GameObject otherRoom;
+        public GameObject otherRoom { get; set; }
         public GameObject screen;
 
         public Transform roomAnchor;
@@ -120,7 +120,7 @@ namespace Architome
                 var paths = otherRoom.GetComponentsInChildren<PathInfo>().ToList();
                 var availablePaths = new List<PathInfo>();
 
-                for(int i = 0; i < paths.Count; i++)
+                for (int i = 0; i < paths.Count; i++)
                 {
                     var badPath = badPathIndex.Contains(i);
                     var neverEntrance = paths[i].neverEntrance;
@@ -134,7 +134,7 @@ namespace Architome
                 var randomPath = ArchGeneric.RandomItem(availablePaths);
                 entrancePathIndex = paths.IndexOf(randomPath);
                 randomPath.setPath = true;
-                
+
 
                 //var anchor = new GameObject($"{otherRoom.name} Anchor");
 
@@ -144,11 +144,11 @@ namespace Architome
                 otherRoom.transform.SetParent(anchor.transform);
 
                 anchor.transform.SetPositionAndRotation(roomAnchor.transform.position, roomAnchor.transform.rotation);
-                
+
                 otherRoom.transform.SetParent(parent);
 
                 //Destroy(anchor);
-                
+
 
                 badRoom = await info.CheckBadSpawn();
 
@@ -208,6 +208,22 @@ namespace Architome
             isUsed = true;
             return info;
 
+        }
+
+        public List<PathInfo> OtherRoomPath()
+        {
+            var paths = new List<PathInfo>();
+            if (otherRoom == null) return paths;
+
+            var otherRoomInfo = otherRoom.GetComponent<RoomInfo>();
+
+            foreach(var path in otherRoomInfo.paths)
+            {
+                if (path == this) continue;
+                paths.Add(path);
+            }
+
+            return paths;
         }
 
         public void CheckPath()
