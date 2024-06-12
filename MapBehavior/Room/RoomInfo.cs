@@ -523,6 +523,17 @@ namespace Architome
                 return null; 
             } 
         }
+
+        #region Static Functions
+
+        public static List<RoomInfo> RoomsBetween2Rooms(RoomInfo roomA, RoomInfo roomB)
+        {
+            var rooms = new List<RoomInfo>();
+
+            return rooms;
+        }
+
+        #endregion
     }
 }
 

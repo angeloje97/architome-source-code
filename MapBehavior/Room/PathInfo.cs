@@ -220,11 +220,13 @@ namespace Architome
             foreach(var path in otherRoomInfo.paths)
             {
                 if (path == this) continue;
+                if (path.otherRoom == null) continue;
                 paths.Add(path);
             }
 
             return paths;
         }
+
 
         public void CheckPath()
         {
