@@ -7,6 +7,7 @@ using System;
 using System.Threading.Tasks;
 using Architome.Enums;
 using PixelCrushers.DialogueSystem.UnityGUI;
+using UnityEditor.Build.Reporting;
 
 namespace Architome
 {
@@ -526,11 +527,79 @@ namespace Architome
 
         #region Static Functions
 
-        public static List<RoomInfo> RoomsBetween2Rooms(RoomInfo roomA, RoomInfo roomB)
+        public List<RoomInfo> AdjacentRooms()
         {
             var rooms = new List<RoomInfo>();
 
+            foreach(var path in paths)
+            {
+                if (path.otherRoom)
+                {
+                    rooms.Add(path.otherRoom.GetComponent<RoomInfo>());
+                }
+            }
+
             return rooms;
+        }
+
+        public static List<RoomInfo> RoomsBetween2Rooms(RoomInfo roomA, RoomInfo roomB)
+        {
+            var rooms = new Queue<RoomInfo>();
+            var visited = new HashSet<RoomInfo>();
+            var predecessor = new Dictionary<RoomInfo, RoomInfo>();
+            rooms.Enqueue(roomA);
+
+            while(rooms.Count != 0)
+            {
+                var currentRoom = rooms.Dequeue();
+                var otherRooms = currentRoom.AdjacentRooms();
+
+                foreach(var room in otherRooms)
+                {
+                    if (visited.Contains(room)) continue;
+                    visited.Add(room);
+                    predecessor[room] = currentRoom;
+
+                    rooms.Enqueue(room);
+
+                    if (room.Equals(roomB))
+                    {
+                        var path = new List<RoomInfo>();
+                        var step = roomB;
+
+                        while(step != null)
+                        {
+                            path.Insert(0, step);
+                            if (!predecessor.ContainsKey(step))
+                            {
+                                step = null;
+                                continue;
+                            }
+
+                            step = predecessor[step];
+                        }
+
+                        return path;
+                    }
+
+                }
+
+
+                if (otherRooms.Contains(roomB))
+                {
+                    rooms.Enqueue(currentRoom);
+                    rooms.Enqueue(roomB);
+                    break;
+                }
+
+                foreach(var room in otherRooms)
+                {
+                    if (rooms.Contains(room)) continue;
+                    rooms.Enqueue(room);
+                }
+            }
+
+            return new();
         }
 
         #endregion
