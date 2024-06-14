@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Architome.Enums;
 using PixelCrushers.DialogueSystem.UnityGUI;
 using UnityEditor.Build.Reporting;
+using PixelCrushers.DialogueSystem;
 
 namespace Architome
 {
@@ -525,7 +526,9 @@ namespace Architome
             } 
         }
 
-        #region Static Functions
+
+
+        #region Adjacent Rooms
 
         public List<RoomInfo> AdjacentRooms()
         {
@@ -602,6 +605,36 @@ namespace Architome
             return new();
         }
 
+
+        public async void BFSAdjacentRooms(Action<RoomInfo> action, float delay)
+        {
+            int ms = (int) delay * 1000;
+
+            var queue = new Queue<RoomInfo>();
+            var visited = new HashSet<RoomInfo>();
+
+            queue.Enqueue(this);
+
+            while(queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+
+                await Task.Delay(ms);
+
+                visited.Add(current);
+                var otherRooms = AdjacentRooms();
+
+                foreach(var room in otherRooms)
+                {
+                    if (visited.Contains(room)) continue;
+                    queue.Enqueue(room);
+
+                    action(room);
+                }
+
+            }
+
+        }
         #endregion
     }
 }
