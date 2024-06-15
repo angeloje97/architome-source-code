@@ -9,6 +9,7 @@ using Architome.Enums;
 using PixelCrushers.DialogueSystem.UnityGUI;
 using UnityEditor.Build.Reporting;
 using PixelCrushers.DialogueSystem;
+using Language.Lua;
 
 namespace Architome
 {
@@ -636,6 +637,37 @@ namespace Architome
 
         }
         #endregion
+
+
+        public async void RoomsInWaves(Action<List<RoomInfo>> action, float delay)
+        {
+            var currentWave = new List<RoomInfo> { this };
+            var visited = new HashSet<RoomInfo>() { this };
+
+            var ms = (int) delay * 1000;
+
+            while(currentWave.Count > 0)
+            {
+                action?.Invoke(currentWave);
+
+                await Task.Delay(ms);
+
+                currentWave = new();
+
+                foreach(var room in currentWave)
+                {
+                    var adjacentRooms = room.AdjacentRooms();
+
+                    foreach(var adjacentRoom in adjacentRooms)
+                    {
+                        if (visited.Contains(adjacentRoom)) continue;
+
+                        visited.Add(adjacentRoom);
+                        currentWave.Add(adjacentRoom);
+                    }
+                }
+            }
+        }
     }
 }
 
