@@ -636,38 +636,54 @@ namespace Architome
             }
 
         }
-        #endregion
 
-
-        public async void RoomsInWaves(Action<List<RoomInfo>> action, float delay)
+        public async Task RoomsInWaves(Action<List<RoomInfo>> action, float delay)
         {
             var currentWave = new List<RoomInfo> { this };
             var visited = new HashSet<RoomInfo>() { this };
 
-            var ms = (int) delay * 1000;
+            var ms = (int)delay * 1000;
 
-            while(currentWave.Count > 0)
+            while (currentWave.Count > 0)
             {
                 action?.Invoke(currentWave);
 
                 await Task.Delay(ms);
 
-                currentWave = new();
+                var newWave = new List<RoomInfo>();
 
-                foreach(var room in currentWave)
+                foreach (var room in currentWave)
                 {
                     var adjacentRooms = room.AdjacentRooms();
 
-                    foreach(var adjacentRoom in adjacentRooms)
+                    foreach (var adjacentRoom in adjacentRooms)
                     {
                         if (visited.Contains(adjacentRoom)) continue;
 
                         visited.Add(adjacentRoom);
-                        currentWave.Add(adjacentRoom);
+                        newWave.Add(adjacentRoom);
                     }
                 }
+
+                currentWave = newWave;
             }
         }
+
+        public async Task SetRevealedInWaves(bool revealed, float delay)
+        {
+            var center = V3Helper.Average(allObjects);
+
+            await RoomsInWaves((List<RoomInfo> rooms) => {
+            foreach(var room in rooms)
+            {
+                    room.ShowRoom(revealed, center);
+            }
+            }, delay);
+        }
+        #endregion
+
+
+
     }
 }
 

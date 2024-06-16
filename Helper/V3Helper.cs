@@ -89,6 +89,21 @@ namespace Architome
             return total / count;
         }
 
+        public static Vector3 Average(IEnumerable<Transform> objects)
+        {
+            var total = new Vector3();
+            int count = 0;
+
+            foreach(var item in objects)
+            {
+                total += item.position;
+                count++;
+            }
+
+            if (count == 0) return new Vector3();
+
+            return total / count;
+        }
 
         public static float Height(Transform trans)
         {

@@ -26,7 +26,6 @@ namespace Architome
             {
                 CalculateProperties();
             }
-
         }
 
         public VectorCluster(T component, bool calculateImmediately = true)
