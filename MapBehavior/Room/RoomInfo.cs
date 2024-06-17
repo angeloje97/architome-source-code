@@ -606,7 +606,6 @@ namespace Architome
             return new();
         }
 
-
         public async void BFSAdjacentRooms(Action<RoomInfo> action, float delay)
         {
             int ms = (int) delay * 1000;
@@ -664,7 +663,6 @@ namespace Architome
                         newWave.Add(adjacentRoom);
                     }
                 }
-
                 currentWave = newWave;
             }
         }
@@ -680,6 +678,7 @@ namespace Architome
             }
             }, delay);
         }
+
         #endregion
 
 
