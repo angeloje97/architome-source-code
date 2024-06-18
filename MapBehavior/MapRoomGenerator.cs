@@ -278,7 +278,8 @@ namespace Architome
 
                     foreach (var path in availableRandomPaths)
                     {
-                        var newRoom = await path.SpawnRoom(skeletonRooms[0], roomList, false);
+                        var skeletonRoom = skeletonRooms[0].GetComponent<RoomInfo>();
+                        var newRoom = await path.SpawnRoom(skeletonRoom, roomList, false);
 
 
 
@@ -386,7 +387,9 @@ namespace Architome
                 var seedPathIndex = UnityEngine.Random.Range(0, availablePaths.Count);
                 var seedRoomIndex = UnityEngine.Random.Range(0, availableRooms.Count);
 
-                var newRoom = await availablePaths[seedPathIndex].SpawnRoom(availableRooms[seedRoomIndex], roomList);
+                var availableRoom = availableRooms[seedRoomIndex].GetComponent<RoomInfo>();
+
+                var newRoom = await availablePaths[seedPathIndex].SpawnRoom(availableRoom, roomList);
                 var badSpawn = newRoom.badSpawn;
                 availableRooms.Remove(availableRooms[seedRoomIndex]);
 
@@ -409,7 +412,7 @@ namespace Architome
 
                     var randomPath = ArchGeneric.RandomItem(availablePaths);
 
-                    newRoom = await randomPath.SpawnRoom(badRoom.gameObject, roomList, true);
+                    newRoom = await randomPath.SpawnRoom(badRoom, roomList, true);
                     badSpawn = newRoom.badSpawn;
                     //Destroy(badRoom.gameObject);
 

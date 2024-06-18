@@ -20,7 +20,7 @@ namespace Architome
         public Transform enableOnClose;
 
         public WalkThroughActivate pathActivator;
-        public GameObject otherRoom { get; set; }
+        public RoomInfo otherRoom { get; set; }
         public GameObject screen;
 
         public Transform roomAnchor;
@@ -80,7 +80,7 @@ namespace Architome
 
 
 
-        async public Task<RoomInfo> SpawnRoom(GameObject room, Transform parent, bool existingRoom = false)
+        async public Task<RoomInfo> SpawnRoom(RoomInfo room, Transform parent, bool existingRoom = false)
         {
             if (!room.GetComponent<RoomInfo>()) { return null; }
 
@@ -295,7 +295,7 @@ namespace Architome
             {
                 if (otherPath.room)
                 {
-                    otherRoom = otherPath.room.gameObject;
+                    otherRoom = otherPath.room;
                 }
 
                 if (pathActivator && otherPath.room)

@@ -460,9 +460,6 @@ namespace Architome
             
         }
 
-        
-
-
         bool CheckAll()
         {
             if (roomCenter == null) return true;
@@ -542,7 +539,6 @@ namespace Architome
                     rooms.Add(path.otherRoom.GetComponent<RoomInfo>());
                 }
             }
-
             return rooms;
         }
 
@@ -680,9 +676,7 @@ namespace Architome
         }
 
         #endregion
-
-
-
+        
     }
 }
 
