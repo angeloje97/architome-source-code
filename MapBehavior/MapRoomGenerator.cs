@@ -9,7 +9,6 @@ namespace Architome
 {
     public class MapRoomGenerator : MonoBehaviour
     {
-        // Start is called before the first frame update
         public static MapRoomGenerator active { get; private set; }
 
         public bool useCoreInfo;
@@ -22,11 +21,11 @@ namespace Architome
         public bool generatedRooms;
 
         [Header("Rooms and Paths")]
-        public GameObject startingRoom;
-        public List<GameObject> skeletonRooms;
-        public List<GameObject> availableRooms;
-        public List<GameObject> badSpawnRooms;
-        public List<GameObject> roomsInUse;
+        public RoomInfo startingRoom;
+        public List<RoomInfo> skeletonRooms;
+        public List<RoomInfo> availableRooms;
+        public List<RoomInfo> badSpawnRooms;
+        public List<RoomInfo> roomsInUse;
         public List<PathInfo> paths;
 
         public Transform roomAnchor;
@@ -148,27 +147,27 @@ namespace Architome
 
             foreach (var room in dungeonInfo.skeleton)
             {
-                skeletonRooms.Add(room.gameObject);
+                skeletonRooms.Add(room);
                 roomsToGenerate++;
             }
 
             if (dungeonInfo.entrance)
             {
-                startingRoom = dungeonInfo.entrance.gameObject;
+                startingRoom = dungeonInfo.entrance;
                 roomsToGenerate++;
 
             }
 
             if (dungeonInfo.boss)
             {
-                skeletonRooms.Add(dungeonInfo.boss.gameObject);
+                skeletonRooms.Add(dungeonInfo.boss);
                 roomsToGenerate++;
 
             }
 
             foreach (var room in dungeonInfo.random)
             {
-                availableRooms.Add(room.gameObject);
+                availableRooms.Add(room);
                 roomsToGenerate++;
 
             }
@@ -278,10 +277,8 @@ namespace Architome
 
                     foreach (var path in availableRandomPaths)
                     {
-                        var skeletonRoom = skeletonRooms[0].GetComponent<RoomInfo>();
+                        var skeletonRoom = skeletonRooms[0];
                         var newRoom = await path.SpawnRoom(skeletonRoom, roomList, false);
-
-
 
                         if (newRoom.badSpawn)
                         {
@@ -387,7 +384,7 @@ namespace Architome
                 var seedPathIndex = UnityEngine.Random.Range(0, availablePaths.Count);
                 var seedRoomIndex = UnityEngine.Random.Range(0, availableRooms.Count);
 
-                var availableRoom = availableRooms[seedRoomIndex].GetComponent<RoomInfo>();
+                var availableRoom = availableRooms[seedRoomIndex];
 
                 var newRoom = await availablePaths[seedPathIndex].SpawnRoom(availableRoom, roomList);
                 var badSpawn = newRoom.badSpawn;
@@ -616,8 +613,8 @@ namespace Architome
                 roomsInUse = new();
             }
 
-            if (roomsInUse.Contains(room.gameObject)) return;
-            roomsInUse.Add(room.gameObject);
+            if (roomsInUse.Contains(room)) return;
+            roomsInUse.Add(room);
 
             roomsGenerated = roomsInUse.Count;
 

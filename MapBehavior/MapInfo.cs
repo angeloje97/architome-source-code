@@ -18,7 +18,7 @@ namespace Architome
         public bool generateEntities;
 
         [Header("Map Properties")]
-        public List<GameObject> rooms;
+        public List<RoomInfo> rooms;
         //public List<GameObject> entities;
         public List<Transform> patrolPoints;
         public Transform trash;

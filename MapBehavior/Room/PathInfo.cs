@@ -77,9 +77,6 @@ namespace Architome
             UpdatePath(isOpen);
         }
 
-
-
-
         async public Task<RoomInfo> SpawnRoom(RoomInfo room, Transform parent, bool existingRoom = false)
         {
             if (!room.GetComponent<RoomInfo>()) { return null; }
