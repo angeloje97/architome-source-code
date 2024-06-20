@@ -39,10 +39,32 @@ namespace Architome
             }
         }
 
+        public VectorCluster(IEnumerable<Transform> transforms, Transform parent, bool calculateImmediately = true)
+        {
+            components = new();
+
+            foreach(var transform in transforms)
+            {
+                var comp = transform.GetComponent<T>();
+
+                if (comp)
+                {
+                    components.Add(comp);
+                }
+            }
+
+            if (calculateImmediately)
+            {
+                CalculateProperties();
+            }
+        }
+
+
         public void CalculateProperties()
         {
             min = V3Helper.PositiveInfinity();
             max = V3Helper.NegativeInfinity();
+            
             var total = new Vector3();
 
             foreach (var component in components)

@@ -70,7 +70,7 @@ namespace Architome
             return (max + min) / 2;
         }
 
-        public static Vector3 Average<T>(List<T> list) where T : Component
+        public static Vector3 Average<T>(IEnumerable<T> list) where T : Component
         {
             var total = new Vector3();
             int count = 0;

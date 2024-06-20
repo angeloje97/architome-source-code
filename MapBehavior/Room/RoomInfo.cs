@@ -51,6 +51,8 @@ namespace Architome
         public PathInfo originPath;
         public MapInfo mapInfo;
         public Transform prefab;
+        public VectorCluster<Transform> vectorCLuster;
+
 
 
         [Header("Path Properties")]
@@ -84,8 +86,8 @@ namespace Architome
         public Transform patrolGroups;
 
         [Header("RoomBehavior")]
-        public Transform[] allObjects;
-        public Renderer[] allRenderers;
+        public List<Transform> allObjects;
+        public List<Renderer> allRenderers;
         public bool ignoreHideOnStart;
         public bool ignoreCheckRoomCollison;
         public bool isRevealed = true;
@@ -97,7 +99,7 @@ namespace Architome
         public struct Events
         {
             public Action<RoomInfo, bool> OnShowRoom;
-            public Action<RoomInfo, Renderer[]> OnGetAllRenderers;
+            public Action<RoomInfo, List<Renderer>> OnGetAllRenderers;
 
             //Entity Events
             public Action<RoomInfo> OnEnterRoom;
@@ -227,7 +229,6 @@ namespace Architome
             GetDependencies();
             
 
-
             
         }
         void Update()
@@ -256,7 +257,7 @@ namespace Architome
 
             if (mapInfo && !spawnedByGenerator)
             {
-                mapInfo.RoomGenerator().roomsInUse.Add(gameObject);
+                mapInfo.RoomGenerator().roomsInUse.Add(this);
             }
 
             mapInfo.EntityGenerator().OnEntitiesGenerated += OnEntitiesGenerated;
@@ -273,12 +274,15 @@ namespace Architome
         }
         public void GetAllObjects()
         {
-            allObjects = this.transform.GetComponentsInChildren<Transform>();
+
+            allObjects = this.transform.GetComponentsInChildren<Transform>().ToList();
+
+            vectorCLuster = new VectorCluster<Transform>(allObjects, this);
         }
 
         public void GetAllRenderers()
         {
-            allRenderers = GetComponentsInChildren<Renderer>();
+            allRenderers = GetComponentsInChildren<Renderer>().ToList();
 
         }
         public async void ShowRoom(bool val, Vector3 point = new Vector3(), bool forceShow = false)

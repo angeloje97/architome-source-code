@@ -175,7 +175,6 @@ namespace Architome
 
         }
         
-
         public Transform RoomAnchor()
         {
             if (roomAnchor == null)
