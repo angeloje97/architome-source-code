@@ -29,6 +29,7 @@ namespace Architome
         public ArchScene setScene;
 
 
+
         public static PortalInfo EntryPortal { get; set; }
 
         [Serializable]
@@ -92,10 +93,16 @@ namespace Architome
             base.Awake();
             eventHandler = new(this);
             portals ??= new();
-            if (entryPortal)
+
+            if (info.room.isEntranceRoom)
             {
-                EntryPortal = this;
+                if (entryPortal)
+                {
+                    EntryPortal = this;
+                }
+
             }
+
             
 
         }

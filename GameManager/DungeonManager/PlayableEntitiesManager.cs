@@ -145,12 +145,13 @@ namespace Architome
         }
         void OnSceneStart()
         {
-            ArchAction.Delay(() => {
+            MapRoomGenerator.active.OnCreateStartingRoom += async (MapRoomGenerator generator) => {
+                await Task.Delay(100);
                 TransferUnitsToEntrancePortal();
                 StopMovingEntities();
                 HandlePortals();
-            
-            }, .5f);
+                
+            };
         }
         void OnLoadScene(ArchSceneManager sceneManager)
         {

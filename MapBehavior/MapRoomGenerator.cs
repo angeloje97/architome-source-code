@@ -55,6 +55,7 @@ namespace Architome
         public Action<MapRoomGenerator, RoomInfo> OnSpawnRoom;
         public Action<MapRoomGenerator> BeforeEndGeneration { get; set; }
         public Action<MapRoomGenerator> AfterEndGeneration;
+        public Action<MapRoomGenerator> OnCreateStartingRoom { get; set; }
 
         public int roomsGenerated;
         public int roomsToGenerate;
@@ -68,7 +69,6 @@ namespace Architome
             HandleHideRooms();
             HandleCoreDungeons();
             GenerateRooms();
-            
         }
 
         void GetDependencies()
@@ -220,11 +220,13 @@ namespace Architome
 
             var newRoom = Instantiate(room, roomList);
 
+            newRoom.spawnedByGenerator = true;
 
-            var info = newRoom.GetComponent<RoomInfo>();
-            info.spawnedByGenerator = true;
+            newRoom.isEntranceRoom = true;
 
-            AddRoom(info);
+            AddRoom(newRoom);
+
+            OnCreateStartingRoom?.Invoke(this);
         }
 
         #region Spawning Rooms
