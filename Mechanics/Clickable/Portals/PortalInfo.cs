@@ -87,12 +87,6 @@ namespace Architome
             portalList = portals;
             portalNum = portals.IndexOf(this);
             HandlePortalList();
-        }
-        protected override void Awake()
-        {
-            base.Awake();
-            eventHandler = new(this);
-            portals ??= new();
 
             if (info.room.isEntranceRoom)
             {
@@ -102,10 +96,20 @@ namespace Architome
                 }
 
             }
+        }
+        protected override void Awake()
+        {
+            base.Awake();
+            eventHandler = new(this);
+            portals ??= new();
+
+            
 
             
 
         }
+
+
         void GetDependencies()
         {
             if (GetComponent<Clickable>())

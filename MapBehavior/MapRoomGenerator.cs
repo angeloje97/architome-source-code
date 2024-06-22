@@ -412,9 +412,6 @@ namespace Architome
 
                     newRoom = await randomPath.SpawnRoom(badRoom, roomList, true);
                     badSpawn = newRoom.badSpawn;
-                    //Destroy(badRoom.gameObject);
-
-                    //badSpawn = await newRoom.CheckBadSpawn();
                 }
 
                 AddRoom(newRoom);
@@ -585,7 +582,7 @@ namespace Architome
             for(int i = roomsInUse.Count - 1; i >= 0; i--)
             {
                 if (!Application.isPlaying) break;
-                Destroy(roomsInUse[i]);
+                Destroy(roomsInUse[i].gameObject);
             }
 
             //foreach(var room in roomList.GetComponentsInChildren<RoomInfo>())

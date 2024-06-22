@@ -8,7 +8,7 @@ namespace Architome
 {
     public class MapGeneratorLooper : MonoBehaviour
     {
-        List<GameObject> skeleton, available;
+        List<RoomInfo> skeleton, available;
         MapRoomGenerator roomGenerator;
 
         public bool limitLoops;
@@ -25,8 +25,8 @@ namespace Architome
             roomGenerator = MapRoomGenerator.active;
             if (roomGenerator == null) return;
 
-            skeleton = roomGenerator.skeletonRooms.ToList();
-            available = roomGenerator.availableRooms.ToList();
+            skeleton = roomGenerator.skeletonRooms;
+            available = roomGenerator.availableRooms;
             roomGenerator.ignoreBackgorund = true;
             roomGenerator.OnRoomsGenerated += OnRoomsGenerated;
         }

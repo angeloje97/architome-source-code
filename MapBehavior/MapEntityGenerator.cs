@@ -170,9 +170,8 @@ public class MapEntityGenerator : MonoBehaviour
 
             async Task HandleEntitiesAsync()
             {
-                foreach (GameObject room in mapInfo.rooms)
+                foreach (RoomInfo roomInfo in mapInfo.rooms)
                 {
-                    var roomInfo = room.GetComponent<RoomInfo>();
                     if (roomInfo == null) { continue; }
 
                     var pool = roomInfo.pool;

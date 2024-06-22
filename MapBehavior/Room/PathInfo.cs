@@ -100,7 +100,7 @@ namespace Architome
             {
                 if (Application.isPlaying)
                 {
-                    Destroy(room);
+                    Destroy(room.gameObject);
                 }
             }
 
@@ -161,7 +161,7 @@ namespace Architome
                     info.spawnedByGenerator = true;
 
                     if (!Application.isPlaying) break;
-                    Destroy(destroyThis);
+                    Destroy(destroyThis.gameObject);
 
                 }
                 await Task.Delay((int)(1000 * mapRoomGenerator.fixDelay));
@@ -178,7 +178,7 @@ namespace Architome
             otherRoom = Instantiate(tempRoom, position, rotation);
             if (Application.isPlaying)
             {
-                Destroy(tempRoom);
+                Destroy(tempRoom.gameObject);
 
             }
 
