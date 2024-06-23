@@ -446,9 +446,12 @@ namespace Architome
         async Task HandleEndGeneration()
         {
             BeforeEndGeneration?.Invoke(this);
+
             ClearNullRooms();
             HandleCheckPaths();
+
             await HandleBackgroundAdjustment();
+
             AssignRooms();
             AssignPatrolPoints();
             AfterEndGeneration?.Invoke(this);
@@ -584,12 +587,6 @@ namespace Architome
                 if (!Application.isPlaying) break;
                 Destroy(roomsInUse[i].gameObject);
             }
-
-            //foreach(var room in roomList.GetComponentsInChildren<RoomInfo>())
-            //{
-            //    if (!Application.isPlaying) break;
-            //    Destroy(room.gameObject);
-            //}
 
             foreach(Transform child in roomList)
             {
