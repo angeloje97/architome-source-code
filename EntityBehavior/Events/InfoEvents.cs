@@ -30,6 +30,7 @@ namespace Architome
             sceneEvents = new(entity);
             this.socialEvents = new(entity);
             portalEvents = new(entity);
+            eventHandler = new(entity);
         }
         #endregion
 
@@ -37,6 +38,7 @@ namespace Architome
         {
             IsMaleCheck,
             IsFemaleCheck,
+            OnHasGatheredDependencies
         }
 
         #region Movement Events
@@ -75,7 +77,34 @@ namespace Architome
 
         #endregion
 
-        
+        #region Generic Events
+
+        public class EventData
+        {
+            public EntityInfo entity;
+
+            public bool initiated => entity.initiated;
+            public bool gatheredDependencies => entity.gatheredDependenies;
+
+            public EventData(EntityInfo entity)
+            {
+                this.entity = entity;
+            }
+        }
+
+        public ArchEventHandler<EventType, EventData> eventHandler;
+
+        public void Invoke(EventType trigger, EventData data) => eventHandler.Invoke(trigger, data);
+
+        public Action AddListener(EventType trigger, Action<EventData> eventData, MonoActor actor) => eventHandler.AddListener(trigger, eventData, actor);
+
+        public bool InvokeCheck(EventType trigger, EventData data) => eventHandler.InvokeCheck(trigger, data);
+
+        public Action AddListenerCheck(EventType trigger, Action<EventData, List<bool>> actionCheck, MonoActor actor) => eventHandler.AddListenerCheck(trigger, actionCheck, actor);
+
+
+        #endregion
+
 
         public Dictionary<EventType, Action<EntityInfo, object, List<bool>>> flagCheck;
 

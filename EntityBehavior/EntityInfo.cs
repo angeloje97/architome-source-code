@@ -210,6 +210,7 @@ namespace Architome
         }
 
         public bool initiated { get; private set; }
+        public bool gatheredDependenies { get; private set; }
         void Start()
         {
             EntityStart();
@@ -285,20 +286,21 @@ namespace Architome
                 entityControlType = EntityControlType.NoControl;
             }
 
-            //health = maxHealth;
-            //mana = maxMana;
-            //shield = 0;
             isAlive = true;
 
             GetPartyControls();
-            //Invoke("SetEntityStats", .125f);
-            //Invoke("UpdateCurrentStats", .250f);
             SetEntityStats();
             UpdateCurrentStats();
 
 
 
             UpdateHealthRegen();
+        }
+
+        public void UpdateGatheredDependencies()
+        {
+            if (!infoEvents.InvokeCheck(InfoEvents.EventType.OnHasGatheredDependencies, new(this))) return;
+            gatheredDependenies = true;
         }
         public void UpdateHealthRegen()
         {
