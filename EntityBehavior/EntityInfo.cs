@@ -245,7 +245,7 @@ namespace Architome
 
             components.properties = GetComponentsInChildren<EntityProp>();
 
-            StartCoroutine(HandleRegeneration());
+            HandleRegeneration();
         }
 
         public void StartUp()
@@ -1315,12 +1315,12 @@ namespace Architome
         }
 
         #region Entity Components
-        public IEnumerator HandleRegeneration()
+        public async void HandleRegeneration()
         {
 
             while (true)
             {
-                yield return new WaitForSeconds(1f);
+                await Task.Delay(1000);
                 if (isAlive)
                 {
                     HandleHealthRegen();
