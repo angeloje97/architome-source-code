@@ -38,7 +38,7 @@ namespace Architome
         {
             IsMaleCheck,
             IsFemaleCheck,
-            OnHasGatheredDependencies
+            OnHasGatheredDependenciesCheck,
         }
 
         #region Movement Events

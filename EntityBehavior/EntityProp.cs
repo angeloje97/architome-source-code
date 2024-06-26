@@ -39,6 +39,7 @@ namespace Architome
                 var parent = transform.parent;
 
                 entityInfo = parent.GetComponent<EntityInfo>();
+                Action onInitiated = null;
 
                 if (entityInfo == null)
                 {
@@ -49,6 +50,12 @@ namespace Architome
                     await entityPropParent.UntilInitiationComplete();
 
                     entityInfo = entityPropParent.entityInfo;
+
+                    onInitiated += infoEvents.AddListenerCheck(InfoEvents.EventType.OnHasGatheredDependenciesCheck, (entityData, checks) => {
+                        checks.Add(false);
+                    }, this);
+
+
                 }
                 else
                 {
@@ -59,7 +66,10 @@ namespace Architome
                 if (this == null) return;
                 GetDependencies();
                 await GetDependenciesTask();
+
                 initiated = true;
+                onInitiated?.Invoke();
+                entityInfo.UpdateGatheredDependencies();
             }
             catch (Exception e)
             {

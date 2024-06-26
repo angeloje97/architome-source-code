@@ -299,9 +299,18 @@ namespace Architome
 
         public void UpdateGatheredDependencies()
         {
-            if (!infoEvents.InvokeCheck(InfoEvents.EventType.OnHasGatheredDependencies, new(this))) return;
+            if (!infoEvents.InvokeCheck(InfoEvents.EventType.OnHasGatheredDependenciesCheck, new(this))) return;
             gatheredDependenies = true;
         }
+
+        public async Task UntilGatheredDependencies()
+        {
+            await ArchAction.WaitUntil((float deltaTime) =>
+            {
+                return gatheredDependenies;
+            }, true);
+        }
+
         public void UpdateHealthRegen()
         {
             if (rarity != EntityRarity.Player)
