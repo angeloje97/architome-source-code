@@ -198,6 +198,8 @@ namespace Architome
 
         #region Initialization
 
+        public bool initiated { get; private set; }
+        public bool gatheredDependenies { get; private set; }
         protected override void Awake()
         {
             base.Awake();
@@ -209,8 +211,6 @@ namespace Architome
             combatEvents.Initiate(this);
         }
 
-        public bool initiated { get; private set; }
-        public bool gatheredDependenies { get; private set; }
         void Start()
         {
             EntityStart();

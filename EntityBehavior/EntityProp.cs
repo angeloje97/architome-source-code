@@ -11,8 +11,6 @@ namespace Architome
 {
     public class EntityProp : MonoActor
     {
-
-        //Last Checked: Character Equipment Handler
         #region Common Data
 
         public EntityInfo entityInfo;
@@ -26,7 +24,7 @@ namespace Architome
         #region Initiation
         public bool initiated { get; private set; }
 
-
+        
         protected virtual async void Start()
         {
             await Initiate();
@@ -81,13 +79,12 @@ namespace Architome
         public virtual async Task GetDependenciesTask() => await Task.Yield();
 
         public virtual void GetDependencies() { }
-
-        #endregion
-
         public async Task UntilInitiationComplete()
         {
             await ArchAction.WaitUntil(() => initiated, true);
         }
+
+        #endregion
 
         #region Loop
 

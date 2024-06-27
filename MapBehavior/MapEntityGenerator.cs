@@ -254,7 +254,7 @@ public class MapEntityGenerator : MonoBehaviour
             if (!ArchGeneric.RollSuccess(chance)) continue;
 
             var pickedEntity = ArchGeneric.RandomItem(randomEntities);
-            await SpawnEntity(pickedEntity, trans);
+            await SpawnEntity(pickedEntity.GetComponent<EntityInfo>(), trans);
         }
     }
 
@@ -282,7 +282,7 @@ public class MapEntityGenerator : MonoBehaviour
 
 
 
-        var entity = await SpawnEntity(boss, bossPosition);
+        var entity = await SpawnEntity(boss.GetComponent<EntityInfo>(), bossPosition);
 
 
         return true;
@@ -328,18 +328,18 @@ public class MapEntityGenerator : MonoBehaviour
 
     async void SpawnPatrolEntity(GameObject entity, Transform spot)
     {
-        var newEntity = await SpawnEntity(entity, spot);
+        var newEntity = await SpawnEntity(entity.GetComponent<EntityInfo>(), spot);
         newEntity.GetComponentInChildren<NoCombatBehavior>().patrolSpot = spot;
     }
 
-    async Task<EntityInfo> SpawnEntity(GameObject entity, Transform spot)
+    async Task<EntityInfo> SpawnEntity(EntityInfo entity, Transform spot)
     {
         //var normalRotation = new Quaternion();
         
         
         var roomInfo = spot.GetComponentInParent<RoomInfo>();
 
-        var newEntity = world.SpawnEntity(entity, spot.position).GetComponent<EntityInfo>();
+        var newEntity = world.SpawnEntity(entity, spot.position);
         newEntity.transform.SetParent(entityList, true);
             
             //Instantiate(entity, spot.position, normalRotation, entityList);
@@ -352,11 +352,11 @@ public class MapEntityGenerator : MonoBehaviour
 
         if (targetYield == 0)
         {
-            await Task.Yield();
+            await newEntity.UntilGatheredDependencies();
         }
         else if(entitiesSpawned % targetYield == 0)
         {
-            await Task.Yield();
+            await newEntity.UntilGatheredDependencies();
         }
 
         OnGenerateEntity?.Invoke(this, newEntity);

@@ -99,7 +99,7 @@ namespace Architome
                 if (currentlySpawned.Count >= maxSpawnedEntities) break;
                 var entity = ArchGeneric.RandomItem(spawnPool);
 
-                var spawnedEntity = worldAction.SpawnEntity(entity.gameObject, RandomPosition()).GetComponent<EntityInfo>();
+                var spawnedEntity = worldAction.SpawnEntity(entity, RandomPosition());
 
                 spawnedEntity.SetSummoned(new()
                 {

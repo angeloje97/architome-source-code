@@ -285,7 +285,7 @@ namespace Architome
             lastSpawnBeacon.spawnEvents.OnSpawnEntity?.Invoke(entityInfo);
         }
 
-        public GameObject SpawnEntity(GameObject entity, Vector3 position)
+        public EntityInfo SpawnEntity(EntityInfo entity, Vector3 position)
         {
             var collider = entity.GetComponent<Collider>();
             var character = entity.GetComponentInChildren<CharacterInfo>();
