@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Linq;
 
 namespace Architome
 {
@@ -30,11 +31,14 @@ namespace Architome
         }
 
 
-        public List<GameObject> tier1Entities;
-        public List<GameObject> tier2Entities;
-        public List<GameObject> tier3Entities;
-        public List<GameObject> tier1Spawners;
-        public List<GameObject> tier2Spawners;
+        public List<EntityInfo> tier1Entities;
+        
+        public List<EntityInfo> tier2Entities;
+        
+        public List<EntityInfo> tier3Entities;
+        
+        public List<SpawnerInfo> tier1Spawners;
+        public List<SpawnerInfo> tier2Spawners;
         public List<GameObject> neutralEntities;
         public List<GameObject> bossEntities;
         public List<GameObject> chests;
@@ -57,6 +61,7 @@ namespace Architome
                     }
                 }
             }
+
         }
     }
 }

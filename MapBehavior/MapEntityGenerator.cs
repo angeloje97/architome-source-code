@@ -189,7 +189,7 @@ public class MapEntityGenerator : MonoBehaviour
                     await SpawnRandomInPosition(tier2Entities, roomInfo.tier2EnemyPos);
                     await SpawnRandomInPosition(tier1Spawners, roomInfo.tier1SpawnerPos);
                     await SpawnRandomInPosition(tier2Spawners, roomInfo.tier2SpawnerPos);
-                
+
 
                     if (roomInfo.patrolGroups != null &&
                         patrolGroups.Count > 0)
@@ -243,7 +243,7 @@ public class MapEntityGenerator : MonoBehaviour
     }
 
 
-    async Task SpawnRandomInPosition(List<GameObject> randomEntities, Transform parent, float chance = 85f)
+    async Task SpawnRandomInPosition<T>(List<T> randomEntities, Transform parent, float chance = 85f) where T: EntityInfo
     {
         if (randomEntities == null) return;
         if (randomEntities.Count == 0) return;
@@ -254,7 +254,7 @@ public class MapEntityGenerator : MonoBehaviour
             if (!ArchGeneric.RollSuccess(chance)) continue;
 
             var pickedEntity = ArchGeneric.RandomItem(randomEntities);
-            await SpawnEntity(pickedEntity.GetComponent<EntityInfo>(), trans);
+            await SpawnEntity(pickedEntity, trans);
         }
     }
 
@@ -334,16 +334,11 @@ public class MapEntityGenerator : MonoBehaviour
 
     async Task<EntityInfo> SpawnEntity(EntityInfo entity, Transform spot)
     {
-        //var normalRotation = new Quaternion();
-        
-        
         var roomInfo = spot.GetComponentInParent<RoomInfo>();
 
         var newEntity = world.SpawnEntity(entity, spot.position);
         newEntity.transform.SetParent(entityList, true);
             
-            //Instantiate(entity, spot.position, normalRotation, entityList);
-
         newEntity.CharacterInfo().gameObject.transform.rotation = spot.rotation;
 
         HandleDungeonLevels();

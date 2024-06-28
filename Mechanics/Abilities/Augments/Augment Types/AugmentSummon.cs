@@ -150,7 +150,7 @@ namespace Architome
 
         public void SummonEntity(SummonableEntity summonable, Vector3 position)
         {
-            var summoned = world.SpawnEntity(summonable.entity.gameObject, position).GetComponent<EntityInfo>();
+            var summoned = world.SpawnEntity(summonable.entity.GetComponent<EntityInfo>(), position).GetComponent<EntityInfo>();
 
             summoned.SetSummoned(new()
             {
