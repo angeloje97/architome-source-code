@@ -27,7 +27,7 @@ namespace Architome
         [Serializable]
         public class PatrolGroup
         {
-            public List<GameObject> entityMembers;
+            public List<EntityInfo> entityMembers;
         }
 
 
@@ -41,7 +41,7 @@ namespace Architome
         public List<SpawnerInfo> tier2Spawners;
         public List<GameObject> neutralEntities;
         public List<GameObject> bossEntities;
-        public List<GameObject> chests;
+        public List<ArchChest> chests;
         public List<PatrolGroup> patrolGroups;
 
         private void OnValidate()

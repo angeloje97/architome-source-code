@@ -289,7 +289,7 @@ public class MapEntityGenerator : MonoBehaviour
     }
 
 
-    public void SpawnRandomChestInPosition(List<GameObject> chests, Transform spots, RoomInfo room, float chance = 25f)
+    public void SpawnRandomChestInPosition(List<ArchChest> chests, Transform spots, RoomInfo room, float chance = 25f)
     {
         if (spots == null) return;
         if (chests == null || chests.Count == 0) return;
@@ -305,12 +305,12 @@ public class MapEntityGenerator : MonoBehaviour
         }
     }
 
-    ArchChest SpawnChest(GameObject chestObject, Transform spot, RoomInfo room)
+    ArchChest SpawnChest(ArchChest chestObject, Transform spot, RoomInfo room)
     {
         var groundPosition = V3Helper.GroundPosition(spot.transform.position, groundLayerMask, 1f);
         var rotation = spot.transform.rotation;
 
-        var newChest = Instantiate(chestObject, groundPosition, rotation).GetComponent<ArchChest>();
+        var newChest = Instantiate(chestObject, groundPosition, rotation);
 
         newChest.transform.SetParent(room.transform);
 
@@ -326,9 +326,9 @@ public class MapEntityGenerator : MonoBehaviour
         }
     }
 
-    async void SpawnPatrolEntity(GameObject entity, Transform spot)
+    async void SpawnPatrolEntity(EntityInfo entity, Transform spot)
     {
-        var newEntity = await SpawnEntity(entity.GetComponent<EntityInfo>(), spot);
+        var newEntity = await SpawnEntity(entity, spot);
         newEntity.GetComponentInChildren<NoCombatBehavior>().patrolSpot = spot;
     }
 
