@@ -11,7 +11,7 @@ namespace Architome
         [Header("Boss Room")]
         public Transform bossPosition;
         public Transform bossPatrolSpots;
-        public List<GameObject> possibleBosses;
+        public List<EntityInfo> possibleBosses;
         public List<WorkInfo> bossStations;
         private void OnValidate()
         {
@@ -19,7 +19,7 @@ namespace Architome
             {
                 var bossToSpawn = possibleBosses[i];
 
-                if (!bossToSpawn.GetComponent<EntityInfo>())
+                if (!bossToSpawn)
                 {
                     possibleBosses.RemoveAt(i);
                     i--;

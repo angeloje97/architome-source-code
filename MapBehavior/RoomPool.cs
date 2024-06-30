@@ -39,8 +39,9 @@ namespace Architome
         
         public List<SpawnerInfo> tier1Spawners;
         public List<SpawnerInfo> tier2Spawners;
-        public List<GameObject> neutralEntities;
-        public List<GameObject> bossEntities;
+        public List<EntityInfo> neutralEntities;
+        public List<EntityInfo> bossEntities;
+
         public List<ArchChest> chests;
         public List<PatrolGroup> patrolGroups;
 

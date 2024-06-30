@@ -263,7 +263,7 @@ public class MapEntityGenerator : MonoBehaviour
         if (room.GetType() != typeof(BossRoom)) return false;
         var bossRoom = (BossRoom)room;
         var bossPosition = bossRoom.bossPosition;
-        var boss = bossRoom.possibleBosses.Count > 0 ? bossRoom.possibleBosses[UnityEngine.Random.Range(0, bossRoom.possibleBosses.Count)] : null;
+        var boss = ArchGeneric.RandomItem(bossRoom.possibleBosses);
 
         if (boss == null) return false;
 
@@ -275,14 +275,14 @@ public class MapEntityGenerator : MonoBehaviour
 
             if (dungeon.selectedBoss)
             {
-                boss = dungeon.selectedBoss.gameObject;
+                boss = dungeon.selectedBoss;
             }
 
         }
 
 
 
-        var entity = await SpawnEntity(boss.GetComponent<EntityInfo>(), bossPosition);
+        var entity = await SpawnEntity(boss, bossPosition);
 
 
         return true;
