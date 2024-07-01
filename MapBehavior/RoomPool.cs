@@ -6,6 +6,17 @@ using System.Linq;
 
 namespace Architome
 {
+    public enum EntityTier
+    {
+        Tier1,
+        Tier2,
+        Tier3,
+        Tier1Spawner,
+        Tier2Spawner,
+        Neutral,
+        Boss,
+    }
+
     public class RoomPool : ScriptableObject
     {
         int id;
@@ -30,6 +41,23 @@ namespace Architome
             public List<EntityInfo> entityMembers;
         }
 
+        
+
+        public List<EntityInfo> EntityListFromTier(EntityTier tier)
+        {
+            return tier switch
+            {
+                EntityTier.Tier1 => tier1Entities,
+                EntityTier.Tier2 => tier2Entities,
+                EntityTier.Tier3 => tier3Entities,
+                EntityTier.Tier1Spawner => tier1Spawners,
+                EntityTier.Tier2Spawner => tier2Spawners,
+                EntityTier.Neutral => neutralEntities,
+                EntityTier.Boss => bossEntities,
+                _ => tier1Entities
+            };
+        }
+
 
         public List<EntityInfo> tier1Entities;
         
@@ -37,8 +65,9 @@ namespace Architome
         
         public List<EntityInfo> tier3Entities;
         
-        public List<SpawnerInfo> tier1Spawners;
-        public List<SpawnerInfo> tier2Spawners;
+        public List<EntityInfo> tier1Spawners;
+        public List<EntityInfo> tier2Spawners;
+
         public List<EntityInfo> neutralEntities;
         public List<EntityInfo> bossEntities;
 
@@ -53,7 +82,7 @@ namespace Architome
                 if (chests == null) return;
                 for (int i = 0; i < chests.Count; i++)
                 {
-                    var chest = chests[i].GetComponent<ArchChest>();
+                    var chest = chests[i];
 
                     if (chest == null)
                     {
@@ -63,6 +92,13 @@ namespace Architome
                 }
             }
 
+        }
+
+        
+
+        public EntityInfo RandomEntity(EntityTier entityTier)
+        {
+            return ArchGeneric.RandomItem(EntityListFromTier(entityTier));
         }
     }
 }

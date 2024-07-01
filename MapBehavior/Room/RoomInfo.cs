@@ -73,6 +73,8 @@ namespace Architome
 
         public List<IncompatablePath> incompatables;
 
+        public List<RoomSpawnPositions> roomSpawnPositions;
+
         [Header("Spawn Positions")]
         public Transform tier1EnemyPos;
         public Transform tier2EnemyPos;
@@ -681,6 +683,12 @@ namespace Architome
 
         #endregion
         
+    }
+
+    [Serializable] public class RoomSpawnPositions
+    {
+        public EntityTier entityTier;
+        public Transform parent;
     }
 }
 
