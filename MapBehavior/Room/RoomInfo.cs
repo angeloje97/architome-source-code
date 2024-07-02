@@ -73,7 +73,34 @@ namespace Architome
 
         public List<IncompatablePath> incompatables;
 
+        #region RoomSpawnPosition
+        
         public List<RoomSpawnPositions> roomSpawnPositions;
+
+        Dictionary<EntityTier, RoomSpawnPositions> spawnPositionMap;
+
+        void UpdateSpawnPosititionMap()
+        {
+            if (spawnPositionMap != null) return;
+            spawnPositionMap = new();
+
+            foreach(var spawnPosition in roomSpawnPositions)
+            {
+                if (spawnPositionMap.ContainsKey(spawnPosition.entityTier)) continue;
+                spawnPositionMap.Add(spawnPosition.entityTier, spawnPosition);
+            }
+        }
+
+        public RoomSpawnPositions SpawPositionFromTier(EntityTier tier)
+        {
+            UpdateSpawnPosititionMap();
+
+            return spawnPositionMap[tier];
+        }
+
+        #endregion
+
+
 
         [Header("Spawn Positions")]
         public Transform tier1EnemyPos;
