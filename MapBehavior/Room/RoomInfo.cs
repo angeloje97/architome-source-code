@@ -77,9 +77,9 @@ namespace Architome
         
         public List<RoomSpawnPositions> roomSpawnPositions;
 
-        Dictionary<EntityTier, RoomSpawnPositions> spawnPositionMap;
+        protected Dictionary<EntityTier, RoomSpawnPositions> spawnPositionMap;
 
-        void UpdateSpawnPosititionMap()
+        protected void UpdateSpawnPosititionMap()
         {
             if (spawnPositionMap != null) return;
             spawnPositionMap = new();
@@ -91,11 +91,26 @@ namespace Architome
             }
         }
 
-        public RoomSpawnPositions SpawPositionFromTier(EntityTier tier)
+        public virtual RoomSpawnPositions SpawPositionFromTier(EntityTier tier)
         {
             UpdateSpawnPosititionMap();
 
+            if (tier == EntityTier.Boss) return null;
+
             return spawnPositionMap[tier];
+        }
+
+        private void OnValidate()
+        {
+            roomSpawnPositions = new()
+            {
+                new() { entityTier = EntityTier.Tier1, parent = tier1EnemyPos },
+                new() { entityTier = EntityTier.Tier2, parent = tier2EnemyPos },
+                new() { entityTier = EntityTier.Tier3, parent = tier3EnemyPos },
+                new() { entityTier = EntityTier.Tier1Spawner, parent = tier1SpawnerPos },
+                new() { entityTier = EntityTier.Tier2Spawner, parent = tier2SpawnerPos },
+                new() { entityTier = EntityTier.Tier2Spawner, parent = tier2SpawnerPos },
+            };
         }
 
         #endregion

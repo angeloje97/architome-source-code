@@ -13,6 +13,19 @@ namespace Architome
         public Transform bossPatrolSpots;
         public List<EntityInfo> possibleBosses;
         public List<WorkInfo> bossStations;
+
+
+        #region Spawn Positions
+
+        public override RoomSpawnPositions SpawPositionFromTier(EntityTier tier)
+        {
+            UpdateSpawnPosititionMap();
+
+            return spawnPositionMap[tier];
+        }
+
+        #endregion
+
         private void OnValidate()
         {
             for (int i = 0; i < possibleBosses.Count; i++)
