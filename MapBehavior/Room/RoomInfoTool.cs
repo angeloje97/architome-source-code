@@ -88,37 +88,13 @@ namespace Architome
 
         void ShowEnemiesPos(bool val)
         {
-            if (info.tier1EnemyPos)
+            var entitySpawnPositions = info.EntitySpawnPositions();
+
+            foreach(var spawnPos in entitySpawnPositions)
             {
-                foreach (Transform child in info.tier1EnemyPos)
+                foreach(Transform child in spawnPos.parent)
                 {
                     child.gameObject.SetActive(val);
-                }
-            }
-
-            if (info.tier2EnemyPos)
-            {
-                foreach (Transform child in info.tier2EnemyPos)
-                {
-                    child.gameObject.SetActive(val);
-                }
-            }
-
-            if (info.tier3EnemyPos)
-            {
-                foreach (Transform child in info.tier3EnemyPos)
-                {
-                    child.gameObject.SetActive(val);
-                }
-            }
-
-            if (info.GetType() == typeof(BossRoom))
-            {
-                var bossInfo = (BossRoom)info;
-
-                if (bossInfo.bossPosition)
-                {
-                    bossInfo.bossPosition.gameObject.SetActive(val);
                 }
             }
         }

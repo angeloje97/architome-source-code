@@ -118,20 +118,16 @@ public class MapEntityGenerator : MonoBehaviour
     {
         int count = 0;
 
-        foreach (var room in mapInfo.rooms)
+        foreach (var info in mapInfo.rooms)
         {
-            var info = room.GetComponent<RoomInfo>();
-            var bossRoom = room.GetComponent<BossRoom>();
+            var bossRoom = info.GetComponent<BossRoom>();
             if (info == null) continue;
 
-            if (info.tier1EnemyPos)
-            {
-                count += info.tier1EnemyPos.childCount;
-            }
+            var spawnPositions = info.EntitySpawnPositions();
 
-            if (info.tier2EnemyPos)
+            foreach(var spawnPos in spawnPositions)
             {
-                count += info.tier2EnemyPos.childCount;
+                count += spawnPos.parent.childCount;
             }
 
             if (info.patrolGroups)
@@ -140,11 +136,6 @@ public class MapEntityGenerator : MonoBehaviour
                 {
                     count += child.childCount;
                 }
-            }
-
-            if (bossRoom && bossRoom.bossPosition)
-            {
-                count += bossRoom.bossPosition.childCount;
             }
         }
 
@@ -185,10 +176,10 @@ public class MapEntityGenerator : MonoBehaviour
                     var patrolGroups = pool.patrolGroups;
                     var chests = pool.chests;
 
-                    await SpawnRandomInPosition(tier1Entities, roomInfo.tier1EnemyPos);
-                    await SpawnRandomInPosition(tier2Entities, roomInfo.tier2EnemyPos);
-                    await SpawnRandomInPosition(tier1Spawners, roomInfo.tier1SpawnerPos);
-                    await SpawnRandomInPosition(tier2Spawners, roomInfo.tier2SpawnerPos);
+                    await SpawnRandomInPosition(tier1Entities, roomInfo.SpawnPositionFromTier(EntityTier.Tier1));
+                    await SpawnRandomInPosition(tier2Entities, roomInfo.SpawnPositionFromTier(EntityTier.Tier2));
+                    await SpawnRandomInPosition(tier1Spawners, roomInfo.SpawnPositionFromTier(EntityTier.Tier1Spawner));
+                    await SpawnRandomInPosition(tier2Spawners, roomInfo.SpawnPositionFromTier(EntityTier.Tier2Spawner));
 
 
                     if (roomInfo.patrolGroups != null &&
@@ -216,25 +207,6 @@ public class MapEntityGenerator : MonoBehaviour
 
                     await HandleBossRoom(roomInfo);
 
-                    //if (roomInfo.GetType() == typeof(BossRoom))
-                    //{
-                    //    var bossRoom = (BossRoom)roomInfo;
-                    //    var bossPosition = bossRoom.bossPosition;
-                    //    var boss = bossRoom.bossToSpawn;
-
-                    //}
-               
-                    //if (roomInfo.bossPos &&
-                    //bossEntities.Count > 0)
-                    //{
-                    //    foreach (Transform trans in roomInfo.bossPos)
-                    //    {
-                    //        SpawnEntity(bossEntities[0], trans);
-                    //        await Task.Yield();
-
-                            
-                    //    }
-                    //}
 
                 }
             }
@@ -243,10 +215,12 @@ public class MapEntityGenerator : MonoBehaviour
     }
 
 
-    async Task SpawnRandomInPosition<T>(List<T> randomEntities, Transform parent, float chance = 85f) where T: EntityInfo
+    async Task SpawnRandomInPosition<T>(List<T> randomEntities, RoomSpawnPositions spawnPosition, float chance = 85f) where T: EntityInfo
     {
         if (randomEntities == null) return;
         if (randomEntities.Count == 0) return;
+        if (spawnPosition == null) return;
+        var parent = spawnPosition.parent;
         if (parent == null) return;
 
         foreach (Transform trans in parent)
@@ -266,8 +240,6 @@ public class MapEntityGenerator : MonoBehaviour
         var boss = ArchGeneric.RandomItem(bossRoom.possibleBosses);
 
         if (boss == null) return false;
-
-        //int bossLevel = boss.GetComponent<EntityInfo>().entityStats.Level;
 
         if (Core.currentDungeon != null)
         {

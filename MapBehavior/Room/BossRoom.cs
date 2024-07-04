@@ -17,16 +17,19 @@ namespace Architome
 
         #region Spawn Positions
 
-        public override RoomSpawnPositions SpawPositionFromTier(EntityTier tier)
+        public override RoomSpawnPositions SpawnPositionFromTier(EntityTier tier)
         {
             UpdateSpawnPosititionMap();
+            if (!spawnPositionMap.ContainsKey(tier)) return null;
+            if (spawnPositionMap[tier].parent == null) return null;
+
 
             return spawnPositionMap[tier];
         }
 
         #endregion
 
-        private void OnValidate()
+        protected void OnValidate()
         {
             for (int i = 0; i < possibleBosses.Count; i++)
             {

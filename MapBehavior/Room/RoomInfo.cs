@@ -75,7 +75,7 @@ namespace Architome
 
         #region RoomSpawnPosition
         
-        public List<RoomSpawnPositions> roomSpawnPositions;
+        [SerializeField] protected List<RoomSpawnPositions> roomSpawnPositions;
 
         protected Dictionary<EntityTier, RoomSpawnPositions> spawnPositionMap;
 
@@ -91,26 +91,45 @@ namespace Architome
             }
         }
 
-        public virtual RoomSpawnPositions SpawPositionFromTier(EntityTier tier)
+        public virtual RoomSpawnPositions SpawnPositionFromTier(EntityTier tier)
         {
             UpdateSpawnPosititionMap();
 
             if (tier == EntityTier.Boss) return null;
+            if (!spawnPositionMap.ContainsKey(tier)) return null;
+            if (spawnPositionMap[tier].parent == null) return null;
 
             return spawnPositionMap[tier];
         }
 
+        public List<RoomSpawnPositions> EntitySpawnPositions()
+        {
+            var list = new List<RoomSpawnPositions>();
+
+            var tier1 = SpawnPositionFromTier(EntityTier.Tier1);
+            var tier2 = SpawnPositionFromTier(EntityTier.Tier2);
+            var tier3 = SpawnPositionFromTier(EntityTier.Tier3);
+            var boss = SpawnPositionFromTier(EntityTier.Boss);
+
+            if (tier1 != null) list.Add(tier1);
+            if (tier2 != null) list.Add(tier2);
+            if (tier3 != null) list.Add(tier3);
+            if (boss != null) list.Add(boss);
+
+            return list;
+        }
+
         private void OnValidate()
         {
-            roomSpawnPositions = new()
+            UpdateSpawnPositionNames();
+            void UpdateSpawnPositionNames()
             {
-                new() { entityTier = EntityTier.Tier1, parent = tier1EnemyPos },
-                new() { entityTier = EntityTier.Tier2, parent = tier2EnemyPos },
-                new() { entityTier = EntityTier.Tier3, parent = tier3EnemyPos },
-                new() { entityTier = EntityTier.Tier1Spawner, parent = tier1SpawnerPos },
-                new() { entityTier = EntityTier.Tier2Spawner, parent = tier2SpawnerPos },
-                new() { entityTier = EntityTier.Tier2Spawner, parent = tier2SpawnerPos },
-            };
+                if (roomSpawnPositions == null) return;
+                foreach(var pos in roomSpawnPositions)
+                {
+                    pos.name = pos.entityTier.ToString();
+                }
+            }
         }
 
         #endregion
@@ -118,11 +137,6 @@ namespace Architome
 
 
         [Header("Spawn Positions")]
-        public Transform tier1EnemyPos;
-        public Transform tier2EnemyPos;
-        public Transform tier3EnemyPos;
-        public Transform tier1SpawnerPos;
-        public Transform tier2SpawnerPos;
         public Transform chestPos;
 
         [Header("Patrol Properties")]
@@ -729,6 +743,7 @@ namespace Architome
 
     [Serializable] public class RoomSpawnPositions
     {
+        [HideInInspector] public string name;
         public EntityTier entityTier;
         public Transform parent;
     }
