@@ -4,7 +4,6 @@ using UnityEngine;
 using System;
 using Architome;
 using System.Threading.Tasks;
-using UnityEngine.Events;
 
 public class MapEntityGenerator : MonoBehaviour
 {
@@ -144,8 +143,6 @@ public class MapEntityGenerator : MonoBehaviour
 
     async void HandleEntities()
     {
-
-
         await SpawnEnemies();
         generatedEntities = true;
         OnEntitiesGenerated?.Invoke(this);
@@ -156,6 +153,9 @@ public class MapEntityGenerator : MonoBehaviour
             //    tier2Entities.Count == 0)
             //{ return; }
             var enemySpots = new List<Transform>();
+
+            Debugger.System(67979, $"Running Task to spawn enemies");
+
 
             await HandleEntitiesAsync();
 
@@ -181,7 +181,10 @@ public class MapEntityGenerator : MonoBehaviour
                     //await SpawnRandomInPosition(tier1Spawners, roomInfo.SpawnPositionFromTier(EntityTier.Tier1Spawner));
                     //await SpawnRandomInPosition(tier2Spawners, roomInfo.SpawnPositionFromTier(EntityTier.Tier2Spawner));
 
+                    Debugger.System(67980, $"Handling tier list from {roomInfo}");
+
                     await pool.HandleTierLists(async (tier, list) => {
+                        if (tier == EntityTier.Boss) return;
                         await SpawnRandomInPosition(list, roomInfo.SpawnPositionFromTier(tier));
                     });
 

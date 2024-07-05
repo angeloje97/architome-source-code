@@ -23,6 +23,7 @@ namespace Architome
 
     public class RoomPool : ScriptableObject
     {
+        #region Uniqueness
         int id;
 
         public int _id
@@ -39,13 +40,16 @@ namespace Architome
         }
 
         bool idSet;
+        #endregion
+
         [Serializable]
         public class PatrolGroup
         {
             public List<EntityInfo> entityMembers;
         }
 
-        
+        [SerializeField] 
+
 
         public List<EntityInfo> EntityListFromTier(EntityTier tier)
         {
@@ -66,11 +70,11 @@ namespace Architome
 
 
         public List<EntityInfo> tier1Entities;
-        
+
         public List<EntityInfo> tier2Entities;
-        
+
         public List<EntityInfo> tier3Entities;
-        
+
         public List<EntityInfo> tier1Spawners;
         public List<EntityInfo> tier2Spawners;
 
@@ -83,7 +87,6 @@ namespace Architome
         private void OnValidate()
         {
             CleanChests();
-            HandleDict();
             void CleanChests()
             {
                 if (chests == null) return;
@@ -98,34 +101,54 @@ namespace Architome
                     }
                 }
             }
-
-            void HandleDict()
-            {
-                entitiesDict = new();
-
-                foreach(EntityTier tier in Enum.GetValues(typeof(EntityTier)))
-                {
-                    var listFromTier = EntityListFromTier(tier);
-                    if (listFromTier == null || listFromTier.Count == 0) continue;
-
-                    entitiesDict.Add(tier, listFromTier);
-                }
-            }
-
         }
-        
+
+        [SerializeField] bool initializedDict = false;
+
+        void HandleDict()
+        {
+            if (entitiesDict != null) return;
+            entitiesDict = new();
+
+            Debugger.System(67982, $"Creating room pool dictionary.");
+
+
+            foreach (EntityTier tier in Enum.GetValues(typeof(EntityTier)))
+            {
+                var listFromTier = EntityListFromTier(tier);
+                if (listFromTier == null || listFromTier.Count == 0) continue;
+
+                entitiesDict.Add(tier, listFromTier);
+            }
+        }
+
         public async Task HandleTierLists(TierListAction action)
         {
-            foreach(KeyValuePair<EntityTier, List<EntityInfo>> keyValuePair in entitiesDict)
+            HandleDict();
+            foreach (KeyValuePair<EntityTier, List<EntityInfo>> keyValuePair in entitiesDict)
             {
-                await action?.Invoke(keyValuePair.Key, keyValuePair.Value);
+                var tier = keyValuePair.Key;
+                var list = keyValuePair.Value;
+                Debugger.System(67981, $"EntityTier: {tier}, List Count: {list} ");
+                await action?.Invoke(tier, list);
             }
         }
-        
+
 
         public EntityInfo RandomEntity(EntityTier entityTier)
         {
             return ArchGeneric.RandomItem(EntityListFromTier(entityTier));
+        }
+    }
+
+    [Serializable] public class EntityTierList
+    {
+        public EntityTier tier;
+        public List<EntityInfo> entities;
+
+        public EntityInfo RandomEntity()
+        {
+            return ArchGeneric.RandomItem(entities);
         }
     }
 }

@@ -54,7 +54,7 @@ namespace Architome
         public Action<MapRoomGenerator> OnAllRoomsHidden { get; set; }
         public Action<MapRoomGenerator, RoomInfo> OnSpawnRoom;
         public Action<MapRoomGenerator> BeforeEndGeneration { get; set; }
-        public Action<MapRoomGenerator> AfterEndGeneration;
+        public Action<MapRoomGenerator> AfterEndGeneration { get; set; }
         public Action<MapRoomGenerator> OnCreateStartingRoom { get; set; }
 
         public int roomsGenerated;
@@ -80,9 +80,8 @@ namespace Architome
             if (mapInfo)
             {
                 entityGenerator = mapInfo.GetComponentInChildren<MapEntityGenerator>();
+
             }
-
-
 
             seedGenerator = GetComponentInParent<SeedGenerator>();
 
@@ -449,11 +448,11 @@ namespace Architome
 
             ClearNullRooms();
             HandleCheckPaths();
+            AssignRooms();
+            AssignPatrolPoints();
 
             await HandleBackgroundAdjustment();
 
-            AssignRooms();
-            AssignPatrolPoints();
             AfterEndGeneration?.Invoke(this);
 
             void AssignRooms()
@@ -519,7 +518,15 @@ namespace Architome
                     generatedRoom = true;
                 };
 
-                while (!generatedRoom) await Task.Yield();
+                while (!generatedRoom)
+                {
+                    Debugger.System(67975, $"Waiting for room generator to finish tasks");
+
+                    await Task.Delay(250);
+                }
+
+                Debugger.System(67976, $"Done Waiting for room generator to finish tasks");
+
             });
 
 
@@ -533,12 +540,21 @@ namespace Architome
                         generatedEntities = true;
                     };
 
-                    while (!generatedEntities) await Task.Yield();
+                    while (!generatedEntities)
+                    {
+                        Debugger.System(67977, $"Waiting for entityGenerator to finish tasks");
+
+                        await Task.Delay(250);
+                    }
+                    Debugger.System(67978, $"Done waiting for entity generator to finish tasks.");
+
                 });
 
             }
 
             await taskHandler.UntilTasksFinished();
+
+            Debugger.System(67974, $"Finished waiting for tasks before hiding rooms");
 
             if (!roomsHidden)
             {
@@ -553,12 +569,14 @@ namespace Architome
             {
                 ClearNullRooms();
                 var tasks = new List<Task>();
-                foreach (var room in roomsInUse)
+                foreach (var info in roomsInUse)
                 {
-                    var info = room.GetComponent<RoomInfo>();
                     if (info == null) continue;
                     if (info.ignoreHideOnStart) continue;
                     if (info.entities.PlayerIsInRoom()) continue;
+
+                    Debugger.System(67960, $"Map Room Generator hiding : {info}");
+
 
                     info.ShowRoom(false);
                     tasks.Add(info.VisibilityChanges());

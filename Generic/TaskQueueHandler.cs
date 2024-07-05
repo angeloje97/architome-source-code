@@ -1,7 +1,10 @@
 
+using JetBrains.Annotations;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -21,12 +24,22 @@ namespace Architome
 
         TaskType type;
 
+        static int taskHandlers;
+
+        int taskHandlerID;
+
         public TaskQueueHandler(TaskType type)
         {
             this.type = type;
             currentTasks = new();
             currentTasksList = new();
+            
+            taskHandlers++;
+            taskHandlerID = taskHandlers;
         }
+
+
+        int paralellTasks = 0;
 
         public void AddTask(Func<Task> task)
         {
@@ -53,14 +66,17 @@ namespace Architome
 
             async void HandleParallel()
             {
-                if (type != TaskType.Parallel) return;
-                currentTasksList.Add(task());
-                if (busy) return;
                 busy = true;
 
-                await Task.WhenAll(currentTasksList);
+                paralellTasks++;
+                Debugger.System(5100, $"Task {taskHandlerID} Added to parallel task count: {paralellTasks}");
+                await task();
+                paralellTasks--;
 
-                busy = false;
+                Debugger.System(5100, $"Task {taskHandlerID} Removed Parallel task: {paralellTasks}");
+
+
+                if (paralellTasks <= 0) busy = false;
 
             }
         }

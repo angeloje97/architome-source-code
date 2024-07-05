@@ -32,12 +32,13 @@ namespace Architome
 
         protected async Task Initiate()
         {
+            Action onInitiated = null;
+
             try
             {
                 var parent = transform.parent;
 
                 entityInfo = parent.GetComponent<EntityInfo>();
-                Action onInitiated = null;
 
                 if (entityInfo == null)
                 {
@@ -45,7 +46,9 @@ namespace Architome
 
                     if (entityPropParent == null) throw new Exception($"Could not find parent entity prop for {gameObject.name} gameObject");
 
-                    await entityPropParent.UntilInitiationComplete();
+                    var result = await entityPropParent.UntilInitiationComplete();
+
+                    if (!result) return;
 
                     entityInfo = entityPropParent.entityInfo;
 
@@ -66,22 +69,45 @@ namespace Architome
                 await GetDependenciesTask();
 
                 initiated = true;
-                onInitiated?.Invoke();
-                entityInfo.UpdateGatheredDependencies();
+                
             }
             catch (Exception e)
             {
+                if (this == null) return;
                 Defect.CreateIndicator(transform, "EntityProp", e);
                 throw e;
+            }
+            finally
+            {
+                onInitiated?.Invoke();
+                if (entityInfo)
+                {
+                    entityInfo.UpdateGatheredDependencies();
+                }
             }
 
         }
         public virtual async Task GetDependenciesTask() => await Task.Yield();
 
         public virtual void GetDependencies() { }
-        public async Task UntilInitiationComplete()
+        public async Task<bool> UntilInitiationComplete()
         {
-            await ArchAction.WaitUntil(() => initiated, true);
+            bool success = false;
+            await ArchAction.WaitUntil(
+                () => {
+
+                    if (this == null) return true;
+
+                    if (initiated)
+                    {
+                        success = true;
+                        return true;
+                    }
+
+                    return false;
+                } , true);
+
+            return success;
         }
 
         #endregion
