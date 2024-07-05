@@ -176,10 +176,14 @@ public class MapEntityGenerator : MonoBehaviour
                     var patrolGroups = pool.patrolGroups;
                     var chests = pool.chests;
 
-                    await SpawnRandomInPosition(tier1Entities, roomInfo.SpawnPositionFromTier(EntityTier.Tier1));
-                    await SpawnRandomInPosition(tier2Entities, roomInfo.SpawnPositionFromTier(EntityTier.Tier2));
-                    await SpawnRandomInPosition(tier1Spawners, roomInfo.SpawnPositionFromTier(EntityTier.Tier1Spawner));
-                    await SpawnRandomInPosition(tier2Spawners, roomInfo.SpawnPositionFromTier(EntityTier.Tier2Spawner));
+                    //await SpawnRandomInPosition(tier1Entities, roomInfo.SpawnPositionFromTier(EntityTier.Tier1));
+                    //await SpawnRandomInPosition(tier2Entities, roomInfo.SpawnPositionFromTier(EntityTier.Tier2));
+                    //await SpawnRandomInPosition(tier1Spawners, roomInfo.SpawnPositionFromTier(EntityTier.Tier1Spawner));
+                    //await SpawnRandomInPosition(tier2Spawners, roomInfo.SpawnPositionFromTier(EntityTier.Tier2Spawner));
+
+                    await pool.HandleTierLists(async (tier, list) => {
+                        await SpawnRandomInPosition(list, roomInfo.SpawnPositionFromTier(tier));
+                    });
 
 
                     if (roomInfo.patrolGroups != null &&
@@ -239,7 +243,6 @@ public class MapEntityGenerator : MonoBehaviour
         var bossPosition = bossRoom.bossPosition;
         var boss = ArchGeneric.RandomItem(bossRoom.possibleBosses);
 
-        if (boss == null) return false;
 
         if (Core.currentDungeon != null)
         {
@@ -252,6 +255,7 @@ public class MapEntityGenerator : MonoBehaviour
 
         }
 
+        if (boss == null) return false;
 
 
         var entity = await SpawnEntity(boss, bossPosition);

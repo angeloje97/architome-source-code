@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.Linq;
+using JetBrains.Annotations;
+using System.Threading.Tasks;
 
 namespace Architome
 {
@@ -16,6 +18,8 @@ namespace Architome
         Neutral,
         Boss,
     }
+
+    public delegate Task TierListAction(EntityTier tier, List<EntityInfo> list);
 
     public class RoomPool : ScriptableObject
     {
@@ -58,6 +62,8 @@ namespace Architome
             };
         }
 
+        Dictionary<EntityTier, List<EntityInfo>> entitiesDict;
+
 
         public List<EntityInfo> tier1Entities;
         
@@ -77,6 +83,7 @@ namespace Architome
         private void OnValidate()
         {
             CleanChests();
+            HandleDict();
             void CleanChests()
             {
                 if (chests == null) return;
@@ -92,8 +99,28 @@ namespace Architome
                 }
             }
 
-        }
+            void HandleDict()
+            {
+                entitiesDict = new();
 
+                foreach(EntityTier tier in Enum.GetValues(typeof(EntityTier)))
+                {
+                    var listFromTier = EntityListFromTier(tier);
+                    if (listFromTier == null || listFromTier.Count == 0) continue;
+
+                    entitiesDict.Add(tier, listFromTier);
+                }
+            }
+
+        }
+        
+        public async Task HandleTierLists(TierListAction action)
+        {
+            foreach(KeyValuePair<EntityTier, List<EntityInfo>> keyValuePair in entitiesDict)
+            {
+                await action?.Invoke(keyValuePair.Key, keyValuePair.Value);
+            }
+        }
         
 
         public EntityInfo RandomEntity(EntityTier entityTier)
