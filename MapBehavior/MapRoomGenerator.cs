@@ -512,6 +512,7 @@ namespace Architome
 
             taskHandler.AddTask(async () =>
             {
+                if (generatedRooms) return;
                 var generatedRoom = false;
                 OnRoomsGenerated += (MapRoomGenerator generator) =>
                 {
@@ -534,6 +535,7 @@ namespace Architome
             {
                 taskHandler.AddTask(async () =>
                 {
+                    if (entityGenerator.generatedEntities) return;
                     var generatedEntities = false;
                     entityGenerator.OnEntitiesGenerated += (MapEntityGenerator generator) =>
                     {
@@ -585,8 +587,6 @@ namespace Architome
                 await Task.WhenAll(tasks);
             }
         }
-
-        
 
         void HandleCheckPaths()
         {
