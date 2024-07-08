@@ -248,7 +248,7 @@ public class ItemInfo : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, I
 
         disableMove = !movable;
 
-        dragAndDrop.enabled = movable;
+        dragAndDrop.SetEnable(movable);
     }
     public void OnPointerUp(PointerEventData eventData)
     {

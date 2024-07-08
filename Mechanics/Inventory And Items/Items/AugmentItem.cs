@@ -28,8 +28,9 @@ namespace Architome
             return ArchString.NextLineList(stringList);
         }
 
-        public bool CanAttachTo(AbilityInfo ability)
+        public bool CanAttachTo(Augment.AugmentEventData eventData)
         {
+            if (!augment.CanAttachToAbility(eventData)) return false;
             return true;
         }
     }

@@ -70,6 +70,13 @@ namespace Architome
         {
         }
 
+        public override bool CanAttachToAbility(Augment.AugmentEventData eventData)
+        {
+            var ability = eventData.ability;
+            eventData.SetErrorMessage("An augment that bounces can only attach to lock on catalysts.");
+            return ability.abilityType == AbilityType.LockOn;
+        }
+
         void OnCatalystHit(CatalystInfo catalyst, EntityInfo entity)
         {
             if (catalyst.Ticks() == 0) return;

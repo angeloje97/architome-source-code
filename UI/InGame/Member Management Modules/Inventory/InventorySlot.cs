@@ -198,11 +198,15 @@ namespace Architome
         {
 
             var selfSuccess = InvokeCheck(InventorySlotEvent.OnCanRemoveCheck, (this, item));
-            
-            var slotHandlerSuccess  =  itemSlotHandler != null && itemSlotHandler.InvokeCheck(eItemEvent.OnCanRemoveFromSlot, new() { 
-                itemSlot = this,
-                newItem = item,
-            });
+
+            var slotHandlerSuccess = true;
+
+            if (itemSlotHandler)
+            {
+                slotHandlerSuccess = itemSlotHandler.InvokeCheck(eItemEvent.OnCanInsertIntoSlot, new() { itemSlot = this, newItem = item });
+            }
+
+            Debugger.System(5700, $"Can remove from slot for {item}: {selfSuccess && slotHandlerSuccess}");
 
             return selfSuccess && slotHandlerSuccess;
         }

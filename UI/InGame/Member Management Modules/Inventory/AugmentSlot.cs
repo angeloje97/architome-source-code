@@ -49,16 +49,27 @@ namespace Architome
             if (item == null) return false;
             if (item.item == null) return false;
             if (item.item.GetType() != typeof(AugmentItem)) return false;
+
+            var itemEventData = new ItemEventData() { newItem = item, itemSlot = this };
             if (EntityInCombat())
             {
-                var itemEventData = new ItemEventData() { newItem = item, itemSlot = this };
                 itemEventData.SetMessage("Can't insert augment during combat");
                 itemSlotHandler.Invoke(eItemEvent.OnCantInsert, itemEventData);
                 return false;
             }
 
+
             var augmentItem = (AugmentItem)item.item;
-            return augmentItem.CanAttachTo(ability);
+            var augmentEventData = new Augment.AugmentEventData(augmentItem.augment) { ability = ability };
+            var result = augmentItem.CanAttachTo(augmentEventData);
+
+            if (!result)
+            {
+                itemEventData.SetMessage(augmentEventData.errorMessage);
+                itemSlotHandler.Invoke(eItemEvent.OnCantInsert, itemEventData);
+            }
+
+            return result;
         }
 
         public override bool CanRemoveFromSlot(ItemInfo item)

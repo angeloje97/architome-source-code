@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
+using static Architome.Augment.AugmentEventData;
 
 namespace Architome
 {
@@ -289,6 +290,11 @@ namespace Architome
         {
             var result = "";
             return result;
+        }
+
+        public virtual bool CanAttachToAbility(Augment.AugmentEventData eventData)
+        {
+            return true;
         }
 
         public override string ToString()

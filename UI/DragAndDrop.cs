@@ -94,7 +94,10 @@ namespace Architome
             HandleDrag();
         }
 
-        
+        public void SetEnable(bool enabled)
+        {
+            this.enabled = enabled;
+        }
 
         void HandleDrag()
         {

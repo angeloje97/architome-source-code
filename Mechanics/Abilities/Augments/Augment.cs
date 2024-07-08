@@ -28,7 +28,7 @@ namespace Architome
         {
             public float value;
             public float valueContributionToAugment = 1f;
-            public float generalRadius;   
+            public float generalRadius;
         }
         public bool spawnedByItem;
         public Info info;
@@ -62,7 +62,7 @@ namespace Architome
         async void Start()
         {
             await GetDependencies();
-            if(ability == null)
+            if (ability == null)
             {
                 RemoveAugment();
                 return;
@@ -144,11 +144,11 @@ namespace Architome
                     events.Invoke(AugmentEvent.OnAttach, new(this));
                 }, .125f);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Defect.CreateIndicator(transform, "Augment initialization problem", e);
             }
-            
+
         }
 
         async Task<bool> UntilParentAugmentCompleted()
@@ -226,6 +226,11 @@ namespace Architome
         {
             return events.AddListener(eventType, action, listener);
         }
+
+        public Action AddiListenerCheck(AugmentEvent eventType, Action<AugmentEventData, List<bool>> action, Component listener) => events.AddListenerCheck(eventType, action, listener);
+
+        public bool InvokeCheck(AugmentEvent eventType, AugmentEventData eventData) => events.InvokeCheck(eventType, eventData);
+        public bool InvokeCheck(AugmentEvent eventType, AugmentEventData eventData, LogicType logicType) => events.InvokeCheck(eventType, eventData, logicType);
 
         #region Description
         public string Description()
@@ -308,6 +313,23 @@ namespace Architome
             eventData.eventTrigger = AugmentEvent.OnAugmentActive;
             events.Invoke(AugmentEvent.OnAugmentActive, eventData);
         }
+
+        public bool CanAttachToAbility(AugmentEventData eventData)
+        {
+            if(!InvokeCheck(AugmentEvent.OnCanAttachToAbility, eventData, LogicType.NoFalse))
+            {
+                return false;
+            }
+
+            var childrenAugmentTypes = GetComponentsInChildren<AugmentType>();
+
+            foreach(var childAugment in childrenAugmentTypes)
+            {
+                if (!childAugment.CanAttachToAbility(eventData)) return false;
+            }
+
+            return true;
+        }
         #endregion
 
         public class AugmentEventData
@@ -315,8 +337,12 @@ namespace Architome
             public AugmentType augmentType;
             public Augment augment;
             public CatalystInfo activeCatalyst;
+            public AbilityInfo ability;
             public bool active = true;
             public bool hasEnd { get; set; }
+
+            public string errorMessage { get; private set; }
+
             public AugmentEvent eventTrigger;
 
             public async Task EndActivation()
@@ -341,6 +367,11 @@ namespace Architome
             public AugmentEventData(Augment augment)
             {
                 this.augment = augment;
+            }
+
+            public void SetErrorMessage(string errorMessage)
+            {
+                this.errorMessage = errorMessage;
             }
         }
     }
