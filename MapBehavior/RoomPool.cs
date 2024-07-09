@@ -48,8 +48,9 @@ namespace Architome
             public List<EntityInfo> entityMembers;
         }
 
-        [SerializeField] 
 
+        [SerializeField]
+        public List<EntityTierList> tierLists;
 
         public List<EntityInfo> EntityListFromTier(EntityTier tier)
         {

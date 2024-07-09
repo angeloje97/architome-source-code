@@ -73,8 +73,21 @@ namespace Architome
         public override bool CanAttachToAbility(Augment.AugmentEventData eventData)
         {
             var ability = eventData.ability;
-            eventData.SetErrorMessage("An augment that bounces can only attach to lock on catalysts.");
-            return ability.abilityType == AbilityType.LockOn;
+            if(ability.abilityType != AbilityType.LockOn)
+            {
+                eventData.SetErrorMessage("An augment that bounces can only attach to lock on catalysts.");
+                return false;
+            }
+
+
+            if(ability.speed == -1)
+            {
+                eventData.SetErrorMessage("Bouncing augments requires catalysts with travel time.");
+
+                return false;
+            }
+
+            return true;
         }
 
         void OnCatalystHit(CatalystInfo catalyst, EntityInfo entity)
