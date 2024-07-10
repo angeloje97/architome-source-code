@@ -67,7 +67,7 @@ namespace Architome
             };
         }
 
-        Dictionary<EntityTier, List<EntityInfo>> entitiesDict;
+        Dictionary<EntityTier, EntityTierList> entitiesDict;
 
 
         public List<EntityInfo> tier1Entities;
@@ -88,6 +88,7 @@ namespace Architome
         private void OnValidate()
         {
             CleanChests();
+            RenameTierList();
             void CleanChests()
             {
                 if (chests == null) return;
@@ -102,6 +103,16 @@ namespace Architome
                     }
                 }
             }
+
+            void RenameTierList()
+            {
+                if (tierLists == null) return;
+
+                foreach(var list in tierLists)
+                {
+                    list.name = list.tier.ToString();
+                }
+            }
         }
 
         [SerializeField] bool initializedDict = false;
@@ -112,24 +123,22 @@ namespace Architome
             entitiesDict = new();
 
             Debugger.System(67982, $"Creating room pool dictionary.");
+            if (tierLists == null) return;
 
-
-            foreach (EntityTier tier in Enum.GetValues(typeof(EntityTier)))
+            foreach(var tierList in tierLists)
             {
-                var listFromTier = EntityListFromTier(tier);
-                if (listFromTier == null || listFromTier.Count == 0) continue;
-
-                entitiesDict.Add(tier, listFromTier);
+                if (entitiesDict.ContainsKey(tierList.tier)) continue;
+                entitiesDict.Add(tierList.tier, tierList);
             }
         }
 
         public async Task HandleTierLists(TierListAction action)
         {
             HandleDict();
-            foreach (KeyValuePair<EntityTier, List<EntityInfo>> keyValuePair in entitiesDict)
+            foreach (KeyValuePair<EntityTier, EntityTierList> keyValuePair in entitiesDict)
             {
                 var tier = keyValuePair.Key;
-                var list = keyValuePair.Value;
+                var list = keyValuePair.Value.entities;
                 Debugger.System(67981, $"EntityTier: {tier}, List Count: {list} ");
                 await action?.Invoke(tier, list);
             }
@@ -144,6 +153,7 @@ namespace Architome
 
     [Serializable] public class EntityTierList
     {
+        [HideInInspector] public string name;
         public EntityTier tier;
         public List<EntityInfo> entities;
 
