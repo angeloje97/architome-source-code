@@ -185,7 +185,7 @@ public class MapEntityGenerator : MonoBehaviour
 
                     await pool.HandleTierLists(async (tier, list) => {
                         if (tier == EntityTier.Boss) return;
-                        await SpawnRandomInPosition(list, roomInfo.SpawnPositionFromTier(tier));
+                        await SpawnRandomInPosition(list.entities, roomInfo.SpawnPositionFromTier(tier));
                     });
 
 

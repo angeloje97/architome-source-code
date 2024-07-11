@@ -19,7 +19,7 @@ namespace Architome
         Boss,
     }
 
-    public delegate Task TierListAction(EntityTier tier, List<EntityInfo> list);
+    public delegate Task TierListAction(EntityTier tier, EntityTierList list);
 
     public class RoomPool : ScriptableObject
     {
@@ -138,8 +138,8 @@ namespace Architome
             foreach (KeyValuePair<EntityTier, EntityTierList> keyValuePair in entitiesDict)
             {
                 var tier = keyValuePair.Key;
-                var list = keyValuePair.Value.entities;
-                Debugger.System(67981, $"EntityTier: {tier}, List Count: {list} ");
+                var list = keyValuePair.Value;
+                Debugger.System(67981, $"EntityTier: {tier}, List Count: {list.entities} ");
                 await action?.Invoke(tier, list);
             }
         }
