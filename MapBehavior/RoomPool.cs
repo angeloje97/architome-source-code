@@ -19,7 +19,7 @@ namespace Architome
         Boss,
     }
 
-    public delegate Task TierListAction(EntityTier tier, EntityTierList list);
+    public delegate Task TierListAction(EntityTierList list);
 
     public class RoomPool : ScriptableObject
     {
@@ -140,7 +140,7 @@ namespace Architome
                 var tier = keyValuePair.Key;
                 var list = keyValuePair.Value;
                 Debugger.System(67981, $"EntityTier: {tier}, List Count: {list.entities} ");
-                await action?.Invoke(tier, list);
+                await action?.Invoke(list);
             }
         }
 

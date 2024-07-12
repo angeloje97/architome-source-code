@@ -169,23 +169,14 @@ public class MapEntityGenerator : MonoBehaviour
 
                     if (pool == null) continue;
 
-                    var tier1Entities = pool.tier1Entities;
-                    var tier2Entities = pool.tier2Entities;
-                    var tier1Spawners = pool.tier1Spawners;
-                    var tier2Spawners = pool.tier2Spawners;
                     var patrolGroups = pool.patrolGroups;
                     var chests = pool.chests;
 
-                    //await SpawnRandomInPosition(tier1Entities, roomInfo.SpawnPositionFromTier(EntityTier.Tier1));
-                    //await SpawnRandomInPosition(tier2Entities, roomInfo.SpawnPositionFromTier(EntityTier.Tier2));
-                    //await SpawnRandomInPosition(tier1Spawners, roomInfo.SpawnPositionFromTier(EntityTier.Tier1Spawner));
-                    //await SpawnRandomInPosition(tier2Spawners, roomInfo.SpawnPositionFromTier(EntityTier.Tier2Spawner));
-
                     Debugger.System(67980, $"Handling tier list from {roomInfo}");
 
-                    await pool.HandleTierLists(async (tier, list) => {
-                        if (tier == EntityTier.Boss) return;
-                        await SpawnRandomInPosition(list.entities, roomInfo.SpawnPositionFromTier(tier));
+                    await pool.HandleTierLists(async (list) => {
+                        if (list.tier == EntityTier.Boss) return;
+                        await SpawnRandomInPosition(list.entities, roomInfo.SpawnPositionFromTier(list.tier));
                     });
 
 
