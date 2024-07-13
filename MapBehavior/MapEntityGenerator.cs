@@ -188,7 +188,7 @@ public class MapEntityGenerator : MonoBehaviour
                         {
                             
                             var patrolGroup = roomInfo.patrolGroups.GetChild(i);
-                            var randomGroup = patrolGroups[UnityEngine.Random.Range(0, patrolGroups.Count)];
+                            var randomGroup = ArchGeneric.RandomItem(patrolGroups);/* patrolGroups[UnityEngine.Random.Range(0, patrolGroups.Count)];*/
                             for (int j = 0; j < patrolGroup.childCount; j++)
                             {
                                 var spot = patrolGroup.GetChild(j);

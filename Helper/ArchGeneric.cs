@@ -41,7 +41,13 @@ namespace Architome
         public static T RandomItem<T>(List<T> items)
         {
             var randomIndex = UnityEngine.Random.Range(0, items.Count);
+            return items[randomIndex];
+        }
 
+        public static T RandomItem<T>(T[] items)
+        {
+            var randomIndex = UnityEngine.Random.Range(0, items.Length);
+            
             return items[randomIndex];
         }
 
