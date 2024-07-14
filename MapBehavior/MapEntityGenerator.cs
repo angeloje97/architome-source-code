@@ -4,6 +4,7 @@ using UnityEngine;
 using System;
 using Architome;
 using System.Threading.Tasks;
+using PixelCrushers.DialogueSystem.UnityGUI;
 
 public class MapEntityGenerator : MonoBehaviour
 {
@@ -174,8 +175,21 @@ public class MapEntityGenerator : MonoBehaviour
 
                     Debugger.System(67980, $"Handling tier list from {roomInfo}");
 
+                    bool spawnedBoss = false;
+
                     await pool.HandleTierLists(async (list) => {
-                        if (list.tier == EntityTier.Boss) return;
+                        if (list.tier == EntityTier.Boss)
+                        {
+                            if (roomInfo.GetType() == typeof(BossRoom))
+                            {
+                                spawnedBoss = true;
+                            }
+                            else
+                            {
+                                return;
+
+                            }
+                        }
                         await SpawnRandomInPosition(list.entities, roomInfo.SpawnPositionFromTier(list.tier));
                     });
 
@@ -188,7 +202,7 @@ public class MapEntityGenerator : MonoBehaviour
                         {
                             
                             var patrolGroup = roomInfo.patrolGroups.GetChild(i);
-                            var randomGroup = ArchGeneric.RandomItem(patrolGroups);/* patrolGroups[UnityEngine.Random.Range(0, patrolGroups.Count)];*/
+                            var randomGroup = ArchGeneric.RandomItem(patrolGroups);
                             for (int j = 0; j < patrolGroup.childCount; j++)
                             {
                                 var spot = patrolGroup.GetChild(j);
@@ -203,6 +217,7 @@ public class MapEntityGenerator : MonoBehaviour
                         }
                     }
 
+                    if (spawnedBoss) return;
                     await HandleBossRoom(roomInfo);
 
 
