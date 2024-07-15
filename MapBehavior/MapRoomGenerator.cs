@@ -63,6 +63,8 @@ namespace Architome
         VectorCluster<Transform> roomGeneratorVectorCluster;
         TaskQueueHandler taskHandler;
 
+        #region Initialization
+
         void Start()
         {
             GetDependencies();
@@ -174,6 +176,13 @@ namespace Architome
 
         }
         
+
+        private void Awake()
+        {
+            active = this;
+        }
+
+        #endregion
         public Transform RoomAnchor()
         {
             if (roomAnchor == null)
@@ -185,12 +194,6 @@ namespace Architome
 
             return roomAnchor;
         }
-
-        private void Awake()
-        {
-            active = this;
-        }
-
         // Update is called once per frame
         void Update()
         {
@@ -510,63 +513,17 @@ namespace Architome
                 return;
             }
 
-            taskHandler.AddTask(async () =>
-            {
-                if (generatedRooms) return;
-                var generatedRoom = false;
-                OnRoomsGenerated += (MapRoomGenerator generator) =>
-                {
-                    generatedRoom = true;
-                };
-
-                while (!generatedRoom)
-                {
-                    Debugger.System(67975, $"Waiting for room generator to finish tasks");
-
-                    await Task.Delay(250);
-                }
-
-                Debugger.System(67976, $"Done Waiting for room generator to finish tasks");
-
-            });
-
-
             if (entityGenerator)
             {
-                taskHandler.AddTask(async () =>
-                {
-                    if (entityGenerator.generatedEntities) return;
-                    var generatedEntities = false;
-                    entityGenerator.OnEntitiesGenerated += (MapEntityGenerator generator) =>
-                    {
-                        generatedEntities = true;
-                    };
-
-                    while (!generatedEntities)
-                    {
-                        Debugger.System(67977, $"Waiting for entityGenerator to finish tasks");
-
-                        await Task.Delay(250);
-                    }
-                    Debugger.System(67978, $"Done waiting for entity generator to finish tasks.");
-
-                });
-
+                taskHandler.AddTask(entityGenerator.UntilEntityGeratorInitialized);
             }
+
+            taskHandler.AddTask(UntilRoomsGenerated);
 
             await taskHandler.UntilTasksFinished();
 
-            Debugger.System(67974, $"Finished waiting for tasks before hiding rooms");
+            await HideRooms();
 
-            if (!roomsHidden)
-            {
-                if (availableRooms.Count == 0 && badSpawnRooms.Count == 0)
-                {
-                    await HideRooms();
-                    roomsHidden = true;
-                    OnAllRoomsHidden?.Invoke(this);
-                }
-            }
             async Task HideRooms()
             {
                 ClearNullRooms();
@@ -585,6 +542,9 @@ namespace Architome
                 }
 
                 await Task.WhenAll(tasks);
+
+                roomsHidden = true;
+                OnAllRoomsHidden?.Invoke(this);
             }
         }
 
@@ -637,6 +597,11 @@ namespace Architome
             }
         }
         
+        public async Task UntilRoomsGenerated()
+        {
+            await ArchAction.WaitUntil((deltaTime) => generatedRooms, true);
+        }
+
         public List<PathInfo> AvailablePaths()
         {
             ClearNullPaths();

@@ -12,7 +12,7 @@ public class MapEntityGenerator : MonoBehaviour
     // Start is called before the first frame update
     public MapInfo mapInfo;
     WorldActions world;
-    public bool generatedEntities;
+    bool initializedEntityGenerator { get; set; }
 
     public Transform entityList;
     public Transform miscEntities;
@@ -22,6 +22,7 @@ public class MapEntityGenerator : MonoBehaviour
     public int entitiesSpawned;
     public int expectedEntities;
     public int targetYield;
+
 
     //Events
     public Action<MapEntityGenerator> OnEntitiesGenerated { get; set; }
@@ -90,7 +91,7 @@ public class MapEntityGenerator : MonoBehaviour
         }
     }
 
-    public void OnRoomsGenerated(MapRoomGenerator roomGenerator)
+    public async void OnRoomsGenerated(MapRoomGenerator roomGenerator)
     {
         if (Core.currentDungeon != null)
         {
@@ -102,16 +103,14 @@ public class MapEntityGenerator : MonoBehaviour
 
         if(mapInfo.generateEntities)
         {
-            ArchAction.Delay(() => 
-            {
-                expectedEntities = ExpectedEntities();
-                HandleEntities();
-            }, 1f);
+            await Task.Delay(1000);
+
+            expectedEntities = ExpectedEntities();
+            await HandleEntities();
         }
-        else
-        {
-            OnEntitiesGenerated?.Invoke(this);
-        }
+
+        initializedEntityGenerator = true;
+        OnEntitiesGenerated?.Invoke(this);
     }
 
     public int ExpectedEntities()
@@ -142,11 +141,10 @@ public class MapEntityGenerator : MonoBehaviour
         return count;
     }
 
-    async void HandleEntities()
+    async Task HandleEntities()
     {
         await SpawnEnemies();
-        generatedEntities = true;
-        OnEntitiesGenerated?.Invoke(this);
+        
 
         async Task SpawnEnemies()
         {
@@ -156,13 +154,7 @@ public class MapEntityGenerator : MonoBehaviour
             var enemySpots = new List<Transform>();
 
             Debugger.System(67979, $"Running Task to spawn enemies");
-
-
-            await HandleEntitiesAsync();
-
-            async Task HandleEntitiesAsync()
-            {
-                foreach (RoomInfo roomInfo in mapInfo.rooms)
+            foreach (RoomInfo roomInfo in mapInfo.rooms)
                 {
                     if (roomInfo == null) { continue; }
 
@@ -222,11 +214,15 @@ public class MapEntityGenerator : MonoBehaviour
 
 
                 }
-            }
+
         }
         
     }
 
+    public async Task UntilEntityGeratorInitialized()
+    {
+        await ArchAction.WaitUntil((deltaTime) => initializedEntityGenerator, true);
+    }
 
     async Task SpawnRandomInPosition<T>(List<T> randomEntities, RoomSpawnPositions spawnPosition, float chance = 85f) where T: EntityInfo
     {
