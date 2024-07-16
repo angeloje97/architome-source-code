@@ -72,6 +72,10 @@ namespace Architome
             HandleCoreDungeons();
             GenerateRooms();
         }
+        private void Awake()
+        {
+            active = this;
+        }
 
         void GetDependencies()
         {
@@ -98,6 +102,48 @@ namespace Architome
             roomsToGenerate += skeletonRooms.Count;
         }
 
+        async void HandleHideRooms()
+        {
+            if (!hideRooms)
+            {
+                OnAllRoomsHidden?.Invoke(this);
+                return;
+            }
+
+            if (entityGenerator)
+            {
+                taskHandler.AddTask(entityGenerator.UntilEntityGeratorInitialized);
+            }
+
+            taskHandler.AddTask(UntilRoomsGenerated);
+
+            await taskHandler.UntilTasksFinished();
+
+            await HideRooms();
+
+            async Task HideRooms()
+            {
+                ClearNullRooms();
+                var tasks = new List<Task>();
+                foreach (var info in roomsInUse)
+                {
+                    if (info == null) continue;
+                    if (info.ignoreHideOnStart) continue;
+                    if (info.entities.PlayerIsInRoom()) continue;
+
+                    Debugger.System(67960, $"Map Room Generator hiding : {info}");
+
+
+                    info.ShowRoom(false);
+                    tasks.Add(info.VisibilityChanges());
+                }
+
+                await Task.WhenAll(tasks);
+
+                roomsHidden = true;
+                OnAllRoomsHidden?.Invoke(this);
+            }
+        }
         async public void GenerateRooms()
         {
             if (mapInfo.generateRooms)
@@ -129,82 +175,6 @@ namespace Architome
             }
         }
 
-        void HandleCoreDungeons()
-        {
-            if (!useCoreInfo) return;
-            
-            var levels = Core.currentDungeon;
-
-            if (levels == null) return;
-
-            var dungeonInfo = levels[Core.dungeonIndex];
-
-            if (dungeonInfo.skeleton == null || dungeonInfo.entrance == null) return;
-
-            skeletonRooms = new();
-            availableRooms = new();
-
-            roomsToGenerate = 0;
-
-            foreach (var room in dungeonInfo.skeleton)
-            {
-                skeletonRooms.Add(room);
-                roomsToGenerate++;
-            }
-
-            if (dungeonInfo.entrance)
-            {
-                startingRoom = dungeonInfo.entrance;
-                roomsToGenerate++;
-
-            }
-
-            if (dungeonInfo.boss)
-            {
-                skeletonRooms.Add(dungeonInfo.boss);
-                roomsToGenerate++;
-
-            }
-
-            foreach (var room in dungeonInfo.random)
-            {
-                availableRooms.Add(room);
-                roomsToGenerate++;
-
-            }
-
-
-        }
-        
-
-        private void Awake()
-        {
-            active = this;
-        }
-
-        #endregion
-        public Transform RoomAnchor()
-        {
-            if (roomAnchor == null)
-            {
-                var anchorObject = new GameObject("RoomAnchor");
-                roomAnchor = anchorObject.transform;
-                roomAnchor.transform.SetParent(transform);
-            }
-
-            return roomAnchor;
-        }
-        // Update is called once per frame
-        void Update()
-        {
-            //HandleTimers();
-            //if (badSpawnRooms.Count > 0 && mapInfo.generateRooms)
-            //{
-            //    fixTimer = fixTimeFrame;
-            //    HandleBadSpawnRooms();
-            //}
-        }
-
         void UpdateStartingRoom()
         {
             var room = startingRoom;
@@ -230,6 +200,87 @@ namespace Architome
 
             OnCreateStartingRoom?.Invoke(this);
         }
+
+        void HandleCheckPaths()
+        {
+            ClearNullPaths();
+            foreach (PathInfo path in paths)
+            {
+                path.CheckPath();
+            }
+        }
+
+        #region Core methods
+        void HandleCoreDungeons()
+        {
+            if (!useCoreInfo) return;
+
+            var levels = Core.currentDungeon;
+
+            if (levels == null) return;
+
+            var dungeonInfo = levels[Core.dungeonIndex];
+
+            if (dungeonInfo.skeleton == null || dungeonInfo.entrance == null) return;
+
+            skeletonRooms = new();
+            availableRooms = new();
+
+            roomsToGenerate = 0;
+
+            foreach (var room in dungeonInfo.skeleton)
+            {
+                skeletonRooms.Add(room);
+                roomsToGenerate++;
+            }
+
+            if (dungeonInfo.entrance)
+            {
+                startingRoom = dungeonInfo.entrance;
+                roomsToGenerate++;
+            }
+
+            if (dungeonInfo.boss)
+            {
+                skeletonRooms.Add(dungeonInfo.boss);
+                roomsToGenerate++;
+
+            }
+
+            foreach (var room in dungeonInfo.random)
+            {
+                availableRooms.Add(room);
+                roomsToGenerate++;
+
+            }
+
+
+        }
+        #endregion
+
+        #endregion
+        public Transform RoomAnchor()
+        {
+            if (roomAnchor == null)
+            {
+                var anchorObject = new GameObject("RoomAnchor");
+                roomAnchor = anchorObject.transform;
+                roomAnchor.transform.SetParent(transform);
+            }
+
+            return roomAnchor;
+        }
+        // Update is called once per frame
+        void Update()
+        {
+            //HandleTimers();
+            //if (badSpawnRooms.Count > 0 && mapInfo.generateRooms)
+            //{
+            //    fixTimer = fixTimeFrame;
+            //    HandleBadSpawnRooms();
+            //}
+        }
+
 
         #region Spawning Rooms
         async Task UpdateskeletonRooms()
@@ -493,114 +544,15 @@ namespace Architome
 
             } while (generatingSkeleton || generatingAvailable);
         }
-        public void HandleTimers()
-        {
-            //if (fixTimer > 0 && badSpawnRooms.Count == 0)
-            //{
-            //    fixTimer -= Time.deltaTime;
-            //}
-            //if (fixTimer < 0)
-            //{
-            //    fixTimer = 0;
-            //}
-
-        }
-        async void HandleHideRooms()
-        {
-            if (!hideRooms)
-            {
-                OnAllRoomsHidden?.Invoke(this);
-                return;
-            }
-
-            if (entityGenerator)
-            {
-                taskHandler.AddTask(entityGenerator.UntilEntityGeratorInitialized);
-            }
-
-            taskHandler.AddTask(UntilRoomsGenerated);
-
-            await taskHandler.UntilTasksFinished();
-
-            await HideRooms();
-
-            async Task HideRooms()
-            {
-                ClearNullRooms();
-                var tasks = new List<Task>();
-                foreach (var info in roomsInUse)
-                {
-                    if (info == null) continue;
-                    if (info.ignoreHideOnStart) continue;
-                    if (info.entities.PlayerIsInRoom()) continue;
-
-                    Debugger.System(67960, $"Map Room Generator hiding : {info}");
 
 
-                    info.ShowRoom(false);
-                    tasks.Add(info.VisibilityChanges());
-                }
-
-                await Task.WhenAll(tasks);
-
-                roomsHidden = true;
-                OnAllRoomsHidden?.Invoke(this);
-            }
-        }
-
-        void HandleCheckPaths()
-        {
-            ClearNullPaths();
-            foreach (PathInfo path in paths)
-            {
-                path.CheckPath();
-            }
-        }
-
-        public void DestroyRooms()
-        {
-            if (roomsInUse == null) return;
-            for(int i = roomsInUse.Count - 1; i >= 0; i--)
-            {
-                if (!Application.isPlaying) break;
-                Destroy(roomsInUse[i].gameObject);
-            }
-
-            foreach(Transform child in roomList)
-            {
-                Destroy(child.gameObject);
-            }
-
-            roomsInUse = new();
-        }
-
-        public void AddRoom(RoomInfo room)
-        {
-            if (paths == null)
-            {
-                paths = new();
-            }
-
-            if (roomsInUse == null)
-            {
-                roomsInUse = new();
-            }
-
-            if (roomsInUse.Contains(room)) return;
-            roomsInUse.Add(room);
-
-            roomsGenerated = roomsInUse.Count;
-
-            foreach (var path in room.paths)
-            {
-                paths.Add(path);
-            }
-        }
         
         public async Task UntilRoomsGenerated()
         {
             await ArchAction.WaitUntil((deltaTime) => generatedRooms, true);
         }
+
+        #region Properties
 
         public List<PathInfo> AvailablePaths()
         {
@@ -652,17 +604,6 @@ namespace Architome
 
 
         }
-        public void ClearIncompatablePaths(RoomInfo roomInfo, List<PathInfo> availablePaths)
-        {
-            for (int i = 0; i < availablePaths.Count; i++)
-            {
-                if (roomInfo.incompatablePaths.Contains(availablePaths[i]))
-                {
-                    availablePaths.Remove(availablePaths[i]);
-                    i--;
-                }
-            }
-        }
         public List<PathInfo> AvailablePaths(RoomInfo room)
         {
             ClearNullPaths();
@@ -678,18 +619,6 @@ namespace Architome
 
             return availablePaths;
         }
-        void ClearNullPaths()
-        {
-            for (int i = 0; i < paths.Count; i++)
-            {
-                if (paths[i] == null)
-                {
-                    paths.RemoveAt(i);
-
-                    i--;
-                }
-            }
-        }
         public List<PathInfo> RoomPaths(RoomInfo room)
         {
             List<PathInfo> pathList = new List<PathInfo>();
@@ -703,6 +632,74 @@ namespace Architome
             }
 
             return pathList;
+        }
+        public bool CanGenerate()
+        {
+            return Application.isPlaying;
+        }
+        #endregion
+
+        #region Actions
+        public void DestroyRooms()
+        {
+            if (roomsInUse == null) return;
+            for(int i = roomsInUse.Count - 1; i >= 0; i--)
+            {
+                if (!Application.isPlaying) break;
+                Destroy(roomsInUse[i].gameObject);
+            }
+
+            foreach(Transform child in roomList)
+            {
+                Destroy(child.gameObject);
+            }
+
+            roomsInUse = new();
+        }
+        public void AddRoom(RoomInfo room)
+        {
+            if (paths == null)
+            {
+                paths = new();
+            }
+
+            if (roomsInUse == null)
+            {
+                roomsInUse = new();
+            }
+
+            if (roomsInUse.Contains(room)) return;
+            roomsInUse.Add(room);
+
+            roomsGenerated = roomsInUse.Count;
+
+            foreach (var path in room.paths)
+            {
+                paths.Add(path);
+            }
+        }
+        public void ClearIncompatablePaths(RoomInfo roomInfo, List<PathInfo> availablePaths)
+        {
+            for (int i = 0; i < availablePaths.Count; i++)
+            {
+                if (roomInfo.incompatablePaths.Contains(availablePaths[i]))
+                {
+                    availablePaths.Remove(availablePaths[i]);
+                    i--;
+                }
+            }
+        }
+        void ClearNullPaths()
+        {
+            for (int i = 0; i < paths.Count; i++)
+            {
+                if (paths[i] == null)
+                {
+                    paths.RemoveAt(i);
+
+                    i--;
+                }
+            }
         }
         public void ClearNullRooms()
         {
@@ -727,12 +724,9 @@ namespace Architome
                 DestroyImmediate(room.gameObject);
             }
         }
+        #endregion
 
 
-        public bool CanGenerate()
-        {
-            return Application.isPlaying;
-        }
 
     }
 }
