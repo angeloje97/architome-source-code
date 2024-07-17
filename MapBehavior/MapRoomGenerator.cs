@@ -9,6 +9,7 @@ namespace Architome
 {
     public class MapRoomGenerator : MonoBehaviour
     {
+        #region Common Data
         public static MapRoomGenerator active { get; private set; }
 
         public bool useCoreInfo;
@@ -46,10 +47,7 @@ namespace Architome
         public float startDelay = 0f;
         public float fixDelay = 0f;
         public float hideDelay;
-        //public float fixTimer;
-        //public float fixTimeFrame;
 
-        //Events
         public Action<MapRoomGenerator> OnRoomsGenerated { get; set; }
         public Action<MapRoomGenerator> OnAllRoomsHidden { get; set; }
         public Action<MapRoomGenerator, RoomInfo> OnSpawnRoom;
@@ -63,6 +61,8 @@ namespace Architome
         VectorCluster<Transform> roomGeneratorVectorCluster;
         TaskQueueHandler taskHandler;
 
+        #endregion
+        
         #region Initialization
 
         void Start()
@@ -259,28 +259,6 @@ namespace Architome
         #endregion
 
         #endregion
-        public Transform RoomAnchor()
-        {
-            if (roomAnchor == null)
-            {
-                var anchorObject = new GameObject("RoomAnchor");
-                roomAnchor = anchorObject.transform;
-                roomAnchor.transform.SetParent(transform);
-            }
-
-            return roomAnchor;
-        }
-        // Update is called once per frame
-        void Update()
-        {
-            //HandleTimers();
-            //if (badSpawnRooms.Count > 0 && mapInfo.generateRooms)
-            //{
-            //    fixTimer = fixTimeFrame;
-            //    HandleBadSpawnRooms();
-            //}
-        }
-
 
         #region Spawning Rooms
         async Task UpdateskeletonRooms()
@@ -532,25 +510,29 @@ namespace Architome
                 }
             }
         }
-        
-        #endregion
-        IEnumerator ClearNullsRoutine()
-        {
-            do
-            {
-                yield return new WaitForSeconds(spawnDelay / 2);
-                ClearNullPaths();
-                ClearNullRooms();
 
-            } while (generatingSkeleton || generatingAvailable);
+        #endregion
+
+        #region Misc
+
+        public Transform RoomAnchor()
+        {
+            if (roomAnchor == null)
+            {
+                var anchorObject = new GameObject("RoomAnchor");
+                roomAnchor = anchorObject.transform;
+                roomAnchor.transform.SetParent(transform);
+            }
+
+            return roomAnchor;
         }
 
-
-        
         public async Task UntilRoomsGenerated()
         {
             await ArchAction.WaitUntil((deltaTime) => generatedRooms, true);
         }
+        
+        #endregion
 
         #region Properties
 
