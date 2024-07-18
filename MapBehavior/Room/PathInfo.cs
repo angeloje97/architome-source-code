@@ -38,13 +38,12 @@ namespace Architome
         [SerializeField] bool isOpen;
         [SerializeField] bool test;
 
-
+        #region Initialization
         void GetDependencies()
         {
             if (MapHelper.MapInfo())
             {
                 mapInfo = MapHelper.MapInfo();
-                //mapInfo.RoomGenerator().paths.Add(this);
             }
 
             if (pathActivator && !isUsed)
@@ -77,6 +76,7 @@ namespace Architome
             UpdatePath(isOpen);
         }
 
+        #endregion
         async public Task<RoomInfo> SpawnRoom(RoomInfo room, Transform parent, bool existingRoom = false)
         {
             if (!room.GetComponent<RoomInfo>()) { return null; }
@@ -237,10 +237,8 @@ namespace Architome
                 var otherInfo = path.GetComponentInParent<PathInfo>();
 
                 if (otherInfo == null || otherInfo == this) continue;
-                //if (!path.GetComponentInParent<PathInfo>()) { continue; }
 
                 if (!V3Helper.EqualVector3(roomAnchor.transform.position, otherInfo.transform.position, .25f)) continue;
-                //if (!V3Helper.EqualVector3(transform.position, otherInfo.transform.position, .25f)) continue;
 
                 otherPath = otherInfo;
                 hasAnotherPath = true;
@@ -274,7 +272,7 @@ namespace Architome
                 }
             }
 
-            mapAdjustments.AdjustAroundCollider(GetComponentsInChildren<Collider>());
+            _= mapAdjustments.AdjustAroundCollider(GetComponentsInChildren<Collider>());
         }
 
         void SetOtherPath()
@@ -285,7 +283,6 @@ namespace Architome
                 Debugger.InConsole(8942, $"There is no other path for {this}");
                 return;
             }
-            //HandleOtherRoom();
             HandleThisPath();
 
             void HandleThisPath()
