@@ -106,15 +106,16 @@ namespace Architome
         {
             var list = new List<RoomSpawnPositions>();
 
-            var tier1 = SpawnPositionFromTier(EntityTier.Tier1);
-            var tier2 = SpawnPositionFromTier(EntityTier.Tier2);
-            var tier3 = SpawnPositionFromTier(EntityTier.Tier3);
-            var boss = SpawnPositionFromTier(EntityTier.Boss);
+            foreach(EntityTier tier in Enum.GetValues(typeof(EntityTier)))
+            {
+                if (!spawnPositionMap.ContainsKey(tier)) continue;
+                var spawnPosition = spawnPositionMap[tier];
 
-            if (tier1 != null) list.Add(tier1);
-            if (tier2 != null) list.Add(tier2);
-            if (tier3 != null) list.Add(tier3);
-            if (boss != null) list.Add(boss);
+                if(spawnPosition != null)
+                {
+                    list.Add(spawnPosition);
+                }
+            }
 
             return list;
         }
