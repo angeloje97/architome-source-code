@@ -167,6 +167,7 @@ namespace Architome.SkillCheck
 
         #endregion
 
+        #region Actions During Skill Check
         public void OnEndSkillCheck(SkillCheckData data)
         {
 
@@ -178,10 +179,11 @@ namespace Architome.SkillCheck
             currentData.HitSkillCheck();
         }
 
-
         public void CancelSkillCheck()
         {
             currentData.CancelSkillCheck();
         }
+
+        #endregion
     }
 }

@@ -155,132 +155,16 @@ namespace Architome
 
         bool changingVisibility;
 
-        public struct Events
-        {
-            public Action<RoomInfo, bool> OnShowRoom;
-            public Action<RoomInfo, List<Renderer>> OnGetAllRenderers;
-
-            //Entity Events
-            public Action<RoomInfo> OnEnterRoom;
-
-        }
+        
 
         public Events events;
-
-        [Serializable]
-        public struct Entities
-        {
-            public RoomInfo room;
-            [SerializeField] List<EntityInfo> inRoom;
-            [SerializeField] List<EntityInfo> playerInRoom;
-            public bool playerDiscovered;
-
-            public Action<EntityInfo> OnEntityEnter;
-            public Action<EntityInfo> OnEntityExit;
-            public Action<EntityInfo> OnPlayerEnter;
-            public Action<EntityInfo> OnPlayerExit;
-            public Action<EntityInfo> OnPlayerDiscover;
-
-            public List<EntityInfo> HostilesInRoom
-            { get { return inRoom.Where(entity => entity.npcType == Enums.NPCType.Hostile && entity.isAlive).ToList(); } }
-
-            public List<EntityInfo> EntitiesInRoom
-            {
-                get
-                {
-                    return inRoom.ClearNulls();
-                }
-            }
-
-            public void ClearNullEntities()
-            {
-                inRoom = inRoom.ClearNulls();
-                playerInRoom = playerInRoom.ClearNulls();
-            }
-
-            public void HandleEntityEnter(EntityInfo entity)
-            {
-                if (!room) return;
-                if (inRoom.Contains(entity)) return;
-                inRoom.Add(entity);
-                OnEntityEnter?.Invoke(entity);
-
-                if (entity.rarity == EntityRarity.Player)
-                {
-                    playerInRoom.Add(entity);
-                    OnPlayerEnter?.Invoke(entity);
-
-                    if (!playerDiscovered)
-                    {
-                        OnPlayerDiscover?.Invoke(entity);
-                        playerDiscovered = true;
-                    }
-
-                    room.ShowRoom(true, entity.transform.position);
-                }
-            }
-            public void HandleEntityExit(EntityInfo entity)
-            {
-                if (!inRoom.Contains(entity)) return;
-                if (!room) return;
-                inRoom.Remove(entity);
-                OnEntityExit?.Invoke(entity);
-
-                if (entity.rarity == EntityRarity.Player)
-                {
-                    playerInRoom.Remove(entity);
-                    OnPlayerExit?.Invoke(entity);
-
-                    if (playerInRoom.Count == 0)
-                    {
-                        room.ShowRoom(false, entity.transform.position);
-                    }
-                }
-
-                
-            }
-            public bool PlayerIsInRoom()
-            {
-
-                for(int i = 0; i < inRoom.Count; i++)
-                {
-                    if (inRoom[i] == null)
-                    {
-                        inRoom.RemoveAt(i);
-                        i--;
-                        continue;
-                    }
-
-                    if (!Entity.IsPlayer(inRoom[i])) continue;
-                    return true;
-                }
-
-                return playerInRoom.Count > 0;
-            }
-            public void Initiate(MapEntityGenerator generator)
-            {
-                for (int i = 0; i < inRoom.Count; i++)
-                {
-                    var entity = inRoom[i];
-
-                    if(entity.currentRoom != room)
-                    {
-                        inRoom.RemoveAt(i);
-                        i--;
-
-                        if (playerInRoom.Contains(entity))
-                        {
-                            playerInRoom.Remove(entity);
-                        }
-                    }
-
-                }
-            }
-        }
+        
         public Entities entities;
 
         //Private properties
         [SerializeField] float percentReveal;
+
+        #region Initialization
 
         void Start()
         {
@@ -331,6 +215,9 @@ namespace Architome
                 SuccesfulStart();
             }
         }
+
+        #endregion
+
         public void GetAllObjects()
         {
 
@@ -739,7 +626,131 @@ namespace Architome
         }
 
         #endregion
-        
+
+        #region EntitesInRoom
+        [Serializable]
+        public struct Entities
+        {
+            public RoomInfo room;
+            [SerializeField] List<EntityInfo> inRoom;
+            [SerializeField] List<EntityInfo> playerInRoom;
+            public bool playerDiscovered;
+
+            public Action<EntityInfo> OnEntityEnter;
+            public Action<EntityInfo> OnEntityExit;
+            public Action<EntityInfo> OnPlayerEnter;
+            public Action<EntityInfo> OnPlayerExit;
+            public Action<EntityInfo> OnPlayerDiscover;
+
+            public List<EntityInfo> HostilesInRoom
+            { get { return inRoom.Where(entity => entity.npcType == Enums.NPCType.Hostile && entity.isAlive).ToList(); } }
+
+            public List<EntityInfo> EntitiesInRoom
+            {
+                get
+                {
+                    return inRoom.ClearNulls();
+                }
+            }
+
+            public void ClearNullEntities()
+            {
+                inRoom = inRoom.ClearNulls();
+                playerInRoom = playerInRoom.ClearNulls();
+            }
+
+            public void HandleEntityEnter(EntityInfo entity)
+            {
+                if (!room) return;
+                if (inRoom.Contains(entity)) return;
+                inRoom.Add(entity);
+                OnEntityEnter?.Invoke(entity);
+
+                if (entity.rarity == EntityRarity.Player)
+                {
+                    playerInRoom.Add(entity);
+                    OnPlayerEnter?.Invoke(entity);
+
+                    if (!playerDiscovered)
+                    {
+                        OnPlayerDiscover?.Invoke(entity);
+                        playerDiscovered = true;
+                    }
+
+                    room.ShowRoom(true, entity.transform.position);
+                }
+            }
+            public void HandleEntityExit(EntityInfo entity)
+            {
+                if (!inRoom.Contains(entity)) return;
+                if (!room) return;
+                inRoom.Remove(entity);
+                OnEntityExit?.Invoke(entity);
+
+                if (entity.rarity == EntityRarity.Player)
+                {
+                    playerInRoom.Remove(entity);
+                    OnPlayerExit?.Invoke(entity);
+
+                    if (playerInRoom.Count == 0)
+                    {
+                        room.ShowRoom(false, entity.transform.position);
+                    }
+                }
+            }
+
+            public bool PlayerIsInRoom()
+            {
+
+                for (int i = 0; i < inRoom.Count; i++)
+                {
+                    if (inRoom[i] == null)
+                    {
+                        inRoom.RemoveAt(i);
+                        i--;
+                        continue;
+                    }
+
+                    if (!Entity.IsPlayer(inRoom[i])) continue;
+                    return true;
+                }
+
+                return playerInRoom.Count > 0;
+            }
+
+            public void Initiate(MapEntityGenerator generator)
+            {
+                for (int i = 0; i < inRoom.Count; i++)
+                {
+                    var entity = inRoom[i];
+
+                    if (entity.currentRoom != room)
+                    {
+                        inRoom.RemoveAt(i);
+                        i--;
+
+                        if (playerInRoom.Contains(entity))
+                        {
+                            playerInRoom.Remove(entity);
+                        }
+                    }
+
+                }
+            }
+        }
+        #endregion
+
+        #region Events
+        public struct Events
+        {
+            public Action<RoomInfo, bool> OnShowRoom;
+            public Action<RoomInfo, List<Renderer>> OnGetAllRenderers;
+
+            //Entity Events
+            public Action<RoomInfo> OnEnterRoom;
+
+        }
+        #endregion
     }
 
     [Serializable] public class RoomSpawnPositions
