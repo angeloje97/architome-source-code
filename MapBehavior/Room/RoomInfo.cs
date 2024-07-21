@@ -758,6 +758,33 @@ namespace Architome
         [HideInInspector] public string name;
         public EntityTier entityTier;
         public Transform parent;
+
+        List<Transform> spawnPositions;
+
+        int currentIndex = 0;
+        public Transform nextSpawnTransform
+        {
+            get
+            {
+                if(spawnPositions == null)
+                {
+                    spawnPositions = new();
+
+                    foreach(Transform child in spawnPositions)
+                    {
+                        spawnPositions.Add(child);
+                    }
+
+                    spawnPositions = ArchGeneric.Shuffle(spawnPositions);
+                }
+
+                if (currentIndex == spawnPositions.Count) return null;
+
+                return spawnPositions[currentIndex++];
+
+            }
+        }
+
     }
 }
 
