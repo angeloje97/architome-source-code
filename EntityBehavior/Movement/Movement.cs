@@ -124,6 +124,9 @@ namespace Architome
             abilityManager = entityInfo.AbilityManager();
 
             entityInfo.OnChangeStats += OnChangeStats;
+
+            OnChangeStats(entityInfo);
+
             entityInfo.OnLifeChange += OnLifeCheck;
             combatEvents.AddListenerStateEvent(eStateEvent.OnStatesChange, OnStatesChange, this);
             entityInfo.infoEvents.OnSignificantMovementChange += OnSignificantMovementChange;

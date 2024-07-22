@@ -53,6 +53,9 @@ namespace Architome
             }
 
             entityInfo.OnLifeChange += OnLifeChange;
+
+            OnLifeChange(entityInfo.isAlive);
+
             combatEvents.AddListenerHealth(eHealthEvent.OnDamageTaken, OnDamageTaken, this);
             entityInfo.OnCombatChange += OnCombatChange;
 

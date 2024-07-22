@@ -77,7 +77,7 @@ namespace Architome
         
         [SerializeField] protected List<RoomSpawnPositions> roomSpawnPositions;
 
-        protected Dictionary<EntityTier, RoomSpawnPositions> spawnPositionMap;
+        protected Dictionary<EntityTier, RoomSpawnPositions> spawnPositionMap { get; set; }
 
         protected void UpdateSpawnPosititionMap()
         {
@@ -104,6 +104,7 @@ namespace Architome
 
         public List<RoomSpawnPositions> EntitySpawnPositions()
         {
+            UpdateSpawnPosititionMap();
             var list = new List<RoomSpawnPositions>();
 
             foreach(EntityTier tier in Enum.GetValues(typeof(EntityTier)))
