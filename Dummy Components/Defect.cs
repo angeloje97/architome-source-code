@@ -28,7 +28,7 @@ namespace Architome
             defect.source = target;
             defect.description = e.Message;
 
-            Debug.LogError(e.StackTrace);
+            Debug.LogError($"{target.gameObject}\n{e.StackTrace}");
 
             if (e != null)
             {
