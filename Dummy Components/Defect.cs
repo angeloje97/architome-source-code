@@ -12,17 +12,18 @@ namespace Architome
         [Multiline(30)] public string stackTrace;
 
 
+
         public static void CreateIndicator(Transform target, string title = "Generic", Exception e = null)
         {
             var defectGameObject = new GameObject($"Defect: {title}");
-            if(target != null)
-            {
-                defectGameObject.transform.SetParent(target);
-            }
 
+            ArchAction.Delay(() => {
+                if(target != null)
+                {
+                    defectGameObject.transform.SetParent(target);
+                }
+            }, .625f);
 
-
-             
             defectGameObject.transform.position = new();
             var defect = defectGameObject.AddComponent<Defect>();
             defect.source = target;
