@@ -29,10 +29,10 @@ namespace Architome
             defect.source = target;
             defect.description = e.Message;
 
-            Debug.LogError($"{target.gameObject}\n{e.StackTrace}");
 
             if (e != null)
             {
+                Debug.LogError($"{target.gameObject}\n{e.StackTrace}");
                 defect.stackTrace = e.StackTrace;
             }
         }
