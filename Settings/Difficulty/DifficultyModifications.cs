@@ -19,6 +19,7 @@ namespace Architome
     {
         // Start is called before the first frame update
         public static DifficultyModifications active;
+        public static DifficultySet current => active.settings;
         public Difficulty gameDifficulty;
         [SerializeField]
         private bool startUpdate;

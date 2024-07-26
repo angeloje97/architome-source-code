@@ -5,6 +5,7 @@ using System;
 using Architome;
 using System.Threading.Tasks;
 using PixelCrushers.DialogueSystem.UnityGUI;
+using JetBrains.Annotations;
 
 public class MapEntityGenerator : MonoBehaviour
 {
@@ -21,6 +22,7 @@ public class MapEntityGenerator : MonoBehaviour
 
     public int entitiesSpawned;
     public int expectedEntities;
+    public int spawnPositions;
     public int targetYield;
 
 
@@ -35,6 +37,7 @@ public class MapEntityGenerator : MonoBehaviour
     List<Dungeon.Rooms> dungeons;
     int dungeonIndex;
 
+    float spawnChance;
 
     void GetDependencies()
     {
@@ -63,6 +66,8 @@ public class MapEntityGenerator : MonoBehaviour
             groundLayerMask = layerMasksData.walkableLayer;
             strucutreLayerMask = layerMasksData.structureLayerMask;
         }
+
+        spawnChance = DifficultyModifications.current.minimumEnemyForces;
     }
 
     void Awake()
@@ -72,7 +77,6 @@ public class MapEntityGenerator : MonoBehaviour
     void Start()
     {
         GetDependencies();
-
     }
 
     public void BeforeRoomsGenerated(MapRoomGenerator generator)
@@ -105,7 +109,7 @@ public class MapEntityGenerator : MonoBehaviour
         {
             await Task.Delay(1000);
 
-            expectedEntities = ExpectedEntities();
+            ExpectedEntities();
             await HandleEntities();
         }
 
@@ -138,14 +142,16 @@ public class MapEntityGenerator : MonoBehaviour
             }
         }
 
-        return count;
+        spawnPositions = count;
+        expectedEntities = (int)(count * spawnChance);
+
+        return expectedEntities;
     }
 
     async Task HandleEntities()
     {
         await SpawnEnemies();
         
-
         async Task SpawnEnemies()
         {
             //if (tier1Entities.Count == 0 &&
@@ -182,7 +188,9 @@ public class MapEntityGenerator : MonoBehaviour
 
                             }
                         }
-                        await SpawnRandomInPosition(list.entities, roomInfo.SpawnPositionFromTier(list.tier));
+
+                        Debugger.System(11040, $"Attempting to spawn {list.tier} entity in room {roomInfo}");
+                        await SpawnRandomInPosition(list.entities, roomInfo.SpawnPositionFromTier(list.tier), chance: spawnChance);
                     });
 
 
@@ -234,7 +242,7 @@ public class MapEntityGenerator : MonoBehaviour
 
         foreach (Transform trans in parent)
         {
-            if (!ArchGeneric.RollSuccess(chance)) continue;
+            //if (!ArchGeneric.RollSuccess(chance) && spawnPosition.entityTier != EntityTier.Boss) continue;
 
             var pickedEntity = ArchGeneric.RandomItem(randomEntities);
             await SpawnEntity(pickedEntity, trans);
