@@ -21,7 +21,22 @@ namespace Architome
 
         #region Common Data
 
-        ArchEventHandler<eMonoEvent, MonoActor> monoEvents;
+
+        ArchEventHandler<eMonoEvent, MonoActor> _monoEvents;
+        ArchEventHandler<eMonoEvent, MonoActor> monoEvents
+        {
+            get
+            {
+                if(_monoEvents == null)
+                {
+                    Defect.CreateIndicator(transform, "Null Mono Event", new($"{this} class did not initialize Mono events"));
+                    _monoEvents = new(this);
+                }
+
+                return _monoEvents;
+            }
+        }
+
 
 
         #endregion
@@ -32,7 +47,7 @@ namespace Architome
 
         protected virtual void Awake()
         {
-            monoEvents = new(this);
+            _monoEvents = new(this);
             initiated = true;
         }
 
