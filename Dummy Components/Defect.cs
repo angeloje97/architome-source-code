@@ -1,3 +1,4 @@
+using Architome.Assets.Source.Scripts.Dummy_Components;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -17,15 +18,19 @@ namespace Architome
         {
             var defectGameObject = new GameObject($"Defect: {title}");
 
+            defectGameObject.transform.position = new();
+            var defect = defectGameObject.AddComponent<Defect>();
             ArchAction.Delay(() => {
                 if(target != null)
                 {
                     defectGameObject.transform.SetParent(target);
                 }
+                else
+                {
+                    DefectManager.active.AddDefect(defect);
+                }
             }, .625f);
 
-            defectGameObject.transform.position = new();
-            var defect = defectGameObject.AddComponent<Defect>();
             defect.source = target;
             defect.description = e.Message;
 
