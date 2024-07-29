@@ -125,11 +125,11 @@ namespace Architome
 
             entityInfo.OnChangeStats += OnChangeStats;
 
-            OnChangeStats(entityInfo);
 
             entityInfo.OnLifeChange += OnLifeCheck;
             combatEvents.AddListenerStateEvent(eStateEvent.OnStatesChange, OnStatesChange, this);
             entityInfo.infoEvents.OnSignificantMovementChange += OnSignificantMovementChange;
+            OnChangeStats(entityInfo);
 
             if (destinationSetter.target == null)
             {

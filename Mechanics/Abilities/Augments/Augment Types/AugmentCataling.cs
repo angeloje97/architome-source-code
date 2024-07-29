@@ -46,8 +46,9 @@ namespace Architome
             EnableCatalyst();
         }
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             events = new(this);
         }
         void Update()

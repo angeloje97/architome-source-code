@@ -9,6 +9,7 @@ namespace Architome
     public class Defect : MonoBehaviour
     {
         public Transform source;
+        public string sourceName;
         [Multiline] public string description;
         [Multiline(30)] public string stackTrace;
 
@@ -20,6 +21,8 @@ namespace Architome
 
             defectGameObject.transform.position = new();
             var defect = defectGameObject.AddComponent<Defect>();
+            defect.sourceName = target.gameObject.ToString();
+
             ArchAction.Delay(() => {
                 if(target != null)
                 {
