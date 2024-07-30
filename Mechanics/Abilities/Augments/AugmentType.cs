@@ -29,6 +29,7 @@ namespace Architome
 
         #endregion
 
+        #region Initialization
         protected virtual void Start()
         {
             InitiateAugmentType();
@@ -51,16 +52,12 @@ namespace Architome
                 GetDependencies();
             }
         }
-
         protected virtual void GetDependencies()
         {
             
         }
 
-        public virtual async Task<bool> Ability()
-        {
-            return true;
-        }
+        #region Startup Actions
         protected void EnableCatalyst()
         {
             augment.OnNewCatalyst += HandleNewCatlyst;
@@ -224,6 +221,18 @@ namespace Architome
             };
 
         }
+
+
+
+        #endregion
+
+        #endregion
+
+        public virtual async Task<bool> Ability()
+        {
+            return true;
+        }
+
         public virtual void SetCatalyst(CatalystInfo catalyst, bool active)
         {
             if (active)
