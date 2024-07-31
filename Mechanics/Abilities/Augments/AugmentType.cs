@@ -228,6 +228,7 @@ namespace Architome
 
         #endregion
 
+        #region Live Functions
         public virtual async Task<bool> Ability()
         {
             return true;
@@ -295,6 +296,14 @@ namespace Architome
         {
 
         }
+        public void TriggerAugment()
+        {
+
+        }
+
+        #endregion
+
+        #region Dynamic Properties
         protected virtual string Description()
         {
             var result = "";
@@ -305,17 +314,14 @@ namespace Architome
         {
             return true;
         }
-
         public override string ToString()
         {
             if (ignoreDescription) return "";
             return Description();
 
         }
+        #endregion
 
-        public void TriggerAugment()
-        {
 
-        }
     }
 }
