@@ -82,11 +82,6 @@ namespace Architome
             SetLoadingBar(enableLoadingBar);
 
         }
-        // Update is called once per frame
-        void Update()
-        {
-        
-        }
 
         void GetDependencies()
         {
@@ -107,9 +102,16 @@ namespace Architome
             });
         }
 
-        public void SetLoadingBar(string text, float fillAmount)
+        public void SetLoadingBar(string text, float percentage, float offset)
         {
-            loadingBar.progressBar.fillAmount = fillAmount;
+            loadingBar.progressBar.fillAmount = (percentage*.333f) + offset;
+            var percentText = (int) Mathf.Clamp(percentage*100, 0, 100);
+            var statusText = $"{text} {percentText}%";
+            loadingBar.status.text = statusText;
+        }
+
+        public void SetLoadingBarText(string text)
+        {
             loadingBar.status.text = text;
         }
 
@@ -131,32 +133,32 @@ namespace Architome
 
             entityGenerator.OnEntitiesGenerated += (MapEntityGenerator generator) => {
                 loadingBarActive = false;
-                SetLoadingBar($"Generated Entities", 1);
+                SetLoadingBarText("Dungeon Generation Complete");
             };
 
             entityGenerator.OnGenerateEntity += (MapEntityGenerator generator, EntityInfo entity) => {
                 float current = generator.entitiesSpawned;
                 float goal = generator.expectedEntities;
-                var text = $"Generating Entities ({(int) ((current/goal)*100)}%)";
-                SetLoadingBar(text, .666f + ((current / goal) * .333f));
+                var text = $"Generating Entities";
+                float percentage = current/goal;
+                SetLoadingBar(text, percentage, .666f);
             };
 
             var roomGenerator = MapRoomGenerator.active;
             roomGenerator.OnSpawnRoom += (MapRoomGenerator roomGenerator, RoomInfo room) => {
                 float goal = roomGenerator.roomsToGenerate;
                 float current = roomGenerator.roomsGenerated;
-                var text = $"Generating rooms ({(int) ((current/goal)*100)}%)";
-
-                Debugger.UI(8415, $"{current} / {goal}");
-                SetLoadingBar(text, (current / goal) * .33f);
+                var text = $"Generating rooms";
+                var percentage = current / goal;
+                SetLoadingBar(text, percentage, 0f);
             };
 
             var mapAdjustMent = MapAdjustments.active;
 
             mapAdjustMent.WhileLoading += (MapAdjustments adjustment, float progress) => {
-                loadingBar.status.text = $"Adjusting Pathfinding Graph ({(int) (progress*100)}%)";
-                loadingBar.progressBar.fillAmount = .333f + (progress * .333f);
-                SetLoadingBar($"Adjusting PathfindingGraph ({(int)(progress * 100)}%)", .333f + (progress * .333f));
+                loadingBar.status.text = $"Adjusting Pathfinding Graph";
+                var text = "Adjusting Pathfinding Graph";
+                SetLoadingBar(text, progress, .33f);
             };
                         
 
