@@ -1,11 +1,9 @@
 using System;
 using System.Linq;
-using System.Collections;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
-using static Architome.Augment.AugmentEventData;
 
 namespace Architome
 {

@@ -3,50 +3,55 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using Architome.Enums;
-using Architome;
 
-[Serializable]
-public class CombatReactions
+namespace Architome
 {
-    // Start is called before the first frame update
-    public Animator animator;
-    public EntityInfo entityInfo;
+    [Serializable]
 
-    CombatEvents combatEvents => entityInfo.combatEvents;
-
-
-    public void ProcessData(EntityInfo entity, Anim anim)
+    public class CombatReactions
     {
-        this.entityInfo = entity;
-        entity.OnLifeChange += OnLifeChange;
-        combatEvents.AddListenerHealth(eHealthEvent.OnDamageTaken, OnDamageTaken, anim);
-        combatEvents.AddListenerStateEvent(eStateEvent.OnStatesChange, OnStatesChange, anim);
-        this.animator = anim.anim;
-    }
+        // Start is called before the first frame update
+        public Animator animator;
+        public EntityInfo entityInfo;
 
-    public void OnDamageTaken(HealthEvent eventData)
-    {
-        animator.SetTrigger("TakeDamage");
-    }
+        CombatEvents combatEvents => entityInfo.combatEvents;
 
-    public void OnLifeChange(bool isAlive)
-    {
-        if(!isAlive)
+
+        public void ProcessData(EntityInfo entity, Anim anim)
         {
-            animator.SetTrigger("Die");
+            this.entityInfo = entity;
+            entity.OnLifeChange += OnLifeChange;
+            combatEvents.AddListenerHealth(eHealthEvent.OnDamageTaken, OnDamageTaken, anim);
+            combatEvents.AddListenerStateEvent(eStateEvent.OnStatesChange, OnStatesChange, anim);
+            this.animator = anim.anim;
         }
 
-        animator.SetBool("IsAlive", isAlive);
-    }
-
-    public void OnStatesChange(StateChangeEvent stateEventData)
-    {
-        if (stateEventData.afterEventStates.Contains(EntityState.Stunned))
+        public void OnDamageTaken(HealthEvent eventData)
         {
-            animator.SetInteger("EntityState", 1);
-            return;
+            animator.SetTrigger("TakeDamage");
         }
 
-        animator.SetInteger("EntityState", 0);
+        public void OnLifeChange(bool isAlive)
+        {
+            if(!isAlive)
+            {
+                animator.SetTrigger("Die");
+            }
+
+            animator.SetBool("IsAlive", isAlive);
+        }
+
+        public void OnStatesChange(StateChangeEvent stateEventData)
+        {
+            if (stateEventData.afterEventStates.Contains(EntityState.Stunned))
+            {
+                animator.SetInteger("EntityState", 1);
+                return;
+            }
+
+            animator.SetInteger("EntityState", 0);
+        }
     }
+
 }
+
