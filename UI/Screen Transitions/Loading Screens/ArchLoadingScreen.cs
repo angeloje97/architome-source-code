@@ -13,6 +13,8 @@ namespace Architome
     {
         public static ArchLoadingScreen active;
 
+        #region Components
+
         [Serializable]
         public struct Components
         {
@@ -48,6 +50,9 @@ namespace Architome
         [SerializeField] Components comps;
         [SerializeField] LoadingBar loadingBar;
         [SerializeField] LoadingStatus loadingStatus;
+        #endregion
+
+        #region Common Data
 
         ArchSceneManager sceneManager;
 
@@ -57,6 +62,8 @@ namespace Architome
         [Header("Inspector Properties")]
         [SerializeField] bool enableCanvasGroup;
         [SerializeField] bool enableLoadingBar;
+
+        #endregion
 
         void Start()
         {
@@ -106,7 +113,7 @@ namespace Architome
         {
             loadingBar.progressBar.fillAmount = (percentage*.333f) + offset;
             var percentText = (int) Mathf.Clamp(percentage*100, 0, 100);
-            var statusText = $"{text} {percentText}%";
+            var statusText = $"{text} ({percentText}%)";
             loadingBar.status.text = statusText;
         }
 
