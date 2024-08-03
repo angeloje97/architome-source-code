@@ -420,5 +420,25 @@ namespace Architome
         {
             experienceReq = DifficultyModifications.active.ExperienceRequiredToLevel(Level);
         }
+
+        public void AddLevel(int amount = 1)
+        {
+            Level += amount;
+            UpdateExperienceRequiredToLevel();
+        }
+
+        public void AddExperience(float amount, Action<Stats> onLevelUp = null)
+        {
+            experience += amount;
+
+            if(experience >= experienceReq)
+            {
+                amount = experience - experienceReq;
+                experience = 0;
+                AddLevel();
+                onLevelUp?.Invoke(this);
+                AddExperience(amount, onLevelUp);
+            }
+        }
     }
 }

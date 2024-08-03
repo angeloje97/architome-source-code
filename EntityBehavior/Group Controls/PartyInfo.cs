@@ -56,7 +56,7 @@ namespace Architome
                 HandleStartingMembers();
                 AddSelfToGameManager();
             }, .50f);
-            
+
         }
 
 
@@ -125,7 +125,7 @@ namespace Architome
             }
 
             manager.AddPlayableParty(this);
-            
+
         }
 
         void HandleStartingMembers()
@@ -145,7 +145,7 @@ namespace Architome
             info.entityControlType = partyControl;
 
 
-            Action unsubscribe = () => { }; 
+            Action unsubscribe = () => { };
 
 
             unsubscribe += info.combatEvents.AddListenerHealth(eHealthEvent.OnDeath, OnEntityDeath, this);
@@ -248,7 +248,7 @@ namespace Architome
                 var controller = entity.PlayerController();
                 if (controller == null) continue;
                 controller.HandleActionButton(true);
-                
+
             }
         }
 
@@ -274,7 +274,7 @@ namespace Architome
                 if (movement)
                 {
                     movement.OnTryMove?.Invoke(movement);
-                    _= movement.MoveToAsync(partyFormation.spots[i].transform);
+                    _ = movement.MoveToAsync(partyFormation.spots[i].transform);
                 }
             }
         }
@@ -298,7 +298,7 @@ namespace Architome
         {
             if (liveMembers.Count <= 0) { return; }
             midPoint = V3Helper.Average(liveMembers);
-            
+
             center.transform.position = midPoint;
         }
         void OnEntityDeath(HealthEvent eventData)
@@ -332,6 +332,26 @@ namespace Architome
             partyIsInCombat = false;
         }
 
+
+        #region Properties
+
+        public int AveragePartyLevel
+        {
+            get
+            {
+                float total = 0;
+                float count = 0;
+                foreach(var member in members)
+                {
+                    count++;
+                    total += member.stats.Level;
+                }
+
+                return (int) (total / count);
+            }
+        }
+
+        #endregion
     }
 
 }
