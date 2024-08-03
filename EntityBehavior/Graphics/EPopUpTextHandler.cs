@@ -268,7 +268,7 @@ namespace Architome
 
         void OnLifeChange(bool isAlive)
         {
-            if (!Entity.IsPlayer(entityInfo.gameObject)) return;
+            if (!Entity.IsPlayer(entityInfo)) return;
 
             if (isAlive)
             {

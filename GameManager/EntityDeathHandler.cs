@@ -56,7 +56,7 @@ namespace Architome
 
             OnEntityDeath?.Invoke(eventData);
 
-            if(Entity.IsPlayer(entity.gameObject))
+            if(Entity.IsPlayer(entity))
             {
                 OnPlayableEntityDeath?.Invoke(eventData);
             }
@@ -66,12 +66,10 @@ namespace Architome
             }
         }
 
-        public void HandleLifeChange(GameObject entity)
+        public void HandleLifeChange(EntityInfo entityInfo)
         {
-            if (!Entity.IsEntity(entity)) { return; }
-            var entityInfo = entity.GetComponent<EntityInfo>();
             var isAlive = entityInfo.isAlive;
-            var isPlayer = Entity.IsPlayer(entity);
+            var isPlayer = Entity.IsPlayer(entityInfo);
 
             HandleDead();
             HandleAlive();

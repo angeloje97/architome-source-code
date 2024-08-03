@@ -440,7 +440,7 @@ namespace Architome
 
                 if (EntityDeathHandler.active)
                 {
-                    EntityDeathHandler.active.HandleLifeChange(gameObject);
+                    EntityDeathHandler.active.HandleLifeChange(this);
                 }
 
                 OnLifeChange?.Invoke(isAliveCheck);
