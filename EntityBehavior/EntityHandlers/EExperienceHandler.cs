@@ -27,30 +27,44 @@ namespace Architome
             if (!entityInfo.canLevel) { return; }
             if(value < 0) { return; }
 
-            stats.UpdateExperienceRequiredToLevel();
+            //stats.UpdateExperienceRequiredToLevel();
 
-            if (stats.experience + value > stats.experienceReq)
-            {
-                var pastExperienceReq = stats.experienceReq;
-                var currentExperience = stats.experience;
+            //if (stats.experience + value > stats.experienceReq)
+            //{
+            //    var pastExperienceReq = stats.experienceReq;
+            //    var currentExperience = stats.experience;
                 
-                value = currentExperience + value - pastExperienceReq;
-                var leftOver = pastExperienceReq - currentExperience;
+            //    value = currentExperience + value - pastExperienceReq;
+            //    var leftOver = pastExperienceReq - currentExperience;
 
-                entityInfo.OnExperienceGain?.Invoke(leftOver);
-                LevelUp();
-                GainExp(value);
+            //    entityInfo.OnExperienceGain?.Invoke(leftOver);
+            //    LevelUp();
+            //    GainExp(value);
 
-                return;
-            }
-            else if (stats.experience + value == entityInfo.entityStats.experienceReq)
-            {
-                LevelUp();
-            }
-            else
-            {
-                stats.experience += value;
-            }
+            //    return;
+            //}
+            //else if (stats.experience + value == entityInfo.entityStats.experienceReq)
+            //{
+            //    LevelUp();
+            //}
+            //else
+            //{
+            //    stats.experience += value;
+            //}
+
+            //entityInfo.OnExperienceGain?.Invoke(value);
+
+
+            //if (true) return;
+
+            stats.GainExperience(value, (Stats s) => {
+                entityInfo.OnLevelUp?.Invoke(s.Level);
+
+                if (entityInfo.isAlive) entityInfo.RestoreFull();
+                entityInfo.UpdateCurrentStats();
+            });
+
+            entityInfo.OnExperienceGain?.Invoke(value);
         }
         public void LevelUp()
         {

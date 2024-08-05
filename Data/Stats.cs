@@ -425,6 +425,7 @@ namespace Architome
         {
             Level += amount;
             UpdateExperienceRequiredToLevel();
+            UpdateCoreStats();
         }
 
         public void GainExperience(float amount, Action<Stats> onLevelUp = null)
