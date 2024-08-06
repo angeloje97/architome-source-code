@@ -9,7 +9,7 @@ namespace Architome
 {
     public class EExperienceHandler : EntityProp
     {
-
+        public Stats stats => entityInfo.entityStats;
         public override void GetDependencies()
         {
 
@@ -27,12 +27,12 @@ namespace Architome
             if (!entityInfo.canLevel) { return; }
             if(value < 0) { return; }
 
-            entityInfo.entityStats.UpdateExperienceRequiredToLevel();
+            stats.UpdateExperienceRequiredToLevel();
 
-            if (entityInfo.entityStats.experience + value > entityInfo.entityStats.experienceReq)
+            if (stats.experience + value > stats.experienceReq)
             {
-                var pastExperienceReq = entityInfo.entityStats.experienceReq;
-                var currentExperience = entityInfo.entityStats.experience;
+                var pastExperienceReq = stats.experienceReq;
+                var currentExperience = stats.experience;
                 
                 value = currentExperience + value - pastExperienceReq;
                 var leftOver = pastExperienceReq - currentExperience;
@@ -43,25 +43,23 @@ namespace Architome
 
                 return;
             }
-            else if (entityInfo.entityStats.experience + value == entityInfo.entityStats.experienceReq)
+            else if (stats.experience + value == entityInfo.entityStats.experienceReq)
             {
                 LevelUp();
             }
             else
             {
-                entityInfo.entityStats.experience += value;
+                stats.experience += value;
             }
-
-            entityInfo.OnExperienceGain?.Invoke(value);
         }
         public void LevelUp()
         {
-            entityInfo.entityStats.Level++;
-            entityInfo.entityStats.experience = 0;
-            entityInfo.entityStats.UpdateExperienceRequiredToLevel();
+            stats.Level++;
+            stats.experience = 0;
+            stats.UpdateExperienceRequiredToLevel();
 
-            entityInfo.OnLevelUp?.Invoke(entityInfo.entityStats.Level);
-            entityInfo.entityStats.UpdateCoreStats();
+            entityInfo.OnLevelUp?.Invoke(stats.Level);
+            stats.UpdateCoreStats();
             entityInfo.UpdateCurrentStats();
 
             if (entityInfo.isAlive)

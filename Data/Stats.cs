@@ -427,7 +427,7 @@ namespace Architome
             UpdateExperienceRequiredToLevel();
         }
 
-        public void AddExperience(float amount, Action<Stats> onLevelUp = null)
+        public void GainExperience(float amount, Action<Stats> onLevelUp = null)
         {
             experience += amount;
 
@@ -437,7 +437,7 @@ namespace Architome
                 experience = 0;
                 AddLevel();
                 onLevelUp?.Invoke(this);
-                AddExperience(amount, onLevelUp);
+                GainExperience(amount, onLevelUp);
             }
         }
     }
