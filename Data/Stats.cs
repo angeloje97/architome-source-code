@@ -421,15 +421,25 @@ namespace Architome
             experienceReq = DifficultyModifications.active.ExperienceRequiredToLevel(Level);
         }
 
+        bool updatedExperienceFromGainExp = false;
+
         public void AddLevel(int amount = 1)
         {
             Level += amount;
             UpdateExperienceRequiredToLevel();
             UpdateCoreStats();
+
+            updatedExperienceFromGainExp = false;
         }
 
         public void GainExperience(float amount, Action<Stats> onLevelUp = null)
         {
+            if (!updatedExperienceFromGainExp)
+            {
+                updatedExperienceFromGainExp = true;
+                UpdateExperienceRequiredToLevel();
+            }
+
             experience += amount;
 
             if(experience >= experienceReq)
