@@ -27,36 +27,6 @@ namespace Architome
             if (!entityInfo.canLevel) { return; }
             if(value < 0) { return; }
 
-            //stats.UpdateExperienceRequiredToLevel();
-
-            //if (stats.experience + value > stats.experienceReq)
-            //{
-            //    var pastExperienceReq = stats.experienceReq;
-            //    var currentExperience = stats.experience;
-                
-            //    value = currentExperience + value - pastExperienceReq;
-            //    var leftOver = pastExperienceReq - currentExperience;
-
-            //    entityInfo.OnExperienceGain?.Invoke(leftOver);
-            //    LevelUp();
-            //    GainExp(value);
-
-            //    return;
-            //}
-            //else if (stats.experience + value == entityInfo.entityStats.experienceReq)
-            //{
-            //    LevelUp();
-            //}
-            //else
-            //{
-            //    stats.experience += value;
-            //}
-
-            //entityInfo.OnExperienceGain?.Invoke(value);
-
-
-            //if (true) return;
-
             stats.GainExperience(value, (Stats s) => {
                 entityInfo.OnLevelUp?.Invoke(s.Level);
 
