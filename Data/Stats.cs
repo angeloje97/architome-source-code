@@ -390,10 +390,19 @@ namespace Architome
             }
             return true;
         }
+        List<Attribute> _secondaries;
 
         public List<Attribute> Secondaries
         {
-            get { return Attributes().Where(attribute => attribute.Type.Equals(typeof(float).ToString())).ToList(); }
+            get
+            {
+                if (_secondaries == null)
+                {
+                    _secondaries = Attributes().Where(attribute => attribute.Type.Equals(typeof(float).ToString())).ToList();
+                }
+
+                return _secondaries;
+            }
         }
 
         public void UpdateCoreStats()
