@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using Microsoft.Win32.SafeHandles;
 using Language.Lua;
+using System.Reflection;
 
 namespace Architome
 {
@@ -201,7 +202,34 @@ namespace Architome
             return stateDescription[state];
         }
 
-        
+        #region Method Names
+
+        public static List<MethodInfo> GetPublicMethods(Type type)
+        {
+            return GetPublicMethod(type, (method) => true);
+        }
+
+        public static List<MethodInfo> GetPublicVoidMethods(Type type)
+        {
+            return GetPublicMethod(type, (method) => method.ReturnType == typeof(void) && method.GetParameters().Length == 0);
+        }
+
+
+        public static List<MethodInfo> GetPublicMethod(Type type, Predicate<MethodInfo> predicate)
+        {
+            var list = new List<MethodInfo>();
+
+            var methods = type.GetMethods(BindingFlags.Public);
+
+            foreach (var method in methods)
+            {
+                if (!predicate(method)) continue;
+                list.Add(method);
+            }
+
+            return list;
+        }
+        #endregion
 
         public static bool RollSuccess(float roll = 50f)
         {

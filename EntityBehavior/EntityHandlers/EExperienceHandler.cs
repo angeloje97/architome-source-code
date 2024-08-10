@@ -30,7 +30,7 @@ namespace Architome
             stats.GainExperience(value, (Stats s) => {
                 entityInfo.OnLevelUp?.Invoke(s.Level);
 
-                if (entityInfo.isAlive) entityInfo.RestoreFull();
+                if (entityInfo.isAlive) ArchAction.Delay(() => entityInfo.RestoreFull(), .125f);
                 entityInfo.UpdateCurrentStats();
             });
 
