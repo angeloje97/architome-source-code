@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Architome.DevTools
 {
-    public class Toggles : MonoBehaviour
+    public class Toggles : DevTool
     {
 
     }
