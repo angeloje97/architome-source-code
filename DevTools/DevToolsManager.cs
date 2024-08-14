@@ -8,12 +8,10 @@ namespace Architome.DevTools
     {
         public static DevToolsManager active;
 
-        Actions actions;
-        Toggles toggles;
 
         [Header("Components")]
-        public CanvasGroup actionsCG;
-        public CanvasGroup togglesCG;
+        public NavBarController navbarController;
+        public NavBar navbar;
 
         public void Awake()
         {
@@ -26,6 +24,35 @@ namespace Architome.DevTools
         {
             actions ??= GetComponentInChildren<Actions>();
             toggles ??= GetComponentInChildren<Toggles>();
+        }
+
+        private void Start()
+        {
+            GetDependencies();
+            HandleActions();
+            HandleToggles();
+        }
+
+        void GetDependencies()
+        {
+
+        }
+
+        Actions actions;
+        public CanvasGroup actionsCG;
+
+
+        void HandleActions()
+        {
+            navbar.AddToggle("Actions", actionsCG);
+        }
+
+        Toggles toggles;
+        public CanvasGroup togglesCG;
+
+        void HandleToggles()
+        {
+
         }
 
     }
