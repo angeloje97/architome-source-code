@@ -44,7 +44,7 @@ namespace Architome.DevTools
 
         void HandleActions()
         {
-            navbar.AddToggle("Actions", actionsCG);
+            navbar.AddToggle("Actions", actionsCG.gameObject);
         }
 
         Toggles toggles;
@@ -52,7 +52,7 @@ namespace Architome.DevTools
 
         void HandleToggles()
         {
-
+            navbar.AddToggle("Toggles", togglesCG.gameObject);
         }
 
     }
