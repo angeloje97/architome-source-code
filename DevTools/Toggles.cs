@@ -36,5 +36,10 @@ namespace Architome.DevTools
                 SetState(!currentState);
             }
         }
+
+        public Dictionary<string, Request> functions = new() 
+        {
+
+        };
     }
 }
