@@ -13,7 +13,6 @@ namespace Architome.DevTools
         public class ActionRequest : Request
         {
 
-            public Dictionary<string, object> currentParameters;
             Action<ActionRequest> action;
             public ActionRequest(string name, Action action) : base (name)
             {
@@ -25,17 +24,6 @@ namespace Architome.DevTools
                 this.action += action;
             }
 
-            public void Invoke(Dictionary<string, object> parameters)
-            {
-                this.currentParameters = parameters;
-                action?.Invoke(this);
-            }
-
-            public void Invoke()
-            {
-                this.currentParameters = null;
-                action?.Invoke(this);
-            }
         }
         public override List<GameState> availableStates
         {
@@ -53,7 +41,7 @@ namespace Architome.DevTools
             }
         }
 
-        public readonly List<ActionRequest> requests = new ()
+        public readonly List<Request> requests = new ()
         {
             new("Kill All PartyMembers", () => {
                 

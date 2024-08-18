@@ -33,11 +33,38 @@ namespace Architome.DevTools
     {
         public string name;
         public Dictionary<string, Type> attributes;
+        public Dictionary<string, object> parameters;
 
+        Action<Request> action;
+        
 
         public Request(string name)
         {
             this.name = name;
+        }
+
+        public Request(string name, Action action)
+        {
+            this.name = name;
+            this.action += (request) => action();
+        }
+
+        public Request(string name, Action<Request> action)
+        {
+            this.name = name;
+            this.action += action;
+        }
+
+        public virtual void Invoke(Dictionary<string, object> parameters)
+        {
+            this.parameters = parameters;
+            action?.Invoke(this);
+        }
+
+        public virtual void Invoke()
+        {
+            this.parameters = null;
+            action?.Invoke(this);
         }
     }
 }

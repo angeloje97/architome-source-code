@@ -13,7 +13,6 @@ namespace Architome.DevTools
 
             Action<ToggleRequest> OnStateChange;
 
-
             public ToggleRequest(string name, Action<bool> OnChangeState) : base(name)
             {
                 this.OnStateChange += (request) => {
