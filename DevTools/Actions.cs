@@ -46,5 +46,12 @@ namespace Architome.DevTools
                 return _availableStates;
             }
         }
+
+        public readonly Dictionary<string, Request> requests = new Dictionary<string, Request>()
+        {
+            { "Kill all Party Members", new(() => {
+                
+            })} 
+        };
     }
 }
