@@ -11,7 +11,7 @@ namespace Architome.DevTools
     {
         public class Request
         {
-            public Dictionary<string, Type> validAttributes;
+            public Dictionary<string, Type> attributes;
 
             public Dictionary<string, object> currentParameters;
             Action<Request> action;

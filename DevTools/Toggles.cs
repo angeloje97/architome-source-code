@@ -12,6 +12,8 @@ namespace Architome.DevTools
             bool currentState;
 
             Action<Request> OnStateChange;
+            public Dictionary<string, Type> attributes;
+
 
             public Request(Action<bool> OnChangeState)
             {
@@ -39,7 +41,12 @@ namespace Architome.DevTools
 
         public Dictionary<string, Request> functions = new() 
         {
-
+            { "Spawn Entity", new((bool state) => {
+                
+            }) { attributes = {
+                    { "entityId", typeof(int) },
+                    { "level", typeof(int) }
+            }}},
         };
     }
 }
