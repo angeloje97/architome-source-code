@@ -42,10 +42,17 @@ namespace Architome.DevTools
         public Dictionary<string, Request> functions = new() 
         {
             { "Spawn Entity", new((bool state) => {
-                
+
             }) { attributes = {
-                    { "entityId", typeof(int) },
-                    { "level", typeof(int) }
+                    { "EntityID", typeof(int) },
+                    { "Level", typeof(int) }
+            }}},
+
+            {
+                "Damage", new((bool state) => { 
+                
+                }) { attributes = {
+                    { "Value", typeof(int) },
             }}},
         };
     }
