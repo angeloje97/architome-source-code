@@ -9,20 +9,21 @@ namespace Architome.DevTools
     {
         public class Request
         {
+            public string name;
             bool currentState;
 
             Action<Request> OnStateChange;
             public Dictionary<string, Type> attributes;
 
 
-            public Request(Action<bool> OnChangeState)
+            public Request(string name, Action<bool> OnChangeState)
             {
                 this.OnStateChange += (request) => {
                     OnChangeState?.Invoke(currentState);
                 };
             }
 
-            public Request(Action<Request> OnStateChange)
+            public Request(string name, Action<Request> OnStateChange)
             {
                 this.OnStateChange += (request) => OnStateChange?.Invoke(request);
             }
@@ -39,21 +40,36 @@ namespace Architome.DevTools
             }
         }
 
-        public Dictionary<string, Request> functions = new() 
+        public List<Request> functions = new()
         {
-            { "Spawn Entity", new((bool state) => {
+            new("Spawn Entity", (bool state) => {
 
-            }) { attributes = {
-                    { "EntityID", typeof(int) },
-                    { "Level", typeof(int) }
-            }}},
+                }){
+                    attributes = {
+                        { "EntityID", typeof(int) },
+                        { "Level", typeof(int) },
+                }},
 
-            {
-                "Damage", new((bool state) => { 
-                
-                }) { attributes = {
-                    { "Value", typeof(int) },
-            }}},
+            new("Damage", (bool state) => {
+
+                }){
+                    attributes = {
+                        { "Value", typeof(int) },
+                }},
+
+            new("Heal", (bool state) => {
+
+                }){
+                    attributes = {
+                        { "Value", typeof(int) },
+                }},
+
+            new("Give EXP", (bool state) => {
+
+                }){
+                    attributes = {
+                        { "Value", typeof(int) },
+                }},
         };
     }
 }
