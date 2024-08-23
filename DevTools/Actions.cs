@@ -11,17 +11,20 @@ namespace Architome.DevTools
     {
         public class Request
         {
+            public string name;
             public Dictionary<string, Type> attributes;
 
             public Dictionary<string, object> currentParameters;
             Action<Request> action;
-            public Request(Action action)
+            public Request(string name, Action action)
             {
+                this.name = name;
                 this.action += (request) => action();
             }
 
-            public Request(Action<Request> action)
+            public Request(string name, Action<Request> action)
             {
+                this.name = name;
                 this.action += action;
             }
 
@@ -47,11 +50,11 @@ namespace Architome.DevTools
             }
         }
 
-        public readonly Dictionary<string, Request> requests = new Dictionary<string, Request>()
+        public readonly List<Request> requests = new ()
         {
-            { "Kill all Party Members", new(() => {
+            new("Kill All PartyMembers", () => {
                 
-            })} 
+            })
         };
     }
 }
