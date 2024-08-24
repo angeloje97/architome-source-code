@@ -29,8 +29,7 @@ namespace Architome.DevTools
         private void Start()
         {
             GetDependencies();
-            HandleActions();
-            HandleToggles();
+            
         }
 
         void GetDependencies()
@@ -41,6 +40,13 @@ namespace Architome.DevTools
         Actions actions;
         public CanvasGroup actionsCG;
 
+        #region Create UI
+
+        public void CreateUI()
+        {
+            HandleActions();
+            HandleToggles();
+        }
 
         void HandleActions()
         {
@@ -55,5 +61,6 @@ namespace Architome.DevTools
             navbar.AddToggle("Toggles", togglesCG.gameObject);
         }
 
+        #endregion
     }
 }
