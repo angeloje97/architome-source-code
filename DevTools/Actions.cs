@@ -54,7 +54,19 @@ namespace Architome.DevTools
         {
             new("Kill All PartyMembers", () => {
                 
-            })
+            }),
+
+            new("Teleport Party Members", () => {
+
+            }) 
+            {
+                attributes = new()
+                {
+                    { "X", typeof(int) },
+                    { "Y", typeof(int) },
+                    { "Z", typeof(int) },
+                } 
+            },
         };
     }
 }
