@@ -50,6 +50,16 @@ namespace Architome.DevTools
                         { "Level", typeof(int) },
                 }},
 
+            new("Spawn Item", (bool state) => { 
+            }) 
+            { 
+                attributes = new()
+                {
+                    { "Item ID", typeof(int) },
+                    { "Amount", typeof(int) }
+                }    
+            },
+
             new("Damage", (bool state) => {
 
                 }){
