@@ -37,7 +37,7 @@ namespace Architome.DevTools
 
         }
 
-        Actions actions;
+        [SerializeField] Actions actions;
         public CanvasGroup actionsCG;
 
         #region Create UI
@@ -51,14 +51,25 @@ namespace Architome.DevTools
         void HandleActions()
         {
             navbar.AddToggle("Actions", actionsCG.gameObject);
+
+            foreach(var item in actions.requests)
+            {
+                var label = item.name;
+            }
+
         }
 
-        Toggles toggles;
+        [SerializeField] Toggles toggles;
         public CanvasGroup togglesCG;
 
         void HandleToggles()
         {
             navbar.AddToggle("Toggles", togglesCG.gameObject);
+
+            foreach(var item in toggles.requests)
+            {
+                var label = item.name;
+            }
         }
 
         #endregion

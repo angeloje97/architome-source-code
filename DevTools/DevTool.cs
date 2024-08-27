@@ -29,4 +29,9 @@ namespace Architome.DevTools
         }
     }
 
+    public class Request
+    {
+        public string name;
+        public Dictionary<string, Type> attributes;
+    }
 }

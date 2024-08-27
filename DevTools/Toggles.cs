@@ -40,7 +40,7 @@ namespace Architome.DevTools
             }
         }
 
-        public List<Request> functions = new()
+        public readonly List<Request> requests = new()
         {
             new("Spawn Entity", (bool state) => {
 
