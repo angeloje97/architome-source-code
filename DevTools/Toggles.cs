@@ -7,23 +7,21 @@ namespace Architome.DevTools
 {
     public class Toggles : DevTool
     {
-        public class Request
+        public class ToggleRequest: Request
         {
-            public string name;
             bool currentState;
 
-            Action<Request> OnStateChange;
-            public Dictionary<string, Type> attributes;
+            Action<ToggleRequest> OnStateChange;
 
 
-            public Request(string name, Action<bool> OnChangeState)
+            public ToggleRequest(string name, Action<bool> OnChangeState) : base(name)
             {
                 this.OnStateChange += (request) => {
                     OnChangeState?.Invoke(currentState);
                 };
             }
 
-            public Request(string name, Action<Request> OnStateChange)
+            public ToggleRequest(string name, Action<Request> OnStateChange) : base(name)
             {
                 this.OnStateChange += (request) => OnStateChange?.Invoke(request);
             }
@@ -40,7 +38,7 @@ namespace Architome.DevTools
             }
         }
 
-        public readonly List<Request> requests = new()
+        public readonly List<ToggleRequest> requests = new()
         {
             new("Spawn Entity", (bool state) => {
 

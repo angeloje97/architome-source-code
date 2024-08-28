@@ -33,5 +33,11 @@ namespace Architome.DevTools
     {
         public string name;
         public Dictionary<string, Type> attributes;
+
+
+        public Request(string name)
+        {
+            this.name = name;
+        }
     }
 }

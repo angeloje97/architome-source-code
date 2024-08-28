@@ -9,22 +9,19 @@ namespace Architome.DevTools
 {
     public class Actions : DevTool
     {
-        public class Request
+        public static Actions active;
+        public class ActionRequest : Request
         {
-            public string name;
-            public Dictionary<string, Type> attributes;
 
             public Dictionary<string, object> currentParameters;
-            Action<Request> action;
-            public Request(string name, Action action)
+            Action<ActionRequest> action;
+            public ActionRequest(string name, Action action) : base (name)
             {
-                this.name = name;
                 this.action += (request) => action();
             }
 
-            public Request(string name, Action<Request> action)
+            public ActionRequest(string name, Action<ActionRequest> action) : base(name)
             {
-                this.name = name;
                 this.action += action;
             }
 
@@ -50,7 +47,7 @@ namespace Architome.DevTools
             }
         }
 
-        public readonly List<Request> requests = new ()
+        public readonly List<ActionRequest> requests = new ()
         {
             new("Kill All PartyMembers", () => {
                 
