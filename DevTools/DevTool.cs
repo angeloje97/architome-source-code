@@ -29,8 +29,6 @@ namespace Architome.DevTools
         }
     }
 
-    //Git cheat commit
-
     public class Request
     {
         public string name;
