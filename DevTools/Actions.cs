@@ -30,6 +30,12 @@ namespace Architome.DevTools
                 this.currentParameters = parameters;
                 action?.Invoke(this);
             }
+
+            public void Invoke()
+            {
+                this.currentParameters = null;
+                action?.Invoke(this);
+            }
         }
         public override List<GameState> availableStates
         {

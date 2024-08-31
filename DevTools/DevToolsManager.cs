@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Architome.DevTools
 {
@@ -12,6 +13,8 @@ namespace Architome.DevTools
         [Header("Components")]
         public NavBarController navbarController;
         public NavBar navbar;
+        public ArchButton buttonPrefab;
+        public Toggle togglePrefab;
 
         public void Awake()
         {
@@ -55,6 +58,12 @@ namespace Architome.DevTools
             foreach(var item in actions.requests)
             {
                 var label = item.name;
+
+                var button = Instantiate(buttonPrefab, actionsCG.transform);
+
+                button.OnClick += (archButton) => {
+                    item.Invoke();
+                };
             }
 
         }
@@ -69,6 +78,11 @@ namespace Architome.DevTools
             foreach(var item in toggles.requests)
             {
                 var label = item.name;
+                var newToggle = Instantiate(togglePrefab, togglesCG.transform);
+                newToggle.onValueChanged.AddListener((bool newValue) => {
+                    item.SetState(newValue);
+
+                });
             }
         }
 
