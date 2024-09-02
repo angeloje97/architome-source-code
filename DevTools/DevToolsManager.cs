@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,6 +9,7 @@ namespace Architome.DevTools
     public class DevToolsManager : MonoBehaviour
     {
         public static DevToolsManager active;
+
 
 
         [Header("Components")]
@@ -87,5 +89,27 @@ namespace Architome.DevTools
         }
 
         #endregion
+
+        class ComponentTypes
+        {
+            public Input defaultComponent;
+
+            Dictionary<Type, Component> _typeComponent;
+
+            public Dictionary<Type, Component> typeComponent
+            {
+                get
+                {
+                    if(_typeComponent == null)
+                    {
+                        _typeComponent = new()
+                        {
+                        };
+                    }
+
+                    return _typeComponent;
+                }
+            }
+        }
     }
 }
