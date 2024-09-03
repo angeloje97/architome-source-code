@@ -1,3 +1,4 @@
+using PixelCrushers;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -90,26 +91,52 @@ namespace Architome.DevTools
 
         #endregion
 
-        class ComponentTypes
+        
+    }
+
+    [Serializable]
+    public class ComponentTypes
+    {
+        public InputField defaultComponent;
+        public Toggle booleanComponent;
+
+        Dictionary<Type, Component> _typeComponent;
+
+        public Dictionary<Type, Component> typeComponent
         {
-            public Input defaultComponent;
-
-            Dictionary<Type, Component> _typeComponent;
-
-            public Dictionary<Type, Component> typeComponent
+            get
             {
-                get
+                if (_typeComponent == null)
                 {
-                    if(_typeComponent == null)
+                    _typeComponent = new()
                     {
-                        _typeComponent = new()
-                        {
-                        };
-                    }
-
-                    return _typeComponent;
+                        { typeof(bool), booleanComponent }
+                    };
                 }
+
+                return _typeComponent;
             }
         }
+
+        public Transform CreateComponent(ComponentData data)
+        {
+            if (!typeComponent.ContainsKey(data.typeCreatedBy))
+            {
+                var result = UnityEngine.Object.Instantiate(defaultComponent, data.targetParent);
+                return result.transform;
+            }
+            else
+            {
+                var result = UnityEngine.Object.Instantiate(typeComponent[data.typeCreatedBy], data.targetParent);
+                return result.transform;
+            }
+        }
+    }
+
+    public class ComponentData
+    {
+        public Type typeCreatedBy;
+        public Transform targetParent;
+        public Component instance;
     }
 }
