@@ -1,3 +1,4 @@
+using Language.Lua;
 using PixelCrushers;
 using System;
 using System.Collections;
@@ -99,44 +100,59 @@ namespace Architome.DevTools
     {
         public InputField defaultComponent;
         public Toggle booleanComponent;
+        
 
-        Dictionary<Type, Component> _typeComponent;
-
-        public Dictionary<Type, Component> typeComponent
+        public Transform CreateComponent(Type type, Transform targetParent, Action<object> onValueChange)
         {
-            get
+            if(type == typeof(bool))
             {
-                if (_typeComponent == null)
-                {
-                    _typeComponent = new()
-                    {
-                        { typeof(bool), booleanComponent }
-                    };
-                }
+                var boolComponent = UnityEngine.Object.Instantiate(booleanComponent, targetParent);
 
-                return _typeComponent;
+                boolComponent.onValueChanged.AddListener((bool newValue) => {
+                    onValueChange?.Invoke(newValue);
+                });
+
+                return boolComponent.transform;
             }
+
+            var defaultComponent = UnityEngine.Object.Instantiate(this.defaultComponent, targetParent);
+
+            defaultComponent.onValueChanged.AddListener((string newValue) => {
+                onValueChange?.Invoke(newValue);
+            });
+
+            return defaultComponent.transform;
         }
 
-        public Transform CreateComponent(ComponentData data)
+        public void HandleComponentData(ComponentData data)
         {
-            if (!typeComponent.ContainsKey(data.typeCreatedBy))
+            foreach(KeyValuePair<string, Type> typeKey in data.typeKeys)
             {
-                var result = UnityEngine.Object.Instantiate(defaultComponent, data.targetParent);
-                return result.transform;
-            }
-            else
-            {
-                var result = UnityEngine.Object.Instantiate(typeComponent[data.typeCreatedBy], data.targetParent);
-                return result.transform;
+                var component = CreateComponent(typeKey.Value, data.targetParent, (object newValue) => {
+                    data.UpdateKey(typeKey.Key, newValue);
+                });
             }
         }
     }
 
     public class ComponentData
     {
-        public Type typeCreatedBy;
         public Transform targetParent;
-        public Component instance;
+        
+
+        public Dictionary<string, Type> typeKeys { get; private set; }
+        public Dictionary<string, object> componentValues { get; private set; }
+
+        public void UpdateKey(string key, object value)
+        {
+            if (!componentValues.ContainsKey(key))
+            {
+                componentValues.Add(key, value);
+                return;
+            }
+
+            componentValues[key] = value;
+        }
+
     }
 }
