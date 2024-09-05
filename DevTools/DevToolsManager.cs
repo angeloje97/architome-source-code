@@ -17,8 +17,7 @@ namespace Architome.DevTools
         [Header("Components")]
         public NavBarController navbarController;
         public NavBar navbar;
-        public ArchButton buttonPrefab;
-        public Toggle togglePrefab;
+        public RequestHandler requestHandlerPrefab;
 
         public void Awake()
         {
@@ -63,11 +62,7 @@ namespace Architome.DevTools
             {
                 var label = item.name;
 
-                var button = Instantiate(buttonPrefab, actionsCG.transform);
-
-                button.OnClick += (archButton) => {
-                    item.Invoke();
-                };
+                
             }
 
         }
@@ -81,12 +76,7 @@ namespace Architome.DevTools
 
             foreach(var item in toggles.requests)
             {
-                var label = item.name;
-                var newToggle = Instantiate(togglePrefab, togglesCG.transform);
-                newToggle.onValueChanged.AddListener((bool newValue) => {
-                    item.SetState(newValue);
 
-                });
             }
         }
 
