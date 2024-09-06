@@ -62,7 +62,6 @@ namespace Architome.DevTools
             {
                 var label = item.name;
 
-                
             }
 
         }
@@ -74,15 +73,22 @@ namespace Architome.DevTools
         {
             navbar.AddToggle("Toggles", togglesCG.gameObject);
 
-            foreach(var item in toggles.requests)
+            foreach (var item in toggles.requests)
             {
 
             }
         }
 
+        public RequestHandler CreateRequestHandler(Transform parent)
+        {
+            var newRequestHandler = Instantiate(requestHandlerPrefab, parent);
+            return newRequestHandler;
+
+        }
+
         #endregion
 
-        
+
     }
 
 
