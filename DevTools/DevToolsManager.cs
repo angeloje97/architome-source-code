@@ -57,11 +57,12 @@ namespace Architome.DevTools
         void HandleActions()
         {
             navbar.AddToggle("Actions", actionsCG.gameObject);
-
+            var actionsTransform = actionsCG.transform;
             foreach(var item in actions.requests)
             {
-                var label = item.name;
+                var newRequestHandler = CreateRequestHandler(actionsTransform);
 
+                newRequestHandler.HandleRequest(item);
             }
 
         }
@@ -72,10 +73,11 @@ namespace Architome.DevTools
         void HandleToggles()
         {
             navbar.AddToggle("Toggles", togglesCG.gameObject);
-
+            var togglesTransform = togglesCG.transform;
             foreach (var item in toggles.requests)
             {
-
+                var newRequestHandler = CreateRequestHandler(togglesTransform);
+                newRequestHandler.HandleRequest(item);
             }
         }
 
