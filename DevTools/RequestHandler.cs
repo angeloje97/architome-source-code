@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,7 +10,6 @@ namespace Architome.DevTools
     public class RequestHandler : MonoBehaviour
     {
         [SerializeField] CanvasGroup canvasGroup;
-
         [SerializeField] ArchButton button;
 
         public Dictionary<string, Type> typeKeys { get; private set; }
@@ -20,7 +20,7 @@ namespace Architome.DevTools
         public Toggle booleanComponent;
 
 
-        public void HandleRequest(Request request)
+        public async Task HandleRequest(Request request)
         {
 
             this.typeKeys = request.attributes;
