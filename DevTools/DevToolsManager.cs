@@ -3,6 +3,7 @@ using PixelCrushers;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -48,10 +49,21 @@ namespace Architome.DevTools
 
         #region Create UI
 
-        public void CreateUI()
+        public async void CreateUI()
         {
-            HandleActions();
-            HandleToggles();
+            var actionsTask = new Task(() => {
+                HandleActions();
+            });
+
+            var togglesTasks = new Task(() => {
+                HandleToggles();
+            });
+
+            actionsTask.Start();
+            togglesTasks.Start();
+
+            await Task.WhenAll(actionsTask, togglesTasks);
+
         }
 
         async void HandleActions()
