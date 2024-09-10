@@ -11,7 +11,7 @@ namespace Architome.DevTools
     {
         [SerializeField] CanvasGroup canvasGroup;
         [SerializeField] ArchButton button;
-
+        [SerializeField] SizeFitter sizeFitter;
         public Dictionary<string, Type> typeKeys { get; private set; }
         public Dictionary<string, object> componentValues { get; private set; }
 
@@ -47,7 +47,7 @@ namespace Architome.DevTools
         {
             if (type == typeof(bool))
             {
-                var boolComponent = UnityEngine.Object.Instantiate(booleanComponent, transform);
+                var boolComponent = Instantiate(booleanComponent, transform);
 
                 boolComponent.onValueChanged.AddListener((bool newValue) => {
                     onValueChange?.Invoke(newValue);
@@ -65,7 +65,7 @@ namespace Architome.DevTools
             return defaultComponent.transform;
         }
 
-        public void HandleComponentData()
+        public async Task HandleComponentData()
         {
             foreach (KeyValuePair<string, Type> typeKey in typeKeys)
             {
@@ -73,6 +73,8 @@ namespace Architome.DevTools
                     UpdateKey(typeKey.Key, newValue);
                 });
             }
+
+            await sizeFitter.AdjustToSize(3);
         }
     }
 }
