@@ -15,6 +15,8 @@ namespace Architome.DevTools
         public Dictionary<string, Type> typeKeys { get; private set; }
         public Dictionary<string, object> componentValues { get; private set; }
 
+        List<Transform> currentComponents;
+
         [Header("Components")]
         public InputField defaultComponent;
         public Toggle booleanComponent;
@@ -25,7 +27,7 @@ namespace Architome.DevTools
 
             this.typeKeys = request.attributes;
 
-            HandleComponentData();
+            await HandleComponentData();
 
             button.OnClick += (button) => {
                 request.Invoke(componentValues);
@@ -67,11 +69,27 @@ namespace Architome.DevTools
 
         public async Task HandleComponentData()
         {
+            if(currentComponents == null)
+            {
+                currentComponents = new();
+            }
+            else
+            {
+                for(int i = 0; i < currentComponents.Count; i++)
+                {
+                    Destroy(currentComponents[i].gameObject);
+                    currentComponents.RemoveAt(i);
+                    i--;
+                }
+            }
+
             foreach (KeyValuePair<string, Type> typeKey in typeKeys)
             {
                 var component = CreateComponent(typeKey.Value, (object newValue) => {
                     UpdateKey(typeKey.Key, newValue);
                 });
+
+                currentComponents.Add(component);
             }
 
             await sizeFitter.AdjustToSize(3);
