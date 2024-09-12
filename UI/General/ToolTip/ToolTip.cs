@@ -177,6 +177,8 @@ namespace Architome
             HandleEntityRarity();
             PrepareFormatting();
 
+            Debugger.Verify($"Showing ToolTip: {data.name}", 1800, ALogType.UI);
+
             void HandleRarity()
             {
                 if (!data.enableRarity) return;

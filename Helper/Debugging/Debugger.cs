@@ -83,11 +83,17 @@ namespace Architome
             Log(id, sentence, ALogType.OutSource);
         }
 
+        public static void Verify(string sentence, int id, ALogType logType)
+        {
+            Log(id, sentence, logType, "[VERIFY]");
+        }
+
         public static void System(Action action)
         {
             if (!logDict[ALogType.System]) return;
             action();
         }
+
 
 
         public static void Error(int id, string sentence)
@@ -104,10 +110,10 @@ namespace Architome
 
         
 
-        static void Log(int id, string sentence, ALogType type)
+        static void Log(int id, string sentence, ALogType type, string prefix = "")
         {
             if (!logDict[type]) return;
-            Debug.Log($"[{type}]({id}): {sentence}");
+            Debug.Log($"{prefix}[{type}]({id}): {sentence}");
         }
 
 
