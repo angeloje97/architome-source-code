@@ -13,8 +13,6 @@ namespace Architome.DevTools
     {
         public static DevToolsManager active;
 
-
-
         [Header("Components")]
         public NavBarController navbarController;
         public NavBar navbar;
@@ -96,7 +94,6 @@ namespace Architome.DevTools
         {
             var newRequestHandler = Instantiate(requestHandlerPrefab, parent);
             return newRequestHandler;
-
         }
 
         #endregion
