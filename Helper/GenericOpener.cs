@@ -69,5 +69,21 @@ namespace Architome
 
             modules[index].Toggle();
         }
+
+        public void SetModule(int index, bool value)
+        {
+            if (modules == null) return;
+            if (modules.Count <= index) return;
+
+            modules[index].SetActive(value);
+        }
+
+        public void SetAllModules(bool value)
+        {
+            foreach(var module in modules)
+            {
+                module.SetActive(value);
+            }
+        }
     }
 }
