@@ -34,7 +34,7 @@ namespace Architome.DevTools
         private void Start()
         {
             GetDependencies();
-            
+            CreateUI();
         }
 
         void GetDependencies()
@@ -61,7 +61,6 @@ namespace Architome.DevTools
             togglesTasks.Start();
 
             await Task.WhenAll(actionsTask, togglesTasks);
-
         }
 
         async void HandleActions()
