@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace Architome.DevTools
 {
-    public class DevToolsManager : MonoBehaviour
+    public class DevToolsManager : MonoActor
     {
         public static DevToolsManager active;
 
@@ -18,13 +18,12 @@ namespace Architome.DevTools
         public NavBar navbar;
         public RequestHandler requestHandlerPrefab;
 
-        public void Awake()
+        protected override void Awake()
         {
             SingletonManger.HandleSingleton(this.GetType(), gameObject, true, true, () => {
                 active = this;
             });
         }
-
         private void OnValidate()
         {
             actions ??= GetComponentInChildren<Actions>();
