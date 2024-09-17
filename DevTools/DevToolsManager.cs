@@ -18,6 +18,8 @@ namespace Architome.DevTools
         public NavBar navbar;
         public RequestHandler requestHandlerPrefab;
 
+        //Cheat Commit
+
         protected override void Awake()
         {
             SingletonManger.HandleSingleton(this.GetType(), gameObject, true, true, () => {
