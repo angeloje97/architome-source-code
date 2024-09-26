@@ -5,8 +5,27 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
+namespace Architome
+{
+    #region Structs
+    public struct FloatRange
+    {
+        public float min;
+        public float max;
+    }
+
+    public struct IntRange
+    {
+        public int min;
+        public int max;
+    }
+    #endregion
+}
+
 namespace Architome.DevTools
 {
+    
+
     public class RequestHandler : MonoBehaviour
     {
         [SerializeField] CanvasGroup canvasGroup;
@@ -20,6 +39,9 @@ namespace Architome.DevTools
         [Header("Components")]
         public InputField defaultComponent;
         public Toggle booleanComponent;
+        public Slider rangeComponent;
+
+        
 
 
         public async Task HandleRequest(Request request)
@@ -56,6 +78,22 @@ namespace Architome.DevTools
                 });
 
                 return boolComponent.transform;
+            }
+
+            if(type == typeof(IntRange) || type == typeof(FloatRange))
+            {
+                var slider = Instantiate(rangeComponent, transform);
+
+                if(type == typeof(IntRange))
+                {
+                    slider.wholeNumbers = true;
+                }
+
+                slider.onValueChanged.AddListener((newValue) => {
+                    onValueChange?.Invoke(newValue);
+                });
+
+                return slider.transform;
             }
 
             var defaultComponent = Instantiate(this.defaultComponent, transform);
