@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -40,6 +41,7 @@ namespace Architome.DevTools
         public InputField defaultComponent;
         public Toggle booleanComponent;
         public Slider rangeComponent;
+        public TextMeshProUGUI rangeLabel;
 
         
 
@@ -83,6 +85,7 @@ namespace Architome.DevTools
             if(type == typeof(IntRange) || type == typeof(FloatRange))
             {
                 var slider = Instantiate(rangeComponent, transform);
+                var label = Instantiate(rangeLabel, transform);
 
                 if(type == typeof(IntRange))
                 {
@@ -90,6 +93,7 @@ namespace Architome.DevTools
                 }
 
                 slider.onValueChanged.AddListener((newValue) => {
+                    var valueText = slider.wholeNumbers ? $"{(int)newValue}" : $"{(float)newValue}";
                     onValueChange?.Invoke(newValue);
                 });
 
