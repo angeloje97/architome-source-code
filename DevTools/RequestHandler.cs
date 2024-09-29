@@ -29,6 +29,7 @@ namespace Architome.DevTools
 
     public class RequestHandler : MonoBehaviour
     {
+        #region Common Data
         [SerializeField] CanvasGroup canvasGroup;
         [SerializeField] ArchButton button;
         [SerializeField] SizeFitter sizeFitter;
@@ -42,6 +43,7 @@ namespace Architome.DevTools
         public Toggle booleanComponent;
         public Slider rangeComponent;
         public TextMeshProUGUI rangeLabel;
+        #endregion
 
         
 
