@@ -45,8 +45,7 @@ namespace Architome.DevTools
         public TextMeshProUGUI rangeLabel;
         #endregion
 
-        
-
+        #region Initiation
 
         public async Task HandleRequest(Request request)
         {
@@ -58,17 +57,6 @@ namespace Architome.DevTools
             button.OnClick += (button) => {
                 request.Invoke(componentValues);
             }; 
-        }
-
-        public void UpdateKey(string key, object value)
-        {
-            if (!componentValues.ContainsKey(key))
-            {
-                componentValues.Add(key, value);
-                return;
-            }
-
-            componentValues[key] = value;
         }
 
         public Transform CreateComponent(Type type, Action<object> onValueChange)
@@ -138,5 +126,19 @@ namespace Architome.DevTools
 
             await sizeFitter.AdjustToSize(3);
         }
+
+        #endregion
+
+        public void UpdateKey(string key, object value)
+        {
+            if (!componentValues.ContainsKey(key))
+            {
+                componentValues.Add(key, value);
+                return;
+            }
+
+            componentValues[key] = value;
+        }
+
     }
 }
