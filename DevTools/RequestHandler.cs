@@ -129,6 +129,8 @@ namespace Architome.DevTools
 
         #endregion
 
+        #region Live Actions
+
         public void UpdateKey(string key, object value)
         {
             if (!componentValues.ContainsKey(key))
@@ -139,6 +141,8 @@ namespace Architome.DevTools
 
             componentValues[key] = value;
         }
+
+        #endregion
 
     }
 }
