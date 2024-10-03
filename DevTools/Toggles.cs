@@ -12,7 +12,7 @@ namespace Architome.DevTools
             bool currentState;
 
             Action<ToggleRequest> OnStateChange;
-            //Cheat commit
+            //Another cheat commit because of depression and swamped at work
             public ToggleRequest(string name, Action<bool> OnChangeState) : base(name)
             {
                 this.OnStateChange += (request) => {
