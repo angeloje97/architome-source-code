@@ -9,10 +9,11 @@ namespace Architome.DevTools
     {
         public class ToggleRequest: Request
         {
+            #region Common Data
             bool currentState;
 
             Action<ToggleRequest> OnStateChange;
-            //Another cheat commit because of depression and swamped at work
+            #endregion
             public ToggleRequest(string name, Action<bool> OnChangeState) : base(name)
             {
                 this.OnStateChange += (request) => {
