@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace Architome.DevTools
 {
@@ -14,6 +12,9 @@ namespace Architome.DevTools
 
             Action<ToggleRequest> OnStateChange;
             #endregion
+
+            #region Instantiation
+
             public ToggleRequest(string name, Action<bool> OnChangeState) : base(name)
             {
                 this.OnStateChange += (request) => {
@@ -25,6 +26,7 @@ namespace Architome.DevTools
             {
                 this.OnStateChange += (request) => OnStateChange?.Invoke(request);
             }
+            #endregion
 
             public void SetState(bool state)
             {
@@ -37,6 +39,8 @@ namespace Architome.DevTools
                 SetState(!currentState);
             }
         }
+
+        #region Requests
 
         public readonly List<ToggleRequest> requests = new()
         {
@@ -79,5 +83,7 @@ namespace Architome.DevTools
                         { "Value", typeof(int) },
                 }},
         };
+
+        #endregion
     }
 }
