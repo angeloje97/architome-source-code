@@ -58,6 +58,15 @@ namespace Architome.DevTools
                     { "Z", typeof(int) },
                 } 
             },
+
+            new("Spawn Entity", () => { })
+            {
+                attributes = new()
+                {
+                    { "EntityID", typeof(int) },
+                    { "Entity Level", typeof(int) }
+                }
+            }
         };
     }
 }
