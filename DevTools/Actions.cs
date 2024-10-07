@@ -64,7 +64,8 @@ namespace Architome.DevTools
                 attributes = new()
                 {
                     { "EntityID", typeof(int) },
-                    { "Entity Level", typeof(int) }
+                    { "Entity Level", typeof(int) },
+                    { "EntityRarity", typeof(EntityRarity) }
                 }
             }
         };

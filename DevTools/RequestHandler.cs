@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Architome.Enums;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -43,6 +44,7 @@ namespace Architome.DevTools
         public Toggle booleanComponent;
         public Slider rangeComponent;
         public TextMeshProUGUI rangeLabel;
+        public TMP_Dropdown dropDown;
         #endregion
 
         #region Initiation
@@ -61,6 +63,7 @@ namespace Architome.DevTools
 
         public Transform CreateComponent(Type type, Action<object> onValueChange)
         {
+            #region Bool Handle
             if (type == typeof(bool))
             {
                 var boolComponent = Instantiate(booleanComponent, transform);
@@ -71,8 +74,11 @@ namespace Architome.DevTools
 
                 return boolComponent.transform;
             }
+            #endregion
 
-            if(type == typeof(IntRange) || type == typeof(FloatRange))
+            #region Range Handle
+
+            if (type == typeof(IntRange) || type == typeof(FloatRange))
             {
                 var slider = Instantiate(rangeComponent, transform);
                 var label = Instantiate(rangeLabel, transform);
@@ -89,12 +95,38 @@ namespace Architome.DevTools
 
                 return slider.transform;
             }
+            #endregion
+
+            #region Enum Handle
+            if (type.IsEnum)
+            {
+                var newDropDown = Instantiate(dropDown, transform);
+                List<TMP_Dropdown.OptionData> options = new();
+
+                var enumValues = Enum.GetValues(type);
+
+                foreach(Enum item in enumValues){
+                    options.Add(new(item.ToString()));
+                }
+
+                newDropDown.options = options;
+
+                dropDown.onValueChanged.AddListener((int index) => {
+                    onValueChange?.Invoke(enumValues.GetValue(index));
+                });
+
+
+                return newDropDown.transform;
+            }
+
+            #endregion;
 
             var defaultComponent = Instantiate(this.defaultComponent, transform);
 
             defaultComponent.onValueChanged.AddListener((string newValue) => {
                 onValueChange?.Invoke(newValue);
             });
+
 
             return defaultComponent.transform;
         }
