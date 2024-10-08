@@ -26,8 +26,6 @@ namespace Architome
 
 namespace Architome.DevTools
 {
-    
-
     public class RequestHandler : MonoBehaviour
     {
         #region Common Data
@@ -172,6 +170,11 @@ namespace Architome.DevTools
             }
 
             componentValues[key] = value;
+        }
+
+        public void SetActive(bool active)
+        {
+            ArchUI.SetCanvas(canvasGroup, active, 0f);
         }
 
         #endregion
