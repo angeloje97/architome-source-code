@@ -47,7 +47,7 @@ namespace Architome.DevTools
                 
             }),
 
-            new("Teleport Party Members", () => {
+            new("Teleport Party Members", (Request request) => {
 
             }) 
             {
@@ -59,7 +59,7 @@ namespace Architome.DevTools
                 } 
             },
 
-            new("Spawn Entity", () => { })
+            new("Spawn Entity", (Request request) => { })
             {
                 attributes = new()
                 {

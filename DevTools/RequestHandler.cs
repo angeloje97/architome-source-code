@@ -66,11 +66,15 @@ namespace Architome.DevTools
             {
                 var boolComponent = Instantiate(booleanComponent, transform);
 
+                boolComponent.enabled = false;
+
                 boolComponent.onValueChanged.AddListener((bool newValue) => {
                     onValueChange?.Invoke(newValue);
                 });
 
+
                 return boolComponent.transform;
+
             }
             #endregion
 
@@ -85,6 +89,10 @@ namespace Architome.DevTools
                 {
                     slider.wholeNumbers = true;
                 }
+
+
+
+                slider.value = slider.minValue;
 
                 slider.onValueChanged.AddListener((newValue) => {
                     var valueText = slider.wholeNumbers ? $"{(int)newValue}" : $"{(float)newValue}";
