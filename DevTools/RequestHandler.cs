@@ -88,9 +88,12 @@ namespace Architome.DevTools
                 if(type == typeof(IntRange))
                 {
                     slider.wholeNumbers = true;
+
                 }
+                else
+                {
 
-
+                }
 
                 slider.value = slider.minValue;
 
@@ -133,7 +136,6 @@ namespace Architome.DevTools
                 onValueChange?.Invoke(newValue);
             });
 
-
             return defaultComponent.transform;
         }
 
@@ -168,7 +170,7 @@ namespace Architome.DevTools
         #endregion
 
         #region Live Actions
-
+        //Cheat commit because I'm tired.
         public void UpdateKey(string key, object value)
         {
             if (!componentValues.ContainsKey(key))
