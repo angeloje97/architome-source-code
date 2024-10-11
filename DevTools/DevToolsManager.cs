@@ -1,3 +1,4 @@
+using Architome.Enums;
 using Language.Lua;
 using PixelCrushers;
 using System;
@@ -39,11 +40,36 @@ namespace Architome.DevTools
 
         void GetDependencies()
         {
+            var scenemanager = ArchSceneManager.active;
 
+            HandleGameManagerState();
+        }
+
+        GameState currentGameState
+        {
+            get
+            {
+                var gameManager = GameManager.active;
+
+                if (gameManager)
+                {
+                    return gameManager.GameState;
+                }
+
+                return GameState.Menu;
+            }
+        }
+
+        void HandleGameManagerState()
+        {
+            var gameState = currentGameState;
+            actionsToggleController.SetInteractable(actions.availableStates.Contains(gameState));
+            togglesToggleController.SetInteractable(toggles.availableStates.Contains(gameState));
         }
 
         [SerializeField] Actions actions;
         public CanvasGroup actionsCG;
+        public NavBar.ToggleController actionsToggleController;
 
         #region Create UI
 
@@ -65,7 +91,7 @@ namespace Architome.DevTools
 
         async void HandleActions()
         {
-            navbar.AddToggle("Actions", actionsCG.gameObject);
+            actionsToggleController = navbar.AddToggle("Actions", actionsCG.gameObject);
             var actionsTransform = actionsCG.transform;
             foreach(var item in actions.requests)
             {
@@ -77,10 +103,11 @@ namespace Architome.DevTools
 
         [SerializeField] Toggles toggles;
         public CanvasGroup togglesCG;
+        public NavBar.ToggleController togglesToggleController;
 
         async void HandleToggles()
         {
-            navbar.AddToggle("Toggles", togglesCG.gameObject);
+            togglesToggleController = navbar.AddToggle("Toggles", togglesCG.gameObject);
             var togglesTransform = togglesCG.transform;
             foreach (var item in toggles.requests)
             {

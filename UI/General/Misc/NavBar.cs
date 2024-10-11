@@ -11,6 +11,38 @@ namespace Architome
 {
     public class NavBar : MonoBehaviour
     {
+
+        #region ToggleController
+        public class ToggleController
+        {
+            public Toggle toggle;
+            public ArchButton button;
+            public GameObject target;
+
+            bool interactable => toggle.interactable;
+
+            public ToggleController(Toggle toggle, GameObject target)
+            {
+                this.toggle = toggle;
+                this.target = target;
+
+                button = toggle.GetComponent<ArchButton>();
+
+            }
+
+            public void SetInteractable(bool interactable)
+            {
+                if(toggle.isOn && !interactable)
+                {
+                    toggle.isOn = false;
+                }
+
+                toggle.interactable = interactable;
+                target.SetActive(interactable);
+            }
+        }
+        #endregion
+
         [Serializable]
         public struct Prefabs
         {
@@ -67,9 +99,9 @@ namespace Architome
             }
         }
 
-        public void AddToggle(string toggleName, GameObject toggleTarget)
+        public ToggleController AddToggle(string toggleName, GameObject toggleTarget)
         {
-            if (prefabs.toggleButton == null) return;
+            if (prefabs.toggleButton == null) return null;
 
             var newToggle = Instantiate(prefabs.toggleButton, transform).GetComponent<Toggle>();
             toggles.Add(newToggle);
@@ -77,7 +109,7 @@ namespace Architome
             var archButton = newToggle.GetComponent<ArchButton>();
             archButton.SetName(toggleName);
 
-            if (toggleTarget == null) return;
+            if (toggleTarget == null) return null;
 
             for (int i = 0; i < toggles.Count; i++)
             {
@@ -92,6 +124,8 @@ namespace Architome
                     items[i] = toggleTarget;
                 }
             }
+
+            return new(newToggle, toggleTarget);
         }
 
         public void ClearToggles()

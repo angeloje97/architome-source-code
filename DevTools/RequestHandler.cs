@@ -170,7 +170,6 @@ namespace Architome.DevTools
         #endregion
 
         #region Live Actions
-        //Cheat commit because I'm tired.
         public void UpdateKey(string key, object value)
         {
             if (!componentValues.ContainsKey(key))
