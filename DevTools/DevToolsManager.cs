@@ -19,7 +19,7 @@ namespace Architome.DevTools
         public NavBar navbar;
         public RequestHandler requestHandlerPrefab;
 
-
+        #region Initialization
         protected override void Awake()
         {
             SingletonManger.HandleSingleton(this.GetType(), gameObject, true, true, () => {
@@ -42,8 +42,13 @@ namespace Architome.DevTools
         {
             var scenemanager = ArchSceneManager.active;
 
+            scenemanager.events.AddListener(SceneEvent.OnLoadScene, () => {
+                HandleGameManagerState();
+            }, this);
+
             HandleGameManagerState();
         }
+        #endregion
 
         GameState currentGameState
         {
