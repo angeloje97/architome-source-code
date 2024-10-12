@@ -65,8 +65,9 @@ namespace Architome.DevTools
             }
         }
 
-        void HandleGameManagerState()
+        async void HandleGameManagerState()
         {
+            await Task.Delay(2500);
             var gameState = currentGameState;
             actionsToggleController.SetInteractable(actions.availableStates.Contains(gameState));
             togglesToggleController.SetInteractable(toggles.availableStates.Contains(gameState));
