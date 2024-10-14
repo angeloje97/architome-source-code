@@ -81,12 +81,12 @@ namespace Architome.DevTools
 
         public async void CreateUI()
         {
-            var actionsTask = new Task(() => {
-                HandleActions();
+            var actionsTask = new Task(async () => {
+                await HandleActions();
             });
 
-            var togglesTasks = new Task(() => {
-                HandleToggles();
+            var togglesTasks = new Task(async () => {
+                await HandleToggles();
             });
 
             actionsTask.Start();
@@ -95,7 +95,7 @@ namespace Architome.DevTools
             await Task.WhenAll(actionsTask, togglesTasks);
         }
 
-        async void HandleActions()
+        async Task HandleActions()
         {
             actionsToggleController = navbar.AddToggle("Actions", actionsCG.gameObject);
             var actionsTransform = actionsCG.transform;
@@ -111,7 +111,7 @@ namespace Architome.DevTools
         public CanvasGroup togglesCG;
         public NavBar.ToggleController togglesToggleController;
 
-        async void HandleToggles()
+        async Task HandleToggles()
         {
             togglesToggleController = navbar.AddToggle("Toggles", togglesCG.gameObject);
             var togglesTransform = togglesCG.transform;
