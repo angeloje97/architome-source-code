@@ -12,12 +12,30 @@ namespace Architome.DevTools
 {
     public class DevToolsManager : MonoActor
     {
+        #region Common Data
         public static DevToolsManager active;
 
         [Header("Components")]
         public NavBarController navbarController;
         public NavBar navbar;
         public RequestHandler requestHandlerPrefab;
+
+        GameState currentGameState
+        {
+            get
+            {
+                var gameManager = GameManager.active;
+
+                if (gameManager)
+                {
+                    return gameManager.GameState;
+                }
+
+                return GameState.Menu;
+            }
+        }
+
+        #endregion
 
         #region Initialization
         protected override void Awake()
@@ -50,21 +68,6 @@ namespace Architome.DevTools
         }
         #endregion
 
-        GameState currentGameState
-        {
-            get
-            {
-                var gameManager = GameManager.active;
-
-                if (gameManager)
-                {
-                    return gameManager.GameState;
-                }
-
-                return GameState.Menu;
-            }
-        }
-
         async void HandleGameManagerState()
         {
             await Task.Delay(2500);
@@ -73,9 +76,8 @@ namespace Architome.DevTools
             togglesToggleController.SetInteractable(toggles.availableStates.Contains(gameState));
         }
 
-        [SerializeField] Actions actions;
-        public CanvasGroup actionsCG;
-        public NavBar.ToggleController actionsToggleController;
+
+        
 
         #region Create UI
 
@@ -95,6 +97,12 @@ namespace Architome.DevTools
             await Task.WhenAll(actionsTask, togglesTasks);
         }
 
+        #region Action
+
+        [SerializeField] Actions actions;
+        public CanvasGroup actionsCG;
+        public NavBar.ToggleController actionsToggleController;
+
         async Task HandleActions()
         {
             actionsToggleController = navbar.AddToggle("Actions", actionsCG.gameObject);
@@ -106,6 +114,9 @@ namespace Architome.DevTools
             }
 
         }
+        #endregion
+
+        #region Toggles
 
         [SerializeField] Toggles toggles;
         public CanvasGroup togglesCG;
@@ -121,6 +132,8 @@ namespace Architome.DevTools
                 await newRequestHandler.HandleRequest(item);
             }
         }
+
+        #endregion
 
         public RequestHandler CreateRequestHandler(Transform parent)
         {
