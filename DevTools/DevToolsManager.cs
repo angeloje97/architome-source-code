@@ -56,6 +56,8 @@ namespace Architome.DevTools
             CreateUI();
         }
 
+        #region GameStateChange Handler
+
         void GetDependencies()
         {
             var scenemanager = ArchSceneManager.active;
@@ -66,8 +68,6 @@ namespace Architome.DevTools
 
             HandleGameManagerState();
         }
-        #endregion
-
         async void HandleGameManagerState()
         {
             await Task.Delay(2500);
@@ -76,8 +76,11 @@ namespace Architome.DevTools
             togglesToggleController.SetInteractable(toggles.availableStates.Contains(gameState));
         }
 
+        #endregion
 
-        
+        #endregion
+
+
 
         #region Create UI
 
