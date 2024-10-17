@@ -7,6 +7,9 @@ namespace Architome
 {
     public static class SingletonManger
     {
+        #region Initialization
+
+
         static Dictionary<Type, GameObject> singleTons;
 
         public static void HandleSingleton(Type type, GameObject instance, bool persistantGameObject = false, bool canvasItem = false, Action onSuccess = null)
@@ -32,5 +35,17 @@ namespace Architome
             }
             onSuccess?.Invoke();
         }
+
+        public static GameObject GetSingleTon(Type type)
+        {
+            if (singleTons.ContainsKey(type))
+            {
+                return singleTons[type];
+            }
+
+            return null;
+        }
+
+        #endregion
     }
 }
