@@ -9,8 +9,8 @@ namespace Architome
     {
         #region Initialization
 
-
         static Dictionary<Type, GameObject> singleTons;
+        static Dictionary<Type, MonoBehaviour> monoSingleTons;
 
         public static void HandleSingleton(Type type, GameObject instance, bool persistantGameObject = false, bool canvasItem = false, Action onSuccess = null)
         {
@@ -18,7 +18,7 @@ namespace Architome
 
             if (singleTons.ContainsKey(type))
             {
-                if(instance != singleTons[type])
+                if (instance != singleTons[type])
                 {
                     UnityEngine.Object.Destroy(instance);
                 }
@@ -36,11 +36,47 @@ namespace Architome
             onSuccess?.Invoke();
         }
 
+        public static void HandleSingleton(Type type, MonoBehaviour behavior, bool persistantGameObject = false, bool canvasItem = false, Action onSuccess = null)
+        {
+            monoSingleTons ??= new();
+
+            if (monoSingleTons.ContainsKey(type))
+            {
+                if (behavior != monoSingleTons[type])
+                {
+                    UnityEngine.Object.Destroy(behavior);
+                }
+
+                return;
+            }
+
+            monoSingleTons.Add(type, behavior);
+            Debugger.System(4412, $"Creating singleton for {type}");
+
+            if (persistantGameObject)
+            {
+                ArchGeneric.DontDestroyOnLoad(behavior.gameObject, canvasItem);
+            }
+            onSuccess?.Invoke();
+        }
+
+
+
         public static GameObject GetSingleTon(Type type)
         {
             if (singleTons.ContainsKey(type))
             {
                 return singleTons[type];
+            }
+
+            return null;
+        }
+
+        public static T GetSingleTon<T>(Type type) where T: MonoBehaviour
+        {
+            if (monoSingleTons.ContainsKey(type))
+            {
+                return (T) monoSingleTons[type];
             }
 
             return null;
