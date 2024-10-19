@@ -11,7 +11,7 @@ namespace Architome
 
         static Dictionary<Type, GameObject> singleTons;
         static Dictionary<Type, MonoBehaviour> monoSingleTons;
-
+        #region SingleTon Creator
         public static void HandleSingleton(Type type, GameObject instance, bool persistantGameObject = false, bool canvasItem = false, Action onSuccess = null)
         {
             singleTons ??= new();
@@ -60,8 +60,9 @@ namespace Architome
             onSuccess?.Invoke();
         }
 
+        #endregion
 
-
+        #region Singleton Getters
         public static GameObject GetSingleTon(Type type)
         {
             if (singleTons.ContainsKey(type))
@@ -81,6 +82,7 @@ namespace Architome
 
             return null;
         }
+        #endregion
 
         #endregion
     }
