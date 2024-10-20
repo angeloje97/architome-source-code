@@ -41,23 +41,33 @@ namespace Architome.DevTools
             }
         }
 
-        public readonly List<Request> requests = new ()
+        public readonly List<Request> requests = new()
         {
             new("Kill All PartyMembers", () => {
-                
+
             }),
 
             new("Teleport Party Members", (Request request) => {
 
-            }) 
+            })
             {
                 attributes = new()
                 {
                     { "X", typeof(int) },
                     { "Y", typeof(int) },
                     { "Z", typeof(int) },
-                } 
+                }
             },
+
+            new("Kill Entity", (Request request) => {
+                var targetHandler = ContainerTargetables.active;
+
+                foreach(var selected in targetHandler.selectedTargets)
+                {
+                    var entity = selected.GetComponent<EntityInfo>();
+                    entity.KillSelf();
+                }
+            }),
 
             new("Spawn Entity", (Request request) => { })
             {

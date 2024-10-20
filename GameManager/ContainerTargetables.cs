@@ -15,8 +15,8 @@ namespace Architome
         public static ContainerTargetables active;
         public ArchInput input;
         // Start is called before the first frame update
-        public List<GameObject> hoverTargets;
-        public List<GameObject> selectedTargets;
+        public List<GameObject> hoverTargets { get; set; }
+        public List<GameObject> selectedTargets { get; set; }
 
         public GameObject currentHover;
         public GameObject hoverObject;
