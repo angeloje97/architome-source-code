@@ -44,7 +44,7 @@ namespace Architome
 
             foreach (var entity in playableEntities)
             {
-                OnSelectTarget(entity.gameObject);
+                OnSelectTarget(entity);
             }
         }
         void HandleLoadScene()
@@ -105,15 +105,14 @@ namespace Architome
 
         }
 
-        void OnSelectTarget(GameObject target)
+        void OnSelectTarget(EntityInfo target)
         {
             HandleSelectEntity(target);
         }
 
-        void HandleSelectEntity(GameObject target)
+        void HandleSelectEntity(EntityInfo info)
         {
             if (!devToolsActive) return;
-            var info = target.GetComponent<EntityInfo>();
             if (info == null) return;
 
             HandleExperience();

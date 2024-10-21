@@ -15,12 +15,12 @@ namespace Architome
         public static ContainerTargetables active;
         public ArchInput input;
         // Start is called before the first frame update
-        public List<GameObject> hoverTargets { get; set; }
-        public List<GameObject> selectedTargets { get; set; }
+        public List<EntityInfo> hoverTargets { get; set; }
+        public List<EntityInfo> selectedTargets { get; set; }
 
-        public GameObject currentHover;
-        public GameObject hoverObject;
-        public GameObject currentHold;
+        public EntityInfo currentHover;
+        public EntityInfo hoverObject;
+        public EntityInfo currentHold;
 
         private KeyBindings keyBindings;
 
@@ -40,15 +40,15 @@ namespace Architome
             protected set { isSelecting = value; }
         }
 
-        public Action<GameObject, GameObject> OnNewHoverTarget { get; set; }
-        public Action<GameObject> OnSelectTarget;
+        public Action<EntityInfo, EntityInfo> OnNewHoverTarget { get; set; }
+        public Action<EntityInfo> OnSelectTarget { get; set; }
         public Action OnClearSelected { get; set; }
 
         public Action OnSelectNothing { get; set; }
 
         public Action OnClearFromEscape;
 
-        GameObject hoverTargetCheck;
+        EntityInfo hoverTargetCheck;
 
         void GetDependencies()
         {
@@ -69,8 +69,8 @@ namespace Architome
         }
         void Start()
         {
-            hoverTargets = new List<GameObject>();
-            selectedTargets = new List<GameObject>();
+            hoverTargets = new();
+            selectedTargets = new();
 
             if (GMHelper.KeyBindings())
             {
@@ -155,7 +155,14 @@ namespace Architome
 
             if (input.Mode == ArchInputMode.Inactive) return;
 
-            hoverObject = Mouse.CurrentHover(targetLayer);
+            var currentHover = Mouse.CurrentHover(targetLayer);
+
+            if (currentHover)
+            {
+                var entity = currentHover.GetComponent<EntityInfo>();
+                hoverObject = entity;
+            }
+
             HandleUserMouseOvers();
             HandleNullMouseOver();
 
@@ -259,7 +266,7 @@ namespace Architome
                 if (portraitBehavior == null) return false;
                 if (portraitBehavior.entity == null) return false;
 
-                Hover(portraitBehavior.entity.gameObject);
+                Hover(portraitBehavior.entity);
 
                 return true;
             }
@@ -271,7 +278,7 @@ namespace Architome
                 if (progressBar == null) return false;
                 if (progressBar.entityInfo == null) return false;
 
-                Hover(progressBar.entityInfo.gameObject);
+                Hover(progressBar.entityInfo);
 
                 return true;
             }
@@ -282,14 +289,15 @@ namespace Architome
             if (currentHover) return currentHover.GetComponent<EntityInfo>();
             if(selectedTargets.Count > 0 && useSelectedTargets)
             {
-                return selectedTargets[^1].GetComponent<EntityInfo>();
+                return selectedTargets[^1];
             }
             var mouseOver = Mouse.CurrentHover(targetLayer);
 
             if (mouseOver)
             {
-                Hover(mouseOver);
-                return mouseOver.GetComponent<EntityInfo>();
+                var entity = mouseOver.GetComponent<EntityInfo>();
+                Hover(entity);
+                return entity;
             }
 
             return null;
@@ -315,7 +323,7 @@ namespace Architome
         {
             SelectEvent(currentHover);
         }
-        async void SelectEvent(GameObject target)
+        async void SelectEvent(EntityInfo target)
         {
             if (target == null) return;
             if (isSelecting) return;
@@ -345,9 +353,9 @@ namespace Architome
             isSelecting = false;
 
         }
-        public void Hold(GameObject target)
+        public void Hold(EntityInfo target)
         {
-            target.GetComponent<EntityInfo>().targetableEvents.OnHold?.Invoke(true);
+            target.targetableEvents.OnHold?.Invoke(true);
             currentHold = target;
         }
         public void UnHold()
@@ -359,13 +367,19 @@ namespace Architome
             }
 
         }
-        public void AddSelected(GameObject target)
+        public void AddSelected(EntityInfo target)
         {
             if(selectedTargets.Contains(target)) return;   
             target.GetComponent<EntityInfo>().targetableEvents.OnSelect?.Invoke(true);
             OnSelectTarget?.Invoke(target);
             selectedTargets.Add(target);
             
+        }
+
+        public void RemoveSelected(EntityInfo target)
+        {
+            if (!selectedTargets.Contains(target)) return;
+            selectedTargets.Remove(target);
         }
         public void ClearSelected()
         {
@@ -404,7 +418,7 @@ namespace Architome
         {
             hoverTargets = hoverTargets.Where(target => target != null).ToList();
         }
-        public void Hover(GameObject target)
+        public void Hover(EntityInfo target)
         {
             if (hoverTargets.Contains(target)) return;
             var info = target.GetComponent<EntityInfo>();
@@ -415,8 +429,8 @@ namespace Architome
             hoverTargets.Add(target);
             currentHover = target;
 
-            Debugger.InConsole(6482, $"{target.GetComponent<EntityInfo>().targetableEvents}");
-            target.GetComponent<EntityInfo>().targetableEvents.OnHover?.Invoke(true);
+            Debugger.InConsole(6482, $"{target.targetableEvents}");
+            target.targetableEvents.OnHover?.Invoke(true);
         }
         public void HoverRemove()
         {
@@ -447,24 +461,24 @@ namespace Architome
         }
         public void AddMouseOver(EntityInfo target)
         {
-            if (!hoverTargets.Contains(target.gameObject))
+            if (!hoverTargets.Contains(target))
             {
-                hoverTargets.Add(target.gameObject);
+                hoverTargets.Add(target);
             }
 
-            currentHover = target.gameObject;
+            currentHover = target;
 
             target.targetableEvents.OnHover?.Invoke(true);
 
         }
         public void RemoveMouseOver(EntityInfo target)
         {
-            if (!hoverTargets.Contains(target.gameObject))
+            if (!hoverTargets.Contains(target))
             {
                 return;
             }
 
-            hoverTargets.Remove(target.gameObject);
+            hoverTargets.Remove(target);
             target.targetableEvents.OnHover?.Invoke(false);
 
             if (hoverTargets.Count > 0)

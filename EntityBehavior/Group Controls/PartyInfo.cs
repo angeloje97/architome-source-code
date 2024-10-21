@@ -243,7 +243,7 @@ namespace Architome
         {
             foreach (var entity in members)
             {
-                if (!targetManager.selectedTargets.Contains(entity.gameObject)) continue;
+                if (!targetManager.selectedTargets.Contains(entity)) continue;
                 entity.partyEvents.OnSelectedAction?.Invoke(this);
                 var controller = entity.PlayerController();
                 if (controller == null) continue;
@@ -289,10 +289,9 @@ namespace Architome
             partyFormation.MoveFormation(position);
             MoveParty();
         }
-        void Focus(GameObject target)
+        void Focus(EntityInfo target)
         {
-            var targetInfo = target.GetComponent<EntityInfo>();
-            events.OnPartyFocus?.Invoke(targetInfo);
+            events.OnPartyFocus?.Invoke(target);
         }
         void UpdateMidPoint()
         {

@@ -65,7 +65,7 @@ public class PlayerController : EntityProp
 
         if (entityInfo.entityControlType == EntityControlType.PartyControl)
         {
-            if (targetManager.selectedTargets.Contains(entityObject))
+            if (targetManager.selectedTargets.Contains(entityInfo))
             {
                 HandleActionButton();
             }
@@ -125,7 +125,7 @@ public class PlayerController : EntityProp
                 }
                 else if(targetManager.selectedTargets.Count > 0)
                 {
-                    target = targetManager.selectedTargets[0].GetComponent<EntityInfo>();
+                    target = targetManager.selectedTargets[0];
                     OnPlayerTargetting?.Invoke(target, ability);
                 }
                 else

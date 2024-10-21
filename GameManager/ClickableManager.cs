@@ -73,7 +73,7 @@ namespace Architome
             foreach (var selected in ContainerTargetables.active.selectedTargets)
             {
                 if (!Entity.IsPlayer(selected)) continue;
-                entityInfos.Add(selected.GetComponent<EntityInfo>());
+                entityInfos.Add(selected);
             }
 
             if (entityInfos.Count == 0) return;

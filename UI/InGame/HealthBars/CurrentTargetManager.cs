@@ -81,12 +81,9 @@ public class CurrentTargetManager : MonoBehaviour
     }
 
 
-    void OnSelectTarget(GameObject target)
+    void OnSelectTarget(EntityInfo target)
     {
-        if (target)
-        {
-            currentTarget = target.GetComponent<EntityInfo>();
-        }
+        currentTarget = target;
     }
 
 

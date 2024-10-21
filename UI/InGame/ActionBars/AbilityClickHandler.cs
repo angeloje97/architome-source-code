@@ -131,9 +131,8 @@ namespace Architome
 
             activeAbility = false;
 
-            void HandleSelectTarget(GameObject target)
+            void HandleSelectTarget(EntityInfo entityInfo)
             {
-                var entityInfo = target.GetComponent<EntityInfo>();
 
                 ability.target = entityInfo;
                 _= ability.Cast();

@@ -62,9 +62,8 @@ namespace Architome.DevTools
             new("Kill Entity", (Request request) => {
                 var targetHandler = ContainerTargetables.active;
 
-                foreach(var selected in targetHandler.selectedTargets)
+                foreach(var entity in targetHandler.selectedTargets)
                 {
-                    var entity = selected.GetComponent<EntityInfo>();
                     entity.KillSelf();
                 }
             }),

@@ -333,10 +333,7 @@ namespace Architome
             infoEvents.OnDestroy?.Invoke(this);
             if (GMHelper.TargetManager())
             {
-                if (GMHelper.TargetManager().selectedTargets.Contains(gameObject))
-                {
-                    GMHelper.TargetManager().selectedTargets.Remove(gameObject);
-                }
+                ContainerTargetables.active.RemoveSelected(this);
             }
         }
 
