@@ -29,13 +29,13 @@ namespace Architome
             GetDependencies();
         }
 
-        void OnNewHoverTarget(GameObject before, GameObject after)
+        void OnNewHoverTarget(EntityInfo before, EntityInfo after)
         {
             if (manager == null) return;
             if (current) current.DestroySelf();
             if (after == null) return;
 
-            var info = after.GetComponent<EntityInfo>();
+            var info = after;
 
             if (info == null) return;
 

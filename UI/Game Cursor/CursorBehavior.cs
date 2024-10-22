@@ -149,14 +149,14 @@ namespace Architome
         }
 
         
-        bool CanAttack(GameObject target)
+        bool CanAttack(EntityInfo target)
         {
             if (playableEntity == null) return false;
 
             return playableEntity.CanAttack(target);
         }
 
-        public void UpdateCursor()
+        public void UpdateCursor(Predicate<object> canAttackCheck = null)
         {
             if (clickableObjects.Count > 0)
             {
@@ -189,9 +189,9 @@ namespace Architome
                 }
             }
 
-            if (targetObjects.Count > 0)
+            if (canAttackCheck != null)
             {
-                if (CanAttack(targetObjects[0]))
+                if (canAttackCheck(null))
                 {
                     SetCursor("Attack");
                     return;
@@ -232,20 +232,23 @@ namespace Architome
             clearingActive = false;
         }
 
-        public void OnNewHoverTarget(GameObject previous, GameObject after)
+        public void OnNewHoverTarget(EntityInfo previous, EntityInfo after)
         {
             
-            if (previous && targetObjects.Contains(previous))
+            if (previous && targetObjects.Contains(previous.gameObject))
             {
-                targetObjects.Remove(previous);
+                targetObjects.Remove(previous.gameObject);
             }
 
-            if (after && !targetObjects.Contains(after))
+            if (after && !targetObjects.Contains(after.gameObject))
             {
-                targetObjects.Add(after);
+                targetObjects.Add(after.gameObject);
             }
 
-            UpdateCursor();
+            UpdateCursor(canAttackCheck: (object o) => {
+                if (after == null) return false;
+                return CanAttack(after);
+            });
         }
 
         public void OnNewClickableHover(GameObject previous, GameObject after)

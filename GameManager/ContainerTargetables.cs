@@ -19,7 +19,7 @@ namespace Architome
         public List<EntityInfo> selectedTargets { get; set; }
 
         public EntityInfo currentHover;
-        public EntityInfo hoverObject;
+        public EntityInfo hoverObject { get; set; }
         public EntityInfo currentHold;
 
         private KeyBindings keyBindings;
@@ -161,6 +161,10 @@ namespace Architome
             {
                 var entity = currentHover.GetComponent<EntityInfo>();
                 hoverObject = entity;
+            }
+            else
+            {
+                hoverObject = null;
             }
 
             HandleUserMouseOvers();
@@ -452,7 +456,7 @@ namespace Architome
                 }
                 else if(hoverTargets[i] != currentHover)
                 {
-                    hoverTargets[i].GetComponent<EntityInfo>().targetableEvents.OnHover?.Invoke(false);
+                    hoverTargets[i].targetableEvents.OnHover?.Invoke(false);
                     hoverTargets.RemoveAt(i);
                     i--;
                 }
