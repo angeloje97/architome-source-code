@@ -145,10 +145,10 @@ namespace Architome
 
         void WhileCursorMove(Vector3 mousePosition)
         {
-           
             //if (input.Mode == ArchInputMode.Inactive) return;
-            
         }
+
+        #region Loop
         void FixedUpdate()
         {
             HandleEvents();
@@ -171,32 +171,24 @@ namespace Architome
             HandleNullMouseOver();
 
         }
-        public void HandleEvents()
+
+        public void HandleNullMouseOver()
         {
-            if (hoverTargetCheck != currentHover)
+            for (int i = 0; i < hoverTargets.Count; i++)
             {
-                OnNewHoverTarget?.Invoke(hoverTargetCheck, currentHover);
-
-                if(currentHover)
+                if (hoverTargets[i] == null)
                 {
-                    nullCheck = true;
+                    hoverTargets.RemoveAt(i);
+                    i--;
                 }
-                else
+                else if (hoverTargets[i] != currentHover)
                 {
-                    nullCheck = false;
+                    hoverTargets[i].targetableEvents.OnHover?.Invoke(false);
+                    hoverTargets.RemoveAt(i);
+                    i--;
                 }
-                
-                hoverTargetCheck = currentHover;
+
             }
-
-            if(nullCheck && !currentHover && !hoverTargetCheck)
-            {
-                OnNewHoverTarget?.Invoke(null, null);
-                nullCheck = false;
-            }
-
-
-
         }
         public void HandleUserMouseOvers()
         {
@@ -248,6 +240,35 @@ namespace Architome
 
 
         }
+        public void HandleEvents()
+        {
+            if (hoverTargetCheck != currentHover)
+            {
+                OnNewHoverTarget?.Invoke(hoverTargetCheck, currentHover);
+
+                if(currentHover)
+                {
+                    nullCheck = true;
+                }
+                else
+                {
+                    nullCheck = false;
+                }
+                
+                hoverTargetCheck = currentHover;
+            }
+
+            if(nullCheck && !currentHover && !hoverTargetCheck)
+            {
+                OnNewHoverTarget?.Invoke(null, null);
+                nullCheck = false;
+            }
+
+
+
+        }
+
+        #endregion
 
         bool IsOverPortraitOrHealthBar()
         {
@@ -444,24 +465,6 @@ namespace Architome
                 currentHover = null;
             }
 
-        }
-        public void HandleNullMouseOver()
-        {
-            for(int i = 0; i< hoverTargets.Count; i++)
-            {
-                if (hoverTargets[i] == null)
-                {
-                    hoverTargets.RemoveAt(i);
-                    i--;
-                }
-                else if(hoverTargets[i] != currentHover)
-                {
-                    hoverTargets[i].targetableEvents.OnHover?.Invoke(false);
-                    hoverTargets.RemoveAt(i);
-                    i--;
-                }
-
-            }
         }
         public void AddMouseOver(EntityInfo target)
         {
