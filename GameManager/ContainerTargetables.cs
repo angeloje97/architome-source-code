@@ -18,8 +18,8 @@ namespace Architome
         public List<EntityInfo> hoverTargets { get; set; }
         public List<EntityInfo> selectedTargets { get; set; }
 
-        public EntityInfo currentHover;
-        public EntityInfo hoverObject { get; set; }
+        public EntityInfo currentHover { get; set; }
+        public EntityInfo hoverObject;
         public EntityInfo currentHold;
 
         private KeyBindings keyBindings;

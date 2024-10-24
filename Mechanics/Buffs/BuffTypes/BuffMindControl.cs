@@ -124,16 +124,15 @@ public class BuffMindControl : BuffStateChanger
 
         if (target != null)
         {
-            var info = target.GetComponent<EntityInfo>();
 
             
             if (abilityManager.attackAbility.CanCastAt(target))
             {
                 if (combatBehavior)
                 {
-                    combatBehavior.SetFocus(info);
+                    combatBehavior.SetFocus(target);
                 }
-                abilityManager.target = info;
+                abilityManager.target = target;
                 abilityManager.Attack();
                 abilityManager.target = null;
                 return;

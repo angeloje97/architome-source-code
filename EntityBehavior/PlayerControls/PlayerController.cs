@@ -98,7 +98,7 @@ public class PlayerController : EntityProp
 
         if(behavior && targetManager.currentHover)
         {
-            var hoverInfo = targetManager.currentHover.GetComponent<EntityInfo>();
+            var hoverInfo = targetManager.currentHover;
             behavior.CombatBehavior().SetFocus(hoverInfo);
         }
 
@@ -121,7 +121,7 @@ public class PlayerController : EntityProp
                 EntityInfo target;
                 if (targetManager.currentHover)
                 {
-                    target = targetManager.currentHover.GetComponent<EntityInfo>();
+                    target = targetManager.currentHover;
                 }
                 else if(targetManager.selectedTargets.Count > 0)
                 {
