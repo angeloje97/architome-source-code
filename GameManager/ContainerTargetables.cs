@@ -20,7 +20,7 @@ namespace Architome
 
         public EntityInfo currentHover { get; set; }
         public EntityInfo hoverObject;
-        public EntityInfo currentHold;
+        public EntityInfo currentHold { get; set; }
 
         private KeyBindings keyBindings;
 
@@ -311,7 +311,7 @@ namespace Architome
         
         public EntityInfo CurrentTarget(bool useSelectedTargets = false)
         {
-            if (currentHover) return currentHover.GetComponent<EntityInfo>();
+            if (currentHover) return currentHover;
             if(selectedTargets.Count > 0 && useSelectedTargets)
             {
                 return selectedTargets[^1];
@@ -387,7 +387,7 @@ namespace Architome
         {
             if(currentHold != null)
             {
-                currentHold.GetComponent<EntityInfo>().targetableEvents.OnHold?.Invoke(false);
+                currentHold.targetableEvents.OnHold?.Invoke(false);
                 currentHold = null;
             }
 
@@ -395,7 +395,7 @@ namespace Architome
         public void AddSelected(EntityInfo target)
         {
             if(selectedTargets.Contains(target)) return;   
-            target.GetComponent<EntityInfo>().targetableEvents.OnSelect?.Invoke(true);
+            target.targetableEvents.OnSelect?.Invoke(true);
             OnSelectTarget?.Invoke(target);
             selectedTargets.Add(target);
             
@@ -411,7 +411,7 @@ namespace Architome
             ClearNullSelected();
             for(int i = 0; i < selectedTargets.Count; i++)
             {
-                selectedTargets[i].GetComponent<EntityInfo>().targetableEvents.OnSelect?.Invoke(false);
+                selectedTargets[i].targetableEvents.OnSelect?.Invoke(false);
                 selectedTargets.RemoveAt(i);
                 i--;
             }
@@ -424,7 +424,7 @@ namespace Architome
 
             for(int i = 0; i < hoverTargets.Count; i++)
             {
-                hoverTargets[i].GetComponent<EntityInfo>().targetableEvents.OnHover?.Invoke(false);
+                hoverTargets[i].targetableEvents.OnHover?.Invoke(false);
                 hoverTargets.RemoveAt(i);
                 i--;
             }
@@ -446,7 +446,7 @@ namespace Architome
         public void Hover(EntityInfo target)
         {
             if (hoverTargets.Contains(target)) return;
-            var info = target.GetComponent<EntityInfo>();
+            var info = target;
             if (info == null) return;
             if (info.currentRoom && !info.currentRoom.isRevealed) return;
 
@@ -461,7 +461,7 @@ namespace Architome
         {
             if(currentHover != null)
             {
-                currentHover.GetComponent<EntityInfo>().targetableEvents.OnHover?.Invoke(false);
+                currentHover.targetableEvents.OnHover?.Invoke(false);
                 currentHover = null;
             }
 
