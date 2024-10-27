@@ -76,6 +76,20 @@ namespace Architome.DevTools
                     { "Entity Level", typeof(int) },
                     { "EntityRarity", typeof(EntityRarity) }
                 }
+            },
+
+            new("Load Scene", (Request request) => {
+
+                var scene = (ArchScene) request.parameters["Scene ID"];
+                var sceneManager = ArchSceneManager.active;
+                sceneManager.LoadScene(scene);
+                
+            })
+            {
+                attributes = new()
+                {
+                    { "Scene ID", typeof(ArchScene) },
+                }
             }
         };
     }
