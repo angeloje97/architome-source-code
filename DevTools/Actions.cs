@@ -24,6 +24,18 @@ namespace Architome.DevTools
                 this.action += action;
             }
 
+            public override void Invoke()
+            {
+                base.Invoke();
+                action?.Invoke(this);
+            }
+
+            public override void Invoke(Dictionary<string, object> parameters)
+            {
+                base.Invoke(parameters);
+                action?.Invoke(this);
+            }
+
         }
         public override List<GameState> availableStates
         {

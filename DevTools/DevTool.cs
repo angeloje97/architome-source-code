@@ -35,7 +35,7 @@ namespace Architome.DevTools
         public Dictionary<string, Type> attributes;
         public Dictionary<string, object> parameters;
 
-        Action<Request> action;
+        protected Action<Request> baseAction;
         
 
         public Request(string name)
@@ -46,25 +46,27 @@ namespace Architome.DevTools
         public Request(string name, Action action)
         {
             this.name = name;
-            this.action += (request) => action();
+            this.baseAction += (request) => action();
         }
 
         public Request(string name, Action<Request> action)
         {
             this.name = name;
-            this.action += action;
+            this.baseAction += action;
         }
 
         public virtual void Invoke(Dictionary<string, object> parameters)
         {
             this.parameters = parameters;
-            action?.Invoke(this);
+            baseAction?.Invoke(this);
         }
 
         public virtual void Invoke()
         {
             this.parameters = null;
-            action?.Invoke(this);
+            baseAction?.Invoke(this);
         }
+
+
     }
 }
