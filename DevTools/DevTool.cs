@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace Architome.DevTools
 {
+    #region DevTool
     public class DevTool : MonoBehaviour
     {
         [SerializeField] protected List<GameState> _availableStates;
@@ -28,6 +29,9 @@ namespace Architome.DevTools
             }
         }
     }
+
+    #endregion
+    #region Request
 
     public class Request
     {
@@ -69,4 +73,5 @@ namespace Architome.DevTools
 
 
     }
+    #endregion
 }
