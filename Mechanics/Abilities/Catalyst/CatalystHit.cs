@@ -109,7 +109,7 @@ public class CatalystHit : MonoBehaviour
 
         if (!CanHit(targetHit, true)) return;
 
-        HandleMainTarget(targetHit.gameObject);
+        HandleMainTarget(targetHit);
         HandleEvent();
         HandleHeal();
         HandleDamage();
@@ -188,7 +188,7 @@ public class CatalystHit : MonoBehaviour
         return true;
     }
 
-    public void HandleMainTarget(GameObject target)
+    public void HandleMainTarget(EntityInfo target)
     {
         if (catalystInfo.target != target) { return; }
         if (abilityInfo.abilityType != AbilityType.LockOn) return;
@@ -198,7 +198,7 @@ public class CatalystHit : MonoBehaviour
         {
             if (!catalystInfo.entityInfo.CanAttack(target))
             {
-                catalystInfo.OnWrongTargetHit?.Invoke(catalystInfo, target);
+                catalystInfo.OnWrongTargetHit?.Invoke(catalystInfo, target.gameObject);
             }
         }
 
@@ -206,7 +206,7 @@ public class CatalystHit : MonoBehaviour
         {
             if (!catalystInfo.entityInfo.CanHelp(target))
             {
-                catalystInfo.OnWrongTargetHit?.Invoke(catalystInfo, target);
+                catalystInfo.OnWrongTargetHit?.Invoke(catalystInfo, target.gameObject);
             }
         }
         
