@@ -289,6 +289,31 @@ namespace Architome
             }
         }
 
-        
+        public async Task UntilClose()
+        {
+            while (isActive) await Task.Delay(Constants.TIMEOUT_ShortMS);
+        }
+
+        public async Task OpenUntilClose()
+        {
+            SetCanvas(true);
+            await Task.Delay(Constants.TIMEOUT_ShortMS);
+            await UntilClose();
+
+
+        }
+
+        #region Static Functions
+
+        public static async Task WaitCanvasSequence(List<CanvasController> controllers)
+        {
+            foreach(var controller in controllers)
+            {
+                await controller.OpenUntilClose();
+            }
+        }
+
+        #endregion
+
     }
 }
