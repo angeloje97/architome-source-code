@@ -42,47 +42,53 @@ namespace Architome.DevTools
 
         #region Requests
 
-        public readonly List<ToggleRequest> requests = new()
+        public List<ToggleRequest> requests
         {
-            new("Spawn Entity", (bool state) => {
-
-                }){
-                    attributes = {
-                        { "EntityID", typeof(int) },
-                        { "Level", typeof(int) },
-                }},
-
-            new("Spawn Item", (bool state) => { 
-            }) 
-            { 
-                attributes = new()
+            get
+            {
+                return new()
                 {
-                    { "Item ID", typeof(int) },
-                    { "Amount", typeof(int) }
-                }    
-            },
+                    new("Spawn Entity", (bool state) => {
 
-            new("Damage", (bool state) => {
+                        }){
+                            attributes = {
+                                { "EntityID", typeof(int) },
+                                { "Level", typeof(int) },
+                        }},
 
-                }){
-                    attributes = {
-                        { "Value", typeof(int) },
-                }},
+                    new("Spawn Item", (bool state) => {
+                    })
+                    {
+                        attributes = new()
+                        {
+                            { "Item ID", typeof(int) },
+                            { "Amount", typeof(int) }
+                        }
+                    },
 
-            new("Heal", (bool state) => {
+                    new("Damage", (bool state) => {
 
-                }){
-                    attributes = {
-                        { "Value", typeof(int) },
-                }},
+                        }){
+                            attributes = {
+                                { "Value", typeof(int) },
+                        }},
 
-            new("Give EXP", (bool state) => {
+                    new("Heal", (bool state) => {
 
-                }){
-                    attributes = {
-                        { "Value", typeof(int) },
-                }},
-        };
+                        }){
+                            attributes = {
+                                { "Value", typeof(int) },
+                        }},
+
+                    new("Give EXP", (bool state) => {
+
+                        }){
+                            attributes = {
+                                { "Value", typeof(int) },
+                        }},
+                };
+            }
+        }
 
         #endregion
     }

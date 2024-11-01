@@ -43,7 +43,7 @@ namespace Architome
 
 
         CanvasGroup canvasGroup;
-        public bool isActive { get; set; }
+        public bool isActive;
 
         public bool interactable = true;
         public bool blocksRaycast = true;
