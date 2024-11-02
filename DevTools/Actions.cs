@@ -53,56 +53,62 @@ namespace Architome.DevTools
             }
         }
 
-        public readonly List<Request> requests = new()
+        public List<Request> requests
         {
-            new("Kill All PartyMembers", () => {
-
-            }),
-
-            new("Teleport Party Members", (Request request) => {
-
-            })
+            get
             {
-                attributes = new()
+                return new()
                 {
-                    { "X", typeof(int) },
-                    { "Y", typeof(int) },
-                    { "Z", typeof(int) },
-                }
-            },
+                    new("Kill All PartyMembers", () => {
 
-            new("Kill Entity", (Request request) => {
-                var targetHandler = ContainerTargetables.active;
+                    }),
 
-                foreach(var entity in targetHandler.selectedTargets)
-                {
-                    entity.KillSelf();
-                }
-            }),
+                    new("Teleport Party Members", (Request request) => {
 
-            new("Spawn Entity", (Request request) => { })
-            {
-                attributes = new()
-                {
-                    { "EntityID", typeof(int) },
-                    { "Entity Level", typeof(int) },
-                    { "EntityRarity", typeof(EntityRarity) }
-                }
-            },
+                    })
+                    {
+                        attributes = new()
+                        {
+                            { "X", typeof(int) },
+                            { "Y", typeof(int) },
+                            { "Z", typeof(int) },
+                        }
+                    },
 
-            new("Load Scene", (Request request) => {
+                    new("Kill Entity", (Request request) => {
+                        var targetHandler = ContainerTargetables.active;
 
-                var scene = (ArchScene) request.parameters["Scene ID"];
-                var sceneManager = ArchSceneManager.active;
-                sceneManager.LoadScene(scene);
-                
-            })
-            {
-                attributes = new()
-                {
-                    { "Scene ID", typeof(ArchScene) },
-                }
+                        foreach(var entity in targetHandler.selectedTargets)
+                        {
+                            entity.KillSelf();
+                        }
+                    }),
+
+                    new("Spawn Entity", (Request request) => { })
+                    {
+                        attributes = new()
+                        {
+                            { "EntityID", typeof(int) },
+                            { "Entity Level", typeof(int) },
+                            { "EntityRarity", typeof(EntityRarity) }
+                        }
+                    },
+
+                    new("Load Scene", (Request request) => {
+
+                        var scene = (ArchScene) request.parameters["Scene ID"];
+                        var sceneManager = ArchSceneManager.active;
+                        sceneManager.LoadScene(scene);
+
+                    })
+                    {
+                        attributes = new()
+                        {
+                            { "Scene ID", typeof(ArchScene) },
+                        }
+                    }
+                };
             }
-        };
+        }
     }
 }
