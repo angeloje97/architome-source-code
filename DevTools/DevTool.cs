@@ -9,7 +9,7 @@ namespace Architome.DevTools
     #region DevTool
     public class DevTool : MonoBehaviour
     {
-        [SerializeField] protected List<GameState> _availableStates;
+        protected List<GameState> _availableStates;
 
         public virtual List<GameState> availableStates
         {
@@ -28,8 +28,12 @@ namespace Architome.DevTools
                 return _availableStates;
             }
         }
-    }
 
+        private void OnValidate()
+        {
+            _availableStates = null;
+        }
+    }
     #endregion
     #region Request
 
