@@ -6,6 +6,12 @@ using UnityEngine;
 
 namespace Architome.DevTools
 {
+    public enum DevToolType
+    {
+        Action,
+        Toggle,
+    }
+
     #region DevTool
     public class DevTool : MonoBehaviour
     {

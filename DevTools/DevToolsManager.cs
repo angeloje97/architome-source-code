@@ -18,6 +18,8 @@ namespace Architome.DevTools
         [Header("Components")]
         public NavBarController navbarController;
         public NavBar navbar;
+
+        [Header("Prefabs")]
         public RequestHandler requestHandlerPrefab;
 
         GameState currentGameState

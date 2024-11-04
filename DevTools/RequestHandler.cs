@@ -30,7 +30,8 @@ namespace Architome.DevTools
     {
         #region Common Data
         [SerializeField] CanvasGroup canvasGroup;
-        [SerializeField] ArchButton button;
+        [SerializeField] ArchButton button; //For Action Requests
+        [SerializeField] Toggle toggle; // For Toggle Request
         [SerializeField] SizeFitter sizeFitter;
         public Dictionary<string, Type> typeKeys { get; private set; }
         public Dictionary<string, object> componentValues { get; private set; }
@@ -57,7 +58,6 @@ namespace Architome.DevTools
             button.OnClick += (button) => {
                 request.Invoke(componentValues);
             }; 
-
         }
 
         public Transform CreateComponent(Type type, Action<object> onValueChange)
@@ -167,6 +167,7 @@ namespace Architome.DevTools
 
             await sizeFitter.AdjustToSize(3);
         }
+
 
         #endregion
 
