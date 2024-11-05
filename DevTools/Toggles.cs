@@ -5,6 +5,7 @@ namespace Architome.DevTools
 {
     public class Toggles : DevTool
     {
+        #region Toggle Requests
         public class ToggleRequest: Request
         {
             #region Common Data
@@ -28,6 +29,7 @@ namespace Architome.DevTools
             }
             #endregion
 
+            #region Setting States
             public void SetState(bool state)
             {
                 this.currentState = state;
@@ -38,7 +40,9 @@ namespace Architome.DevTools
             {
                 SetState(!currentState);
             }
+            #endregion
         }
+        #endregion
 
         #region Requests
 

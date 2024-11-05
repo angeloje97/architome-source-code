@@ -82,8 +82,6 @@ namespace Architome.DevTools
 
         #endregion
 
-
-
         #region Create UI
 
         public async void CreateUI()
@@ -147,7 +145,6 @@ namespace Architome.DevTools
         }
 
         #endregion
-
 
     }
 

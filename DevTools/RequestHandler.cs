@@ -189,6 +189,5 @@ namespace Architome.DevTools
         }
 
         #endregion
-
     }
 }
