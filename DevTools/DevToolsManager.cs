@@ -112,6 +112,7 @@ namespace Architome.DevTools
             var actionsTransform = actionsCG.transform;
             foreach(var item in actions.requests)
             {
+                item.sourceType = actions.type;
                 var newRequestHandler = CreateRequestHandler(actionsTransform);
                 await newRequestHandler.HandleRequest(item);
             }
@@ -132,6 +133,7 @@ namespace Architome.DevTools
             foreach (var item in toggles.requests)
             {
                 var newRequestHandler = CreateRequestHandler(togglesTransform);
+                item.sourceType = toggles.type;
                 await newRequestHandler.HandleRequest(item);
             }
         }

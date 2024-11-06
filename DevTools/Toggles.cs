@@ -5,6 +5,14 @@ namespace Architome.DevTools
 {
     public class Toggles : DevTool
     {
+        public override DevToolType type
+        {
+            get
+            {
+                return DevToolType.Toggle;
+            }
+        }
+
         #region Toggle Requests
         public class ToggleRequest: Request
         {
@@ -12,6 +20,8 @@ namespace Architome.DevTools
             bool currentState;
 
             Action<ToggleRequest> OnStateChange;
+
+            
             #endregion
 
             #region Instantiation

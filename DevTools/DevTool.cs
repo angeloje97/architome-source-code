@@ -35,6 +35,13 @@ namespace Architome.DevTools
             }
         }
 
+        public virtual DevToolType type
+        {
+            get
+            {
+                return DevToolType.Action;
+            }
+        }
         private void OnValidate()
         {
             _availableStates = null;
@@ -51,7 +58,8 @@ namespace Architome.DevTools
         public Dictionary<string, object> parameters;
 
         protected Action<Request> baseAction;
-        
+
+        public DevToolType sourceType { get; set; }
 
         public Request(string name)
         {

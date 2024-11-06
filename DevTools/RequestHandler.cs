@@ -44,6 +44,8 @@ namespace Architome.DevTools
         public Slider rangeComponent;
         public TextMeshProUGUI rangeLabel;
         public TMP_Dropdown dropDown;
+
+        DevToolType requestType;
         #endregion
 
         #region Initiation
@@ -53,11 +55,14 @@ namespace Architome.DevTools
 
             this.typeKeys = request.attributes;
 
+            this.requestType = request.sourceType;
+
             await HandleComponentData();
 
             button.OnClick += (button) => {
                 request.Invoke(componentValues);
             }; 
+
         }
 
         public Transform CreateComponent(Type type, Action<object> onValueChange)
