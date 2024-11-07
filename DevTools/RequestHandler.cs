@@ -145,6 +145,21 @@ namespace Architome.DevTools
             return defaultComponent.transform;
         }
 
+        public Transform CreateRequestType()
+        {
+            if(requestType == DevToolType.Toggle)
+            {
+                var toggle = Instantiate(this.toggle, transform);
+
+                return toggle.transform;
+            }
+            else
+            {
+                var actionButton = Instantiate(button, transform);
+                return actionButton.transform;
+            }
+        }
+
         public async Task HandleComponentData()
         {
             if(currentComponents == null)
@@ -160,6 +175,8 @@ namespace Architome.DevTools
                     i--;
                 }
             }
+
+            CreateRequestType();
 
             foreach (KeyValuePair<string, Type> typeKey in typeKeys)
             {
