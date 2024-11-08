@@ -45,7 +45,7 @@ namespace Architome.DevTools
         public TextMeshProUGUI rangeLabel;
         public TMP_Dropdown dropDown;
 
-        DevToolType requestType;
+        Request request;
         #endregion
 
         #region Initiation
@@ -55,7 +55,8 @@ namespace Architome.DevTools
 
             this.typeKeys = request.attributes;
 
-            this.requestType = request.sourceType;
+
+            this.request = request;
 
             await HandleComponentData();
 
@@ -147,15 +148,25 @@ namespace Architome.DevTools
 
         public Transform CreateRequestType()
         {
+            var requestType = request.sourceType;
+
             if(requestType == DevToolType.Toggle)
             {
                 var toggle = Instantiate(this.toggle, transform);
+
+                toggle.onValueChanged.AddListener((bool newVal) => {
+                });
 
                 return toggle.transform;
             }
             else
             {
                 var actionButton = Instantiate(button, transform);
+
+                actionButton.OnClick += (button) => {
+                    
+                };
+
                 return actionButton.transform;
             }
         }
