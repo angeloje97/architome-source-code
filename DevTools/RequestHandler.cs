@@ -155,6 +155,9 @@ namespace Architome.DevTools
                 var toggle = Instantiate(this.toggle, transform);
 
                 toggle.onValueChanged.AddListener((bool newVal) => {
+                    var toggleRequest = (ToggleRequest)request;
+                    
+                    toggleRequest.SetState(newVal, componentValues);
                 });
 
                 return toggle.transform;
@@ -164,7 +167,7 @@ namespace Architome.DevTools
                 var actionButton = Instantiate(button, transform);
 
                 actionButton.OnClick += (button) => {
-                    
+                    request.Invoke(componentValues);
                 };
 
                 return actionButton.transform;
