@@ -60,10 +60,6 @@ namespace Architome.DevTools
 
             await HandleComponentData();
 
-            button.OnClick += (button) => {
-                request.Invoke(componentValues);
-            }; 
-
         }
 
         public Transform CreateComponent(Type type, Action<object> onValueChange)
