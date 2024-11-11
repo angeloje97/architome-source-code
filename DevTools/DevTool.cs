@@ -53,6 +53,7 @@ namespace Architome.DevTools
 
     public class Request
     {
+        #region CommonData
         public string name;
         public Dictionary<string, Type> attributes;
         public Dictionary<string, object> parameters;
@@ -60,6 +61,8 @@ namespace Architome.DevTools
         protected Action<Request> baseAction;
 
         public DevToolType sourceType { get; set; }
+
+        #endregion
 
         public Request(string name)
         {
