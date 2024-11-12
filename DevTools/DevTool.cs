@@ -64,6 +64,9 @@ namespace Architome.DevTools
 
         #endregion
 
+        #region Constructors
+
+
         public Request(string name)
         {
             this.name = name;
@@ -81,6 +84,9 @@ namespace Architome.DevTools
             this.baseAction += action;
         }
 
+        #endregion
+
+        #region Functions
         public virtual void Invoke(Dictionary<string, object> parameters)
         {
             this.parameters = parameters;
@@ -93,6 +99,7 @@ namespace Architome.DevTools
             baseAction?.Invoke(this);
         }
 
+        #endregion
 
     }
     #endregion
