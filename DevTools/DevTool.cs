@@ -15,6 +15,7 @@ namespace Architome.DevTools
     #region DevTool
     public class DevTool : MonoBehaviour
     {
+        #region Common Data
         protected List<GameState> _availableStates;
 
         public virtual List<GameState> availableStates
@@ -42,6 +43,7 @@ namespace Architome.DevTools
                 return DevToolType.Action;
             }
         }
+        #endregion
         private void OnValidate()
         {
             _availableStates = null;
