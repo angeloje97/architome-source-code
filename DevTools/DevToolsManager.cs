@@ -99,6 +99,11 @@ namespace Architome.DevTools
 
             await Task.WhenAll(actionsTask, togglesTasks);
         }
+        public RequestHandler CreateRequestHandler(Transform parent)
+        {
+            var newRequestHandler = Instantiate(requestHandlerPrefab, parent);
+            return newRequestHandler;
+        }
 
         #region Action
 
@@ -140,11 +145,6 @@ namespace Architome.DevTools
 
         #endregion
 
-        public RequestHandler CreateRequestHandler(Transform parent)
-        {
-            var newRequestHandler = Instantiate(requestHandlerPrefab, parent);
-            return newRequestHandler;
-        }
 
         #endregion
 
