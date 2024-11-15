@@ -12,6 +12,7 @@ namespace Architome.DevTools
 {
     public class DevToolsManager : MonoActor
     {
+        //Cheat commit cause I don't have time :(
         #region Common Data
         public static DevToolsManager active;
 
@@ -149,6 +150,4 @@ namespace Architome.DevTools
         #endregion
 
     }
-
-
 }
