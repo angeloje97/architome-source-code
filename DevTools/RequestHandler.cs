@@ -29,7 +29,6 @@ namespace Architome.DevTools
     public class RequestHandler : MonoBehaviour
     {
         #region Common Data
-        [SerializeField] CanvasGroup canvasGroup;
         [SerializeField] ArchButton button; //For Action Requests
         [SerializeField] Toggle toggle; // For Toggle Request
         [SerializeField] SizeFitter sizeFitter;
@@ -39,7 +38,7 @@ namespace Architome.DevTools
         List<Transform> currentComponents;
 
         [Header("Components")]
-        public InputField defaultComponent;
+        public TMP_InputField defaultComponent;
         public Toggle booleanComponent;
         public Slider rangeComponent;
         public TextMeshProUGUI rangeLabel;
@@ -213,11 +212,6 @@ namespace Architome.DevTools
             }
 
             componentValues[key] = value;
-        }
-
-        public void SetActive(bool active)
-        {
-            ArchUI.SetCanvas(canvasGroup, active, 0f);
         }
 
         #endregion

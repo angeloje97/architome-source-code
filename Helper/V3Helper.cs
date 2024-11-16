@@ -191,7 +191,7 @@ namespace Architome
             return width;
         }
 
-        public static float ChildrenHeight(List<Transform> transGroup, float offsetPerItem)
+        public static float ChildrenHeight(List<Transform> transGroup, float offsetPerItem, Predicate<Transform> qualifies)
         {
 
             if (transGroup == null) return 0f;
@@ -200,6 +200,7 @@ namespace Architome
             {
                 foreach (Transform child in trans)
                 {
+                    if (!qualifies(child)) continue;
                     if (child == trans) continue;
                     var rect = child.GetComponent<RectTransform>();
                     if (rect == null) continue;
@@ -212,7 +213,7 @@ namespace Architome
             return height;
         }
 
-        public static float ChildrenWidth(List<Transform> transGroup, float offsetPerItem)
+        public static float ChildrenWidth(List<Transform> transGroup, float offsetPerItem, Predicate<Transform> qualifies)
         {
             if (transGroup == null) return 0f;
 
@@ -222,6 +223,7 @@ namespace Architome
             {
                 foreach (Transform child in trans)
                 {
+
                     if (child == trans) continue;
                     var rect = child.GetComponent<RectTransform>();
                     if (rect == null) continue;
@@ -233,6 +235,18 @@ namespace Architome
 
             return width;
         }
+
+        public static float ChildrenWidth(List<Transform> transGroup, float offsetPerItem)
+        {
+            return ChildrenWidth(transGroup, offsetPerItem, (trans) => true);
+        }
+
+        public static float ChildrenHeight(List<Transform> transGroup, float offsetPerItem)
+        {
+            return ChildrenHeight(transGroup, offsetPerItem, (trans) => true);
+        }
+
+
 
         public static bool EqualVector3(Vector3 a, Vector3 b, float offset = 0f)
         {

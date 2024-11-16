@@ -1,15 +1,20 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Architome
 {
     public class SizeFitter : MonoBehaviour
     {
         public Transform target;
-        public List<Transform> targetWidths, targetHeights, targetHeightParents, targetWidthParents;
+        [SerializeField] LayoutGroup layoutGroup;
+        public List<Transform> targetWidths, targetHeights, targetHeightParents, targetWidthParents, ignoreTransforms;
+
+        HashSet<Transform> ignoreTransformsHash;
 
         public bool manifestMaxX;
         public bool manifestMaxY;
@@ -22,14 +27,56 @@ namespace Architome
 
         public Action<GameObject> OnAdjustSize;
 
+        [Header("Action Buttons")]
         [SerializeField] bool test;
+        [SerializeField] bool updateOffsetsFromLayoutGroup;
+
+        [Header("Results From Size Fitter")]
+        [SerializeField] float currentX;
+        [SerializeField] float currentY;
+
 
         private void OnValidate()
         {
-            if (!test) return;
-            test = false;
-            AdjustToSize();
+            if (ignoreTransforms != null)
+            {
+                ignoreTransformsHash = ignoreTransforms.ToHashSet();
+            }
+
+            if (test)
+            {
+                test = false;
+                AdjustToSize();
+            }
+
+            HandleUpdateFromLayoutGroup();
         }
+
+        #region HandleUpdateFromLayoutGroup
+
+        void HandleUpdateFromLayoutGroup()
+        {
+            if (!updateOffsetsFromLayoutGroup) return;
+            updateOffsetsFromLayoutGroup = false;
+
+            var padding = layoutGroup.padding;
+
+            if(layoutGroup is VerticalLayoutGroup vertical)
+            {
+                offsetYPerItem = vertical.spacing;
+            }
+
+            if(layoutGroup is HorizontalLayoutGroup horizontal)
+            {
+                offsetXPerItem = horizontal.spacing;
+            }
+
+
+            offSet.x = padding.left + padding.right;
+            offSet.y = padding.top + padding.bottom;
+
+        }
+        #endregion
 
         public async Task AdjustToSize(int iterations = 1, int timeBetween = 50)
         {
@@ -50,8 +97,15 @@ namespace Architome
             var height = V3Helper.Height(targetHeights) + offSet.y;
             var width = V3Helper.Width(targetWidths) + offSet.x;
 
-            height += V3Helper.ChildrenHeight(targetHeightParents, offsetYPerItem);
-            width += V3Helper.ChildrenWidth(targetWidthParents, offsetXPerItem);
+            Predicate<Transform> qualify = (trans) => true;
+
+            if (ignoreTransformsHash != null)
+            {
+                qualify = (child) => !ignoreTransformsHash.Contains(child);
+            }
+
+            height += V3Helper.ChildrenHeight(targetHeightParents, offsetYPerItem, qualify);
+            width += V3Helper.ChildrenWidth(targetWidthParents, offsetXPerItem, qualify);
 
 
 
@@ -73,6 +127,9 @@ namespace Architome
 
 
             rectTransform.sizeDelta = new Vector2(width, height);
+
+            currentX = width;
+            currentY = height;
 
             OnAdjustSize?.Invoke(gameObject);
         }
