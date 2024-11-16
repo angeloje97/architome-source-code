@@ -12,7 +12,7 @@ namespace Architome.DevTools
 {
     public class DevToolsManager : MonoActor
     {
-        //Cheat commit cause I don't have time :(
+        //busy playing apex
         #region Common Data
         public static DevToolsManager active;
 
