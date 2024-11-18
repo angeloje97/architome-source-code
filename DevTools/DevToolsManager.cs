@@ -56,6 +56,7 @@ namespace Architome.DevTools
         private void Start()
         {
             GetDependencies();
+            return;
             CreateUI();
         }
 
@@ -73,7 +74,7 @@ namespace Architome.DevTools
         }
         async void HandleGameManagerState()
         {
-            await Task.Delay(2500);
+            await UntilToolsCreated();
             var gameState = currentGameState;
             actionsToggleController.SetInteractable(actions.availableStates.Contains(gameState));
             togglesToggleController.SetInteractable(toggles.availableStates.Contains(gameState));
@@ -87,18 +88,16 @@ namespace Architome.DevTools
 
         public async void CreateUI()
         {
-            var actionsTask = new Task(async () => {
-                await HandleActions();
-            });
+            List<Task> tasks = new();
+            tasks.Add(HandleActions());
+            tasks.Add(HandleToggles());
 
-            var togglesTasks = new Task(async () => {
-                await HandleToggles();
-            });
-
-            actionsTask.Start();
-            togglesTasks.Start();
-
-            await Task.WhenAll(actionsTask, togglesTasks);
+            await Task.WhenAll(tasks);
+            
+            foreach(var task in tasks)
+            {
+                task.Dispose();
+            }
         }
         public RequestHandler CreateRequestHandler(Transform parent)
         {
@@ -111,6 +110,7 @@ namespace Architome.DevTools
         [SerializeField] Actions actions;
         public CanvasGroup actionsCG;
         public NavBar.ToggleController actionsToggleController;
+        bool actionsCreated;
 
         async Task HandleActions()
         {
@@ -123,6 +123,8 @@ namespace Architome.DevTools
                 await newRequestHandler.HandleRequest(item);
             }
 
+            actionsCreated = true;
+
         }
         #endregion
 
@@ -131,6 +133,8 @@ namespace Architome.DevTools
         [SerializeField] Toggles toggles;
         public CanvasGroup togglesCG;
         public NavBar.ToggleController togglesToggleController;
+
+        bool togglesCreated;
 
         async Task HandleToggles()
         {
@@ -142,6 +146,12 @@ namespace Architome.DevTools
                 item.sourceType = toggles.type;
                 await newRequestHandler.HandleRequest(item);
             }
+            togglesCreated = true;
+        }
+
+        public async Task UntilToolsCreated()
+        {
+            while (!togglesCreated || !actionsCreated) await Task.Delay(500);
         }
 
         #endregion

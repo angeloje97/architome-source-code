@@ -5,6 +5,7 @@ using UnityEngine;
 using System;
 using UnityEngine.UI;
 using Architome.Enums;
+using System.Threading.Tasks;
 
 [RequireComponent(typeof(CanvasGroup))]
 public class EntitySpellBook : MonoBehaviour
@@ -76,11 +77,9 @@ public class EntitySpellBook : MonoBehaviour
         }
     }
 
-
-
     public void SetEntity(EntityInfo entity)
     {
-        
+
         //ClearBin();
         CreateItems(entity);
         

@@ -32,7 +32,7 @@ namespace Architome
 
             public void SetInteractable(bool interactable)
             {
-                if(toggle.isOn && !interactable)
+                if (toggle.isOn && !interactable)
                 {
                     toggle.isOn = false;
                 }
@@ -49,7 +49,11 @@ namespace Architome
             public Toggle toggleButton;
         }
 
+        [Header("Components")]
+        [SerializeField] ToggleGroup toggleGroup;
+
         [SerializeField] Prefabs prefabs;
+
 
         public List<GameObject> items = new();
         public List<CanvasGroup> canvases = new();
@@ -70,6 +74,8 @@ namespace Architome
         public bool changing;
 
         public bool stallNavigation;
+
+        
 
         private void Start()
         {
@@ -104,9 +110,18 @@ namespace Architome
             if (prefabs.toggleButton == null) return null;
 
             var newToggle = Instantiate(prefabs.toggleButton, transform).GetComponent<Toggle>();
+            newToggle.gameObject.name = $"{toggleName} Toggle";
             toggles.Add(newToggle);
 
+            newToggle.group = toggleGroup;
+
+            
+
             var archButton = newToggle.GetComponent<ArchButton>();
+            var canvas = toggleTarget.GetComponent<CanvasGroup>();
+
+            canvases.Add(canvas);
+
             archButton.SetName(toggleName);
 
             if (toggleTarget == null) return null;
@@ -124,6 +139,14 @@ namespace Architome
                     items[i] = toggleTarget;
                 }
             }
+
+            #region Listener
+            var newIndex = toggles.Count;
+
+            archButton.OnClick += (button) => {
+                UpdateFromIndex(newIndex);
+            };
+            #endregion
 
             return new(newToggle, toggleTarget);
         }
