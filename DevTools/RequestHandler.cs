@@ -186,15 +186,14 @@ namespace Architome.DevTools
             }
 
             CreateRequestType();
+            //foreach (KeyValuePair<string, Type> typeKey in typeKeys)
+            //{
+            //    var component = CreateComponent(typeKey.Value, (object newValue) => {
+            //        UpdateKey(typeKey.Key, newValue);
+            //    });
 
-            foreach (KeyValuePair<string, Type> typeKey in typeKeys)
-            {
-                var component = CreateComponent(typeKey.Value, (object newValue) => {
-                    UpdateKey(typeKey.Key, newValue);
-                });
-
-                currentComponents.Add(component);
-            }
+            //    currentComponents.Add(component);
+            //}
 
             await sizeFitter.AdjustToSize(3);
         }

@@ -43,6 +43,7 @@ namespace Architome.DevTools
         #region Initialization
         protected override void Awake()
         {
+            base.Awake();
             SingletonManger.HandleSingleton(this.GetType(), gameObject, true, true, () => {
                 active = this;
             });
@@ -56,8 +57,8 @@ namespace Architome.DevTools
         private void Start()
         {
             GetDependencies();
-            return;
             CreateUI();
+            return;
         }
 
         #region GameStateChange Handler
@@ -93,11 +94,6 @@ namespace Architome.DevTools
             tasks.Add(HandleToggles());
 
             await Task.WhenAll(tasks);
-            
-            foreach(var task in tasks)
-            {
-                task.Dispose();
-            }
         }
         public RequestHandler CreateRequestHandler(Transform parent)
         {

@@ -22,44 +22,48 @@ namespace Architome.DevTools
             {
                 return new()
                 {
-                    new("Spawn Entity", (bool state) => {
+                    new("Test", (bool val) => {
 
-                        }){
-                            attributes = {
-                                { "EntityID", typeof(int) },
-                                { "Level", typeof(int) },
-                        }},
-
-                    new("Spawn Item", (bool state) => {
+                        Debugger.System(1043, "Testing Toggle");
                     })
-                    {
-                        attributes = new()
-                        {
-                            { "Item ID", typeof(int) },
-                            { "Amount", typeof(int) }
-                        }
-                    },
+                    //new("Spawn Entity", (bool state) => {
 
-                    new("Damage", (bool state) => {
+                    //    }){
+                    //        attributes = {
+                    //            { "EntityID", typeof(int) },
+                    //            { "Level", typeof(int) },
+                    //    }},
 
-                        }){
-                            attributes = {
-                                { "Value", typeof(int) },
-                        }},
+                    //new("Spawn Item", (bool state) => {
+                    //})
+                    //{
+                    //    attributes = new()
+                    //    {
+                    //        { "Item ID", typeof(int) },
+                    //        { "Amount", typeof(int) }
+                    //    }
+                    //},
 
-                    new("Heal", (bool state) => {
+                    //new("Damage", (bool state) => {
 
-                        }){
-                            attributes = {
-                                { "Value", typeof(int) },
-                        }},
+                    //    }){
+                    //        attributes = {
+                    //            { "Value", typeof(int) },
+                    //    }},
 
-                    new("Give EXP", (bool state) => {
+                    //new("Heal", (bool state) => {
 
-                        }){
-                            attributes = {
-                                { "Value", typeof(int) },
-                        }},
+                    //    }){
+                    //        attributes = {
+                    //            { "Value", typeof(int) },
+                    //    }},
+
+                    //new("Give EXP", (bool state) => {
+
+                    //    }){
+                    //        attributes = {
+                    //            { "Value", typeof(int) },
+                    //    }},
                 };
             }
         }

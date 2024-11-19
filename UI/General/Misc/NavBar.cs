@@ -143,9 +143,14 @@ namespace Architome
             #region Listener
             var newIndex = toggles.Count;
 
-            archButton.OnClick += (button) => {
-                UpdateFromIndex(newIndex);
-            };
+            newToggle.onValueChanged.AddListener((newValue) => {
+                if (newValue)
+                {
+                    UpdateFromIndex(newIndex);
+                }
+
+                OnValueChange();
+            });
             #endregion
 
             return new(newToggle, toggleTarget);
