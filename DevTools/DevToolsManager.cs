@@ -57,6 +57,7 @@ namespace Architome.DevTools
         private void Start()
         {
             GetDependencies();
+            CleanChildNodes();
             CreateUI();
             return;
         }
@@ -87,18 +88,28 @@ namespace Architome.DevTools
 
         #region Create UI
 
-        public async void CreateUI()
+        public void CreateUI()
         {
-            List<Task> tasks = new();
-            tasks.Add(HandleActions());
-            tasks.Add(HandleToggles());
-
-            await Task.WhenAll(tasks);
+            HandleToggles();
+            HandleActions();
         }
         public RequestHandler CreateRequestHandler(Transform parent)
         {
             var newRequestHandler = Instantiate(requestHandlerPrefab, parent);
             return newRequestHandler;
+        }
+
+        void CleanChildNodes()
+        {
+            foreach(Transform child in actionsCG.transform)
+            {
+                Destroy(child.gameObject);
+            }
+
+            foreach(Transform child in togglesCG.transform)
+            {
+                Destroy(child.gameObject);
+            }
         }
 
         #region Action
@@ -108,7 +119,7 @@ namespace Architome.DevTools
         public NavBar.ToggleController actionsToggleController;
         bool actionsCreated;
 
-        async Task HandleActions()
+        void HandleActions()
         {
             actionsToggleController = navbar.AddToggle("Actions", actionsCG.gameObject);
             var actionsTransform = actionsCG.transform;
@@ -116,7 +127,7 @@ namespace Architome.DevTools
             {
                 item.sourceType = actions.type;
                 var newRequestHandler = CreateRequestHandler(actionsTransform);
-                await newRequestHandler.HandleRequest(item);
+                newRequestHandler.HandleRequest(item);
             }
 
             actionsCreated = true;
@@ -132,7 +143,7 @@ namespace Architome.DevTools
 
         bool togglesCreated;
 
-        async Task HandleToggles()
+        void HandleToggles()
         {
             togglesToggleController = navbar.AddToggle("Toggles", togglesCG.gameObject);
             var togglesTransform = togglesCG.transform;
@@ -140,7 +151,7 @@ namespace Architome.DevTools
             {
                 var newRequestHandler = CreateRequestHandler(togglesTransform);
                 item.sourceType = toggles.type;
-                await newRequestHandler.HandleRequest(item);
+                newRequestHandler.HandleRequest(item);
             }
             togglesCreated = true;
         }

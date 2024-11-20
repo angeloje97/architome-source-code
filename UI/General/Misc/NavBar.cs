@@ -49,10 +49,13 @@ namespace Architome
             public Toggle toggleButton;
         }
 
+
         [Header("Components")]
         [SerializeField] ToggleGroup toggleGroup;
-
+        [Header("Config")]
+        [SerializeField] bool cleanOnStart;
         [SerializeField] Prefabs prefabs;
+
 
 
         public List<GameObject> items = new();
@@ -111,6 +114,8 @@ namespace Architome
 
             var newToggle = Instantiate(prefabs.toggleButton, transform).GetComponent<Toggle>();
             newToggle.gameObject.name = $"{toggleName} Toggle";
+            var newIndex = toggles.Count;
+
             toggles.Add(newToggle);
 
             newToggle.group = toggleGroup;
@@ -141,7 +146,6 @@ namespace Architome
             }
 
             #region Listener
-            var newIndex = toggles.Count;
 
             newToggle.onValueChanged.AddListener((newValue) => {
                 if (newValue)
@@ -152,6 +156,8 @@ namespace Architome
                 OnValueChange();
             });
             #endregion
+
+            OnValueChange();
 
             return new(newToggle, toggleTarget);
         }
@@ -200,7 +206,7 @@ namespace Architome
         public async void UpdateFromIndex(int newIndex)
         {
             if (index == newIndex) return;
-
+            Debugger.UI(5013, $"Changing Navbar {this} to index {newIndex}");
             if(toggles == null || toggles.Count == 0)
             {
                 var canNavigate = await CanNavigate();

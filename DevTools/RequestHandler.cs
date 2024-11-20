@@ -49,7 +49,7 @@ namespace Architome.DevTools
 
         #region Initiation
 
-        public async Task HandleRequest(Request request)
+        public void HandleRequest(Request request)
         {
 
             this.typeKeys = request.attributes;
@@ -57,7 +57,7 @@ namespace Architome.DevTools
 
             this.request = request;
 
-            await HandleComponentData();
+            HandleComponentData();
 
         }
 
@@ -169,7 +169,7 @@ namespace Architome.DevTools
             }
         }
 
-        public async Task HandleComponentData()
+        public void HandleComponentData()
         {
             if(currentComponents == null)
             {
@@ -186,6 +186,7 @@ namespace Architome.DevTools
             }
 
             CreateRequestType();
+
             //foreach (KeyValuePair<string, Type> typeKey in typeKeys)
             //{
             //    var component = CreateComponent(typeKey.Value, (object newValue) => {
@@ -195,7 +196,10 @@ namespace Architome.DevTools
             //    currentComponents.Add(component);
             //}
 
-            await sizeFitter.AdjustToSize(3);
+            ArchAction.Delay(async () => {
+                Debugger.UI(5014, $"Waiting Size Fitter {this}");
+                await sizeFitter.AdjustToSize(3);
+            }, 1f);
         }
 
 
