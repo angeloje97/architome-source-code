@@ -64,8 +64,8 @@ namespace Architome
 
         public float transitionTime;
 
-        public int index;
-        public int previousIndex { get; set; }
+        [SerializeField] int index;
+        [SerializeField] int previousIndex;
         int currentIndexCheck;
         public bool update;
 
@@ -83,8 +83,13 @@ namespace Architome
         private void Start()
         {
             toggles = GetComponentsInChildren<Toggle>().ToList();
-            OnValueChange();
             previousIndex = -1;
+
+            ArchAction.Delay(() =>
+            {
+                OnValueChange();
+
+            }, .25f);
         }
 
         private void OnValidate()
@@ -118,12 +123,16 @@ namespace Architome
 
             toggles.Add(newToggle);
 
+            newToggle.isOn = newIndex == 0;
+
             newToggle.group = toggleGroup;
 
             
 
             var archButton = newToggle.GetComponent<ArchButton>();
             var canvas = toggleTarget.GetComponent<CanvasGroup>();
+
+            ArchUI.SetCanvas(canvas, newIndex == 0);
 
             canvases.Add(canvas);
 
@@ -148,12 +157,12 @@ namespace Architome
             #region Listener
 
             newToggle.onValueChanged.AddListener((newValue) => {
+                Debugger.UI(5015, $"Dynamic Toggle({newToggle} value changed: {newValue}");
                 if (newValue)
                 {
                     UpdateFromIndex(newIndex);
                 }
-
-                OnValueChange();
+                    OnValueChange();
             });
             #endregion
 
@@ -261,6 +270,8 @@ namespace Architome
 
             var activeCanvases = new HashSet<CanvasGroup>();
             var targetCanvases = new HashSet<CanvasGroup>();
+
+            Debugger.UI(5016, $"Changing Navbar{this} index to {index}");
 
             for (int i = 0; i < toggles.Count; i++)
             {
