@@ -187,14 +187,17 @@ namespace Architome.DevTools
 
             CreateRequestType();
 
-            //foreach (KeyValuePair<string, Type> typeKey in typeKeys)
-            //{
-            //    var component = CreateComponent(typeKey.Value, (object newValue) => {
-            //        UpdateKey(typeKey.Key, newValue);
-            //    });
+            foreach (KeyValuePair<string, Type> typeKey in typeKeys)
+            {
+                var component = CreateComponent(typeKey.Value, (object newValue) =>
+                {
+                    UpdateKey(typeKey.Key, newValue);
+                });
 
-            //    currentComponents.Add(component);
-            //}
+                component.gameObject.name = typeKey.Key;
+
+                currentComponents.Add(component);
+            }
 
             ArchAction.Delay(async () => {
                 Debugger.UI(5014, $"Waiting Size Fitter {this}");

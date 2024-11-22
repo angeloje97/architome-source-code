@@ -62,6 +62,7 @@ namespace Architome.DevTools
 
         protected Action<Request> baseAction;
 
+
         public DevToolType sourceType { get; set; }
 
         #endregion
@@ -100,6 +101,8 @@ namespace Architome.DevTools
             this.parameters = null;
             baseAction?.Invoke(this);
         }
+
+        public virtual void OnSetRequestHandler(RequestHandler handler) { }
 
         #endregion
 
