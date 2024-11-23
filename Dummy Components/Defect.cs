@@ -17,7 +17,7 @@ namespace Architome
 
         public static void CreateIndicator(Transform target, string title = "Generic", Exception e = null)
         {
-            var defectGameObject = new GameObject($"Defect: {title}");
+            var defectGameObject = new GameObject($"Defect from {target.gameObject}");
 
             defectGameObject.transform.position = new();
             var defect = defectGameObject.AddComponent<Defect>();
@@ -40,7 +40,7 @@ namespace Architome
 
             if (e != null)
             {
-                Debug.LogError($"{target.gameObject}\n{e.StackTrace}");
+                Debug.LogError($"{title}\n{target.gameObject}\n{e.StackTrace}");
                 defect.stackTrace = e.StackTrace;
             }
         }

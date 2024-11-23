@@ -64,17 +64,17 @@ namespace Architome
             var options = new List<TMP_Dropdown.OptionData>();
             dropDown.ClearOptions();
             int defaultIndex = 0;
-            int index = 0; 
-            foreach(E value in enums)
+            int index = 0;
+            foreach (E value in enums)
             {
                 if (defaultValue.Equals(value))
                 {
                     defaultIndex = index;
                 }
-                options.Add(new() 
+                options.Add(new()
                 {
                     text = EnumString.GetValue(value),
-                }) ;
+                });
                 index++;
             }
 
@@ -82,15 +82,17 @@ namespace Architome
             dropDown.value = defaultIndex;
 
 
-            dropDown.onValueChanged.AddListener((int newValue) => {
+            dropDown.onValueChanged.AddListener((int newValue) =>
+            {
                 action((E)enums.GetValue(newValue));
             });
 
-            
-            return (E updatedValue) => {
+
+            return (E updatedValue) =>
+            {
                 index = 0;
-                
-                foreach(E value in enums)
+
+                foreach (E value in enums)
                 {
                     if (updatedValue.Equals(value))
                     {
@@ -100,6 +102,31 @@ namespace Architome
                     index++;
                 }
             };
+        }
+
+        public static void SetDropDown(Action<object> onChange, TMP_Dropdown dropDown, Type type)
+        {
+            if (!type.IsEnum) return;
+
+            var values = Enum.GetValues(type);
+
+            var options = new List<TMP_Dropdown.OptionData>();
+            dropDown.ClearOptions();
+
+            foreach (Enum value in values)
+            {
+                options.Add(new()
+                {
+                    text = EnumString.GetValue(value)
+                });
+            }
+
+            dropDown.options = options;
+
+
+            dropDown.onValueChanged.AddListener((int index) => {
+                onChange?.Invoke(values.GetValue(index));
+            });
         }
 
         public static Action<E> SetDropDown<E>(TMP_Dropdown dropDown, E defaultValue) where E: Enum

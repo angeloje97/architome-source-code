@@ -52,8 +52,11 @@ namespace Architome.DevTools
         public void HandleRequest(Request request)
         {
 
-            this.typeKeys = request.attributes;
+            typeKeys = request.attributes;
 
+            typeKeys ??= new();
+
+            CreateComponentValues();
 
             this.request = request;
 
@@ -61,84 +64,106 @@ namespace Architome.DevTools
 
         }
 
+        void CreateComponentValues()
+        {
+            componentValues = new();
+
+            foreach(var key in typeKeys)
+            {
+                componentValues.Add(key.Key, "");
+            }
+        }
+
         public Transform CreateComponent(Type type, Action<object> onValueChange)
         {
-            #region Bool Handle
-            if (type == typeof(bool))
+            try
             {
-                var boolComponent = Instantiate(booleanComponent, transform);
+                #region Bool Handle
+                if (type == typeof(bool))
+                {
+                    var boolComponent = Instantiate(booleanComponent, transform);
 
-                boolComponent.enabled = false;
+                    boolComponent.enabled = false;
 
-                boolComponent.onValueChanged.AddListener((bool newValue) => {
+                    boolComponent.onValueChanged.AddListener((bool newValue) => {
+                        onValueChange?.Invoke(newValue);
+                    });
+
+                    onValueChange?.Invoke(boolComponent.enabled);
+
+
+                    return boolComponent.transform;
+
+                }
+                #endregion
+
+                #region Range Handle
+
+                if (type == typeof(IntRange) || type == typeof(FloatRange))
+                {
+                    var slider = Instantiate(rangeComponent, transform);
+                    var label = Instantiate(rangeLabel, transform);
+
+                    if(type == typeof(IntRange))
+                    {
+                        slider.wholeNumbers = true;
+
+                    }
+                    else
+                    {
+
+                    }
+
+                    slider.value = slider.minValue;
+
+                    slider.onValueChanged.AddListener((newValue) => {
+                        var valueText = slider.wholeNumbers ? $"{(int)newValue}" : $"{(float)newValue}";
+                        onValueChange?.Invoke(newValue);
+                    });
+
+                    return slider.transform;
+                }
+                #endregion
+
+                #region Enum Handle
+                if (type.IsEnum)
+                {
+                    var newDropDown = Instantiate(dropDown, transform);
+                    List<TMP_Dropdown.OptionData> options = new();
+
+                    var enumValues = Enum.GetValues(type);
+
+
+                    Enum firstEnum = (Enum) enumValues.GetValue(0);
+
+                    Debugger.UI(5017, $"First enum is {firstEnum}");
+
+                    ArchUI.SetDropDown((object newValue) => {
+                        onValueChange?.Invoke(newValue);
+                    }, newDropDown, type);
+
+                    onValueChange?.Invoke(firstEnum);
+
+                    return newDropDown.transform;
+                }
+
+                #endregion;
+
+                var defaultComponent = Instantiate(this.defaultComponent, transform);
+
+                defaultComponent.onValueChanged.AddListener((string newValue) => {
                     onValueChange?.Invoke(newValue);
                 });
 
-
-                return boolComponent.transform;
+                return defaultComponent.transform;
 
             }
-            #endregion
-
-            #region Range Handle
-
-            if (type == typeof(IntRange) || type == typeof(FloatRange))
+            catch (Exception e)
             {
-                var slider = Instantiate(rangeComponent, transform);
-                var label = Instantiate(rangeLabel, transform);
-
-                if(type == typeof(IntRange))
-                {
-                    slider.wholeNumbers = true;
-
-                }
-                else
-                {
-
-                }
-
-                slider.value = slider.minValue;
-
-                slider.onValueChanged.AddListener((newValue) => {
-                    var valueText = slider.wholeNumbers ? $"{(int)newValue}" : $"{(float)newValue}";
-                    onValueChange?.Invoke(newValue);
-                });
-
-                return slider.transform;
-            }
-            #endregion
-
-            #region Enum Handle
-            if (type.IsEnum)
-            {
-                var newDropDown = Instantiate(dropDown, transform);
-                List<TMP_Dropdown.OptionData> options = new();
-
-                var enumValues = Enum.GetValues(type);
-
-                foreach(Enum item in enumValues){
-                    options.Add(new(item.ToString()));
-                }
-
-                newDropDown.options = options;
-
-                dropDown.onValueChanged.AddListener((int index) => {
-                    onValueChange?.Invoke(enumValues.GetValue(index));
-                });
-
-
-                return newDropDown.transform;
+                Defect.CreateIndicator(transform, $"Cannot create component of type: {type}", e);
             }
 
-            #endregion;
-
-            var defaultComponent = Instantiate(this.defaultComponent, transform);
-
-            defaultComponent.onValueChanged.AddListener((string newValue) => {
-                onValueChange?.Invoke(newValue);
-            });
-
-            return defaultComponent.transform;
+            return null;
         }
 
         public Transform CreateRequestType()
@@ -162,6 +187,7 @@ namespace Architome.DevTools
                 var actionButton = Instantiate(button, transform);
 
                 actionButton.OnClick += (button) => {
+
                     request.Invoke(componentValues);
                 };
 
@@ -189,10 +215,10 @@ namespace Architome.DevTools
 
             foreach (KeyValuePair<string, Type> typeKey in typeKeys)
             {
-                //var component = CreateComponent(typeKey.Value, (object newValue) =>
-                //{
-                //    UpdateKey(typeKey.Key, newValue);
-                //});
+                var component = CreateComponent(typeKey.Value, (object newValue) =>
+                {
+                    UpdateKey(typeKey.Key, newValue);
+                });
 
                 //component.gameObject.name = typeKey.Key;
 

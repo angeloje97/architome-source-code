@@ -61,7 +61,7 @@ namespace Architome.DevTools
                 {
                     new("Test", (ActionRequest request) => {
                        var parameters = request.parameters;
-                        Debugger.System(1042, "Running Test Action\n" +
+                        Debugger.System(1082, "Running Test Action\n" +
                             $"Number: {parameters["number"]}\n" +
                             $"Boolean: {parameters["boolean"]}\n" +
                             $"Rarity: {parameters["rarity"]}");
@@ -71,7 +71,7 @@ namespace Architome.DevTools
                         attributes = new()
                         {
                             { "number", typeof(int) },
-                            { "boolean", typeof(int) },
+                            { "boolean", typeof(bool) },
                             { "rarity", typeof(Rarity) }
                         }
                     }

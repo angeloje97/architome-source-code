@@ -124,8 +124,9 @@ namespace Architome
             toggles.Add(newToggle);
 
             newToggle.isOn = newIndex == 0;
-
+            newToggle.interactable = newIndex != 0;
             newToggle.group = toggleGroup;
+
 
             
 
@@ -157,12 +158,18 @@ namespace Architome
             #region Listener
 
             newToggle.onValueChanged.AddListener((newValue) => {
+                
                 Debugger.UI(5015, $"Dynamic Toggle({newToggle} value changed: {newValue}");
-                if (newValue)
+
+
+                if(newValue)
                 {
                     UpdateFromIndex(newIndex);
+
                 }
-                    OnValueChange();
+
+                OnValueChange();
+                newToggle.interactable = !newValue;
             });
             #endregion
 
