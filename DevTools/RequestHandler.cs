@@ -189,14 +189,14 @@ namespace Architome.DevTools
 
             foreach (KeyValuePair<string, Type> typeKey in typeKeys)
             {
-                var component = CreateComponent(typeKey.Value, (object newValue) =>
-                {
-                    UpdateKey(typeKey.Key, newValue);
-                });
+                //var component = CreateComponent(typeKey.Value, (object newValue) =>
+                //{
+                //    UpdateKey(typeKey.Key, newValue);
+                //});
 
-                component.gameObject.name = typeKey.Key;
+                //component.gameObject.name = typeKey.Key;
 
-                currentComponents.Add(component);
+                //currentComponents.Add(component);
             }
 
             ArchAction.Delay(async () => {

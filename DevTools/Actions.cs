@@ -53,15 +53,28 @@ namespace Architome.DevTools
             }
         }
 
-        public List<Request> requests
+        public List<ActionRequest> requests
         {
             get
             {
                 return new()
                 {
-                    new("Test", () => {
-                        Debugger.System(1042, "Running Test Action");
-                    })
+                    new("Test", (ActionRequest request) => {
+                       var parameters = request.parameters;
+                        Debugger.System(1042, "Running Test Action\n" +
+                            $"Number: {parameters["number"]}\n" +
+                            $"Boolean: {parameters["boolean"]}\n" +
+                            $"Rarity: {parameters["rarity"]}");
+
+
+                    }) {
+                        attributes = new()
+                        {
+                            { "number", typeof(int) },
+                            { "boolean", typeof(int) },
+                            { "rarity", typeof(Rarity) }
+                        }
+                    }
                     //new("Kill All PartyMembers", () => {
 
                     //}),
