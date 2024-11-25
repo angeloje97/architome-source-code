@@ -55,6 +55,7 @@ namespace Architome.DevTools
 
         public List<ActionRequest> requests
         {
+            //Free Commit
             get
             {
                 return new()
@@ -66,7 +67,7 @@ namespace Architome.DevTools
                             $"Boolean: {parameters["boolean"]}\n" +
                             $"Rarity: {parameters["rarity"]}");
 
-
+                        Debugger.UI(1921, $"Testing Hot Reload");
                     }) {
                         attributes = new()
                         {
