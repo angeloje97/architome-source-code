@@ -61,8 +61,7 @@ namespace Architome.DevTools
         public Dictionary<string, object> parameters;
 
         protected Action<Request> baseAction;
-
-
+        public Action<RequestHandler> onSetRequestHandler;
         public DevToolType sourceType { get; set; }
 
         #endregion
@@ -102,7 +101,6 @@ namespace Architome.DevTools
             baseAction?.Invoke(this);
         }
 
-        public virtual void OnSetRequestHandler(RequestHandler handler) { }
 
         #endregion
 

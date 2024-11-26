@@ -62,6 +62,7 @@ namespace Architome.DevTools
 
             HandleComponentData();
 
+            request.onSetRequestHandler?.Invoke(this);
         }
 
         void CreateComponentValues()
