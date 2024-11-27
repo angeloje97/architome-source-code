@@ -221,9 +221,9 @@ namespace Architome.DevTools
                     UpdateKey(typeKey.Key, newValue);
                 });
 
-                //component.gameObject.name = typeKey.Key;
+                component.gameObject.name = typeKey.Key;
 
-                //currentComponents.Add(component);
+                currentComponents.Add(component);
             }
 
             ArchAction.Delay(async () => {

@@ -14,7 +14,6 @@ namespace Architome.DevTools
         {
 
             Action<ActionRequest> action;
-            public Action<RequestHandler> onSetRequestHandler;
             public ActionRequest(string name, Action action) : base (name)
             {
                 this.action += (request) => action();
