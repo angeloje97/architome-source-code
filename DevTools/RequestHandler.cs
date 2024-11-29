@@ -28,7 +28,7 @@ namespace Architome.DevTools
 {
     public class RequestHandler : MonoBehaviour
     {
-        //Cheat Commit because trying to get a win on supervive
+        //Played another night of supervive.
         #region Common Data
         [SerializeField] ArchButton button; //For Action Requests
         [SerializeField] Toggle toggle; // For Toggle Request
