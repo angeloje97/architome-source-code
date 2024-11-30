@@ -21,13 +21,17 @@ namespace Architome
 
             bool interactable => toggle.interactable;
 
+            public Action<bool> onValueChange;
+
             public ToggleController(Toggle toggle, GameObject target)
             {
                 this.toggle = toggle;
                 this.target = target;
 
                 button = toggle.GetComponent<ArchButton>();
-
+                toggle.onValueChanged.AddListener((bool newValue) => {
+                    onValueChange?.Invoke(newValue);
+                });
             }
 
             public void SetInteractable(bool interactable)

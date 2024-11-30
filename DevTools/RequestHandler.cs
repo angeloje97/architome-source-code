@@ -10,16 +10,68 @@ using UnityEngine.UI;
 namespace Architome
 {
     #region Structs
+    [Serializable]
     public struct FloatRange
     {
         public float min;
         public float max;
+
+        public void ClampValues()
+        {
+            if(min > max)
+            {
+                min = max;
+            }
+
+            if(max < min)
+            {
+                max = min;
+            }
+        }
     }
 
+    [Serializable]
     public struct IntRange
     {
-        public int min;
-        public int max;
+        public int min, max;
+
+        int minCheck, maxCheck;
+
+        public void ClampValues()
+        {
+            if(minCheck != min)
+            {
+                if(min > max)
+                {
+                    min = max;
+                }
+                minCheck = min;
+            }
+
+            if(maxCheck != max)
+            {
+                if(max < min)
+                {
+                    max = min;
+                }
+                maxCheck = max;
+            }
+        }
+
+        public void ClampValues(IntRange restrictions)
+        {
+            if(min < restrictions.min)
+            {
+                min = restrictions.min;
+            }
+
+            if(max > restrictions.max)
+            {
+                max = restrictions.max;
+            }
+
+            ClampValues();
+        }
     }
     #endregion
 }
@@ -35,6 +87,7 @@ namespace Architome.DevTools
         [SerializeField] SizeFitter sizeFitter;
         public Dictionary<string, Type> typeKeys { get; private set; }
         public Dictionary<string, object> componentValues { get; private set; }
+        public Dictionary<string, GameObject> attributeGameObjects;
 
         List<Transform> currentComponents;
 
@@ -52,7 +105,6 @@ namespace Architome.DevTools
 
         public void HandleRequest(Request request)
         {
-
             typeKeys = request.attributes;
 
             typeKeys ??= new();
@@ -215,12 +267,16 @@ namespace Architome.DevTools
 
             CreateRequestType();
 
+            attributeGameObjects = new();
+
             foreach (KeyValuePair<string, Type> typeKey in typeKeys)
             {
                 var component = CreateComponent(typeKey.Value, (object newValue) =>
                 {
                     UpdateKey(typeKey.Key, newValue);
                 });
+
+                attributeGameObjects.Add(typeKey.Key, component.gameObject);
 
                 component.gameObject.name = typeKey.Key;
 

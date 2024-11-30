@@ -74,7 +74,7 @@ namespace Architome.DevTools
                             { "number", typeof(int) },
                             { "boolean", typeof(bool) },
                             { "rarity", typeof(Rarity) }
-                        }
+                        },
                     }
                     //new("Kill All PartyMembers", () => {
 
