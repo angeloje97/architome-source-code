@@ -259,5 +259,15 @@ namespace Architome
             tmp.text = str;
         }
 
+
+        #region RectTransforms
+        
+        public static void SetLeftRightMargins(RectTransform rect, float left, float right)
+        {
+            rect.offsetMin = new Vector2(left, rect.offsetMin.y);
+            rect.offsetMax = new Vector2(-right, rect.offsetMax.y);
+        }
+
+        #endregion
     }
 }

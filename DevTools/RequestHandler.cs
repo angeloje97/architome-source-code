@@ -16,17 +16,42 @@ namespace Architome
         public float min;
         public float max;
 
+        float minCheck, maxCheck;
+
         public void ClampValues()
         {
-            if(min > max)
+            if (minCheck != min)
             {
-                min = max;
+                if (min > max)
+                {
+                    min = max;
+                }
+                minCheck = min;
             }
 
-            if(max < min)
+            if (maxCheck != max)
             {
-                max = min;
+                if (max < min)
+                {
+                    max = min;
+                }
+                maxCheck = max;
             }
+        }
+
+        public void ClampValues(FloatRange restrictions)
+        {
+            if (min < restrictions.min)
+            {
+                min = restrictions.min;
+            }
+
+            if (max > restrictions.max)
+            {
+                max = restrictions.max;
+            }
+
+            ClampValues();
         }
     }
 

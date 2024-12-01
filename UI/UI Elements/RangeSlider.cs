@@ -1,6 +1,7 @@
 using DungeonArchitect;
 using System.Collections;
 using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,9 +14,12 @@ namespace Architome
         [SerializeField] Image fillImage, fillImageParent;
         [SerializeField] TextMeshProUGUI minText, maxText;
 
-        [SerializeField] IntRange intRestrictions;
-        [SerializeField] IntRange currentIntValue;
-        
+        [Header("Configuration")]
+        [SerializeField] bool wholeNumbers;
+        [SerializeField] FloatRange restrictions;
+        [SerializeField] FloatRange currentValue;
+
+
 
         void Start()
         {
@@ -37,43 +41,50 @@ namespace Architome
 
         void HandleRestrictions()
         {
-            minSlider.minValue = intRestrictions.min;
-            minSlider.maxValue = intRestrictions.max;
-            maxSlider.maxValue = intRestrictions.max;
-            maxSlider.maxValue = intRestrictions.max;
+            minSlider.minValue = restrictions.min;
+            minSlider.maxValue = restrictions.max;
+            maxSlider.maxValue = restrictions.max;
+            maxSlider.maxValue = restrictions.max;
 
-            //currentIntValue.min = (int) minSlider.value;
-            //currentIntValue.max = (int) maxSlider.value;
+            currentValue.ClampValues(restrictions);
 
-            currentIntValue.ClampValues(intRestrictions);
-
-            minSlider.value = (float) currentIntValue.min;
-            maxSlider.value = (float) currentIntValue.max;
+            minSlider.value = currentValue.min;
+            maxSlider.value = currentValue.max;
 
         }
 
         void UpdateText()
         {
-
+            if (wholeNumbers)
+            {
+                minText.text = $"{ArchString.FloatToSimple(currentValue.min, 0)}";
+                maxText.text = $"{ArchString.FloatToSimple(currentValue.max, 0)}";
+                return;
+            }
+            minText.text = $"{currentValue.min}";
+            maxText.text = $"{currentValue.max}";
         }
 
         void UpdateFill()
         {
-            var start = Mathf.InverseLerp(intRestrictions.min, intRestrictions.max, currentIntValue.min);
-            var end = Mathf.InverseLerp(intRestrictions.min, intRestrictions.max, currentIntValue.max);
+            var start = Mathf.InverseLerp(restrictions.min, restrictions.max, currentValue.min);
+            var end = Mathf.InverseLerp(restrictions.min, restrictions.max, currentValue.max);
 
+            var width = fillImageParent.rectTransform.rect.width;
 
-            var fillValue = end - start;
-            var rect = fillImageParent.rectTransform.rect;
-
-            fillImage.rectTransform.sizeDelta = new Vector2
-            {
-                x = rect.width * fillValue,
-                y = rect.height,
-            };
-
-            fillImage.rectTransform.offsetMin = new Vector2() {}
+            ArchUI.SetLeftRightMargins(fillImage.rectTransform, width * start, width - (width * end));
 
         }
+
+        public void HandleMinSliderChange(float newValue)
+        {
+
+        }
+
+        public void HandleMaxSliderChange(float newValue)
+        {
+
+        }
+
     }
 }
