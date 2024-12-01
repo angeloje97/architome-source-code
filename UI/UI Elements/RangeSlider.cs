@@ -10,7 +10,7 @@ namespace Architome
     public class RangeSlider : MonoActor
     {
         [SerializeField] Slider minSlider, maxSlider;
-        [SerializeField] Image fillImage;
+        [SerializeField] Image fillImage, fillImageParent;
         [SerializeField] TextMeshProUGUI minText, maxText;
 
         [SerializeField] IntRange intRestrictions;
@@ -59,6 +59,20 @@ namespace Architome
 
         void UpdateFill()
         {
+            var start = Mathf.InverseLerp(intRestrictions.min, intRestrictions.max, currentIntValue.min);
+            var end = Mathf.InverseLerp(intRestrictions.min, intRestrictions.max, currentIntValue.max);
+
+
+            var fillValue = end - start;
+            var rect = fillImageParent.rectTransform.rect;
+
+            fillImage.rectTransform.sizeDelta = new Vector2
+            {
+                x = rect.width * fillValue,
+                y = rect.height,
+            };
+
+            fillImage.rectTransform.offsetMin = new Vector2() {}
 
         }
     }
