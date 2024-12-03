@@ -1,9 +1,12 @@
 using DungeonArchitect;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace Architome
@@ -17,9 +20,10 @@ namespace Architome
         [Header("Configuration")]
         [SerializeField] bool wholeNumbers;
         [SerializeField] FloatRange restrictions;
-        [SerializeField] FloatRange currentValue;
+        [SerializeField] public FloatRange currentValue;
 
-
+        public Action<FloatRange> onValueChange;
+        public UnityEvent<FloatRange> onValueChangeEvent;
 
         void Start()
         {
@@ -32,8 +36,13 @@ namespace Architome
         
         }
 
-        private void OnValidate()
+        private async void OnValidate()
         {
+            if (wholeNumbers)
+            {
+                await Task.Delay(250);
+            }
+
             HandleRestrictions();
             UpdateFill();
             UpdateText();
@@ -41,16 +50,41 @@ namespace Architome
 
         void HandleRestrictions()
         {
+
+            minSlider.wholeNumbers = wholeNumbers;
+            maxSlider.wholeNumbers = wholeNumbers;
+
             minSlider.minValue = restrictions.min;
             minSlider.maxValue = restrictions.max;
             maxSlider.maxValue = restrictions.max;
             maxSlider.maxValue = restrictions.max;
 
+            if (wholeNumbers)
+            {
+                currentValue.min = (int)currentValue.min;
+                currentValue.max = (int)currentValue.max;
+            }
+
             currentValue.ClampValues(restrictions);
 
-            minSlider.value = currentValue.min;
-            maxSlider.value = currentValue.max;
 
+
+            UpdateHandles();
+
+        }
+
+        void UpdateHandles(bool withNotify = true)
+        {
+            if (withNotify)
+            {
+                minSlider.value = currentValue.min;
+                maxSlider.value = currentValue.max;
+            }
+            else
+            {
+                minSlider.SetValueWithoutNotify(currentValue.min);
+                maxSlider.SetValueWithoutNotify(currentValue.max);
+            }
         }
 
         void UpdateText()
@@ -70,21 +104,37 @@ namespace Architome
             var start = Mathf.InverseLerp(restrictions.min, restrictions.max, currentValue.min);
             var end = Mathf.InverseLerp(restrictions.min, restrictions.max, currentValue.max);
 
-            var width = fillImageParent.rectTransform.rect.width;
 
-            ArchUI.SetLeftRightMargins(fillImage.rectTransform, width * start, width - (width * end));
+            ArchUI.SetLeftRightMarginsPercent(fillImage.rectTransform, fillImageParent.rectTransform, start, 1-end);
 
         }
 
         public void HandleMinSliderChange(float newValue)
         {
-
+            currentValue.min = newValue;
+            UpdateValues();
         }
 
         public void HandleMaxSliderChange(float newValue)
         {
 
+            currentValue.max = newValue;
+            UpdateValues();
         }
 
+        public void UpdateValues()
+        {
+            currentValue.ClampValues(restrictions);
+            UpdateText();
+            UpdateFill();
+            UpdateHandles(false);
+            onValueChange?.Invoke(currentValue);
+            onValueChangeEvent?.Invoke(currentValue);
+        }
+
+        public void SetWholeNumbers(bool wholeNumbers)
+        {
+            this.wholeNumbers = wholeNumbers;
+        }
     }
 }

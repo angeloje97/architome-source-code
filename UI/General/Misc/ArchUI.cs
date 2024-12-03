@@ -268,6 +268,12 @@ namespace Architome
             rect.offsetMax = new Vector2(-right, rect.offsetMax.y);
         }
 
+        public static void SetLeftRightMarginsPercent(RectTransform rect, RectTransform parent, float leftPercent, float rightPercent)
+        {
+            var width = parent.rect.width;
+
+            SetLeftRightMargins(rect, width * leftPercent, width*rightPercent);
+        }
         #endregion
     }
 }
