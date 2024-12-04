@@ -53,6 +53,8 @@ namespace Architome
 
             ClampValues();
         }
+
+
     }
 
     [Serializable]
@@ -96,6 +98,11 @@ namespace Architome
             }
 
             ClampValues();
+        }
+
+        public override string ToString()
+        {
+            return $"[{min}, {max}";
         }
     }
     #endregion
