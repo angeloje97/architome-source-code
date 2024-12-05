@@ -64,6 +64,8 @@ namespace Architome.DevTools
         public Action<RequestHandler> onSetRequestHandler;
         public DevToolType sourceType { get; set; }
 
+        public Dictionary<string, Action<GameObject>> onCreateComponentForAttribute;
+
         #endregion
 
         #region Constructors

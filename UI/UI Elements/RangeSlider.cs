@@ -136,5 +136,11 @@ namespace Architome
         {
             this.wholeNumbers = wholeNumbers;
         }
+
+        public void SetRangeRestrictions(FloatRange newRestrictions)
+        {
+            restrictions = newRestrictions;
+            HandleRestrictions();
+        }
     }
 }
