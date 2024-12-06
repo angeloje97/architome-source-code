@@ -309,6 +309,11 @@ namespace Architome.DevTools
                 component.gameObject.name = typeKey.Key;
 
                 currentComponents.Add(component);
+
+                if(request.onCreateComponentForAttribute != null && request.onCreateComponentForAttribute.ContainsKey(typeKey.Key))
+                {
+                    request.onCreateComponentForAttribute[typeKey.Key].Invoke(component.gameObject);
+                }
             }
 
             ArchAction.Delay(async () => {
