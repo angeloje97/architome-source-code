@@ -112,7 +112,7 @@ namespace Architome.DevTools
 {
     public class RequestHandler : MonoBehaviour
     {
-        //Playing that POE2
+        //Frogot to work on this because it's date night.
         #region Common Data
         [SerializeField] ArchButton button; //For Action Requests
         [SerializeField] Toggle toggle; // For Toggle Request
