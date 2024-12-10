@@ -73,8 +73,18 @@ namespace Architome.DevTools
                         {
                             { "number", typeof(int) },
                             { "boolean", typeof(bool) },
-                            { "rarity", typeof(Rarity) }
+                            { "rarity", typeof(Rarity) },
+                            { "range", typeof(FloatRange) }
                         },
+
+                        onCreateComponentForAttribute = new() {
+                            { "range", 
+                                (GameObject gameObject) => {
+                                    var rangeSlider = gameObject.GetComponent<RangeSlider>();
+                                    rangeSlider.SetRangeRestrictions(new(0, 10));
+                                } 
+                            }
+                        }
                     }
                     //new("Kill All PartyMembers", () => {
 

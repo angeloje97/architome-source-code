@@ -18,6 +18,15 @@ namespace Architome
 
         float minCheck, maxCheck;
 
+        public FloatRange(float min, float max)
+        {
+            this.min = min;
+            this.max = max;
+            minCheck = min;
+            maxCheck = max;
+        }
+
+
         public void ClampValues()
         {
             if (minCheck != min)
@@ -53,8 +62,6 @@ namespace Architome
 
             ClampValues();
         }
-
-
     }
 
     [Serializable]
@@ -63,6 +70,14 @@ namespace Architome
         public int min, max;
 
         int minCheck, maxCheck;
+
+        public IntRange(int min, int max)
+        {
+            this.min = min;
+            this.max = max;
+            minCheck = min;
+            maxCheck = max;
+        }
 
         public void ClampValues()
         {
@@ -112,7 +127,6 @@ namespace Architome.DevTools
 {
     public class RequestHandler : MonoBehaviour
     {
-        //Spent 3 hours trying to kill the final boss on Path of Exile 2. I did not beat him....
         #region Common Data
         [SerializeField] ArchButton button; //For Action Requests
         [SerializeField] Toggle toggle; // For Toggle Request
