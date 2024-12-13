@@ -26,6 +26,8 @@ namespace Architome
             maxCheck = max;
         }
 
+        public FloatRange(IntRange intRange) : this(intRange.min, intRange.max) { }
+
 
         public void ClampValues()
         {
@@ -78,6 +80,8 @@ namespace Architome
             minCheck = min;
             maxCheck = max;
         }
+
+        public IntRange(FloatRange floatRange) : this((int) floatRange.min, (int)floatRange.max) { }
 
         public void ClampValues()
         {
@@ -209,11 +213,7 @@ namespace Architome.DevTools
                     slider.SetWholeNumbers(wholeNumbers);
 
                     slider.onValueChange += (floatRange) => {
-                        object value = wholeNumbers ? new IntRange()
-                        {
-                            min = (int)floatRange.min,
-                            max = (int)floatRange.max,
-                        } : floatRange;
+                        object value = wholeNumbers ? new IntRange(floatRange) : floatRange;
 
                         onValueChange?.Invoke(value);
                     };
