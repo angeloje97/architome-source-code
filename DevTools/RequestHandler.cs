@@ -28,7 +28,6 @@ namespace Architome
 
         public FloatRange(IntRange intRange) : this(intRange.min, intRange.max) { }
 
-
         public void ClampValues()
         {
             if (minCheck != min)
@@ -291,7 +290,7 @@ namespace Architome.DevTools
                 return actionButton.transform;
             }
         }
-        //Cheat Commit
+
         public void HandleComponentData()
         {
             if(currentComponents == null)
@@ -336,7 +335,6 @@ namespace Architome.DevTools
                 await sizeFitter.AdjustToSize(3);
             }, 1f);
         }
-
 
         #endregion
 
