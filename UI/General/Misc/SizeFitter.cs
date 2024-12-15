@@ -10,6 +10,7 @@ namespace Architome
 {
     public class SizeFitter : MonoBehaviour
     {
+        #region Common Data
         public Transform target;
         [SerializeField] LayoutGroup layoutGroup;
         public List<Transform> targetWidths, targetHeights, targetHeightParents, targetWidthParents, ignoreTransforms;
@@ -34,6 +35,7 @@ namespace Architome
         [Header("Results From Size Fitter")]
         [SerializeField] float currentX;
         [SerializeField] float currentY;
+        #endregion
 
         #region Initialization
 
