@@ -128,6 +128,7 @@ namespace Architome
 
 namespace Architome.DevTools
 {
+    #region Request Handler
     public class RequestHandler : MonoBehaviour
     {
         #region Common Data
@@ -351,4 +352,7 @@ namespace Architome.DevTools
 
         #endregion
     }
+
+    #endregion
+
 }
