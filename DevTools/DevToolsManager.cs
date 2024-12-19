@@ -154,6 +154,10 @@ namespace Architome.DevTools
                 newRequestHandler.HandleRequest(item);
             }
             togglesCreated = true;
+
+            togglesToggleController.onValueChange += (state) => {
+
+            };
         }
 
         public async Task UntilToolsCreated()
