@@ -70,6 +70,8 @@ namespace Architome
                 currentValue.max = (int)currentValue.max;
             }
 
+            restrictions.ClampValues();
+
             currentValue.ClampValues(restrictions);
 
 
