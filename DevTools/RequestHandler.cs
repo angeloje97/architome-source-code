@@ -291,21 +291,26 @@ namespace Architome.DevTools
             }
         }
 
-        public void HandleComponentData()
+        void RefreshComponents()
         {
-            if(currentComponents == null)
+            if (currentComponents == null)
             {
                 currentComponents = new();
             }
             else
             {
-                for(int i = 0; i < currentComponents.Count; i++)
+                for (int i = 0; i < currentComponents.Count; i++)
                 {
                     Destroy(currentComponents[i].gameObject);
                     currentComponents.RemoveAt(i);
                     i--;
                 }
             }
+        }
+
+        public void HandleComponentData()
+        {
+            RefreshComponents();
 
             CreateRequestType();
 
