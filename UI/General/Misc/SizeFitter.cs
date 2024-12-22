@@ -52,6 +52,11 @@ namespace Architome
             HandleUpdateFromLayoutGroup();
         }
 
+        private void Start()
+        {
+            ignoreTransformsHash ??= ignoreTransforms.ToHashSet();
+        }
+
         #region HandleUpdateFromLayoutGroup
 
         void HandleUpdateFromLayoutGroup()
