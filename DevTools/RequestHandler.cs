@@ -246,6 +246,8 @@ namespace Architome.DevTools
 
                 #endregion;
 
+                #region Default Handle
+
                 var defaultComponent = Instantiate(this.defaultComponent, transform);
 
                 defaultComponent.onValueChanged.AddListener((string newValue) => {
@@ -253,6 +255,7 @@ namespace Architome.DevTools
                 });
 
                 return defaultComponent.transform;
+                #endregion
 
             }
             catch (Exception e)
