@@ -128,7 +128,13 @@ namespace Architome.DevTools
                 item.sourceType = actions.type;
                 var newRequestHandler = CreateRequestHandler(actionsTransform);
                 newRequestHandler.HandleRequest(item);
+
+                actionsToggleController.onValueChange += (bool isOn) => {
+                    if (!isOn) return;
+                    newRequestHandler.UpdateSize();
+                };
             }
+
 
             actionsCreated = true;
 
@@ -152,12 +158,13 @@ namespace Architome.DevTools
                 var newRequestHandler = CreateRequestHandler(togglesTransform);
                 item.sourceType = toggles.type;
                 newRequestHandler.HandleRequest(item);
+
+                togglesToggleController.onValueChange += (bool isOn) => {
+                    if (!isOn) return;
+                    newRequestHandler.UpdateSize();
+                };
             }
             togglesCreated = true;
-
-            togglesToggleController.onValueChange += (state) => {
-
-            };
         }
 
         public async Task UntilToolsCreated()

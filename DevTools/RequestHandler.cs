@@ -339,10 +339,15 @@ namespace Architome.DevTools
                 }
             }
 
-            ArchAction.Delay(async () => {
+            ArchAction.Delay(() => {
                 Debugger.UI(5014, $"Waiting Size Fitter {this}");
-                await sizeFitter.AdjustToSize(3);
+                UpdateSize();
             }, 1f);
+        }
+
+        public async void UpdateSize()
+        {
+            await sizeFitter.AdjustToSize(3);
         }
 
         #endregion
