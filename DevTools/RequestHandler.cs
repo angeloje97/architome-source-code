@@ -345,9 +345,9 @@ namespace Architome.DevTools
             }, 1f);
         }
 
-        public async void UpdateSize()
+        public async void UpdateSize(int amount = 3)
         {
-            await sizeFitter.AdjustToSize(3);
+            await sizeFitter.AdjustToSize(amount);
         }
 
         #endregion
