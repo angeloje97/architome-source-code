@@ -12,7 +12,6 @@ namespace Architome.DevTools
 {
     public class DevToolsManager : MonoActor
     {
-        //busy playing apex
         #region Common Data
         public static DevToolsManager active;
 
