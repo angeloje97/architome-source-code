@@ -74,10 +74,7 @@ namespace Architome
 
             currentValue.ClampValues(restrictions);
 
-
-
             UpdateHandles();
-
         }
 
         void UpdateHandles(bool withNotify = true)
@@ -112,9 +109,7 @@ namespace Architome
             var start = Mathf.InverseLerp(restrictions.min, restrictions.max, currentValue.min);
             var end = Mathf.InverseLerp(restrictions.min, restrictions.max, currentValue.max);
 
-
             ArchUI.SetLeftRightMarginsPercent(fillImage.rectTransform, fillImageParent.rectTransform, start, 1-end);
-
         }
 
         public void HandleMinSliderChange(float newValue)
