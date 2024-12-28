@@ -146,7 +146,6 @@ namespace Architome.DevTools
         public TMP_InputField defaultComponent;
         public Toggle booleanComponent;
         public RangeSlider rangeComponent;
-        public TextMeshProUGUI rangeLabel;
         public TMP_Dropdown dropDown;
 
         Request request;
@@ -179,7 +178,7 @@ namespace Architome.DevTools
             }
         }
 
-        public Transform CreateComponent(Type type, Action<object> onValueChange)
+        public Transform CreateComponent(Type type, string label, Action<object> onValueChange)
         {
             try
             {
@@ -208,9 +207,10 @@ namespace Architome.DevTools
                 {
                     var wholeNumbers = type == typeof(IntRange);
                     var slider = Instantiate(rangeComponent, transform);
-                    var label = Instantiate(rangeLabel, transform);
-
+                    
                     slider.SetWholeNumbers(wholeNumbers);
+
+                    slider.SetLabel(label);
 
                     slider.onValueChange += (floatRange) => {
                         object value = wholeNumbers ? new IntRange(floatRange) : floatRange;
@@ -322,7 +322,7 @@ namespace Architome.DevTools
 
             foreach (KeyValuePair<string, Type> typeKey in typeKeys)
             {
-                var component = CreateComponent(typeKey.Value, (object newValue) =>
+                var component = CreateComponent(typeKey.Value, typeKey.Key, (object newValue) =>
                 {
                     UpdateKey(typeKey.Key, newValue);
                 });

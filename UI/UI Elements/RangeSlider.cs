@@ -15,7 +15,7 @@ namespace Architome
     {
         [SerializeField] Slider minSlider, maxSlider;
         [SerializeField] Image fillImage, fillImageParent;
-        [SerializeField] TextMeshProUGUI minText, maxText;
+        [SerializeField] TextMeshProUGUI minText, maxText, label;
 
         [Header("Configuration")]
         [SerializeField] bool wholeNumbers;
@@ -46,6 +46,11 @@ namespace Architome
             HandleRestrictions();
             UpdateFill();
             UpdateText();
+        }
+
+        public void SetLabel(string newLabel)
+        {
+            label.text = newLabel;
         }
 
         void HandleRestrictions()
@@ -98,6 +103,7 @@ namespace Architome
             minText.text = $"{currentValue.min}";
             maxText.text = $"{currentValue.max}";
         }
+
 
         void UpdateFill()
         {
