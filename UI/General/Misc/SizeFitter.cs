@@ -38,10 +38,7 @@ namespace Architome
 
         private void OnValidate()
         {
-            if (ignoreTransforms != null)
-            {
-                ignoreTransformsHash = ignoreTransforms.ToHashSet();
-            }
+            Initialize();
 
             if (test)
             {
@@ -54,7 +51,14 @@ namespace Architome
 
         private void Start()
         {
+            Initialize();
+            AdjustToSize();
+        }
+
+        void Initialize()
+        {
             ignoreTransformsHash ??= ignoreTransforms.ToHashSet();
+
         }
 
         #region HandleUpdateFromLayoutGroup

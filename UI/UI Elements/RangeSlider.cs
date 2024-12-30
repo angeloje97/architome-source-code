@@ -120,7 +120,6 @@ namespace Architome
 
         public void HandleMaxSliderChange(float newValue)
         {
-
             currentValue.max = newValue;
             UpdateValues();
         }
