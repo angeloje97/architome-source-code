@@ -35,6 +35,8 @@ namespace Architome
         [SerializeField] float currentX;
         [SerializeField] float currentY;
 
+        #region Initialization
+
         private void OnValidate()
         {
             Initialize();
@@ -59,6 +61,8 @@ namespace Architome
             ignoreTransformsHash ??= ignoreTransforms.ToHashSet();
 
         }
+        #endregion
+
         #region HandleUpdateFromLayoutGroup
 
         void HandleUpdateFromLayoutGroup()
