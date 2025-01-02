@@ -74,12 +74,12 @@ namespace Architome
 
             var padding = layoutGroup.padding;
 
-            if(layoutGroup is VerticalLayoutGroup vertical)
+            if (layoutGroup is VerticalLayoutGroup vertical)
             {
                 offsetYPerItem = vertical.spacing;
             }
 
-            if(layoutGroup is HorizontalLayoutGroup horizontal)
+            if (layoutGroup is HorizontalLayoutGroup horizontal)
             {
                 offsetXPerItem = horizontal.spacing;
             }
@@ -93,7 +93,7 @@ namespace Architome
 
         public async Task AdjustToSize(int iterations = 1, int timeBetween = 50)
         {
-            for(int i = 0; i < iterations; i++)
+            for (int i = 0; i < iterations; i++)
             {
                 AdjustToSize();
                 await Task.Delay(timeBetween);
@@ -123,12 +123,12 @@ namespace Architome
 
             if (manifestMaxX)
             {
-                width = MaxX() + offSet.x;
+                width = MaxX + offSet.x;
             }
 
             if (manifestMaxY)
             {
-                height = MaxY() + offSet.y;
+                height = MaxY + offSet.y;
             }
 
             if (height < min.y) height = min.y;
@@ -146,41 +146,50 @@ namespace Architome
             OnAdjustSize?.Invoke(gameObject);
         }
 
-        float MaxX()
+
+        #region Properties
+        float MaxX
         {
-            var max = 0f;
-
-            foreach (var trans in targetWidths)
+            get
             {
-                if (ignoreInactives && !trans.gameObject.activeInHierarchy) continue;
-                var rectTrans = trans.GetComponent<RectTransform>();
+                var max = 0f;
 
-                if (rectTrans.rect.width > max)
+                foreach (var trans in targetWidths)
                 {
-                    max = rectTrans.rect.width;
-                }
-            }
+                    if (ignoreInactives && !trans.gameObject.activeInHierarchy) continue;
+                    var rectTrans = trans.GetComponent<RectTransform>();
 
-            return max;
+                    if (rectTrans.rect.width > max)
+                    {
+                        max = rectTrans.rect.width;
+                    }
+                }
+
+                return max;
+            }
         }
 
-        float MaxY()
+        float MaxY
         {
-            var max = 0f;
-
-            foreach (var trans in targetHeights)
+            get
             {
-                if (ignoreInactives && !trans.gameObject.activeInHierarchy) continue;
-                var rectTrans = trans.GetComponent<RectTransform>();
+                var max = 0f;
 
-                if (rectTrans.rect.height > max)
+                foreach (var trans in targetHeights)
                 {
-                    max = rectTrans.rect.height;
-                }
-            }
+                    if (ignoreInactives && !trans.gameObject.activeInHierarchy) continue;
+                    var rectTrans = trans.GetComponent<RectTransform>();
 
-            return max;
+                    if (rectTrans.rect.height > max)
+                    {
+                        max = rectTrans.rect.height;
+                    }
+                }
+
+                return max;
+            }
         }
 
     }
+    #endregion
 }
