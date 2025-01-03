@@ -64,6 +64,12 @@ namespace Architome
             questInfo.ForceFail();
         }
 
+        public void AddTime(float time)
+        {
+            timer += time;
+            UpdatePrompt();
+        }
+
         public void HandleEntityDeath()
         {
             if (!enableMemberDeaths) return;

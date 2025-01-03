@@ -146,7 +146,6 @@ namespace Architome
             OnAdjustSize?.Invoke(gameObject);
         }
 
-
         #region Properties
         float MaxX
         {
