@@ -2,6 +2,7 @@ using System.Collections;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
+using Architome.Enums;
 
 namespace Architome
 {
@@ -68,6 +69,20 @@ namespace Architome
         {
             timer += time;
             UpdatePrompt();
+        }
+
+        Dictionary<EntityRarity, float> entityRarityMultiplier = new()
+        {
+            {  EntityRarity.Boss, 4 },
+            { EntityRarity.Elite, 3 },
+            { EntityRarity.Rare, 3.5f },
+            { EntityRarity.Common, 1 }
+        };
+
+        public void AddTimeFromEntity(EntityInfo entity, int baseTime = 1)
+        {
+            if (!entityRarityMultiplier.ContainsKey(entity.rarity)) return;
+            AddTime(baseTime * entityRarityMultiplier[entity.rarity]);
         }
 
         public void HandleEntityDeath()
