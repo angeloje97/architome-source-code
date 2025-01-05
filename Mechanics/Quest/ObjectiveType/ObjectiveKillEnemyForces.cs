@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -119,6 +120,8 @@ namespace Architome
             objectives.Add(prompt);
         }
 
+        public Action<CombatEvent> OnEntityDeathEvent;
+
         public void OnEntityDeath(CombatEvent eventData)
         {
             if (!isActive) return;
@@ -155,6 +158,7 @@ namespace Architome
 
             UpdateSlainPercentPrompt();
             HandleObjectiveChange();
+            OnEntityDeathEvent?.Invoke(eventData);
         }
 
 

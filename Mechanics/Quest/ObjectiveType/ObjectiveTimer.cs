@@ -31,6 +31,7 @@ namespace Architome
 
             HandleEntityDeath();
             StartTimer();
+            HandleOtherObjectives();
 
         }
 
@@ -69,6 +70,20 @@ namespace Architome
         {
             timer += time;
             UpdatePrompt();
+        }
+
+        void HandleOtherObjectives()
+        {
+            var enemyForces = GetComponent<ObjectiveKillEnemyForces>();
+            var killEntity = GetComponent<ObjectiveKillEntity>();
+
+            if (enemyForces)
+            {
+                enemyForces.OnEntityDeathEvent += (CombatEvent eventData) => {
+                    AddTimeFromEntity(eventData.target);
+                };
+
+            }
         }
 
         Dictionary<EntityRarity, float> entityRarityMultiplier = new()
