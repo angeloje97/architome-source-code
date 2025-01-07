@@ -71,7 +71,7 @@ namespace Architome
             timer += time;
             UpdatePrompt();
         }
-        //Cheat Commit
+        //Another Cheat Commit :(
         void HandleOtherObjectives()
         {
             var enemyForces = GetComponent<ObjectiveKillEnemyForces>();
