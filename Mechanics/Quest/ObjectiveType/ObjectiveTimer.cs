@@ -22,6 +22,7 @@ namespace Architome
         
         }
 
+        #region Activation
         public override void Activate()
         {
             base.Activate();
@@ -34,7 +35,20 @@ namespace Architome
             HandleOtherObjectives();
 
         }
+        async void StartTimer()
+        {
+            while (timer > 0)
+            {
+                await Task.Delay(1000);
+                if (!isActive) return;
+                timer -= 1f;
+                UpdatePrompt();
+            }
 
+            questInfo.ForceFail();
+        }
+
+        #endregion
         public void UpdatePrompt()
         {
             prompt = $"Complete objectives before timer runs out.\n{ArchString.FloatToTimer(timer)} left";
@@ -53,18 +67,6 @@ namespace Architome
             HandleObjectiveChange();
         }
 
-        async void StartTimer()
-        {
-            while (timer > 0)
-            {
-                await Task.Delay(1000);
-                if (!isActive) return;
-                timer -= 1f;
-                UpdatePrompt();
-            }
-
-            questInfo.ForceFail();
-        }
 
         public void AddTime(float time)
         {
