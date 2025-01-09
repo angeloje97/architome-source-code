@@ -73,7 +73,7 @@ namespace Architome
             timer += time;
             UpdatePrompt();
         }
-        //Cheat Commit because of LA fires.
+        //Cheat Commit because my power went out.
         void HandleOtherObjectives()
         {
             var enemyForces = GetComponent<ObjectiveKillEnemyForces>();
