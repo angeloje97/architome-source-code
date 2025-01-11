@@ -53,7 +53,7 @@ namespace Architome
         #endregion
         public void UpdatePrompt()
         {
-            prompt = $"Complete objectives before timer runs out.\n{ArchString.FloatToTimer(timer)} left";
+            var prompt = $"Complete objectives before timer runs out.\n{ArchString.FloatToTimer(timer)} left";
 
             var deadCount = DeadCount();
             if (deadCount.Length > 0)
@@ -65,6 +65,8 @@ namespace Architome
             {
                 prompt = $"Complete";
             }
+
+            UpdatePrompt(prompt);
 
             HandleObjectiveChange();
         }
