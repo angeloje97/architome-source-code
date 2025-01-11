@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using Architome.Enums;
+using System;
 
 namespace Architome
 {
@@ -11,6 +12,7 @@ namespace Architome
         public float timer, deathTimerPenalty;
         public int entityDeaths;
         public bool enableMemberDeaths;
+
         void Start()
         {
         

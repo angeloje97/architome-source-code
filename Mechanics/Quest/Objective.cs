@@ -10,6 +10,7 @@ namespace Architome
     {
         // Start is called before the first frame update
         public string prompt;
+        protected List<string> extraPrompts;
 
         public Quest questInfo;
         public bool isActive = false;
@@ -20,6 +21,8 @@ namespace Architome
         public Action<Objective> OnActivate { get; set; }
         public Action<Objective> OnChange { get; set; }
         public Action<Objective> OnComplete { get; set; }
+
+        public Action<string, List<string>> BeforeUpdateFromNewPrompt;
 
         public void GetDependencies()
         {
@@ -75,6 +78,15 @@ namespace Architome
             isActive = true;
             OnActivate?.Invoke(this);
             questInfo.OnObjectiveActivate?.Invoke(this);
+        }
+
+        public virtual void UpdatePrompt(string newPrompt)
+        {
+            extraPrompts = new();
+
+            BeforeUpdateFromNewPrompt?.Invoke(newPrompt, extraPrompts);
+
+            prompt = newPrompt;
         }
     }
 }
