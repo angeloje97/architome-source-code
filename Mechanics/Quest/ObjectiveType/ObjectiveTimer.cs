@@ -51,6 +51,8 @@ namespace Architome
         }
 
         #endregion
+
+        #region RealTime
         public void UpdatePrompt()
         {
             var prompt = $"Complete objectives before timer runs out.\n{ArchString.FloatToTimer(timer)} left";
@@ -77,7 +79,7 @@ namespace Architome
             timer += time;
             UpdatePrompt();
         }
-        //Cheat Commit because my power went out.
+        #endregion
         void HandleOtherObjectives()
         {
             var enemyForces = GetComponent<ObjectiveKillEnemyForces>();
