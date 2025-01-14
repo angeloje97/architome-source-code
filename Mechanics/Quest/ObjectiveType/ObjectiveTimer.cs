@@ -49,6 +49,31 @@ namespace Architome
 
             questInfo.ForceFail();
         }
+        void HandleOtherObjectives()
+        {
+            var enemyForces = GetComponent<ObjectiveKillEnemyForces>();
+            var killEntity = GetComponent<ObjectiveKillEntity>();
+
+            if (enemyForces)
+            {
+                enemyForces.OnEntityDeathEvent += (CombatEvent eventData) => {
+                    AddTimeFromEntity(eventData.target);
+                };
+
+            }
+        }
+        public void HandleEntityDeath()
+        {
+            if (!enableMemberDeaths) return;
+            var deathHandler = EntityDeathHandler.active;
+
+            deathHandler.OnPlayableEntityDeath += (CombatEvent eventData) => { 
+                entityDeaths++;
+                timer -= deathTimerPenalty;
+                Debugger.Environment(1095, $"Timer: {timer} after taking off {deathTimerPenalty}");
+                UpdatePrompt();
+            };
+        }
 
         #endregion
 
@@ -80,19 +105,7 @@ namespace Architome
             UpdatePrompt();
         }
         #endregion
-        void HandleOtherObjectives()
-        {
-            var enemyForces = GetComponent<ObjectiveKillEnemyForces>();
-            var killEntity = GetComponent<ObjectiveKillEntity>();
 
-            if (enemyForces)
-            {
-                enemyForces.OnEntityDeathEvent += (CombatEvent eventData) => {
-                    AddTimeFromEntity(eventData.target);
-                };
-
-            }
-        }
 
         Dictionary<EntityRarity, float> entityRarityMultiplier = new()
         {
@@ -106,6 +119,11 @@ namespace Architome
         {
             if (!entityRarityMultiplier.ContainsKey(entity.rarity)) return;
             AddTime(baseTime * entityRarityMultiplier[entity.rarity]);
+        }
+        public void OnObjectiveComplete(Objective obj)
+        {
+            if (obj == this) return;
+            HandleObjectiveChange();
         }
 
         #region Properties
@@ -133,25 +151,8 @@ namespace Architome
         }
         
         #endregion
-        public void HandleEntityDeath()
-        {
-            if (!enableMemberDeaths) return;
-            var deathHandler = EntityDeathHandler.active;
-
-            deathHandler.OnPlayableEntityDeath += (CombatEvent eventData) => { 
-                entityDeaths++;
-                timer -= deathTimerPenalty;
-                Debugger.Environment(1095, $"Timer: {timer} after taking off {deathTimerPenalty}");
-                UpdatePrompt();
-            };
-        }
 
 
-        public void OnObjectiveComplete(Objective obj)
-        {
-            if (obj == this) return;
-            HandleObjectiveChange();
-        }
 
         
     }
