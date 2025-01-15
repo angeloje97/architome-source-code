@@ -108,19 +108,16 @@ namespace Architome
             AddTime(baseTime * entityRarityMultiplier[entity.rarity]);
         }
 
-        public void HandleEntityDeath()
+        #region Properties
+        public bool OtherObjectivesComplete()
         {
-            if (!enableMemberDeaths) return;
-            var deathHandler = EntityDeathHandler.active;
-
-            deathHandler.OnPlayableEntityDeath += (CombatEvent eventData) => { 
-                entityDeaths++;
-                timer -= deathTimerPenalty;
-                Debugger.Environment(1095, $"Timer: {timer} after taking off {deathTimerPenalty}");
-                UpdatePrompt();
-            };
+            foreach (var objective in questInfo.ActiveObjectives())
+            {
+                if (objective == this) continue;
+                if (!objective.isComplete) return false;
+            }
+            return true;
         }
-
         public string DeadCount()
         {
             var result = "";
@@ -134,6 +131,21 @@ namespace Architome
 
             return result;
         }
+        
+        #endregion
+        public void HandleEntityDeath()
+        {
+            if (!enableMemberDeaths) return;
+            var deathHandler = EntityDeathHandler.active;
+
+            deathHandler.OnPlayableEntityDeath += (CombatEvent eventData) => { 
+                entityDeaths++;
+                timer -= deathTimerPenalty;
+                Debugger.Environment(1095, $"Timer: {timer} after taking off {deathTimerPenalty}");
+                UpdatePrompt();
+            };
+        }
+
 
         public void OnObjectiveComplete(Objective obj)
         {
@@ -141,15 +153,6 @@ namespace Architome
             HandleObjectiveChange();
         }
 
-        public bool OtherObjectivesComplete()
-        {
-            foreach (var objective in questInfo.ActiveObjectives())
-            {
-                if (objective == this) continue;
-                if (!objective.isComplete) return false;
-            }
-            return true;
-        }
         
     }
 }
