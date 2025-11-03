@@ -266,7 +266,7 @@ namespace Architome
             //var icon = abilityInfo.catalyst.GetComponent<CatalystInfo>().catalystIcon;
 
             //if (icon == null) return;
-
+            if (abilityInfo == null) return;
             if (abilityInfo.Icon() == null) return;
 
             this.abilityInfo = abilityInfo;

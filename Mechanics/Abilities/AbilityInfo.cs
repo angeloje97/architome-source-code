@@ -158,6 +158,15 @@ namespace Architome
         {
             //restrictions.UpdateSelf(this);
             //UnityEditor.EditorUtility.SetDirty(this);
+            if(catalystInfo == null && catalyst)
+            {
+                catalystInfo = catalyst.GetComponent<CatalystInfo>();
+            }
+
+            if(catalystInfo && !abilityIcon && catalystInfo.catalystIcon)
+            {
+                abilityIcon = catalystInfo.catalystIcon;
+            }
 
         }
         public bool isHealing { get { return restrictionHandler.restrictions.isHealing; } }
@@ -237,6 +246,7 @@ namespace Architome
                 return abilityManager.events;
             }
         }
+
         public override void GetDependencies()
         {
             entityInfo = GetComponentInParent<EntityInfo>();
@@ -294,6 +304,7 @@ namespace Architome
                 restrictionHandler.Initiate(this);
             }
         }
+
 
         public override void EUpdate()
         {
@@ -472,12 +483,10 @@ namespace Architome
                 return abilityIcon;
             }
 
-
-            if (catalyst)
+            if (catalystInfo)
             {
-                var info = catalyst.GetComponent<CatalystInfo>();
 
-                return info.Icon();
+                return catalystInfo.Icon();
             }
 
             return abilityIcon;

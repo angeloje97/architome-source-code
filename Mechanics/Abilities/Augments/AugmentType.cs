@@ -7,6 +7,7 @@ using Architome.Enums;
 
 namespace Architome
 {
+    [RequireComponent(typeof(Augment))]
     public class AugmentType : MonoActor
     {
         #region Common Data

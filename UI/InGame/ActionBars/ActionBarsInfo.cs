@@ -69,7 +69,7 @@ public class ActionBarsInfo : MonoBehaviour
             actionBars[index].SetActionBar(signature);
         }
 
-        if(miscActionBars.Count > index)
+        if(miscActionBars.Count > index && utility != null)
         {
             miscActionBars[index].SetActionBar(utility);
         }

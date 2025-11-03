@@ -8,7 +8,7 @@ using Architome.Enums;
 using System.Threading.Tasks;
 
 [RequireComponent(typeof(CanvasGroup))]
-public class EntitySpellBook : MonoBehaviour
+public class SpellBookPage : MonoBehaviour
 {
     // Start is called before the first frame update
 

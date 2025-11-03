@@ -3,6 +3,7 @@ using SharpNav.Crowds;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using UnityEngine;
 
 namespace Architome
@@ -108,15 +109,26 @@ namespace Architome
             action();
         }
 
-        
+        public static bool CheckNull(int id, object obj, string varName, UnityEngine.Object context = null)
+        {
+            if(obj == null)
+            {
+                LogWarning($"[NULL CHECK][{id}] {varName} is null in {context?.name ?? "unkown"} {context}");
+                return true;
+            }
+            return false;
+        }
+
+        static void LogWarning(params string[] messages)
+        {
+            Debug.LogWarning(messages);
+        }
 
         static void Log(int id, string sentence, ALogType type, string prefix = "")
         {
             if (!logDict[type]) return;
             Debug.Log($"{prefix}[{type}]({id}): {sentence}");
         }
-
-
     }
 
 }

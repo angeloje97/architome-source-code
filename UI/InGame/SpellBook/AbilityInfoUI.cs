@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Architome.Enums;
+using UnityEditor.PackageManager;
+using System;
 
 namespace Architome
 {
@@ -15,6 +17,8 @@ namespace Architome
         public ActionBarSlot currentActionBarSlot;
         public ActionBarSlot currentActionBarHover;
 
+        [SerializeField] Image image;
+        [SerializeField] DragAndDrop dragAndDrop;
 
         ToolTipElement toolTipHandler;
         
@@ -76,9 +80,11 @@ namespace Architome
             currentSlot.border.SetAsLastSibling();
         }
 
-        public void SetAbility(AbilityInfo ability)
+        public async void SetAbility(AbilityInfo ability)
         {
             abilityInfo = ability;
+
+            await abilityInfo.UntilInitiationComplete();
 
             if (!ability.CanShow())
             {
@@ -86,21 +92,15 @@ namespace Architome
                 return;
             }
 
-
-            if (abilityInfo.catalystInfo.catalystIcon &&
-                GetComponent<Image>())
-            {
-                GetComponent<Image>().sprite = abilityInfo.catalystInfo.catalystIcon;
-            }
+            image.sprite = abilityInfo.Icon();
+                
 
             if (abilityInfo.abilityType2 == AbilityType2.Passive ||
                 abilityInfo.abilityType2 == AbilityType2.AutoAttack)
             {
-                if (GetComponent<DragAndDrop>())
-                {
-                    GetComponent<DragAndDrop>().enabled = false;
-                }
+                dragAndDrop.enabled = false;
             }
+
         }
 
         public void HandleActionBarSlot(ActionBarSlot slot)

@@ -7,11 +7,12 @@ namespace Architome
 {
     public class SpellBookManager : MonoBehaviour
     {
-        public EntitySpellBook spellBookTemplate;
+        public SpellBookPage pageTemplate;
         public Transform entityPortraitsParent;
         public ModuleInfo module;
 
-        public List<EntitySpellBook> spellBooks;
+        public Transform pagesParent;
+        public List<SpellBookPage> pages;
 
         void Start()
         {
@@ -44,23 +45,20 @@ namespace Architome
 
         public void OnNewPlayableEntity(EntityInfo entity, int index)
         {
-            var newSpellBook = Instantiate(spellBookTemplate.gameObject, transform).GetComponent<EntitySpellBook>();
+            var newPage = Instantiate(pageTemplate, pagesParent);
             var iconTemplate = World.active.prefabsUI.icon;
 
             var newIcon = Instantiate(iconTemplate, entityPortraitsParent).GetComponent<Icon>();
 
-            newSpellBook.SetEntity(entity);
+            newPage.SetEntity(entity);
 
-            if (spellBooks == null)
-            {
-                spellBooks = new();
-            }
+            pages ??= new();
 
-            spellBooks.Add(newSpellBook);
+            pages.Add(newPage);
 
             newIcon.SetIcon(new()
             {
-                data = newSpellBook,
+                data = newPage,
                 sprite = entity.PortraitIcon()
             });
 
@@ -69,20 +67,14 @@ namespace Architome
 
         void OnSelectEntityIcon(Icon icon)
         {
-            if (icon.data.GetType() != typeof(EntitySpellBook)) return;
+            if (icon.data.GetType() != typeof(SpellBookPage)) return;
 
-            foreach (var spellBook in spellBooks)
+            foreach (var page in pages)
             {
-                var canvas = spellBook.GetComponent<CanvasGroup>();
+                var canvas = page.GetComponent<CanvasGroup>();
 
-                ArchUI.SetCanvas(canvas, (EntitySpellBook)icon.data == spellBook);
+                ArchUI.SetCanvas(canvas, (SpellBookPage)icon.data == page);
             }
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-        
         }
     }
 }

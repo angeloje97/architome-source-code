@@ -52,8 +52,6 @@ namespace Architome.Settings.Keybindings
             }
         }
 
-        
-
         void AddListeners()
         {
             if (listening) return;
