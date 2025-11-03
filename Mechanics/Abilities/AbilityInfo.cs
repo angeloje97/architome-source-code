@@ -442,7 +442,7 @@ namespace Architome
         // Augments
         public async void AddAugment(AugmentItem augmentItem)
         {
-            if (augments == null) augments = new();
+            augments ??= new();
             if (augments.ContainsKey(augmentItem))
             {
 

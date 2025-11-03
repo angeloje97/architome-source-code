@@ -18,6 +18,8 @@ public class SpellBookPage : MonoBehaviour
     public GameObject abilityTemplate;
     public ModuleInfo module;
 
+    [SerializeField] ItemSlotHandler itemSlotHandler;
+
 
     void Start()
     {
@@ -29,12 +31,16 @@ public class SpellBookPage : MonoBehaviour
     {
         module = GetComponentInParent<ModuleInfo>();
 
-        var itemSlotHandler = GetComponent<ItemSlotHandler>();
-
-
+        
+        itemSlotHandler ??= GetComponentInParent<ItemSlotHandler>();
+        
         if (itemSlotHandler)
         {
             itemSlotHandler.OnChangeItem += OnChangeItem;
+        }
+        else
+        {
+            Defect.CreateIndicator(transform, "Missing ItemSlotHandler", new Exception($"Could not find item slot handler for {gameObject}"));
         }
     }
 
