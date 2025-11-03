@@ -59,18 +59,10 @@ namespace Architome
 
         protected virtual void GetDependencies()
         {
-            try
-            {
-                module = GetComponentInParent<ModuleInfo>();
-                itemSlotHandler = GetComponentInParent<ItemSlotHandler>();
+            module = GetComponentInParent<ModuleInfo>();
+            itemSlotHandler = GetComponentInParent<ItemSlotHandler>();
 
-                itemSlotHandler.HandleNewSlot(this);
-
-            }
-            catch (Exception e)
-            {
-                Defect.CreateIndicator(transform, "InventorySlot Defect in InventorySlot::GetDependencies()" , e);
-            }
+            itemSlotHandler.HandleNewSlot(this);
         }
         void Start()
         {
@@ -115,25 +107,32 @@ namespace Architome
 
         public void HandleEvents()
         {
-            if (previousItemInfo != currentItemInfo)
+            try
             {
-
-                events.OnItemChange?.Invoke(this, previousItem, item);
-                itemSlotHandler.HandleChangeItem(new()
+                if (previousItemInfo != currentItemInfo)
                 {
-                    itemSlot = this,
-                    newItem = currentItemInfo,
-                    previousItem = previousItemInfo
-                });
 
-                if (currentItemInfo)
-                {
-                    InvokeEvent(InventorySlotEvent.OnDropItem, (this, currentItemInfo));
+                    events.OnItemChange?.Invoke(this, previousItem, item);
+                    itemSlotHandler.HandleChangeItem(new()
+                    {
+                        itemSlot = this,
+                        newItem = currentItemInfo,
+                        previousItem = previousItemInfo
+                    });
+
+                    if (currentItemInfo)
+                    {
+                        InvokeEvent(InventorySlotEvent.OnDropItem, (this, currentItemInfo));
+                    }
+
+                    previousItemInfo = currentItemInfo;
+                    previousItem = item;
+
                 }
 
-                previousItemInfo = currentItemInfo;
-                previousItem = item;
-
+            }catch(Exception ex)
+            {
+                Defect.CreateIndicator(transform, "Trouble handling events", ex);
             }
         }
 
