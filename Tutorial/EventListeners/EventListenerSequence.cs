@@ -108,6 +108,8 @@ namespace Architome.Tutorial
                 dismissable = false,
             });
 
+            Debugger.System(9142, $"Starting event listener {listener.title}");
+
 
             listener.OnSuccessfulEvent +=  (EventListener listener) => {
                 direction.CompleteDirection();

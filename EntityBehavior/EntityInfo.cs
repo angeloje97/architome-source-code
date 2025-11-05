@@ -649,9 +649,9 @@ namespace Architome
                         }
 
                         combatEvents.InvokeGeneral(eCombatEvent.OnDeath, combatData);
+                        combatEvents.InvokeHealthChange(eHealthEvent.OnDeath, combatData);
                         //OnDeath?.Invoke(combatData);
                         source.combatEvents.InvokeHealthChange(eHealthEvent.OnKill, combatData);
-
                         //source.OnKill?.Invoke(combatData);
                     }
                     else

@@ -90,6 +90,7 @@ namespace Architome.Tutorial
                 StartEventListener();
             }
 
+
             HandleSettings();
         }
 
@@ -312,7 +313,7 @@ namespace Architome.Tutorial
         }
 
 
-
+        
         public virtual void StartEventListener()
         {
             initiated = true;

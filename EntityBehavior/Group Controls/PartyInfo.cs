@@ -128,16 +128,25 @@ namespace Architome
 
         }
 
-        void HandleStartingMembers()
+        async void HandleStartingMembers()
         {
             manager = GameManager.active;
 
+            var tasks = new List<Task>();
+            var entities = GetComponentsInChildren<EntityInfo>();
 
-            foreach (var entity in GetComponentsInChildren<EntityInfo>())
+            foreach (var entity in entities)
+            {
+                tasks.Add(entity.UntilGatheredDependencies());
+            }
+
+            await Task.WhenAll(tasks);
+            await Task.Delay(500);
+
+            foreach(var entity in entities)
             {
                 AddMember(entity);
             }
-
         }
 
         void ProcessMember(EntityInfo info)

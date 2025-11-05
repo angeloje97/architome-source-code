@@ -50,7 +50,7 @@ namespace Architome.Tutorial
                 }
             }
 
-            void OnDeath(HealthEvent eventData)
+            void OnDeath(CombatEvent eventData)
             {
                 if (deadTargets.Contains(eventData.target)) return;
                 deadTargets.Add(eventData.target);
